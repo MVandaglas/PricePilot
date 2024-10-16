@@ -24,14 +24,11 @@ if st.button("Start Chat with GPT"):
     try:
         if customer_input:
             st.session_state.chat_history.append({"role": "user", "content": customer_input})
-            prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-            response = openai.Completion.create(
-                engine="text-davinci-002",
-                prompt=prompt,
-                max_tokens=150,
-                stop=["user:", "assistant:"]
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=st.session_state.chat_history
             )
-            assistant_message = response.choices[0].text.strip()
+            assistant_message = response.choices[0].message['content'].strip()
             st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
         elif customer_file:
             if customer_file.type.startswith("image"):
@@ -40,14 +37,11 @@ if st.button("Start Chat with GPT"):
                 # Use pytesseract to extract text
                 extracted_text = pytesseract.image_to_string(image)
                 st.session_state.chat_history.append({"role": "user", "content": extracted_text})
-                prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-                response = openai.Completion.create(
-                    engine="text-davinci-002",
-                    prompt=prompt,
-                    max_tokens=150,
-                    stop=["user:", "assistant:"]
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=st.session_state.chat_history
                 )
-                assistant_message = response.choices[0].text.strip()
+                assistant_message = response.choices[0].message['content'].strip()
                 st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
             else:
                 st.error("File type not supported for processing.")
