@@ -4,10 +4,11 @@ from PIL import Image
 import pytesseract
 from openai import OpenAI
 
-# Set up OpenAI API key
-api_key = os.getenv("OPENAI_API_KEY")
+# Set up OpenAI API key from Streamlit secrets
+api_key = st.secrets["OPENAI_API_KEY"]
+
 if not api_key:
-    st.error("OpenAI API key is missing. Please set the OPENAI_API_KEY environment variable.")
+    st.error("OpenAI API key is missing. Please set the OPENAI_API_KEY environment variable in Streamlit Cloud settings.")
 else:
     client = OpenAI(api_key=api_key)
 
