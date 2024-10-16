@@ -29,6 +29,17 @@ else:
             "offer_size_table": None
         }
 
+    # Load synonyms into a dictionary
+    def load_synonyms():
+        synonym_dict = {}
+        if st.session_state.data_tables["synonym_table"] is not None:
+            synonym_table = st.session_state.data_tables["synonym_table"]
+            for _, row in synonym_table.iterrows():
+                synonym_dict[row["Term"]] = row["Synonym"]
+        return synonym_dict
+
+    synonym_dict = load_synonyms()
+
     st.sidebar.title("Admin Settings")
     if st.sidebar.checkbox("Upload Data Tables (Admin Only)"):
         article_file = st.sidebar.file_uploader("Upload Article Table (CSV or Excel)", type=["csv", "xlsx"], key="article")
@@ -78,17 +89,44 @@ else:
     customer_input = st.text_area("Enter customer request here (email, text, etc.)")
     customer_file = st.file_uploader("Or upload a file (e.g., screenshot or document)", type=["png", "jpg", "jpeg", "pdf"])
 
+    # Function to replace synonyms in input text
+    def replace_synonyms(input_text, synonyms):
+        for term, synonym in synonyms.items():
+            input_text = input_text.replace(term, synonym)
+        return input_text
+
+    # Function to find article details from the article table
+    def find_article_details(synonym):
+        if st.session_state.data_tables["article_table"] is not None:
+            article_table = st.session_state.data_tables["article_table"]
+            filtered_articles = article_table[article_table['ArticleName'].str.contains(synonym, case=False, na=False)]
+            if not filtered_articles.empty:
+                article_number = filtered_articles.iloc[0]['ArticleNumber']
+                article_name = filtered_articles.iloc[0]['ArticleName']
+                return article_number, article_name
+        return None, None
+
     # Handle GPT Chat functionality
     if st.button("Start Chat with GPT"):
         try:
             if customer_input:
-                st.session_state.chat_history.append({"role": "user", "content": customer_input})
+                # Replace synonyms in customer input
+                processed_input = replace_synonyms(customer_input, synonym_dict)
+                st.session_state.chat_history.append({"role": "user", "content": processed_input})
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=st.session_state.chat_history,
                     max_tokens=150
                 )
                 assistant_message = response.choices[0].message.content.strip()
+
+                # Check for synonyms and provide article details if applicable
+                for term, synonym in synonym_dict.items():
+                    if term in customer_input:
+                        article_number, article_name = find_article_details(synonym)
+                        if article_number and article_name:
+                            assistant_message += f"\n\nBedoelt u artikelnummer {article_number}, {article_name}?"
+
                 st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
             elif customer_file:
                 if customer_file.type.startswith("image"):
@@ -96,13 +134,23 @@ else:
                     st.image(image, caption='Uploaded image', use_column_width=True)
                     # Use pytesseract to extract text
                     extracted_text = pytesseract.image_to_string(image)
-                    st.session_state.chat_history.append({"role": "user", "content": extracted_text})
+                    # Replace synonyms in extracted text
+                    processed_input = replace_synonyms(extracted_text, synonym_dict)
+                    st.session_state.chat_history.append({"role": "user", "content": processed_input})
                     response = client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=st.session_state.chat_history,
                         max_tokens=150
                     )
                     assistant_message = response.choices[0].message.content.strip()
+
+                    # Check for synonyms and provide article details if applicable
+                    for term, synonym in synonym_dict.items():
+                        if term in extracted_text:
+                            article_number, article_name = find_article_details(synonym)
+                            if article_number and article_name:
+                                assistant_message += f"\n\nBedoelt u artikelnummer {article_number}, {article_name}?"
+
                     st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                 else:
                     st.error("File type not supported for processing.")
