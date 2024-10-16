@@ -22,12 +22,11 @@ if st.button("Start Chat with GPT"):
     if customer_input:
         # Use GPT to interpret the customer request
         chat_history.append({"role": "user", "content": customer_input})
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt="\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history]),
-            max_tokens=150
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=chat_history
         )
-        assistant_message = response['choices'][0]['text'].strip()
+        assistant_message = response['choices'][0]['message']['content'].strip()
         chat_history.append({"role": "assistant", "content": assistant_message})
         st.text_area("Chat History", value=assistant_message, height=200)
     elif customer_file:
@@ -38,12 +37,11 @@ if st.button("Start Chat with GPT"):
             # Here we simulate the extracted text
             extracted_text = "Simulated text extracted from image."
             chat_history.append({"role": "user", "content": extracted_text})
-            response = openai.Completion.create(
-                engine="text-davinci-003",
-                prompt="\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history]),
-                max_tokens=150
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=chat_history
             )
-            assistant_message = response['choices'][0]['text'].strip()
+            assistant_message = response['choices'][0]['message']['content'].strip()
             chat_history.append({"role": "assistant", "content": assistant_message})
             st.text_area("Chat History", value=assistant_message, height=200)
         else:
