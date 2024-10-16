@@ -34,8 +34,11 @@ else:
         synonym_dict = {}
         if st.session_state.data_tables["synonym_table"] is not None:
             synonym_table = st.session_state.data_tables["synonym_table"]
-            for _, row in synonym_table.iterrows():
-                synonym_dict[row["Term"]] = row["Synonym"]
+            if "Term" in synonym_table.columns and "Synonym" in synonym_table.columns:
+                for _, row in synonym_table.iterrows():
+                    synonym_dict[row["Term"]] = row["Synonym"]
+            else:
+                st.error("Synonym table is missing required columns 'Term' and 'Synonym'.")
         return synonym_dict
 
     synonym_dict = load_synonyms()
