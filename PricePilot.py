@@ -28,7 +28,7 @@ if st.button("Start Chat with GPT"):
         )
         assistant_message = response['choices'][0]['message']['content'].strip()
         chat_history.append({"role": "assistant", "content": assistant_message})
-        st.text_area("Chat History", value="\n".join([f"GPT: {assistant_message}" for assistant_message in [m['content'] for m in chat_history if m['role']=='assistant']]), height=200)
+        st.text_area("Chat History", value="\n".join([f"GPT: {message['content']}" for message in chat_history if message['role'] == 'assistant']), height=200)
     elif customer_file:
         if customer_file.type.startswith("image"):
             image = Image.open(customer_file)
@@ -43,7 +43,7 @@ if st.button("Start Chat with GPT"):
             )
             assistant_message = response['choices'][0]['message']['content'].strip()
             chat_history.append({"role": "assistant", "content": assistant_message})
-            st.text_area("Chat History", value="\n".join([f"GPT: {assistant_message}" for assistant_message in [m['content'] for m in chat_history if m['role']=='assistant']]), height=200)
+            st.text_area("Chat History", value="\n".join([f"GPT: {message['content']}" for message in chat_history if message['role'] == 'assistant']), height=200)
         else:
             st.error("File type not supported for processing.")
     else:
