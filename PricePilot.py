@@ -4,9 +4,8 @@ from PIL import Image
 import pytesseract
 from openai import OpenAI
 
-# Set up OpenAI API key from Streamlit secrets
-api_key = st.secrets["OPENAI_API_KEY"]
-
+# Set up OpenAI API key
+api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API key is missing. Please set the OPENAI_API_KEY environment variable in Streamlit Cloud settings.")
 else:
@@ -30,13 +29,12 @@ else:
             if customer_input:
                 st.session_state.chat_history.append({"role": "user", "content": customer_input})
                 prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-                response = client.completions.create(
-                    model="text-davinci-002",
-                    prompt=prompt,
-                    max_tokens=150,
-                    stop=["user:", "assistant:"]
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=150
                 )
-                assistant_message = response.choices[0].text.strip()
+                assistant_message = response.choices[0].message['content'].strip()
                 st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
             elif customer_file:
                 if customer_file.type.startswith("image"):
@@ -46,13 +44,12 @@ else:
                     extracted_text = pytesseract.image_to_string(image)
                     st.session_state.chat_history.append({"role": "user", "content": extracted_text})
                     prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-                    response = client.completions.create(
-                        model="text-davinci-002",
-                        prompt=prompt,
-                        max_tokens=150,
-                        stop=["user:", "assistant:"]
+                    response = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[{"role": "user", "content": prompt}],
+                        max_tokens=150
                     )
-                    assistant_message = response.choices[0].text.strip()
+                    assistant_message = response.choices[0].message['content'].strip()
                     st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                 else:
                     st.error("File type not supported for processing.")
