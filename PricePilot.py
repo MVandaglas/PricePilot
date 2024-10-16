@@ -36,7 +36,7 @@ else:
             synonym_table = st.session_state.data_tables["synonym_table"]
             if "Synoniemenlijst" in synonym_table.columns and "Artikelnummer" in synonym_table.columns:
                 for _, row in synonym_table.iterrows():
-                    synonym_dict[row["Synoniemenlijst"]] = row["Artikelnummer"]
+                    synonym_dict[row["Synoniemenlijst"]] = str(row["Artikelnummer"])
             else:
                 st.error("Synonym table is missing required columns 'Synoniemenlijst' and 'Artikelnummer'.")
         return synonym_dict
