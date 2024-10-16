@@ -26,7 +26,7 @@ if st.button("Start Chat with GPT"):
             model="gpt-3.5-turbo",
             messages=chat_history
         )
-        assistant_message = response.choices[0].message['content'].strip()
+        assistant_message = response['choices'][0]['message']['content'].strip()
         chat_history.append({"role": "assistant", "content": assistant_message})
         st.text_area("Chat History", value=assistant_message, height=200)
     elif customer_file:
@@ -41,7 +41,7 @@ if st.button("Start Chat with GPT"):
                 model="gpt-3.5-turbo",
                 messages=chat_history
             )
-            assistant_message = response.choices[0].message['content'].strip()
+            assistant_message = response['choices'][0]['message']['content'].strip()
             chat_history.append({"role": "assistant", "content": assistant_message})
             st.text_area("Chat History", value=assistant_message, height=200)
         else:
