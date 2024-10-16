@@ -114,7 +114,7 @@ else:
             if customer_input:
                 # Replace synonyms in customer input
                 processed_input = replace_synonyms(customer_input, synonym_dict)
-                st.session_state.chat_history.append({"role": "user", "content": processed_input})
+                st.session_state.chat_history.append({"role": "user", "content": customer_input})
                 response = client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=st.session_state.chat_history,
@@ -138,7 +138,7 @@ else:
                     extracted_text = pytesseract.image_to_string(image)
                     # Replace synonyms in extracted text
                     processed_input = replace_synonyms(extracted_text, synonym_dict)
-                    st.session_state.chat_history.append({"role": "user", "content": processed_input})
+                    st.session_state.chat_history.append({"role": "user", "content": extracted_text})
                     response = client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=st.session_state.chat_history,
