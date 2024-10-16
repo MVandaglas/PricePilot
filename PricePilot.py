@@ -22,46 +22,13 @@ if st.button("Start Chat with GPT"):
     if customer_input:
         # Use GPT to interpret the customer request
         chat_history.append({"role": "user", "content": customer_input})
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt="\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history]),
-            max_tokens=150
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=chat_history
         )
-        assistant_message = response['choices'][0]['text'].strip()
+        assistant_message = response['choices'][0]['message']['content'].strip()
         chat_history.append({"role": "assistant", "content": assistant_message})
-        st.text_area("Chat History", value=assistant_message, height=200)
+        st.text_area("Chat History", value="\n".join([f"GPT: {assistant_message}" for assistant_message in [m['content'] for m in chat_history if m['role']=='assistant']]), height=200)
     elif customer_file:
         if customer_file.type.startswith("image"):
-            image = Image.open(customer_file)
-            st.image(image, caption='Uploaded image', use_column_width=True)
-            # You would need OCR to extract text from the image (e.g., using pytesseract)
-            # Here we simulate the extracted text
-            extracted_text = "Simulated text extracted from image."
-            chat_history.append({"role": "user", "content": extracted_text})
-            response = openai.Completion.create(
-                engine="text-davinci-003",
-                prompt="\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history]),
-                max_tokens=150
-            )
-            assistant_message = response['choices'][0]['text'].strip()
-            chat_history.append({"role": "assistant", "content": assistant_message})
-            st.text_area("Chat History", value=assistant_message, height=200)
-        else:
-            st.error("File type not supported for processing.")
-    else:
-        st.warning("Please enter some text or upload a file.")
-
-# Display chat history as it evolves
-if chat_history:
-    for chat in chat_history:
-        if chat["role"] == "user":
-            st.write(f"You: {chat['content']}")
-        else:
-            st.write(f"GPT: {chat['content']}")
-
-# Parameters for pricing logic (optional)
-if st.checkbox("Show advanced pricing parameters"):
-    discount_rate = st.slider("Discount Rate (%)", 0, 100, 10)
-    quantity = st.number_input("Quantity", value=1)
-    price_sensitivity = st.selectbox("Price Sensitivity Level", ["Low", "Medium", "High"])
-    st.write("These parameters can be used to customize the pricing recommendation.")
+            image = Image.open(customer
