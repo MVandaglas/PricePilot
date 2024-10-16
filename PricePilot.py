@@ -30,7 +30,7 @@ if st.button("Start Chat with GPT"):
                 prompt=prompt,
                 max_tokens=150
             )
-            assistant_message = response['choices'][0]['text'].strip()
+            assistant_message = response.choices[0].text.strip()
             st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
         elif customer_file:
             if customer_file.type.startswith("image"):
@@ -45,13 +45,13 @@ if st.button("Start Chat with GPT"):
                     prompt=prompt,
                     max_tokens=150
                 )
-                assistant_message = response['choices'][0]['text'].strip()
+                assistant_message = response.choices[0].text.strip()
                 st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
             else:
                 st.error("File type not supported for processing.")
         else:
             st.warning("Please enter some text or upload a file.")
-    except openai.error.OpenAIError as e:
+    except openai.OpenAIError as e:
         st.error(f"An error occurred: {e}")
 
 # Display chat history as it evolves
