@@ -53,7 +53,7 @@ if st.button("Start Chat with GPT"):
                 st.error("File type not supported for processing.")
         else:
             st.warning("Please enter some text or upload a file.")
-    except openai.error.OpenAIError as e:
+    except Exception as e:
         st.error(f"An error occurred: {e}")
 
 # Display chat history as it evolves
