@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import pandas as pd
 from PIL import Image
 import pytesseract
 from openai import OpenAI
@@ -14,6 +15,36 @@ else:
     # Initialize chat history in session state
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
+
+    # Load data tables (only accessible to the admin)
+    if "article_table" not in st.session_state or "synonym_table" not in st.session_state:
+        st.session_state.article_table = None
+        st.session_state.synonym_table = None
+
+    st.sidebar.title("Admin Settings")
+    if st.sidebar.checkbox("Upload Article and Synonym Tables (Admin Only)"):
+        article_file = st.sidebar.file_uploader("Upload Article Table (CSV or Excel)", type=["csv", "xlsx"], key="article")
+        synonym_file = st.sidebar.file_uploader("Upload Synonym Table (CSV or Excel)", type=["csv", "xlsx"], key="synonym")
+
+        if article_file is not None:
+            try:
+                if article_file.name.endswith('.csv'):
+                    st.session_state.article_table = pd.read_csv(article_file)
+                elif article_file.name.endswith('.xlsx'):
+                    st.session_state.article_table = pd.read_excel(article_file)
+                st.sidebar.success("Article Table uploaded successfully!")
+            except Exception as e:
+                st.sidebar.error(f"Failed to load Article Table: {e}")
+
+        if synonym_file is not None:
+            try:
+                if synonym_file.name.endswith('.csv'):
+                    st.session_state.synonym_table = pd.read_csv(synonym_file)
+                elif synonym_file.name.endswith('.xlsx'):
+                    st.session_state.synonym_table = pd.read_excel(synonym_file)
+                st.sidebar.success("Synonym Table uploaded successfully!")
+            except Exception as e:
+                st.sidebar.error(f"Failed to load Synonym Table: {e}")
 
     # Streamlit UI setup
     st.title("PricePilot - Customer Pricing Assistant")
