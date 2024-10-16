@@ -7,6 +7,9 @@ import pytesseract
 # Set up OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+# Initialize OpenAI client
+client = openai
+
 # Initialize chat history in session state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -26,7 +29,7 @@ if st.button("Start Chat with GPT"):
             st.session_state.chat_history.append({"role": "user", "content": customer_input})
             prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
             response = client.completions.create(
-                model="text-davinci-002",
+                engine="text-davinci-002",
                 prompt=prompt,
                 max_tokens=150,
                 stop=["user:", "assistant:"]
@@ -42,7 +45,7 @@ if st.button("Start Chat with GPT"):
                 st.session_state.chat_history.append({"role": "user", "content": extracted_text})
                 prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
                 response = client.completions.create(
-                    model="text-davinci-002",
+                    engine="text-davinci-002",
                     prompt=prompt,
                     max_tokens=150,
                     stop=["user:", "assistant:"]
