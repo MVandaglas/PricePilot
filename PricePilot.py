@@ -1,11 +1,12 @@
 import streamlit as st
-import openai
 import os
 from PIL import Image
 import pytesseract
+from openai import OpenAI
 
-# Set up OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
 
 # Initialize chat history in session state
 if "chat_history" not in st.session_state:
@@ -25,8 +26,8 @@ if st.button("Start Chat with GPT"):
         if customer_input:
             st.session_state.chat_history.append({"role": "user", "content": customer_input})
             prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-            response = openai.Completion.create(
-                engine="text-davinci-002",
+            response = client.completions.create(
+                model="text-davinci-002",
                 prompt=prompt,
                 max_tokens=150,
                 stop=["user:", "assistant:"]
@@ -41,8 +42,8 @@ if st.button("Start Chat with GPT"):
                 extracted_text = pytesseract.image_to_string(image)
                 st.session_state.chat_history.append({"role": "user", "content": extracted_text})
                 prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-                response = openai.Completion.create(
-                    engine="text-davinci-002",
+                response = client.completions.create(
+                    model="text-davinci-002",
                     prompt=prompt,
                     max_tokens=150,
                     stop=["user:", "assistant:"]
