@@ -24,12 +24,12 @@ if st.button("Start Chat with GPT"):
     try:
         if customer_input:
             st.session_state.chat_history.append({"role": "user", "content": customer_input})
-            response = openai.Completion.create(
-                engine="gpt-3.5-turbo",
-                prompt="\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history]),
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=st.session_state.chat_history,
                 max_tokens=150
             )
-            assistant_message = response.choices[0].text.strip()
+            assistant_message = response['choices'][0]['message']['content'].strip()
             st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
         elif customer_file:
             if customer_file.type.startswith("image"):
@@ -38,18 +38,18 @@ if st.button("Start Chat with GPT"):
                 # Use pytesseract to extract text
                 extracted_text = pytesseract.image_to_string(image)
                 st.session_state.chat_history.append({"role": "user", "content": extracted_text})
-                response = openai.Completion.create(
-                    engine="gpt-3.5-turbo",
-                    prompt="\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history]),
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=st.session_state.chat_history,
                     max_tokens=150
                 )
-                assistant_message = response.choices[0].text.strip()
+                assistant_message = response['choices'][0]['message']['content'].strip()
                 st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
             else:
                 st.error("File type not supported for processing.")
         else:
             st.warning("Please enter some text or upload a file.")
-    except openai.OpenAIError as e:
+    except openai.error.OpenAIError as e:
         st.error(f"An error occurred: {e}")
 
 # Display chat history as it evolves
@@ -66,3 +66,4 @@ if st.checkbox("Show advanced pricing parameters"):
     quantity = st.number_input("Quantity", value=1)
     price_sensitivity = st.selectbox("Price Sensitivity Level", ["Low", "Medium", "High"])
     st.write("These parameters can be used to customize the pricing recommendation.")
+    
