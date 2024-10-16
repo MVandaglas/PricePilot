@@ -21,31 +21,34 @@ customer_file = st.file_uploader("Or upload a file (e.g., screenshot or document
 
 # Handle GPT Chat functionality
 if st.button("Start Chat with GPT"):
-    if customer_input:
-        st.session_state.chat_history.append({"role": "user", "content": customer_input})
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=st.session_state.chat_history
-        )
-        assistant_message = response.choices[0].message['content'].strip()
-        st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
-    elif customer_file:
-        if customer_file.type.startswith("image"):
-            image = Image.open(customer_file)
-            st.image(image, caption='Uploaded image', use_column_width=True)
-            # Use pytesseract to extract text
-            extracted_text = pytesseract.image_to_string(image)
-            st.session_state.chat_history.append({"role": "user", "content": extracted_text})
+    try:
+        if customer_input:
+            st.session_state.chat_history.append({"role": "user", "content": customer_input})
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=st.session_state.chat_history
             )
             assistant_message = response.choices[0].message['content'].strip()
             st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
+        elif customer_file:
+            if customer_file.type.startswith("image"):
+                image = Image.open(customer_file)
+                st.image(image, caption='Uploaded image', use_column_width=True)
+                # Use pytesseract to extract text
+                extracted_text = pytesseract.image_to_string(image)
+                st.session_state.chat_history.append({"role": "user", "content": extracted_text})
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=st.session_state.chat_history
+                )
+                assistant_message = response.choices[0].message['content'].strip()
+                st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
+            else:
+                st.error("File type not supported for processing.")
         else:
-            st.error("File type not supported for processing.")
-    else:
-        st.warning("Please enter some text or upload a file.")
+            st.warning("Please enter some text or upload a file.")
+    except openai.error.OpenAIError as e:
+        st.error(f"An error occurred: {e}")
 
 # Display chat history as it evolves
 if st.session_state.chat_history:
