@@ -18,14 +18,16 @@ else:
         st.session_state.chat_history = []
 
     # Load data tables (only accessible to the admin)
-    if "article_table" not in st.session_state or "synonym_table" not in st.session_state or "customer_size_table" not in st.session_state or "customer_prices_table" not in st.session_state or "sharpness_matrix" not in st.session_state or "customer_sales_table" not in st.session_state or "offer_size_table" not in st.session_state:
-        st.session_state.article_table = None
-        st.session_state.synonym_table = None
-        st.session_state.customer_size_table = None
-        st.session_state.customer_prices_table = None
-        st.session_state.sharpness_matrix = None
-        st.session_state.customer_sales_table = None
-        st.session_state.offer_size_table = None
+    if "data_tables" not in st.session_state:
+        st.session_state.data_tables = {
+            "article_table": None,
+            "synonym_table": None,
+            "customer_size_table": None,
+            "customer_prices_table": None,
+            "sharpness_matrix": None,
+            "customer_sales_table": None,
+            "offer_size_table": None
+        }
 
     st.sidebar.title("Admin Settings")
     if st.sidebar.checkbox("Upload Data Tables (Admin Only)"):
@@ -37,75 +39,36 @@ else:
         customer_sales_file = st.sidebar.file_uploader("Upload Customer Sales Table (CSV or Excel)", type=["csv", "xlsx"], key="customer_sales")
         offer_size_file = st.sidebar.file_uploader("Upload Offer Size Table (CSV or Excel)", type=["csv", "xlsx"], key="offer_size")
 
-        if article_file is not None:
+        def load_table(file, table_name):
             try:
-                if article_file.name.endswith('.csv'):
-                    st.session_state.article_table = pd.read_csv(article_file)
-                elif article_file.name.endswith('.xlsx'):
-                    st.session_state.article_table = pd.read_excel(article_file, engine='openpyxl')
-                st.sidebar.success("Article Table uploaded successfully!")
+                if file.name.endswith('.csv'):
+                    st.session_state.data_tables[table_name] = pd.read_csv(file)
+                elif file.name.endswith('.xlsx'):
+                    st.session_state.data_tables[table_name] = pd.read_excel(file, engine='openpyxl')
+                st.sidebar.success(f"{table_name.replace('_', ' ').title()} uploaded successfully!")
             except Exception as e:
-                st.sidebar.error(f"Failed to load Article Table: {e}")
+                st.sidebar.error(f"Failed to load {table_name.replace('_', ' ').title()}: {e}")
+
+        if article_file is not None:
+            load_table(article_file, "article_table")
 
         if synonym_file is not None:
-            try:
-                if synonym_file.name.endswith('.csv'):
-                    st.session_state.synonym_table = pd.read_csv(synonym_file)
-                elif synonym_file.name.endswith('.xlsx'):
-                    st.session_state.synonym_table = pd.read_excel(synonym_file, engine='openpyxl')
-                st.sidebar.success("Synonym Table uploaded successfully!")
-            except Exception as e:
-                st.sidebar.error(f"Failed to load Synonym Table: {e}")
+            load_table(synonym_file, "synonym_table")
 
         if customer_size_file is not None:
-            try:
-                if customer_size_file.name.endswith('.csv'):
-                    st.session_state.customer_size_table = pd.read_csv(customer_size_file)
-                elif customer_size_file.name.endswith('.xlsx'):
-                    st.session_state.customer_size_table = pd.read_excel(customer_size_file, engine='openpyxl')
-                st.sidebar.success("Customer Size Table uploaded successfully!")
-            except Exception as e:
-                st.sidebar.error(f"Failed to load Customer Size Table: {e}")
+            load_table(customer_size_file, "customer_size_table")
 
         if customer_prices_file is not None:
-            try:
-                if customer_prices_file.name.endswith('.csv'):
-                    st.session_state.customer_prices_table = pd.read_csv(customer_prices_file)
-                elif customer_prices_file.name.endswith('.xlsx'):
-                    st.session_state.customer_prices_table = pd.read_excel(customer_prices_file, engine='openpyxl')
-                st.sidebar.success("Customer Prices Table uploaded successfully!")
-            except Exception as e:
-                st.sidebar.error(f"Failed to load Customer Prices Table: {e}")
+            load_table(customer_prices_file, "customer_prices_table")
 
         if sharpness_matrix_file is not None:
-            try:
-                if sharpness_matrix_file.name.endswith('.csv'):
-                    st.session_state.sharpness_matrix = pd.read_csv(sharpness_matrix_file)
-                elif sharpness_matrix_file.name.endswith('.xlsx'):
-                    st.session_state.sharpness_matrix = pd.read_excel(sharpness_matrix_file, engine='openpyxl')
-                st.sidebar.success("Sharpness Matrix uploaded successfully!")
-            except Exception as e:
-                st.sidebar.error(f"Failed to load Sharpness Matrix: {e}")
+            load_table(sharpness_matrix_file, "sharpness_matrix")
 
         if customer_sales_file is not None:
-            try:
-                if customer_sales_file.name.endswith('.csv'):
-                    st.session_state.customer_sales_table = pd.read_csv(customer_sales_file)
-                elif customer_sales_file.name.endswith('.xlsx'):
-                    st.session_state.customer_sales_table = pd.read_excel(customer_sales_file, engine='openpyxl')
-                st.sidebar.success("Customer Sales Table uploaded successfully!")
-            except Exception as e:
-                st.sidebar.error(f"Failed to load Customer Sales Table: {e}")
+            load_table(customer_sales_file, "customer_sales_table")
 
         if offer_size_file is not None:
-            try:
-                if offer_size_file.name.endswith('.csv'):
-                    st.session_state.offer_size_table = pd.read_csv(offer_size_file)
-                elif offer_size_file.name.endswith('.xlsx'):
-                    st.session_state.offer_size_table = pd.read_excel(offer_size_file, engine='openpyxl')
-                st.sidebar.success("Offer Size Table uploaded successfully!")
-            except Exception as e:
-                st.sidebar.error(f"Failed to load Offer Size Table: {e}")
+            load_table(offer_size_file, "offer_size_table")
 
     # Streamlit UI setup
     st.title("PricePilot - Customer Pricing Assistant")
