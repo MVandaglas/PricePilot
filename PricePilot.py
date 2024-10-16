@@ -25,7 +25,7 @@ if st.button("Start Chat with GPT"):
         if customer_input:
             st.session_state.chat_history.append({"role": "user", "content": customer_input})
             prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-            response = openai.Completion.create(
+            response = client.completions.create(
                 engine="text-davinci-002",
                 prompt=prompt,
                 max_tokens=150,
@@ -41,7 +41,7 @@ if st.button("Start Chat with GPT"):
                 extracted_text = pytesseract.image_to_string(image)
                 st.session_state.chat_history.append({"role": "user", "content": extracted_text})
                 prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in st.session_state.chat_history])
-                response = openai.Completion.create(
+                response = client.completions.create(
                     engine="text-davinci-002",
                     prompt=prompt,
                     max_tokens=150,
