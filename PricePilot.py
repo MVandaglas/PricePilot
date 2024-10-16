@@ -34,11 +34,11 @@ else:
         synonym_dict = {}
         if st.session_state.data_tables["synonym_table"] is not None:
             synonym_table = st.session_state.data_tables["synonym_table"]
-            if "Term" in synonym_table.columns and "Synonym" in synonym_table.columns:
+            if "Synoniemenlijst" in synonym_table.columns and "Artikelnummer" in synonym_table.columns:
                 for _, row in synonym_table.iterrows():
-                    synonym_dict[row["Term"]] = row["Synonym"]
+                    synonym_dict[row["Synoniemenlijst"]] = row["Artikelnummer"]
             else:
-                st.error("Synonym table is missing required columns 'Term' and 'Synonym'.")
+                st.error("Synonym table is missing required columns 'Synoniemenlijst' and 'Artikelnummer'.")
         return synonym_dict
 
     synonym_dict = load_synonyms()
@@ -99,14 +99,13 @@ else:
         return input_text
 
     # Function to find article details from the article table
-    def find_article_details(synonym):
+    def find_article_details(article_number):
         if st.session_state.data_tables["article_table"] is not None:
             article_table = st.session_state.data_tables["article_table"]
-            filtered_articles = article_table[article_table['ArticleName'].str.contains(synonym, case=False, na=False)]
+            filtered_articles = article_table[article_table['Material'] == article_number]
             if not filtered_articles.empty:
-                article_number = filtered_articles.iloc[0]['ArticleNumber']
-                article_name = filtered_articles.iloc[0]['ArticleName']
-                return article_number, article_name
+                description = filtered_articles.iloc[0]['Description']
+                return article_number, description
         return None, None
 
     # Handle GPT Chat functionality
@@ -124,11 +123,11 @@ else:
                 assistant_message = response.choices[0].message.content.strip()
 
                 # Check for synonyms and provide article details if applicable
-                for term, synonym in synonym_dict.items():
+                for term, article_number in synonym_dict.items():
                     if term in customer_input:
-                        article_number, article_name = find_article_details(synonym)
-                        if article_number and article_name:
-                            assistant_message += f"\n\nBedoelt u artikelnummer {article_number}, {article_name}?"
+                        article_number, description = find_article_details(article_number)
+                        if article_number and description:
+                            assistant_message += f"\n\nBedoelt u artikelnummer {article_number}, {description}?"
 
                 st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
             elif customer_file:
@@ -148,11 +147,11 @@ else:
                     assistant_message = response.choices[0].message.content.strip()
 
                     # Check for synonyms and provide article details if applicable
-                    for term, synonym in synonym_dict.items():
+                    for term, article_number in synonym_dict.items():
                         if term in extracted_text:
-                            article_number, article_name = find_article_details(synonym)
-                            if article_number and article_name:
-                                assistant_message += f"\n\nBedoelt u artikelnummer {article_number}, {article_name}?"
+                            article_number, description = find_article_details(article_number)
+                            if article_number and description:
+                                assistant_message += f"\n\nBedoelt u artikelnummer {article_number}, {description}?"
 
                     st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                 else:
