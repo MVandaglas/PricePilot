@@ -102,7 +102,7 @@ else:
     def find_article_details(article_number):
         if st.session_state.data_tables["article_table"] is not None:
             article_table = st.session_state.data_tables["article_table"]
-            filtered_articles = article_table[article_table['Material'] == article_number]
+            filtered_articles = article_table[article_table['Material'] == int(article_number)]
             if not filtered_articles.empty:
                 description = filtered_articles.iloc[0]['Description']
                 return article_number, description
