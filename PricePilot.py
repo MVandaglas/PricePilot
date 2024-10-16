@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import pandas as pd
+import openpyxl
 from PIL import Image
 import pytesseract
 from openai import OpenAI
