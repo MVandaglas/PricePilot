@@ -18,11 +18,11 @@ else:
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Load synonyms into a dictionary (from synonyms.py)
-    from synonyms import synonym_dict
+    # Load synonyms into a dictionary (from Synonyms.py)
+    from Synonyms import synonym_dict
 
-    # Load article table from articles.py
-    from articles import article_table
+    # Load article table from Articles.py
+    from Articles import article_table
 
     # Streamlit UI setup
     st.title("PricePilot - Customer Pricing Assistant")
