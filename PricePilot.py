@@ -12,9 +12,7 @@ if not api_key:
 else:
     openai.api_key = api_key
 
-# Initialiseer chatgeschiedenis, offerte DataFrame en klantnummer in sessiestatus
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
     st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
 if "customer_number" not in st.session_state:
@@ -73,12 +71,10 @@ def handle_gpt_chat():
                     data.append([description, article_number, width, height, quantity])
 
             new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True).drop_duplicates()
+            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
 
             response_text += "?"
-            st.session_state.chat_history.append({"role": "user", "content": customer_input})
             st.sidebar.write(response_text)
-            st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
             verification = st.sidebar.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1, key="verification_radio")
             if verification == "Ja":
@@ -128,9 +124,7 @@ def handle_text_input(input_text):
                 response_text += f"- {description} met artikelnummer {article_number}\n"
 
         response_text += "?"
-        st.session_state.chat_history.append({"role": "user", "content": input_text})
         st.sidebar.write(response_text)
-        st.session_state.chat_history.append({"role": "assistant", "content": response_text})
     else:
         st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
 
@@ -148,9 +142,3 @@ if st.session_state.offer_df is not None:
     if st.button("Sla artikelen op in geheugen"):
         st.session_state.saved_offer_df = st.session_state.offer_df.copy()
         st.success("Artikelen succesvol opgeslagen in het geheugen.")
-
-# Toon chatgeschiedenis
-if st.session_state.chat_history:
-    for chat in st.session_state.chat_history:
-        role = "U" if chat["role"] == "user" else "GPT"
-        st.sidebar.write(f"{role}: {chat['content']}")
