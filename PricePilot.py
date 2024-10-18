@@ -4,8 +4,7 @@ import pandas as pd
 import openpyxl
 from PIL import Image
 import pytesseract
-import OpenAI from "openai";
-const openai = new OpenAI();
+import openai
 from fuzzywuzzy import process
 
 # Stel de OpenAI API-sleutel in
@@ -72,7 +71,7 @@ if st.button("Verstuur chat met GPT"):
                         st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                     else:
                         st.session_state.chat_history.append({"role": "user", "content": customer_input})
-                        response = openai.ChatCompletion.create(
+                        response = openai.chat.completions.create(
                             model="gpt-3.5-turbo",
                             messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                             max_tokens=150
@@ -99,7 +98,7 @@ if st.button("Verstuur chat met GPT"):
                             st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                         else:
                             st.session_state.chat_history.append({"role": "user", "content": extracted_text})
-                            response = openai.ChatCompletion.create(
+                            response = openai.chat.completions.create(
                                 model="gpt-3.5-turbo",
                                 messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                                 max_tokens=150
