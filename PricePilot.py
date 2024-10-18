@@ -84,16 +84,16 @@ if st.button("Verstuur chat met GPT"):
                                 size_part = parts[1].strip().split()[0]
                                 if "x" in size_part:
                                     width, height = size_part.split("x")
-                                    width = f", {width.strip()}"
-                                    height = f"x{height.strip()}"
-                        response_text += f"- {quantity}{description} met artikelnummer {article_number}{width}{height}\n"
+                                    width = width.strip()
+                                    height = height.strip()
+                        response_text += f"- {quantity}{description} met artikelnummer {article_number}, {width}x{height}\n"
 
                 response_text += "?"
                 st.session_state.chat_history.append({"role": "user", "content": customer_input})
                 st.write(response_text)
                 st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
-                # Toevoegen van goedkeuringsvraag
+                # Toevoegen van goedkeuringsvraag zonder standaardwaarde
                 user_confirmation = st.radio("Klopt dit?", ("Ja", "Nee"), index=-1)
                 if user_confirmation == "Ja":
                     st.write("Bedankt voor uw bevestiging. We gaan verder met de offerte.")
