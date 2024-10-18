@@ -92,6 +92,15 @@ if st.button("Verstuur chat met GPT"):
                 st.session_state.chat_history.append({"role": "user", "content": customer_input})
                 st.write(response_text)
                 st.session_state.chat_history.append({"role": "assistant", "content": response_text})
+
+                # Toevoegen van goedkeuringsvraag
+                user_confirmation = st.radio("Klopt dit?", ("Ja", "Nee"))
+                if user_confirmation == "Ja":
+                    st.write("Bedankt voor uw bevestiging. We gaan verder met de offerte.")
+                    st.session_state.chat_history.append({"role": "user", "content": "Ja, dit klopt."})
+                else:
+                    st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
+                    st.session_state.chat_history.append({"role": "user", "content": "Nee, dit klopt niet."})
             else:
                 st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
         elif customer_file:
