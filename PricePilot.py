@@ -39,7 +39,6 @@ price_sharpness_data = [
     {"Klantgrootte": "D", "Offertegrootte": 4, "Prijsscherpte": 80}
 ]
 price_sharpness_df = pd.DataFrame(price_sharpness_data)
-}
 
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
