@@ -12,16 +12,18 @@ if not api_key:
 else:
     openai.api_key = api_key
 
-# Hard gecodeerde klantgegevens
+customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+
+if customer_number in customer_data:
+    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}" )
+
 customer_data = {
     "111111": {"revenue": "40.000 euro", "size": "D"},
     "222222": {"revenue": "140.000 euro", "size": "B"},
     "333333": {"revenue": "600.000 euro", "size": "A"}
 }
 
-if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
