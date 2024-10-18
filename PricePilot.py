@@ -74,7 +74,7 @@ if st.button("Verstuur chat met GPT"):
                         ],
                         max_tokens=150
                     )
-                    assistant_message = response.choices[0].message["content"].strip()
+                    assistant_message = response.choices[0].message.content.strip()
 
                     st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                     st.write(f"GPT: {assistant_message}")
