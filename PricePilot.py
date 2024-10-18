@@ -71,11 +71,12 @@ else:
                             st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                         else:
                             st.session_state.chat_history.append({"role": "user", "content": customer_input})
-                            response = client.chat_completions.create(
-                                model="gpt-3.5-turbo",
-                                messages=st.session_state.chat_history,
-                                max_tokens=150
-                            )
+                        response = openai.ChatCompletion.create(
+                            model="gpt-3.5-turbo",
+                            messages=st.session_state.chat_history,
+                            max_tokens=150
+                        )
+
                             assistant_message = response.choices[0].message.content.strip()
                             st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                 else:
