@@ -36,8 +36,6 @@ article_table = pd.DataFrame(article_table)
 st.sidebar.title("PricePilot - Klantprijsassistent")
 st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
-
-
 if guestimate_offer_size > 50000:
     estimated_size_category = 4
 elif guestimate_offer_size > 25000:
