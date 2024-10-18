@@ -51,10 +51,11 @@ def find_article_details(article_number):
 
 # Functie om fuzzy matching uit te voeren op klantinvoer
 def fuzzy_match_synonyms(input_text, synonyms, threshold=80):
-    matched_term, score = process.extractOne(input_text, synonyms.keys())
+    matched_term, score = process.extractOne(input_text, list(synonyms.keys()))
     if score >= threshold:
-        return synonyms[matched_term]
+        return synonyms.get(matched_term)
     return None
+
 
 # GPT Chat functionaliteit afhandelen
 if st.button("Verstuur chat met GPT"):
