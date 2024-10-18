@@ -50,7 +50,7 @@ def find_article_details(article_number):
     return None, None
 
 # Functie om fuzzy matching uit te voeren op klantinvoer
-def fuzzy_match_synonyms(input_text, synonyms, threshold=80):
+def fuzzy_match_synonyms(input_text, synonyms, threshold=95):
     matched_term, score = process.extractOne(input_text, list(synonyms.keys()))
     if score >= threshold:
         return matched_term, synonyms.get(matched_term)
