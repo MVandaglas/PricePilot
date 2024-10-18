@@ -24,6 +24,9 @@ else:
     # Load article table from Articles.py
     from Articles import article_table
 
+    # Convert article_table from dictionary to DataFrame
+    article_table = pd.DataFrame.from_dict(article_table)
+
     # Streamlit UI setup
     st.title("PricePilot - Customer Pricing Assistant")
     st.write("This is a tool for generating customer-specific pricing, based on provided inputs.")
