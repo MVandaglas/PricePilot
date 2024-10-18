@@ -12,11 +12,31 @@ if not api_key:
 else:
     openai.api_key = api_key
 
-# Hard gecodeerde klantgegevens
-customer_data = {
-    "111111": {"revenue": "40.000 euro", "size": "D"},
-    "222222": {"revenue": "140.000 euro", "size": "B"},
-    "333333": {"revenue": "600.000 euro", "size": "A"}
+
+
+
+# Inputveld voor geschatte offertegrootte
+guestimate_offer_size = st.sidebar.number_input("Geschatte offertegrootte in euro", min_value=0, step=1000)
+
+# Only-read veld voor de categorie van offertegrootte
+if guestimate_offer_size > 50000:
+    estimated_size_category = 4
+elif guestimate_offer_size > 25000:
+    estimated_size_category = 3
+elif guestimate_offer_size > 10000:
+    estimated_size_category = 2
+else:
+    estimated_size_category = 1
+
+st.sidebar.write(f"Categorie offertegrootte: {estimated_size_category}")
+
+# Toon prijsscherpte op basis van klantgrootte en offertegrootte
+if customer_number in customer_data:
+    customer_size = customer_data[customer_number]['size']
+    price_sharpness_row = price_sharpness_df[(price_sharpness_df['Klantgrootte'] == customer_size) & (price_sharpness_df['Offertegrootte'] == estimated_size_category)]
+    if not price_sharpness_row.empty:
+        price_sharpness = price_sharpness_row.iloc[0]['Prijsscherpte']
+        st.sidebar.write(f"Prijsscherpte: {price_sharpness}")
 }
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
@@ -41,9 +61,26 @@ customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, te
 customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
 customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
 
-if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+
+    # Toon prijsscherpte op basis van klantgrootte en offertegrootte
+    guestimate_offer_size = st.sidebar.number_input("Geschatte offertegrootte in euro", min_value=0, step=1000)
+
+    if guestimate_offer_size > 50000:
+        estimated_size_category = 4
+    elif guestimate_offer_size > 25000:
+        estimated_size_category = 3
+    elif guestimate_offer_size > 10000:
+        estimated_size_category = 2
+    else:
+        estimated_size_category = 1
+
+    st.sidebar.write(f"Categorie offertegrootte: {estimated_size_category}")
+
+    customer_size = customer_data[customer_number]['size']
+    price_sharpness_row = price_sharpness_df[(price_sharpness_df['Klantgrootte'] == customer_size) & (price_sharpness_df['Offertegrootte'] == estimated_size_category)]
+    if not price_sharpness_row.empty:
+        price_sharpness = price_sharpness_row.iloc[0]['Prijsscherpte']
+        st.sidebar.write(f"Prijsscherpte: {price_sharpness}")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
@@ -75,3 +112,81 @@ def handle_gpt_chat():
             data = []
             for term, article_number in matched_articles:
                 description = find_article_details(article_number)
+                if description:
+                    quantity, width, height = extract_dimensions(customer_input, term)
+                    if quantity.endswith('x'):
+                        quantity = quantity[:-1].strip()
+                    data.append([description, article_number, width, height, quantity])
+
+            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
+            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
+
+            response_text += "?"
+            st.sidebar.write(response_text)
+
+            verification = st.sidebar.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), key="verification_radio")
+            if verification == "Ja":
+                st.sidebar.write("Dank u voor de bevestiging. We zullen verder gaan met de offerte.")
+            elif verification == "Nee":
+                st.sidebar.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
+        else:
+            st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
+    elif customer_file:
+        handle_file_upload(customer_file)
+    else:
+        st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
+# Functie om bestand te verwerken
+def handle_file_upload(file):
+    if file.type.startswith("image"):
+        image = Image.open(file)
+        st.sidebar.image(image, caption='Geüploade afbeelding', use_column_width=True)
+        extracted_text = pytesseract.image_to_string(image)
+        handle_text_input(extracted_text)
+    else:
+        st.sidebar.error("Bestandstype wordt niet ondersteund voor verwerking.")
+
+# Functie om afmetingen uit tekst te halen
+def extract_dimensions(text, term):
+    quantity, width, height = "", "", ""
+    parts = text.split(term)
+    if len(parts) > 0:
+        quantity_part = parts[0].strip().split()[-1]
+        if quantity_part.isdigit() or "x" in quantity_part or "stuks" in quantity_part.lower() or "aantal" in quantity_part.lower():
+            quantity = quantity_part
+    if len(parts) > 1:
+        size_part = parts[1].strip().split()[0]
+        if "x" in size_part:
+            width, height = size_part.split("x")
+    return quantity, width, height
+
+# Functie om tekstinvoer te verwerken
+def handle_text_input(input_text):
+    matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in input_text]
+
+    if matched_articles:
+        response_text = "Bedoelt u de volgende samenstellingen:"
+        for term, article_number in matched_articles:
+            description = find_article_details(article_number)
+            if description:
+                response_text += f"- {description} met artikelnummer {article_number}\n"
+
+        response_text += "?"
+        st.sidebar.write(response_text)
+    else:
+        st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
+
+# Verwerk chat met GPT
+if st.sidebar.button("Verstuur chat met GPT"):
+    try:
+        handle_gpt_chat()
+    except Exception as e:
+        st.sidebar.error(f"Er is een fout opgetreden: {e}")
+
+# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
+if st.session_state.offer_df is not None:
+    st.title("Offerteoverzicht")
+    st.session_state.offer_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
+    if st.button("Sla artikelen op in geheugen"):
+        st.session_state.saved_offer_df = st.session_state.offer_df.copy()
+        st.success("Artikelen succesvol opgeslagen in het geheugen.")
