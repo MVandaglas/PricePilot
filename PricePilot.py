@@ -4,7 +4,7 @@ import pandas as pd
 import openpyxl
 from PIL import Image
 import pytesseract
-from openai import OpenAI
+import openai
 
 client = OpenAI()
 from fuzzywuzzy import process
