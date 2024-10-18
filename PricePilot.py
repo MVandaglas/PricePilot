@@ -66,7 +66,7 @@ if st.button("Verstuur chat met GPT"):
                 article_number, description = find_article_details(matched_article_number)
                 if article_number and description:
                     st.session_state.chat_history.append({"role": "user", "content": customer_input})
-                    response = openai.ChatCompletion.create(
+                    response = openai.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": "Je bent een assistent die helpt bij het opstellen van offertes en het controleren van artikelnummers."},
@@ -93,7 +93,7 @@ if st.button("Verstuur chat met GPT"):
                     article_number, description = find_article_details(matched_article_number)
                     if article_number and description:
                         st.session_state.chat_history.append({"role": "user", "content": extracted_text})
-                        response = openai.ChatCompletion.create(
+                        response = openai.chat.completions.create(
                             model="gpt-3.5-turbo",
                             messages=[
                                 {"role": "system", "content": "Je bent een assistent die helpt bij het opstellen van offertes en het controleren van artikelnummers."},
