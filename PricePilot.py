@@ -40,6 +40,21 @@ st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijze
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
 customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+# Inputveld voor geschatte offertegrootte
+guestimate_offer_size = st.sidebar.number_input("Geschatte offertegrootte in euro", min_value=0, step=1000)
+
+# Only-read veld voor de categorie van offertegrootte
+if guestimate_offer_size > 50000:
+    estimated_size_category = 4
+elif guestimate_offer_size > 25000:
+    estimated_size_category = 3
+elif guestimate_offer_size > 10000:
+    estimated_size_category = 2
+else:
+    estimated_size_category = 1
+
+st.sidebar.write(f"Categorie offertegrootte: {estimated_size_category}")
+
 
 if customer_number in customer_data:
     st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
