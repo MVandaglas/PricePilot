@@ -5,7 +5,6 @@ import openpyxl
 from PIL import Image
 import pytesseract
 import openai
-import numpy as np
 
 # Stel de OpenAI API-sleutel in
 api_key = os.getenv("OPENAI_API_KEY")
@@ -56,23 +55,6 @@ def match_synonyms(input_text, synonyms):
             return synonyms.get(term)
     return None
 
-# Functie om quantity, width, en height te extraheren uit de klantinput
-def extract_order_details(input_text, term):
-    quantity, width, height = "", "", ""
-    if f"{term}" in input_text:
-        parts = input_text.split(term)
-        if len(parts) > 0:
-            quantity_part = parts[0].strip().split()[-1]
-            if quantity_part.isdigit() or 'x' in quantity_part or 'stuks' in quantity_part or 'aantal' in quantity_part:
-                quantity = quantity_part
-        if len(parts) > 1:
-            size_part = parts[1].strip().split()[0]
-            if "x" in size_part:
-                width, height = size_part.split("x")
-                width = width.strip()
-                height = height.strip()
-    return quantity, width, height
-
 # GPT Chat functionaliteit afhandelen
 if st.button("Verstuur chat met GPT"):
     try:
@@ -85,22 +67,38 @@ if st.button("Verstuur chat met GPT"):
 
             if matched_articles:
                 response_text = "Bedoelt u de volgende samenstellingen:\n"
-                data = []
                 for term, article_number in matched_articles:
                     _, description = find_article_details(article_number)
                     if description:
                         # Extract quantity, width, and height from customer input
-                        quantity, width, height = extract_order_details(customer_input, term)
-                        data.append([description, article_number, width, height, quantity])
-
-                # Converteer naar DataFrame voor tabelweergave
-                df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-                edited_df = st.experimental_data_editor(df, num_rows="dynamic")
+                        quantity = ""
+                        width = ""
+                        height = ""
+                        if f"{term}" in customer_input:
+                            parts = customer_input.split(term)
+                            if len(parts) > 0:
+                                quantity_part = parts[0].strip().split()[-1]
+                                if quantity_part.isdigit() or "x" in quantity_part or "stuks" in quantity_part.lower() or "aantal" in quantity_part.lower():
+                                    quantity = f"{quantity_part} stuks "
+                            if len(parts) > 1:
+                                size_part = parts[1].strip().split()[0]
+                                if "x" in size_part:
+                                    width, height = size_part.split("x")
+                                    width = f", {width.strip()}"
+                                    height = f"x{height.strip()}"
+                        response_text += f"- {quantity}{description} met artikelnummer {article_number}{width}{height}\n"
 
                 response_text += "?"
                 st.session_state.chat_history.append({"role": "user", "content": customer_input})
                 st.write(response_text)
                 st.session_state.chat_history.append({"role": "assistant", "content": response_text})
+
+                # Verificatie stap
+                verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1)
+                if verification == "Ja":
+                    st.write("Dank u voor de bevestiging. We zullen verder gaan met de offerte.")
+                elif verification == "Nee":
+                    st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
             else:
                 st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
         elif customer_file:
@@ -117,16 +115,10 @@ if st.button("Verstuur chat met GPT"):
 
                 if matched_articles:
                     response_text = "Bedoelt u de volgende samenstellingen:\n"
-                    data = []
                     for term, article_number in matched_articles:
                         _, description = find_article_details(article_number)
                         if description:
-                            quantity, width, height = extract_order_details(extracted_text, term)
-                            data.append([description, article_number, width, height, quantity])
-
-                    # Converteer naar DataFrame voor tabelweergave
-                    df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-                    edited_df = st.experimental_data_editor(df, num_rows="dynamic")
+                            response_text += f"- {description} met artikelnummer {article_number}\n"
 
                     response_text += "?"
                     st.session_state.chat_history.append({"role": "user", "content": extracted_text})
