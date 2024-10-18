@@ -56,6 +56,13 @@ def fuzzy_match_synonyms(input_text, synonyms, threshold=80):
         return synonyms.get(matched_term)
     return None
 
+# Verbeterde functie om fuzzy matching uit te voeren
+def fuzzy_match_synonyms(input_text, synonyms, threshold=80):
+    matched_term, score = process.extractOne(input_text, list(synonyms.keys()))
+    if score >= threshold:
+        return synonyms.get(matched_term)
+    return None
+
 # Voer fuzzy matching uit om mogelijke artikelen te vinden
 matched_article_number = fuzzy_match_synonyms(customer_input, synonym_dict)
 if matched_article_number:
@@ -73,6 +80,7 @@ if matched_article_number:
         st.write(f"GPT: {assistant_message}")
 else:
     st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
+
         elif customer_file:
             if customer_file.type.startswith("image"):
                 image = Image.open(customer_file)
