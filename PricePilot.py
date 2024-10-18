@@ -4,7 +4,9 @@ import pandas as pd
 import openpyxl
 from PIL import Image
 import pytesseract
-import openai
+from openai import OpenAI
+
+client = OpenAI()
 from fuzzywuzzy import process
 
 # Stel de OpenAI API-sleutel in
@@ -69,12 +71,10 @@ if st.button("Start chat met GPT"):
                         st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                     else:
                         st.session_state.chat_history.append({"role": "user", "content": customer_input})
-                        response = openai.ChatCompletion.create(
-                            model="gpt-3.5-turbo",
-                            messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
-                            max_tokens=150
-                        )
-                        assistant_message = response['choices'][0]['message']['content'].strip()
+                        response = client.chat.completions.create(model="gpt-3.5-turbo",
+                        messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
+                        max_tokens=150)
+                        assistant_message = response.choices[0].message.content.strip()
                         st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                         st.write(f"GPT: {assistant_message}")
             else:
@@ -96,12 +96,10 @@ if st.button("Start chat met GPT"):
                             st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                         else:
                             st.session_state.chat_history.append({"role": "user", "content": extracted_text})
-                            response = openai.ChatCompletion.create(
-                                model="gpt-3.5-turbo",
-                                messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
-                                max_tokens=150
-                            )
-                            assistant_message = response['choices'][0]['message']['content'].strip()
+                            response =client.chat.completions..creat( model="gpt-3.5-turbo",
+                             messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
+                             max_tokens=15))
+                            assistant_message = respons.'choice][0.'messag.'conten].strip()
                             st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                             st.write(f"GPT: {assistant_message}")
                 else:
