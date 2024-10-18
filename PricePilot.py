@@ -66,7 +66,7 @@ if st.button("Verstuur chat met GPT"):
                     matched_articles.append((term, synonym_dict[term]))
 
             if matched_articles:
-                response_text = "Bedoelt u de volgende samenstellingen:\n"
+                response_text = "Bedoelt u de volgende samenstellingen:"
                 data = []
                 for term, article_number in matched_articles:
                     _, description = find_article_details(article_number)
@@ -88,7 +88,7 @@ if st.button("Verstuur chat met GPT"):
                         data.append([description, article_number, width, height, quantity])
 
                 df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-                edited_df = st.experimental_data_editor(df, num_rows="dynamic")
+                edited_df = st.data_editor(df, num_rows="dynamic")
 
                 response_text += "?"
                 st.session_state.chat_history.append({"role": "user", "content": customer_input})
@@ -96,7 +96,7 @@ if st.button("Verstuur chat met GPT"):
                 st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
                 # Verificatie stap
-                verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1)
+                verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1, key="verification_radio")
                 if verification == "Ja":
                     st.write("Dank u voor de bevestiging. We zullen verder gaan met de offerte.")
                 elif verification == "Nee":
@@ -116,7 +116,7 @@ if st.button("Verstuur chat met GPT"):
                         matched_articles.append((term, synonym_dict[term]))
 
                 if matched_articles:
-                    response_text = "Bedoelt u de volgende samenstellingen:\n"
+                    response_text = "Bedoelt u de volgende samenstellingen:"
                     for term, article_number in matched_articles:
                         _, description = find_article_details(article_number)
                         if description:
