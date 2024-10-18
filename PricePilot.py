@@ -16,7 +16,7 @@ else:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = None
+    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
 
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
@@ -69,8 +69,8 @@ def handle_gpt_chat():
                         quantity = quantity[:-1].strip()
                     data.append([description, article_number, width, height, quantity])
 
-            df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-            st.session_state.offer_df = df
+            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
+            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
 
             response_text += "?"
             st.session_state.chat_history.append({"role": "user", "content": customer_input})
