@@ -66,7 +66,7 @@ if st.button("Verstuur chat met GPT"):
                 article_number, description = find_article_details(matched_article_number)
                 if article_number and description:
                     st.session_state.chat_history.append({"role": "user", "content": customer_input})
-                    response = openai.ChatCompletion.create(
+                    response = openai.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                         max_tokens=150
@@ -89,7 +89,7 @@ if st.button("Verstuur chat met GPT"):
                     article_number, description = find_article_details(matched_article_number)
                     if article_number and description:
                         st.session_state.chat_history.append({"role": "user", "content": extracted_text})
-                        response = openai.ChatCompletion.create(
+                        response = openai.chat.completions.create(
                             model="gpt-3.5-turbo",
                             messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                             max_tokens=150
