@@ -5,7 +5,6 @@ import openpyxl
 from PIL import Image
 import pytesseract
 import openai
-from fuzzywuzzy import process
 
 # Stel de OpenAI API-sleutel in
 api_key = os.getenv("OPENAI_API_KEY")
@@ -51,32 +50,31 @@ def find_article_details(article_number):
 
 # Functie om exacte matching uit te voeren op klantinvoer
 def match_synonyms(input_text, synonyms):
-    return synonyms.get(input_text)
-    
+    for term in synonyms:
+        if term in input_text:
+            return synonyms.get(term)
+    return None
+
 # GPT Chat functionaliteit afhandelen
 if st.button("Verstuur chat met GPT"):
     try:
         if customer_input:
-           # Voer exacte matching uit om mogelijke artikelen te vinden
+            # Voer exacte matching uit om mogelijke artikelen te vinden
             matched_article_number = match_synonyms(customer_input, synonym_dict)
             if matched_article_number:
-                    article_number, description = find_article_details(matched_article_number)
-                    if article_number and description:
-                        st.write(f"Bedoelt u artikelnummer {article_number} ({matched_article_term}): {description}?")
-
-        
+                article_number, description = find_article_details(matched_article_number)
+                if article_number and description:
                     st.session_state.chat_history.append({"role": "user", "content": customer_input})
                     response = openai.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[
-                            {"role": "system", "content": "Je bent een assistent die helpt bij het opstellen van offertes binnen de glasbranche en moet uit een stuk input van de gebruiker de artikelnaam en artikelnummers identificeren."},
+                            {"role": "system", "content": "Je bent een assistent die helpt bij het opstellen van offertes en het controleren van artikelnummers."},
                             *[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                             {"role": "user", "content": f"Controleer of artikelnummer {article_number} overeenkomt met de klantvraag: {description}."}
                         ],
                         max_tokens=150
                     )
-                    assistant_message = response.choices[0].message.content.strip()
-
+                    assistant_message = response.choices[0].message["content"].strip()
 
                     st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                     st.write(f"GPT: {assistant_message}")
@@ -104,7 +102,6 @@ if st.button("Verstuur chat met GPT"):
                             max_tokens=150
                         )
                         assistant_message = response.choices[0].message.content.strip()
-
 
                         st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                         st.write(f"GPT: {assistant_message}")
