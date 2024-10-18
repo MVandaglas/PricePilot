@@ -48,18 +48,22 @@ def find_article_details(article_number):
         return article_number, description
     return None, None
 
-# Verzamel alle matches in één bericht
-if matched_article_number:
-    matched_articles = []
-    article_number, description = find_article_details(matched_article_number)
-    if article_number and description:
-        matched_articles.append(f"{description} met artikelnummer {article_number}")
+# Voer exacte matching uit om mogelijke artikelen te vinden
+matched_articles = []
+for term in synonym_dict:
+    if term in customer_input:
+        matched_articles.append((term, synonym_dict[term]))
 
-    if matched_articles:
-        match_message = "Bedoelt u de volgende samenstellingen:\n" + "\n".join(matched_articles) + "\n?"
-        st.session_state.chat_history.append({"role": "user", "content": customer_input})
-        st.write(f"GPT: {match_message}")
-        st.session_state.chat_history.append({"role": "assistant", "content": match_message})
+if matched_articles:
+    response_text = "Bedoelt u de volgende samenstellingen:\n"
+    for term, article_number in matched_articles:
+        _, description = find_article_details(article_number)
+        response_text += f"- {description} met artikelnummer {article_number}\n"
+
+    response_text += "?"
+    st.session_state.chat_history.append({"role": "user", "content": customer_input})
+    st.write(response_text)
+    st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
         elif customer_file:
             if customer_file.type.startswith("image"):
