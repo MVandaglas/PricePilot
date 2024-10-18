@@ -94,11 +94,11 @@ if st.button("Verstuur chat met GPT"):
                 st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
                 # Toevoegen van goedkeuringsvraag
-                user_confirmation = st.radio("Klopt dit?", ("Ja", "Nee"))
+                user_confirmation = st.radio("Klopt dit?", ("Ja", "Nee"), index=-1)
                 if user_confirmation == "Ja":
                     st.write("Bedankt voor uw bevestiging. We gaan verder met de offerte.")
                     st.session_state.chat_history.append({"role": "user", "content": "Ja, dit klopt."})
-                else:
+                elif user_confirmation == "Nee":
                     st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                     st.session_state.chat_history.append({"role": "user", "content": "Nee, dit klopt niet."})
             else:
@@ -142,10 +142,3 @@ if st.session_state.chat_history:
             st.write(f"U: {chat['content']}")
         else:
             st.write(f"GPT: {chat['content']}")
-
-# Parameters voor prijslogica (optioneel)
-if st.checkbox("Toon geavanceerde prijsparameters"):
-    discount_rate = st.slider("Kortingstarief (%)", 0, 100, 10)
-    quantity = st.number_input("Hoeveelheid", value=1)
-    price_sensitivity = st.selectbox("Prijselasticiteitniveau", ["Laag", "Gemiddeld", "Hoog"])
-    st.write("Deze parameters kunnen worden gebruikt om de prijsaanbeveling aan te passen.")
