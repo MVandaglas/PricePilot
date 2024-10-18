@@ -19,6 +19,15 @@ customer_data = {
     "333333": {"revenue": "600.000 euro", "size": "A"}
 }
 
+# Hard gecodeerde prijsscherpte matrix
+price_sharpness_matrix = pd.DataFrame({
+    1: {'A': 55, 'B': 40, 'C': 30, 'D': 0},
+    2: {'A': 70, 'B': 60, 'C': 50, 'D': 30},
+    3: {'A': 85, 'B': 75, 'C': 65, 'D': 50},
+    4: {'A': 100, 'B': 90, 'C': 80, 'D': 80}
+})
+}
+
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
     st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
