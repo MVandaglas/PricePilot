@@ -69,7 +69,7 @@ if st.button("Verstuur chat met GPT"):
                     response = openai.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=[
-                            {"role": "system", "content": "Je bent een assistent die helpt bij het opstellen van offertes en het controleren van artikelnummers."},
+                            {"role": "system", "content": "Je bent een assistent die helpt bij het opstellen van offertes binnen de glasbranche en moet uit een stuk input van de gebruiker de artikelnaam en artikelnummers identificeren."},
                             *[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                             {"role": "user", "content": f"Controleer of artikelnummer {article_number} overeenkomt met de klantvraag: {description}."}
                         ],
