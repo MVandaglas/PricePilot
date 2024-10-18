@@ -76,6 +76,7 @@ else:
     estimated_size_category = 1
 
 st.sidebar.write(f"Categorie offertegrootte: {estimated_size_category}")
+st.sidebar.write(f"Prijsscherpte: {price_sharpness_data}")
 
 
 if customer_number in customer_data:
