@@ -37,7 +37,6 @@ st.sidebar.title("PricePilot - Klantprijsassistent")
 st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
 
-
 # Inputveld voor geschatte offertegrootte
 guestimate_offer_size = st.sidebar.number_input("Geschatte offertegrootte in euro", min_value=0, step=1000)
 
@@ -50,8 +49,6 @@ elif guestimate_offer_size > 10000:
     estimated_size_category = 2
 else:
     estimated_size_category = 1
-
-st.sidebar.write(f"Categorie offertegrootte: {estimated_size_category}")
 customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
 customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
 
