@@ -1,6 +1,6 @@
 import streamlit as st
-import os
 import pandas as pd
+import os
 from PIL import Image
 import pytesseract
 import openai
@@ -40,32 +40,19 @@ price_sharpness_data = [
 ]
 price_sharpness_df = pd.DataFrame(price_sharpness_data)
 
-
-# Initialiseer offerte DataFrame en klantnummer in sessiestatus
-if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
+# Initialiseer klantnummer in sessiestatus
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
-
-# Laad synoniemen en artikelentabel
-from Synonyms import synonym_dict
-from Articles import article_table
-
-# Converteer article_table naar DataFrame
-article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
 st.sidebar.title("PricePilot - Klantprijsassistent")
 st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
 # Gebruikersinvoer
-customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
 customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-# Inputveld voor geschatte offertegrootte
 guestimate_offer_size = st.sidebar.number_input("Geschatte offertegrootte in euro", min_value=0, step=1000)
 
-# Only-read veld voor de categorie van offertegrootte
+# Bepaal de categorie van de offertegrootte
 if guestimate_offer_size > 50000:
     estimated_size_category = 4
 elif guestimate_offer_size > 25000:
@@ -76,8 +63,26 @@ else:
     estimated_size_category = 1
 
 st.sidebar.write(f"Categorie offertegrootte: {estimated_size_category}")
-st.sidebar.write(f"Prijsscherpte: {price_sharpness_data}")
 
+# Toon klantinformatie en bereken prijsscherpte als het klantnummer bestaat
+if customer_number in customer_data:
+    klant_grootte = customer_data[customer_number]['size']
+    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+    st.sidebar.write(f"Klantgrootte: {klant_grootte}")
+
+    # Filter prijsscherpte op basis van klantgrootte en offertegrootte
+    filtered_df = price_sharpness_df[
+        (price_sharpness_df['Klantgrootte'] == klant_grootte) & 
+        (price_sharpness_df['Offertegrootte'] == estimated_size_category)
+    ]
+    
+    if not filtered_df.empty:
+        prijsscherpte = filtered_df.iloc[0]['Prijsscherpte']
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+    else:
+        st.sidebar.write("Geen prijsscherpte beschikbaar voor de geselecteerde klantgrootte en offertegrootte.")
+else:
+    st.sidebar.warning("Klantnummer niet gevonden.")
 
 if customer_number in customer_data:
     st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
