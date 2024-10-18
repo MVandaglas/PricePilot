@@ -12,6 +12,13 @@ if not api_key:
 else:
     openai.api_key = api_key
 
+# Hard gecodeerde klantgegevens
+customer_data = {
+    "111111": {"revenue": "40.000 euro", "size": "D"},
+    "222222": {"revenue": "140.000 euro", "size": "B"},
+    "333333": {"revenue": "600.000 euro", "size": "A"}
+}
+
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
     st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
@@ -32,7 +39,11 @@ st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijze
 # Gebruikersinvoer
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
-customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6, key="customer_number", help="Voer een klantnummer van 6 karakters in", value=st.session_state.customer_number, label_visibility="collapsed")
+
+if customer_number in customer_data:
+    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
@@ -76,7 +87,7 @@ def handle_gpt_chat():
             response_text += "?"
             st.sidebar.write(response_text)
 
-            verification = st.sidebar.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1, key="verification_radio")
+            verification = st.sidebar.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), key="verification_radio")
             if verification == "Ja":
                 st.sidebar.write("Dank u voor de bevestiging. We zullen verder gaan met de offerte.")
             elif verification == "Nee":
