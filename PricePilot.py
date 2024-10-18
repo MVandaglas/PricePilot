@@ -12,11 +12,13 @@ if not api_key:
 else:
     openai.api_key = api_key
 
-# Initialiseer chatgeschiedenis en offerte DataFrame in sessiestatus
+# Initialiseer chatgeschiedenis, offerte DataFrame en klantnummer in sessiestatus
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "offer_df" not in st.session_state:
     st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
+if "customer_number" not in st.session_state:
+    st.session_state.customer_number = ""
 
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
@@ -32,6 +34,7 @@ st.write("Dit is een tool voor het genereren van klant specifieke prijzen op bas
 # Gebruikersinvoer
 customer_input = st.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_file = st.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
+customer_number = st.text_input("Klantnummer (6 karakters)", max_chars=6)
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
@@ -142,6 +145,9 @@ if st.button("Verstuur chat met GPT"):
 if st.session_state.offer_df is not None:
     st.sidebar.title("Offerteoverzicht")
     st.session_state.offer_df = st.sidebar.data_editor(st.session_state.offer_df, num_rows="dynamic")
+    if st.sidebar.button("Sla artikelen op in geheugen"):
+        st.session_state.saved_offer_df = st.session_state.offer_df.copy()
+        st.sidebar.success("Artikelen succesvol opgeslagen in het geheugen.")
 
 # Toon chatgeschiedenis
 if st.session_state.chat_history:
