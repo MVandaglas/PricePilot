@@ -61,10 +61,12 @@ if st.button("Verstuur chat met GPT"):
     try:
         if customer_input:
             # Voer fuzzy matching uit om mogelijke artikelen te vinden
-           matched_article_term, matched_article_number = fuzzy_match_synonyms(customer_input, synonym_dict)
+matched_article_term, matched_article_number = fuzzy_match_synonyms(customer_input, synonym_dict)
 if matched_article_number:
     article_number, description = find_article_details(matched_article_number)
     if article_number and description:
+        st.write(f"Bedoelt u artikelnummer {article_number} ({matched_article_term}): {description}?")
+
         
                     st.session_state.chat_history.append({"role": "user", "content": customer_input})
                     response = openai.chat.completions.create(
