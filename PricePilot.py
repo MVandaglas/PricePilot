@@ -67,6 +67,7 @@ if st.button("Verstuur chat met GPT"):
 
             if matched_articles:
                 response_text = "Bedoelt u de volgende samenstellingen:\n"
+                data = []
                 for term, article_number in matched_articles:
                     _, description = find_article_details(article_number)
                     if description:
@@ -79,14 +80,15 @@ if st.button("Verstuur chat met GPT"):
                             if len(parts) > 0:
                                 quantity_part = parts[0].strip().split()[-1]
                                 if quantity_part.isdigit() or "x" in quantity_part or "stuks" in quantity_part.lower() or "aantal" in quantity_part.lower():
-                                    quantity = f"{quantity_part} stuks "
+                                    quantity = quantity_part
                             if len(parts) > 1:
                                 size_part = parts[1].strip().split()[0]
                                 if "x" in size_part:
                                     width, height = size_part.split("x")
-                                    width = f", {width.strip()}"
-                                    height = f"x{height.strip()}"
-                        response_text += f"- {quantity}{description} met artikelnummer {article_number}{width}{height}\n"
+                        data.append([description, article_number, width, height, quantity])
+
+                df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
+                edited_df = st.experimental_data_editor(df, num_rows="dynamic")
 
                 response_text += "?"
                 st.session_state.chat_history.append({"role": "user", "content": customer_input})
