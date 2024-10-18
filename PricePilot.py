@@ -70,7 +70,7 @@ def handle_gpt_chat():
                     data.append([description, article_number, width, height, quantity])
 
             new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
+            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True).drop_duplicates()
 
             response_text += "?"
             st.session_state.chat_history.append({"role": "user", "content": customer_input})
