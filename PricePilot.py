@@ -76,14 +76,18 @@ if st.button("Verstuur chat met GPT"):
                         quantity = ""
                         width = ""
                         height = ""
-                        if f"{term}" in customer_input:
-                            parts = customer_input.split(term)
-                            if len(parts) > 0:
-                                quantity_part = parts[0].strip().split()[-1]
-                                if quantity_part.isdigit():
-                                    quantity = quantity_part
-                            if len(parts) > 1:
-                                size_part = parts[1].strip().split()[0]
+                        term_index = customer_input.find(term)
+                        if term_index != -1:
+                            preceding_text = customer_input[:term_index].strip()
+                            quantity_candidates = preceding_text.split()
+                            if quantity_candidates:
+                                last_word = quantity_candidates[-1]
+                                if last_word.isdigit() or (last_word[:-1].isdigit() and last_word[-1].lower() == 'x') or last_word.lower() == 'aantal':
+                                    quantity = last_word.replace('x', '').replace('aantal', '').strip()
+                            following_text = customer_input[term_index + len(term):].strip()
+                            size_candidates = following_text.split()
+                            if size_candidates:
+                                size_part = size_candidates[0]
                                 if "x" in size_part:
                                     width, height = size_part.split("x")
                                     width = width.strip()
@@ -95,7 +99,7 @@ if st.button("Verstuur chat met GPT"):
                 st.write(response_text)
                 st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
-                # Verificatie stap
+                # Verificatie stap zonder standaardwaarde
                 verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1)
                 if verification == "Ja":
                     st.write("Bedankt voor uw bevestiging. We gaan verder met het opstellen van de offerte.")
@@ -129,7 +133,7 @@ if st.button("Verstuur chat met GPT"):
                     st.write(response_text)
                     st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
-                    # Verificatie stap
+                    # Verificatie stap zonder standaardwaarde
                     verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1)
                     if verification == "Ja":
                         st.write("Bedankt voor uw bevestiging. We gaan verder met het opstellen van de offerte.")
