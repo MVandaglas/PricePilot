@@ -66,12 +66,16 @@ if st.button("Verstuur chat met GPT"):
                 article_number, description = find_article_details(matched_article_number)
                 if article_number and description:
                     st.session_state.chat_history.append({"role": "user", "content": customer_input})
-                    response = openai.chat.completions.create(
+                    response = openai.ChatCompletion.create(
                         model="gpt-3.5-turbo",
-                        messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
+                        messages=[
+                            {"role": "system", "content": "Je bent een assistent die helpt bij het opstellen van offertes en het controleren van artikelnummers."},
+                            *[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
+                            {"role": "user", "content": f"Controleer of artikelnummer {article_number} overeenkomt met de klantvraag: {description}."}
+                        ],
                         max_tokens=150
                     )
-                    assistant_message = response.choices[0].message.content.strip()
+                    assistant_message = response.choices[0].message["content"].strip()
 
                     st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                     st.write(f"GPT: {assistant_message}")
@@ -89,12 +93,16 @@ if st.button("Verstuur chat met GPT"):
                     article_number, description = find_article_details(matched_article_number)
                     if article_number and description:
                         st.session_state.chat_history.append({"role": "user", "content": extracted_text})
-                        response = openai.chat.completions.create(
+                        response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
-                            messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
+                            messages=[
+                                {"role": "system", "content": "Je bent een assistent die helpt bij het opstellen van offertes en het controleren van artikelnummers."},
+                                *[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
+                                {"role": "user", "content": f"Controleer of artikelnummer {article_number} overeenkomt met de klantvraag: {description}."}
+                            ],
                             max_tokens=150
                         )
-                        assistant_message = response.choices[0].message.content.strip()
+                        assistant_message = response.choices[0].message["content"].strip()
 
                         st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
                         st.write(f"GPT: {assistant_message}")
