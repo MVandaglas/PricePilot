@@ -57,8 +57,8 @@ def match_synonyms(input_text, synonyms):
 if st.button("Verstuur chat met GPT"):
     try:
         if customer_input:
-            # Voer fuzzy matching uit om mogelijke artikelen te vinden
-            matched_article_term, matched_article_number = fuzzy_match_synonyms(customer_input, synonym_dict)
+           # Voer exacte matching uit om mogelijke artikelen te vinden
+            matched_article_number = match_synonyms(customer_input, synonym_dict)
             if matched_article_number:
                     article_number, description = find_article_details(matched_article_number)
                     if article_number and description:
@@ -88,8 +88,8 @@ if st.button("Verstuur chat met GPT"):
                 st.image(image, caption='Geüploade afbeelding', use_column_width=True)
                 # Gebruik pytesseract om tekst te extraheren
                 extracted_text = pytesseract.image_to_string(image)
-                # Voer fuzzy matching uit om mogelijke artikelen te vinden
-                matched_article_number = fuzzy_match_synonyms(extracted_text, synonym_dict)
+                # Voer exacte matching uit om mogelijke artikelen te vinden
+                matched_article_number = match_synonyms(extracted_text, synonym_dict
                 if matched_article_number:
                     article_number, description = find_article_details(matched_article_number)
                     if article_number and description:
