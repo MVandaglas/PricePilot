@@ -4,14 +4,15 @@ import pandas as pd
 import openpyxl
 from PIL import Image
 import pytesseract
-from openai import OpenAI
-client = OpenAI()
+import openai
 from fuzzywuzzy import process
 
 # Stel de OpenAI API-sleutel in
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
+else:
+    openai.api_key = api_key
 
 # Initialiseer chatgeschiedenis in sessiestatus
 if "chat_history" not in st.session_state:
@@ -70,7 +71,7 @@ if st.button("Verstuur chat met GPT"):
                         st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                     else:
                         st.session_state.chat_history.append({"role": "user", "content": customer_input})
-                        response = client.chat.completions.create(
+                        response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
                             messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                             max_tokens=150
@@ -97,7 +98,7 @@ if st.button("Verstuur chat met GPT"):
                             st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                         else:
                             st.session_state.chat_history.append({"role": "user", "content": extracted_text})
-                            response = client.chat.completions.create(
+                            response = openai.ChatCompletion.create(
                                 model="gpt-3.5-turbo",
                                 messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                                 max_tokens=150
