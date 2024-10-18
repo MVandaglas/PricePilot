@@ -5,13 +5,16 @@ import openpyxl
 from PIL import Image
 import pytesseract
 from openai import OpenAI
-client = OpenAI()
 from fuzzywuzzy import process
+
+client = OpenAI()
 
 # Stel de OpenAI API-sleutel in
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
+else:
+    openai.api_key = api_key
 
 # Initialiseer chatgeschiedenis in sessiestatus
 if "chat_history" not in st.session_state:
