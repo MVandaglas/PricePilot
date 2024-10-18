@@ -16,6 +16,10 @@ else:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
+# Initialiseer bewerkte DataFrame in sessiestatus
+if "edited_df" not in st.session_state:
+    st.session_state.edited_df = None
+
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
 from Articles import article_table
@@ -66,7 +70,7 @@ def handle_gpt_chat():
                     data.append([description, article_number, width, height, quantity])
 
             df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-            edited_df = st.data_editor(df, num_rows="dynamic")
+            st.session_state.edited_df = st.data_editor(df, num_rows="dynamic")
 
             response_text += "?"
             st.session_state.chat_history.append({"role": "user", "content": customer_input})
@@ -133,6 +137,10 @@ if st.button("Verstuur chat met GPT"):
         handle_gpt_chat()
     except Exception as e:
         st.error(f"Er is een fout opgetreden: {e}")
+
+# Toon bewerkte DataFrame indien beschikbaar
+if st.session_state.edited_df is not None:
+    st.dataframe(st.session_state.edited_df)
 
 # Toon chatgeschiedenis
 if st.session_state.chat_history:
