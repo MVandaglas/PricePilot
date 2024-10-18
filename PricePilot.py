@@ -69,7 +69,24 @@ if st.button("Verstuur chat met GPT"):
                 response_text = "Bedoelt u de volgende samenstellingen:\n"
                 for term, article_number in matched_articles:
                     _, description = find_article_details(article_number)
-                    response_text += f"- {description} met artikelnummer {article_number}\n"
+                    if description:
+                        # Extract quantity, width, and height from customer input
+                        quantity = ""
+                        width = ""
+                        height = ""
+                        if f"{term}" in customer_input:
+                            parts = customer_input.split(term)
+                            if len(parts) > 0:
+                                quantity_part = parts[0].strip().split()[-1]
+                                if quantity_part.isdigit():
+                                    quantity = f"{quantity_part} stuks "
+                            if len(parts) > 1:
+                                size_part = parts[1].strip().split()[0]
+                                if "x" in size_part:
+                                    width, height = size_part.split("x")
+                                    width = f", {width.strip()}"
+                                    height = f"x{height.strip()}"
+                        response_text += f"- {quantity}{description} met artikelnummer {article_number}{width}{height}\n"
 
                 response_text += "?"
                 st.session_state.chat_history.append({"role": "user", "content": customer_input})
@@ -93,7 +110,8 @@ if st.button("Verstuur chat met GPT"):
                     response_text = "Bedoelt u de volgende samenstellingen:\n"
                     for term, article_number in matched_articles:
                         _, description = find_article_details(article_number)
-                        response_text += f"- {description} met artikelnummer {article_number}\n"
+                        if description:
+                            response_text += f"- {description} met artikelnummer {article_number}\n"
 
                     response_text += "?"
                     st.session_state.chat_history.append({"role": "user", "content": extracted_text})
