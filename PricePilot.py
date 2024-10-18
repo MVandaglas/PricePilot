@@ -12,38 +12,29 @@ if not api_key:
 else:
     openai.api_key = api_key
 
-# Hard gecodeerde klantgegevens
+guestimate_offer_size = st.sidebar.number_input("Geschatte offertegrootte in euro", min_value=0, step=1000)
+
+if guestimate_offer_size > 50000:
+    estimated_size_category = 4
+elif guestimate_offer_size > 25000:
+    estimated_size_category = 3
+elif guestimate_offer_size > 10000:
+    estimated_size_category = 2
+else:
+    estimated_size_category = 1
+
+st.sidebar.write(f"Categorie offertegrootte: {estimated_size_category}")
+
+if customer_number in customer_data:
+    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}" )
+
 customer_data = {
     "111111": {"revenue": "40.000 euro", "size": "D"},
     "222222": {"revenue": "140.000 euro", "size": "B"},
     "333333": {"revenue": "600.000 euro", "size": "A"}
 }
 
-# Initialiseer offerte DataFrame en klantnummer in sessiestatus
-if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-if "customer_number" not in st.session_state:
-    st.session_state.customer_number = ""
-
-# Laad synoniemen en artikelentabel
-from Synonyms import synonym_dict
-from Articles import article_table
-
-# Converteer article_table naar DataFrame
-article_table = pd.DataFrame(article_table)
-
-# Streamlit UI-instellingen
-st.sidebar.title("PricePilot - Klantprijsassistent")
-st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
-
-# Gebruikersinvoer
-customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
-customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-
-if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
