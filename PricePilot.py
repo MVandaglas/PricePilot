@@ -65,7 +65,7 @@ if st.button("Verstuur chat met GPT"):
 if matched_article_number:
     article_number, description = find_article_details(matched_article_number)
     if article_number and description:
-        st.write(f"Bedoelt u artikelnummer {article_number} ({matched_article_term}): {description}?")
+        
                     st.session_state.chat_history.append({"role": "user", "content": customer_input})
                     response = openai.chat.completions.create(
                         model="gpt-3.5-turbo",
