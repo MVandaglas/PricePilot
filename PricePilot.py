@@ -67,6 +67,8 @@ if st.button("Verstuur chat met GPT"):
 
             if matched_articles:
                 response_text = "Bedoelt u de volgende samenstellingen:\n"
+                response_text += "| Artikelnaam | Artikelnummer | Breedte | Hoogte | Aantal |\n"
+                response_text += "| --- | --- | --- | --- | --- |\n"
                 for term, article_number in matched_articles:
                     _, description = find_article_details(article_number)
                     if description:
@@ -79,28 +81,26 @@ if st.button("Verstuur chat met GPT"):
                             if len(parts) > 0:
                                 quantity_part = parts[0].strip().split()[-1]
                                 if quantity_part.isdigit():
-                                    quantity = f"{quantity_part} stuks "
+                                    quantity = quantity_part
                             if len(parts) > 1:
                                 size_part = parts[1].strip().split()[0]
                                 if "x" in size_part:
                                     width, height = size_part.split("x")
                                     width = width.strip()
                                     height = height.strip()
-                        response_text += f"- {quantity}{description} met artikelnummer {article_number}, {width}x{height}\n"
+                        response_text += f"| {description} | {article_number} | {width} | {height} | {quantity} |\n"
 
                 response_text += "?"
                 st.session_state.chat_history.append({"role": "user", "content": customer_input})
                 st.write(response_text)
                 st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
-                # Toevoegen van goedkeuringsvraag zonder standaardwaarde
-                user_confirmation = st.radio("Klopt dit?", ("Ja", "Nee"), index=-1)
-                if user_confirmation == "Ja":
-                    st.write("Bedankt voor uw bevestiging. We gaan verder met de offerte.")
-                    st.session_state.chat_history.append({"role": "user", "content": "Ja, dit klopt."})
-                elif user_confirmation == "Nee":
+                # Verificatie stap
+                verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1)
+                if verification == "Ja":
+                    st.write("Bedankt voor uw bevestiging. We gaan verder met het opstellen van de offerte.")
+                elif verification == "Nee":
                     st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
-                    st.session_state.chat_history.append({"role": "user", "content": "Nee, dit klopt niet."})
             else:
                 st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
         elif customer_file:
@@ -117,15 +117,24 @@ if st.button("Verstuur chat met GPT"):
 
                 if matched_articles:
                     response_text = "Bedoelt u de volgende samenstellingen:\n"
+                    response_text += "| Artikelnaam | Artikelnummer | Breedte | Hoogte | Aantal |\n"
+                    response_text += "| --- | --- | --- | --- | --- |\n"
                     for term, article_number in matched_articles:
                         _, description = find_article_details(article_number)
                         if description:
-                            response_text += f"- {description} met artikelnummer {article_number}\n"
+                            response_text += f"| {description} | {article_number} | | | |\n"
 
                     response_text += "?"
                     st.session_state.chat_history.append({"role": "user", "content": extracted_text})
                     st.write(response_text)
                     st.session_state.chat_history.append({"role": "assistant", "content": response_text})
+
+                    # Verificatie stap
+                    verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1)
+                    if verification == "Ja":
+                        st.write("Bedankt voor uw bevestiging. We gaan verder met het opstellen van de offerte.")
+                    elif verification == "Nee":
+                        st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                 else:
                     st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
             else:
