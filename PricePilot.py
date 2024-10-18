@@ -1,12 +1,11 @@
 import streamlit as st
 import os
 import pandas as pd
-import openpyxl
 from PIL import Image
 import pytesseract
 import openai
 
-# Stel de OpenAI API-sleutel in
+# OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
@@ -17,20 +16,18 @@ else:
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Laad synoniemen in een woordenboek (van Synonyms.py)
+# Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
-
-# Laad artikelentabel van Articles.py
 from Articles import article_table
 
-# Converteer article_table van lijst van woordenboeken naar DataFrame
+# Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
 
-# Streamlit UI-instelling
+# Streamlit UI-instellingen
 st.title("PricePilot - Klantprijsassistent")
 st.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
-# Gebruikersinvoerveld
+# Gebruikersinvoer
 customer_input = st.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_file = st.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
 
@@ -40,105 +37,105 @@ def replace_synonyms(input_text, synonyms):
         input_text = input_text.replace(term, synonym)
     return input_text
 
-# Functie om artikelgegevens te vinden uit de artikelentabel
+# Functie om artikelgegevens te vinden
 def find_article_details(article_number):
     filtered_articles = article_table[article_table['Material'] == int(article_number)]
     if not filtered_articles.empty:
-        description = filtered_articles.iloc[0]['Description']
-        return article_number, description
-    return None, None
+        return filtered_articles.iloc[0]['Description']
+    return None
 
-# Functie om exacte matching uit te voeren op klantinvoer
+# Functie om synoniemen te matchen in invoertekst
 def match_synonyms(input_text, synonyms):
     for term in synonyms:
         if term in input_text:
             return synonyms.get(term)
     return None
 
-# GPT Chat functionaliteit afhandelen
+# GPT Chat functionaliteit
+def handle_gpt_chat():
+    if customer_input:
+        matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in customer_input]
+
+        if matched_articles:
+            response_text = "Bedoelt u de volgende samenstellingen:"
+            data = []
+            for term, article_number in matched_articles:
+                description = find_article_details(article_number)
+                if description:
+                    quantity, width, height = extract_dimensions(customer_input, term)
+                    data.append([description, article_number, width, height, quantity])
+
+            df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
+            edited_df = st.data_editor(df, num_rows="dynamic")
+
+            response_text += "?"
+            st.session_state.chat_history.append({"role": "user", "content": customer_input})
+            st.write(response_text)
+            st.session_state.chat_history.append({"role": "assistant", "content": response_text})
+
+            verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1, key="verification_radio")
+            if verification == "Ja":
+                st.write("Dank u voor de bevestiging. We zullen verder gaan met de offerte.")
+            elif verification == "Nee":
+                st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
+        else:
+            st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
+    elif customer_file:
+        handle_file_upload(customer_file)
+    else:
+        st.warning("Voer alstublieft tekst in of upload een bestand.")
+
+# Functie om bestand te verwerken
+def handle_file_upload(file):
+    if file.type.startswith("image"):
+        image = Image.open(file)
+        st.image(image, caption='Geüploade afbeelding', use_column_width=True)
+        extracted_text = pytesseract.image_to_string(image)
+        handle_text_input(extracted_text)
+    else:
+        st.error("Bestandstype wordt niet ondersteund voor verwerking.")
+
+# Functie om afmetingen uit tekst te halen
+def extract_dimensions(text, term):
+    quantity, width, height = "", "", ""
+    parts = text.split(term)
+    if len(parts) > 0:
+        quantity_part = parts[0].strip().split()[-1]
+        if quantity_part.isdigit() or "x" in quantity_part or "stuks" in quantity_part.lower() or "aantal" in quantity_part.lower():
+            quantity = quantity_part
+    if len(parts) > 1:
+        size_part = parts[1].strip().split()[0]
+        if "x" in size_part:
+            width, height = size_part.split("x")
+    return quantity, width, height
+
+# Functie om tekstinvoer te verwerken
+def handle_text_input(input_text):
+    matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in input_text]
+
+    if matched_articles:
+        response_text = "Bedoelt u de volgende samenstellingen:"
+        for term, article_number in matched_articles:
+            description = find_article_details(article_number)
+            if description:
+                response_text += f"- {description} met artikelnummer {article_number}\n"
+
+        response_text += "?"
+        st.session_state.chat_history.append({"role": "user", "content": input_text})
+        st.write(response_text)
+        st.session_state.chat_history.append({"role": "assistant", "content": response_text})
+    else:
+        st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
+
+# Verwerk chat met GPT
 if st.button("Verstuur chat met GPT"):
     try:
-        if customer_input:
-            # Voer exacte matching uit om mogelijke artikelen te vinden
-            matched_articles = []
-            for term in synonym_dict:
-                if term in customer_input:
-                    matched_articles.append((term, synonym_dict[term]))
-
-            if matched_articles:
-                response_text = "Bedoelt u de volgende samenstellingen:"
-                data = []
-                for term, article_number in matched_articles:
-                    _, description = find_article_details(article_number)
-                    if description:
-                        # Extract quantity, width, and height from customer input
-                        quantity = ""
-                        width = ""
-                        height = ""
-                        if f"{term}" in customer_input:
-                            parts = customer_input.split(term)
-                            if len(parts) > 0:
-                                quantity_part = parts[0].strip().split()[-1]
-                                if quantity_part.isdigit() or "x" in quantity_part or "stuks" in quantity_part.lower() or "aantal" in quantity_part.lower():
-                                    quantity = quantity_part
-                            if len(parts) > 1:
-                                size_part = parts[1].strip().split()[0]
-                                if "x" in size_part:
-                                    width, height = size_part.split("x")
-                        data.append([description, article_number, width, height, quantity])
-
-                df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-                edited_df = st.data_editor(df, num_rows="dynamic")
-
-                response_text += "?"
-                st.session_state.chat_history.append({"role": "user", "content": customer_input})
-                st.write(response_text)
-                st.session_state.chat_history.append({"role": "assistant", "content": response_text})
-
-                # Verificatie stap
-                verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1, key="verification_radio")
-                if verification == "Ja":
-                    st.write("Dank u voor de bevestiging. We zullen verder gaan met de offerte.")
-                elif verification == "Nee":
-                    st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
-            else:
-                st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
-        elif customer_file:
-            if customer_file.type.startswith("image"):
-                image = Image.open(customer_file)
-                st.image(image, caption='Geüploade afbeelding', use_column_width=True)
-                # Gebruik pytesseract om tekst te extraheren
-                extracted_text = pytesseract.image_to_string(image)
-                # Voer exacte matching uit om mogelijke artikelen te vinden
-                matched_articles = []
-                for term in synonym_dict:
-                    if term in extracted_text:
-                        matched_articles.append((term, synonym_dict[term]))
-
-                if matched_articles:
-                    response_text = "Bedoelt u de volgende samenstellingen:"
-                    for term, article_number in matched_articles:
-                        _, description = find_article_details(article_number)
-                        if description:
-                            response_text += f"- {description} met artikelnummer {article_number}\n"
-
-                    response_text += "?"
-                    st.session_state.chat_history.append({"role": "user", "content": extracted_text})
-                    st.write(response_text)
-                    st.session_state.chat_history.append({"role": "assistant", "content": response_text})
-                else:
-                    st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
-            else:
-                st.error("Bestandstype wordt niet ondersteund voor verwerking.")
-        else:
-            st.warning("Voer alstublieft tekst in of upload een bestand.")
+        handle_gpt_chat()
     except Exception as e:
         st.error(f"Er is een fout opgetreden: {e}")
 
-# Toon chatgeschiedenis zoals deze zich ontwikkelt
+# Toon chatgeschiedenis
 if st.session_state.chat_history:
     for chat in st.session_state.chat_history:
-        if chat["role"] == "user":
-            st.write(f"U: {chat['content']}")
-        else:
-            st.write(f"GPT: {chat['content']}")
+        role = "U" if chat["role"] == "user" else "GPT"
+        st.write(f"{role}: {chat['content']}")
