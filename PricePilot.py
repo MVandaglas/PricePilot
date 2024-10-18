@@ -19,6 +19,27 @@ customer_data = {
     "333333": {"revenue": "600.000 euro", "size": "A"}
 }
 
+# Hard gecodeerde prijsscherpte matrix
+price_sharpness_data = [
+    {"Klantgrootte": "A", "Offertegrootte": 1, "Prijsscherpte": 55},
+    {"Klantgrootte": "B", "Offertegrootte": 1, "Prijsscherpte": 40},
+    {"Klantgrootte": "C", "Offertegrootte": 1, "Prijsscherpte": 30},
+    {"Klantgrootte": "D", "Offertegrootte": 1, "Prijsscherpte": 0},
+    {"Klantgrootte": "A", "Offertegrootte": 2, "Prijsscherpte": 70},
+    {"Klantgrootte": "B", "Offertegrootte": 2, "Prijsscherpte": 60},
+    {"Klantgrootte": "C", "Offertegrootte": 2, "Prijsscherpte": 50},
+    {"Klantgrootte": "D", "Offertegrootte": 2, "Prijsscherpte": 30},
+    {"Klantgrootte": "A", "Offertegrootte": 3, "Prijsscherpte": 85},
+    {"Klantgrootte": "B", "Offertegrootte": 3, "Prijsscherpte": 75},
+    {"Klantgrootte": "C", "Offertegrootte": 3, "Prijsscherpte": 65},
+    {"Klantgrootte": "D", "Offertegrootte": 3, "Prijsscherpte": 50},
+    {"Klantgrootte": "A", "Offertegrootte": 4, "Prijsscherpte": 100},
+    {"Klantgrootte": "B", "Offertegrootte": 4, "Prijsscherpte": 90},
+    {"Klantgrootte": "C", "Offertegrootte": 4, "Prijsscherpte": 80},
+    {"Klantgrootte": "D", "Offertegrootte": 4, "Prijsscherpte": 80}
+]
+price_sharpness_df = pd.DataFrame(price_sharpness_data)
+}
 
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
