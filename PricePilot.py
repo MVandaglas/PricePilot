@@ -12,17 +12,14 @@ if not api_key:
 else:
     openai.api_key = api_key
 
+# Hard gecodeerde klantgegevens
+customer_data = {
+    "111111": {"revenue": "40.000 euro", "size": "D"},
+    "222222": {"revenue": "140.000 euro", "size": "B"},
+    "333333": {"revenue": "600.000 euro", "size": "A"}
+}
 
 if customer_number in customer_data:
-    customer_size = customer_data[customer_number]['size']
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-    if customer_size in price_sharpness_matrix.index and estimated_size_category in price_sharpness_matrix.columns:
-        price_sharpness = price_sharpness_matrix.at[customer_size, estimated_size_category]
-        st.sidebar.write(f"Prijsscherpte: {price_sharpness}")
-    if customer_size in price_sharpness_matrix.index and estimated_size_category in price_sharpness_matrix.columns:
-        price_sharpness = price_sharpness_matrix.at[customer_size, estimated_size_category]
-        st.sidebar.write(f"Prijsscherpte: {price_sharpness}")
     st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
     st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
 
