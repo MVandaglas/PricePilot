@@ -71,7 +71,7 @@ if st.button("Start chat met GPT"):
                         st.session_state.chat_history.append({"role": "user", "content": customer_input})
                         response = openai.ChatCompletion.create(
                             model="gpt-3.5-turbo",
-                            messages=st.session_state.chat_history,
+                            messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                             max_tokens=150
                         )
                         assistant_message = response['choices'][0]['message']['content'].strip()
@@ -98,7 +98,7 @@ if st.button("Start chat met GPT"):
                             st.session_state.chat_history.append({"role": "user", "content": extracted_text})
                             response = openai.ChatCompletion.create(
                                 model="gpt-3.5-turbo",
-                                messages=st.session_state.chat_history,
+                                messages=[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
                                 max_tokens=150
                             )
                             assistant_message = response['choices'][0]['message']['content'].strip()
