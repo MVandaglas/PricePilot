@@ -4,7 +4,8 @@ import pandas as pd
 import openpyxl
 from PIL import Image
 import pytesseract
-import openai
+import OpenAI from "openai";
+const openai = new OpenAI();
 from fuzzywuzzy import process
 
 # Stel de OpenAI API-sleutel in
