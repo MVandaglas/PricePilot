@@ -99,7 +99,7 @@ def handle_file_upload(file):
 
 # Functie om afmetingen uit tekst te halen
 def extract_dimensions(text, term):
-    quantity, width, height = "", "", ""
+    quantity, width, height = "", ""
     parts = text.split(term)
     if len(parts) > 0:
         quantity_part = parts[0].strip().split()[-1]
@@ -136,10 +136,10 @@ if st.button("Verstuur chat met GPT"):
     except Exception as e:
         st.error(f"Er is een fout opgetreden: {e}")
 
-# Toon bewaarde offerte DataFrame rechts in beeld
+# Toon bewaarde offerte DataFrame rechts in beeld en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.sidebar.title("Offerteoverzicht")
-    st.sidebar.dataframe(st.session_state.offer_df)
+    st.session_state.offer_df = st.sidebar.data_editor(st.session_state.offer_df, num_rows="dynamic")
 
 # Toon chatgeschiedenis
 if st.session_state.chat_history:
