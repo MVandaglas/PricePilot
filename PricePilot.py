@@ -12,18 +12,26 @@ if not api_key:
 else:
     openai.api_key = api_key
 
-customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+# Initialiseer chatgeschiedenis en offerte DataFrame in sessiestatus
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+if "offer_df" not in st.session_state:
+    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
 
-if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}" )
+# Laad synoniemen en artikelentabel
+from Synonyms import synonym_dict
+from Articles import article_table
 
-customer_data = {
-    "111111": {"revenue": "40.000 euro", "size": "D"},
-    "222222": {"revenue": "140.000 euro", "size": "B"},
-    "333333": {"revenue": "600.000 euro", "size": "A"}
-}
+# Converteer article_table naar DataFrame
+article_table = pd.DataFrame(article_table)
 
+# Streamlit UI-instellingen
+st.title("PricePilot - Klantprijsassistent")
+st.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
+
+# Gebruikersinvoer
+customer_input = st.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
+customer_file = st.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
@@ -62,32 +70,34 @@ def handle_gpt_chat():
                     data.append([description, article_number, width, height, quantity])
 
             new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
+            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True).drop_duplicates()
 
             response_text += "?"
-            st.sidebar.write(response_text)
+            st.session_state.chat_history.append({"role": "user", "content": customer_input})
+            st.write(response_text)
+            st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
-            verification = st.sidebar.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), key="verification_radio")
+            verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1, key="verification_radio")
             if verification == "Ja":
-                st.sidebar.write("Dank u voor de bevestiging. We zullen verder gaan met de offerte.")
+                st.write("Dank u voor de bevestiging. We zullen verder gaan met de offerte.")
             elif verification == "Nee":
-                st.sidebar.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
+                st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
         else:
-            st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
+            st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
     elif customer_file:
         handle_file_upload(customer_file)
     else:
-        st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+        st.warning("Voer alstublieft tekst in of upload een bestand.")
 
 # Functie om bestand te verwerken
 def handle_file_upload(file):
     if file.type.startswith("image"):
         image = Image.open(file)
-        st.sidebar.image(image, caption='Geüploade afbeelding', use_column_width=True)
+        st.image(image, caption='Geüploade afbeelding', use_column_width=True)
         extracted_text = pytesseract.image_to_string(image)
         handle_text_input(extracted_text)
     else:
-        st.sidebar.error("Bestandstype wordt niet ondersteund voor verwerking.")
+        st.error("Bestandstype wordt niet ondersteund voor verwerking.")
 
 # Functie om afmetingen uit tekst te halen
 def extract_dimensions(text, term):
@@ -115,21 +125,26 @@ def handle_text_input(input_text):
                 response_text += f"- {description} met artikelnummer {article_number}\n"
 
         response_text += "?"
-        st.sidebar.write(response_text)
+        st.session_state.chat_history.append({"role": "user", "content": input_text})
+        st.write(response_text)
+        st.session_state.chat_history.append({"role": "assistant", "content": response_text})
     else:
-        st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
+        st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
 
 # Verwerk chat met GPT
-if st.sidebar.button("Verstuur chat met GPT"):
+if st.button("Verstuur chat met GPT"):
     try:
         handle_gpt_chat()
     except Exception as e:
-        st.sidebar.error(f"Er is een fout opgetreden: {e}")
+        st.error(f"Er is een fout opgetreden: {e}")
 
-# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
+# Toon bewaarde offerte DataFrame rechts in beeld en maak het aanpasbaar
 if st.session_state.offer_df is not None:
-    st.title("Offerteoverzicht")
-    st.session_state.offer_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
-    if st.button("Sla artikelen op in geheugen"):
-        st.session_state.saved_offer_df = st.session_state.offer_df.copy()
-        st.success("Artikelen succesvol opgeslagen in het geheugen.")
+    st.sidebar.title("Offerteoverzicht")
+    st.session_state.offer_df = st.sidebar.data_editor(st.session_state.offer_df, num_rows="dynamic")
+
+# Toon chatgeschiedenis
+if st.session_state.chat_history:
+    for chat in st.session_state.chat_history:
+        role = "U" if chat["role"] == "user" else "GPT"
+        st.write(f"{role}: {chat['content']}")
