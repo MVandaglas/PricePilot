@@ -67,8 +67,6 @@ if st.button("Verstuur chat met GPT"):
 
             if matched_articles:
                 response_text = "Bedoelt u de volgende samenstellingen:\n"
-                response_text += "| Artikelnaam | Artikelnummer | Breedte | Hoogte | Aantal |\n"
-                response_text += "| --- | --- | --- | --- | --- |\n"
                 for term, article_number in matched_articles:
                     _, description = find_article_details(article_number)
                     if description:
@@ -76,33 +74,29 @@ if st.button("Verstuur chat met GPT"):
                         quantity = ""
                         width = ""
                         height = ""
-                        term_index = customer_input.find(term)
-                        if term_index != -1:
-                            preceding_text = customer_input[:term_index].strip()
-                            quantity_candidates = preceding_text.split()
-                            if quantity_candidates:
-                                last_word = quantity_candidates[-1]
-                                if last_word.isdigit() or (last_word[:-1].isdigit() and last_word[-1].lower() == 'x') or last_word.lower() == 'aantal':
-                                    quantity = last_word.replace('x', '').replace('aantal', '').strip()
-                            following_text = customer_input[term_index + len(term):].strip()
-                            size_candidates = following_text.split()
-                            if size_candidates:
-                                size_part = size_candidates[0]
+                        if f"{term}" in customer_input:
+                            parts = customer_input.split(term)
+                            if len(parts) > 0:
+                                quantity_part = parts[0].strip().split()[-1]
+                                if quantity_part.isdigit() or 'x' in quantity_part or 'stuks' in quantity_part or 'aantal' in quantity_part:
+                                    quantity = f"{quantity_part} stuks "
+                            if len(parts) > 1:
+                                size_part = parts[1].strip().split()[0]
                                 if "x" in size_part:
                                     width, height = size_part.split("x")
-                                    width = width.strip()
-                                    height = height.strip()
-                        response_text += f"| {description} | {article_number} | {width} | {height} | {quantity} |\n"
+                                    width = f", {width.strip()}"
+                                    height = f"x{height.strip()}"
+                        response_text += f"- {quantity}{description} met artikelnummer {article_number}{width}{height}\n"
 
                 response_text += "?"
                 st.session_state.chat_history.append({"role": "user", "content": customer_input})
                 st.write(response_text)
                 st.session_state.chat_history.append({"role": "assistant", "content": response_text})
 
-                # Verificatie stap zonder standaardwaarde
-                verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1)
+                # Verificatie stap
+                verification = st.radio("Klopt dit?", ("Ja", "Nee"), index=-1)
                 if verification == "Ja":
-                    st.write("Bedankt voor uw bevestiging. We gaan verder met het opstellen van de offerte.")
+                    st.write("Dank u voor de bevestiging. De informatie is opgeslagen.")
                 elif verification == "Nee":
                     st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
             else:
@@ -121,24 +115,15 @@ if st.button("Verstuur chat met GPT"):
 
                 if matched_articles:
                     response_text = "Bedoelt u de volgende samenstellingen:\n"
-                    response_text += "| Artikelnaam | Artikelnummer | Breedte | Hoogte | Aantal |\n"
-                    response_text += "| --- | --- | --- | --- | --- |\n"
                     for term, article_number in matched_articles:
                         _, description = find_article_details(article_number)
                         if description:
-                            response_text += f"| {description} | {article_number} | | | |\n"
+                            response_text += f"- {description} met artikelnummer {article_number}\n"
 
                     response_text += "?"
                     st.session_state.chat_history.append({"role": "user", "content": extracted_text})
                     st.write(response_text)
                     st.session_state.chat_history.append({"role": "assistant", "content": response_text})
-
-                    # Verificatie stap zonder standaardwaarde
-                    verification = st.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), index=-1)
-                    if verification == "Ja":
-                        st.write("Bedankt voor uw bevestiging. We gaan verder met het opstellen van de offerte.")
-                    elif verification == "Nee":
-                        st.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
                 else:
                     st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
             else:
