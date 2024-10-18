@@ -12,13 +12,11 @@ if not api_key:
 else:
     openai.api_key = api_key
 
-# Initialiseer chatgeschiedenis in sessiestatus
+# Initialiseer chatgeschiedenis en offerte DataFrame in sessiestatus
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
-
-# Initialiseer bewerkte DataFrame in sessiestatus
-if "edited_df" not in st.session_state:
-    st.session_state.edited_df = None
+if "offer_df" not in st.session_state:
+    st.session_state.offer_df = None
 
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
@@ -70,7 +68,7 @@ def handle_gpt_chat():
                     data.append([description, article_number, width, height, quantity])
 
             df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
-            st.session_state.edited_df = st.data_editor(df, num_rows="dynamic")
+            st.session_state.offer_df = df
 
             response_text += "?"
             st.session_state.chat_history.append({"role": "user", "content": customer_input})
@@ -138,9 +136,10 @@ if st.button("Verstuur chat met GPT"):
     except Exception as e:
         st.error(f"Er is een fout opgetreden: {e}")
 
-# Toon bewerkte DataFrame indien beschikbaar
-if st.session_state.edited_df is not None:
-    st.dataframe(st.session_state.edited_df)
+# Toon bewaarde offerte DataFrame rechts in beeld
+if st.session_state.offer_df is not None:
+    st.sidebar.title("Offerteoverzicht")
+    st.sidebar.dataframe(st.session_state.offer_df)
 
 # Toon chatgeschiedenis
 if st.session_state.chat_history:
