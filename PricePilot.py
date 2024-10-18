@@ -48,38 +48,19 @@ def find_article_details(article_number):
         return article_number, description
     return None, None
 
-# Functie om exacte matching uit te voeren op klantinvoer
-def match_synonyms(input_text, synonyms):
-    for term in synonyms:
-        if term in input_text:
-            return synonyms.get(term)
-    return None
+# Verzamel alle matches in één bericht
+if matched_article_number:
+    matched_articles = []
+    article_number, description = find_article_details(matched_article_number)
+    if article_number and description:
+        matched_articles.append(f"{description} met artikelnummer {article_number}")
 
-# GPT Chat functionaliteit afhandelen
-if st.button("Verstuur chat met GPT"):
-    try:
-        if customer_input:
-            # Voer exacte matching uit om mogelijke artikelen te vinden
-            matched_article_number = match_synonyms(customer_input, synonym_dict)
-            if matched_article_number:
-                article_number, description = find_article_details(matched_article_number)
-                if article_number and description:
-                    st.session_state.chat_history.append({"role": "user", "content": customer_input})
-                    response = openai.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "Je bent een assistent die helpt bij het opstellen van offertes en het controleren van artikelnummers."},
-                            *[{"role": chat["role"], "content": chat["content"]} for chat in st.session_state.chat_history],
-                            {"role": "user", "content": f"Controleer of artikelnummer {article_number} overeenkomt met de klantvraag: {description}."}
-                        ],
-                        max_tokens=150
-                    )
-                    assistant_message = response.choices[0].message.content.strip()
+    if matched_articles:
+        match_message = "Bedoelt u de volgende samenstellingen:\n" + "\n".join(matched_articles) + "\n?"
+        st.session_state.chat_history.append({"role": "user", "content": customer_input})
+        st.write(f"GPT: {match_message}")
+        st.session_state.chat_history.append({"role": "assistant", "content": match_message})
 
-                    st.session_state.chat_history.append({"role": "assistant", "content": assistant_message})
-                    st.write(f"GPT: {assistant_message}")
-            else:
-                st.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
         elif customer_file:
             if customer_file.type.startswith("image"):
                 image = Image.open(customer_file)
