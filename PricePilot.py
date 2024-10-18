@@ -89,7 +89,7 @@ if st.button("Verstuur chat met GPT"):
                 # Gebruik pytesseract om tekst te extraheren
                 extracted_text = pytesseract.image_to_string(image)
                 # Voer exacte matching uit om mogelijke artikelen te vinden
-                matched_article_number = match_synonyms(extracted_text, synonym_dict
+                matched_article_number = match_synonyms(extracted_text, synonym_dict)
                 if matched_article_number:
                     article_number, description = find_article_details(matched_article_number)
                     if article_number and description:
