@@ -65,6 +65,8 @@ def handle_gpt_chat():
                 description = find_article_details(article_number)
                 if description:
                     quantity, width, height = extract_dimensions(customer_input, term)
+                    if quantity.endswith('x'):
+                        quantity = quantity[:-1].strip()
                     data.append([description, article_number, width, height, quantity])
 
             df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
@@ -99,7 +101,7 @@ def handle_file_upload(file):
 
 # Functie om afmetingen uit tekst te halen
 def extract_dimensions(text, term):
-    quantity, width, height = "", ""
+    quantity, width, height = "", "", ""
     parts = text.split(term)
     if len(parts) > 0:
         quantity_part = parts[0].strip().split()[-1]
