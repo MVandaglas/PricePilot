@@ -158,7 +158,7 @@ def handle_gpt_chat():
                         f"{m2_total:.2f} m²" if m2_total is not None else None
                     ])
 
-            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
             st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
@@ -181,7 +181,7 @@ def handle_file_upload(file):
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|x|ruiten|aantal)', text, re.IGNORECASE)
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal)', text, re.IGNORECASE)
     if quantity_match:
         quantity = quantity_match.group(1)
     # Zoek naar de afmetingen ná het artikelnummer
@@ -216,7 +216,7 @@ def handle_text_input(input_text):
         st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
 
 # Verwerk chat met GPT
-if st.sidebar.button("Vertaal"):
+if st.sidebar.button("Verstuur chat met GPT"):
     try:
         handle_gpt_chat()
     except Exception as e:
@@ -225,7 +225,7 @@ if st.sidebar.button("Vertaal"):
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
-    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
+    edited_df = st.data_editor(st.session_state.offer_df.drop(columns=['Artikelnummer']), num_rows="dynamic")
 
     # Herbereken M2 totaal bij wijzigingen in de tabel
     if not edited_df.equals(st.session_state.offer_df):
