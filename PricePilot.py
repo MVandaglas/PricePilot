@@ -271,7 +271,10 @@ def generate_pdf(df):
 
     # Voeg drie lege regels toe    elements.append(Paragraph(""))
     elements.append(Paragraph(""))
-    elements.append(Paragraph(""))from reportlab.lib.enums import TA_RIGHT
+    elements.append(Paragraph(""))
+    elements.append(Paragraph(""))
+
+    from reportlab.lib.enums import TA_RIGHT
 
     right_aligned_style = styles['Normal'].clone('right_aligned')
     right_aligned_style.alignment = TA_RIGHT
