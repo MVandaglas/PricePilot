@@ -225,13 +225,6 @@ if st.sidebar.button("Verstuur chat met GPT"):
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
-    st.markdown("""
-        <style>
-        .stDataFrame div[data-testid="stHorizontalBlock"] {
-            width: 150% !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
     edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
 
     # Maak de kolommen 'M2 p/s' en 'M2 totaal' effectively read-only door hun waarden te herberekenen
