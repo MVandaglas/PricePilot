@@ -234,7 +234,7 @@ def generate_pdf(df):
     elements.append(Paragraph("Offerteoverzicht", styles['Heading1']))
 
     # Tabel header
-    data = [["Artikelnaam", "M2 p/s", "Aantal", "M2 totaal", "EUR/stuk (RSP * M2 p/s)"]]
+    data = [["Artikelnaam", "M2 p/s", "Aantal", "M2 totaal", "EUR/stuk"]]
 
     # Voeg gegevens uit df toe aan tabel
     for index, row in df.iterrows():
@@ -251,9 +251,9 @@ def generate_pdf(df):
     btw = total_price * 0.21
     te_betalen = total_price + btw
 
-    data.append(["", "", "", "", "Eindtotaal", f"€ {total_price:.2f}"])
-    data.append(["", "", "", "", "BTW (21%)", f"€ {btw:.2f}"])
-    data.append(["", "", "", "", "Te betalen", f"€ {te_betalen:.2f}"])
+    
+    
+    
 
     # Maak de tabel
     table = Table(data)
@@ -268,7 +268,10 @@ def generate_pdf(df):
     ]))
 
     elements.append(table)
-    doc.build(elements)
+    elements.append(Paragraph(f"Eindtotaal: € {total_price:.2f}", styles['Normal']))
+elements.append(Paragraph(f"BTW (21%): € {btw:.2f}", styles['Normal']))
+elements.append(Paragraph(f"Te betalen: € {te_betalen:.2f}", styles['Normal']))
+doc.build(elements)
     buffer.seek(0)
     return buffer
 
