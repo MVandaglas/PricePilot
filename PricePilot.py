@@ -221,7 +221,7 @@ def generate_pdf(df):
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
     from reportlab.lib import colors
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
     from io import BytesIO
 
     buffer = BytesIO()
