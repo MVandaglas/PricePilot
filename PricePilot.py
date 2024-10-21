@@ -4,6 +4,7 @@ import pandas as pd
 from PIL import Image
 import pytesseract
 import openai
+import re
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -103,15 +104,20 @@ def handle_file_upload(file):
 # Functie om afmetingen uit tekst te halen
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
-    parts = text.split(term)
-    if len(parts) > 0:
-        quantity_part = parts[0].strip().split()[-1]
-        if quantity_part.isdigit() or "x" in quantity_part or "stuks" in quantity_part.lower() or "aantal" in quantity_part.lower():
-            quantity = quantity_part
-    if len(parts) > 1:
-        size_part = parts[1].strip().split()[0]
-        if "x" in size_part:
-            width, height = size_part.split("x")
+    # Zoek naar het aantal
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal)', text, re.IGNORECASE)
+    if quantity_match:
+        quantity = quantity_match.group(1)
+    # Zoek naar de afmetingen
+    dimension_match = re.search(r'(\d+)\s*(bij|x|-|b|B|breedte|\s)\s*(\d+)', text, re.IGNORECASE)
+    if dimension_match:
+        width = dimension_match.group(1)
+        height = dimension_match.group(3)
+    else:
+        dimension_match_alt = re.search(r'(h|H|hoogte)\s*:?\s*(\d+)\s*(b|B|breedte)\s*:?\s*(\d+)', text, re.IGNORECASE)
+        if dimension_match_alt:
+            height = dimension_match_alt.group(2)
+            width = dimension_match_alt.group(4)
     return quantity, width, height
 
 # Functie om tekstinvoer te verwerken
