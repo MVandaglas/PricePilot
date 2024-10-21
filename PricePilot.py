@@ -225,7 +225,7 @@ if st.sidebar.button("Verstuur chat met GPT"):
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
-    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic", disabled_columns=["M2 p/s", "M2 totaal"])
+    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
 
     # Herbereken M2 totaal bij wijzigingen in de tabel
     if not edited_df.equals(st.session_state.offer_df):
