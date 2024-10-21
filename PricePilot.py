@@ -182,7 +182,7 @@ def handle_file_upload(file):
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|x|ruiten|aantal)', text, re.IGNORECASE)
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal)', text, re.IGNORECASE)
     if quantity_match:
         quantity = quantity_match.group(1)
     # Zoek naar de afmetingen ná het artikelnummer
@@ -220,43 +220,54 @@ def handle_text_input(input_text):
 def generate_pdf(df):
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
+    from reportlab.lib import colors
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
     from io import BytesIO
 
     buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
+    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    elements = []
 
     # Header
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(30, height - 50, "Offerteoverzicht")
-    c.setFont("Helvetica", 12)
+    elements.append("Offerteoverzicht")
 
-    # Tabel
-    start_y = height - 100
-    line_height = 20
-    c.drawString(30, start_y, "Productgroep")
-    start_y -= line_height
+    # Tabel header
+    data = [["Component 1", "Component 2", "M2/stuk", "Aantal", "M2 totaal", "EUR/stuk"]]
 
+    # Voeg gegevens uit df toe aan tabel
     for index, row in df.iterrows():
-        c.drawString(30, start_y, f"Artikelnaam: {row['Artikelnaam']}")
-        start_y -= line_height
-        c.drawString(30, start_y, f"Breedte: {row['Breedte']} mm, Hoogte: {row['Hoogte']} mm")
-        start_y -= line_height
-        c.drawString(30, start_y, f"M2/stuk: {row['M2 p/s']}, Aantal: {row['Aantal']}, M2 totaal: {row['M2 totaal']}")
-        start_y -= line_height
-        c.drawString(30, start_y, f"EUR/stuk: {row['RSP']}")
-        start_y -= (line_height * 2)  # Extra ruimte tussen artikelen
+        data.append([
+            row['Artikelnaam'],
+            row['Artikelnummer'],
+            row['M2 p/s'],
+            row['Aantal'],
+            row['M2 totaal'],
+            row['RSP']
+        ])
 
-    # Eindtotaal
+    # Eindtotaal, BTW, Te betalen
     total_price = df.apply(lambda row: float(row['Aantal']) * float(row['RSP'].replace('€', '').strip()) if pd.notna(row['Aantal']) and pd.notna(row['RSP']) else 0, axis=1).sum()
-    c.drawString(30, start_y, f"Eindtotaal: € {total_price:.2f}")
-    start_y -= line_height
     btw = total_price * 0.21
-    c.drawString(30, start_y, f"BTW (21%): € {btw:.2f}")
-    start_y -= line_height
-    c.drawString(30, start_y, f"Te betalen: € {total_price + btw:.2f}")
+    te_betalen = total_price + btw
 
-    c.save()
+    data.append(["", "", "", "", "Eindtotaal", f"€ {total_price:.2f}"])
+    data.append(["", "", "", "", "BTW (21%)", f"€ {btw:.2f}"])
+    data.append(["", "", "", "", "Te betalen", f"€ {te_betalen:.2f}"])
+
+    # Maak de tabel
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+
+    elements.append(table)
+    doc.build(elements)
     buffer.seek(0)
     return buffer
 
