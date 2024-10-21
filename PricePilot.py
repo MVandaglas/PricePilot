@@ -178,17 +178,27 @@ def handle_file_upload(file):
     else:
         st.sidebar.error("Bestandstype wordt niet ondersteund voor verwerking.")
 
+# Functie om afmetingen uit tekst te halen
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
-    # Zoek naar het aantal specifiek voor elk artikel
-    article_pattern = re.compile(r'(\d+)x\s*' + re.escape(term) + r'\s*(\d+)x(\d+)', re.IGNORECASE)
-    match = article_pattern.search(text)
-    if match:
-        quantity = match.group(1)
-        width = match.group(2)
-        height = match.group(3)
+    # Zoek naar het aantal
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
+    if quantity_match:
+        quantity = quantity_match.group(1)
+    # Zoek naar de afmetingen ná het artikelnummer
+    term_index = text.find(term)
+    if term_index != -1:
+        text_after_term = text[term_index + len(term):]
+        dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte)\s*(\d+)', text_after_term, re.IGNORECASE)
+        if dimension_match:
+            width = dimension_match.group(1)
+            height = dimension_match.group(3)
+        else:
+            dimension_match_alt = re.search(r'(h|H|hoogte)\s*:?\s*(\d+)\s*(b|B|breedte)\s*:?\s*(\d+)', text_after_term, re.IGNORECASE)
+            if dimension_match_alt:
+                height = dimension_match_alt.group(2)
+                width = dimension_match_alt.group(4)
     return quantity, width, height
-
 
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
@@ -260,7 +270,7 @@ def generate_pdf(df):
     elements.append(table)
 
     # Voeg drie lege regels toe
-    elements.append(Paragraph(""))
+        elements.append(Paragraph(""))
     elements.append(Paragraph(""))
     elements.append(Paragraph(""))
     from reportlab.lib.enums import TA_RIGHT
