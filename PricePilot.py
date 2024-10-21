@@ -31,6 +31,17 @@ if "customer_number" not in st.session_state:
 from Synonyms import synonym_dict
 from Articles import article_table
 
+# Laad opgeslagen offertes CSV
+csv_path = r'C:\Users\MW014183\OneDrive - vandaglas\Bureaublad\PricePilot\datatabellen\saved_offers.csv'
+if os.path.exists(csv_path):
+    try:
+        st.session_state.saved_offers = [pd.read_csv(csv_path)]
+    except Exception as e:
+        st.warning(f"Kon CSV niet laden: {e}")
+else:
+    st.session_state.saved_offers = []
+
+
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
 
