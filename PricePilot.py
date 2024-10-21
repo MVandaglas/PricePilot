@@ -270,10 +270,17 @@ def generate_pdf(df):
     elements.append(table)
 
     # Voeg drie lege regels toe
-    elements.append(Paragraph("<br/><br/><br/>", styles['Normal']))
-    elements.append(Paragraph(f"Eindtotaal: € {total_price:.2f}", styles['Normal'], alignment=2))
-    elements.append(Paragraph(f"BTW (21%): € {btw:.2f}", styles['Normal'], alignment=2))
-    elements.append(Paragraph(f"Te betalen: € {te_betalen:.2f}", styles['Normal'], alignment=2))
+    elements.append(Paragraph(""))
+elements.append(Paragraph(""))
+elements.append(Paragraph(""))
+    from reportlab.lib.enums import TA_RIGHT
+
+    right_aligned_style = styles['Normal'].clone('right_aligned')
+    right_aligned_style.alignment = TA_RIGHT
+
+    elements.append(Paragraph(f"Eindtotaal: € {total_price:.2f}", right_aligned_style))
+    elements.append(Paragraph(f"BTW (21%): € {btw:.2f}", right_aligned_style))
+    elements.append(Paragraph(f"Te betalen: € {te_betalen:.2f}", right_aligned_style))
     doc.build(elements)
     buffer.seek(0)
     return buffer
