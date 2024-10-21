@@ -231,5 +231,5 @@ if st.session_state.offer_df is not None:
     edited_df["M2 p/s"] = edited_df.apply(lambda row: calculate_m2_per_piece(row["Breedte"], row["Hoogte"]) if pd.notna(row["Breedte"]) and pd.notna(row["Hoogte"]) else None, axis=1)
     
     if not edited_df.equals(st.session_state.offer_df):
-        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(row["M2 p/s"].split()[0]) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
+        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(re.sub(r'[^0-9.]', '', row["M2 p/s"])) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
         st.session_state.offer_df = edited_df
