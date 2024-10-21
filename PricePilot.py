@@ -22,7 +22,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs (€)"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs (€)", "M2 p/stuk", "M2 totaal"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 
@@ -122,6 +122,15 @@ def calculate_recommended_price(min_price, max_price, prijsscherpte):
         return min_price + ((max_price - min_price) * (100 - prijsscherpte) / 100)
     return None
 
+# Functie om m2 per stuk te berekenen
+def calculate_m2_per_piece(width, height):
+    if width and height:
+        width_m = int(width) / 1000
+        height_m = int(height) / 1000
+        m2 = max(width_m * height_m, 0.65)
+        return m2
+    return None
+
 # GPT Chat functionaliteit
 def handle_gpt_chat():
     if customer_input:
@@ -136,9 +145,11 @@ def handle_gpt_chat():
                     if quantity.endswith('x'):
                         quantity = quantity[:-1].strip()
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                    data.append([description, article_number, width, height, quantity, f"€ {recommended_price:.2f}" if recommended_price is not None else None])
+                    m2_per_piece = calculate_m2_per_piece(width, height)
+                    m2_total = float(quantity) * m2_per_piece if m2_per_piece and quantity else None
+                    data.append([description, article_number, width, height, quantity, f"€ {recommended_price:.2f}" if recommended_price is not None else None, f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None, f"{m2_total:.2f} m²" if m2_total is not None else None])
 
-            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs (€)"])
+            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs (€)", "M2 p/stuk", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
             st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
@@ -205,7 +216,7 @@ if st.sidebar.button("Verstuur chat met GPT"):
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
-    st.markdown("<style>.main .block-container { width: 50%; }</style>", unsafe_allow_html=True)
+    st.markdown("<style>.main .block-container { width: 150%; }</style>", unsafe_allow_html=True)
     st.session_state.offer_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
     if st.button("Sla artikelen op in geheugen"):
         st.session_state.saved_offer_df = st.session_state.offer_df.copy()
