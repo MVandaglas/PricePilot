@@ -226,12 +226,7 @@ if st.sidebar.button("Verstuur chat met GPT"):
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
     st.markdown("<style>.main .block-container { width: 300%; }</style>", unsafe_allow_html=True)
-    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
-
-    # Herbereken M2 p/s en M2 totaal bij wijzigingen
-    if not edited_df.equals(st.session_state.offer_df):
-        edited_df["M2 p/s"] = edited_df.apply(lambda row: calculate_m2_per_piece(row["Breedte"], row["Hoogte"]) if pd.notna(row["Breedte"]) and pd.notna(row["Hoogte"]) else None, axis=1)
-        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * row["M2 p/s"] if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
-        st.session_state.offer_df = edited_df
+    st.session_state.offer_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
     if st.button("Sla artikelen op in geheugen"):
-    
+        st.session_state.saved_offer_df = st.session_state.offer_df.copy()
+        st.success("Artikelen succesvol opgeslagen in het geheugen.")
