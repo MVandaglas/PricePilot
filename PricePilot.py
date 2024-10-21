@@ -47,6 +47,22 @@ if customer_number in customer_data:
     st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
     st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
 
+    # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
+    klantgrootte = customer_data[customer_number]['size']
+    prijsscherpte = ""
+    if klantgrootte == "A":
+        if offer_amount > 50000:
+            prijsscherpte = 90
+        elif offer_amount > 25000:
+            prijsscherpte = 80
+        elif offer_amount > 10000:
+            prijsscherpte = 70
+        elif offer_amount > 5000:
+            prijsscherpte = 60
+        else:
+            prijsscherpte = 50
+    st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
     for term, synonym in synonyms.items():
