@@ -270,9 +270,9 @@ def generate_pdf(df):
     elements.append(table)
 
     # Voeg drie lege regels toe
+        elements.append(Paragraph(""))
     elements.append(Paragraph(""))
-elements.append(Paragraph(""))
-elements.append(Paragraph(""))
+    elements.append(Paragraph(""))
     from reportlab.lib.enums import TA_RIGHT
 
     right_aligned_style = styles['Normal'].clone('right_aligned')
