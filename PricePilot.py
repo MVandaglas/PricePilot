@@ -108,16 +108,19 @@ def extract_dimensions(text, term):
     quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal)', text, re.IGNORECASE)
     if quantity_match:
         quantity = quantity_match.group(1)
-    # Zoek naar de afmetingen
-    dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte|\s)\s*(\d+)', text, re.IGNORECASE)
-    if dimension_match:
-        width = dimension_match.group(1)
-        height = dimension_match.group(3)
-    else:
-        dimension_match_alt = re.search(r'(h|H|hoogte)\s*:?\s*(\d+)\s*(b|B|breedte)\s*:?\s*(\d+)', text, re.IGNORECASE)
-        if dimension_match_alt:
-            height = dimension_match_alt.group(2)
-            width = dimension_match_alt.group(4)
+    # Zoek naar de afmetingen ná het artikelnummer
+    term_index = text.find(term)
+    if term_index != -1:
+        text_after_term = text[term_index + len(term):]
+        dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte)\s*(\d+)', text_after_term, re.IGNORECASE)
+        if dimension_match:
+            width = dimension_match.group(1)
+            height = dimension_match.group(3)
+        else:
+            dimension_match_alt = re.search(r'(h|H|hoogte)\s*:?\s*(\d+)\s*(b|B|breedte)\s*:?\s*(\d+)', text_after_term, re.IGNORECASE)
+            if dimension_match_alt:
+                height = dimension_match_alt.group(2)
+                width = dimension_match_alt.group(4)
     return quantity, width, height
 
 # Functie om tekstinvoer te verwerken
