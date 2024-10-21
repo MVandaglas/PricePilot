@@ -100,5 +100,6 @@ synonym_dict = {
     "6-8 HR++": "1006447",
     "8-8 HR++": "1006449",
     "10-8 HR++": "1006450"
+    "33/1-33/1": "1006351"
     # Voeg hier alle andere benodigde synoniemen toe
 }
