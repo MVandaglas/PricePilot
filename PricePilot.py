@@ -216,7 +216,7 @@ def handle_text_input(input_text):
         st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
 
 # Verwerk chat met GPT
-if st.sidebar.button("Verstuur chat met GPT"):
+if st.sidebar.button("Vertaal"):
     try:
         handle_gpt_chat()
     except Exception as e:
