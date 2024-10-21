@@ -181,7 +181,7 @@ def handle_file_upload(file):
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|x| x|ruiten| keer|aantal)', text, re.IGNORECASE)
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal)', text, re.IGNORECASE)
     if quantity_match:
         quantity = quantity_match.group(1)
     # Zoek naar de afmetingen ná het artikelnummer
@@ -225,9 +225,18 @@ if st.sidebar.button("Verstuur chat met GPT"):
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
+    st.markdown("""
+        <style>
+        .stDataFrame div[data-testid="stHorizontalBlock"] {
+            width: 150% !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
     edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
 
-    # Herbereken M2 totaal bij wijzigingen in de tabel
+    # Maak de kolommen 'M2 p/s' en 'M2 totaal' effectively read-only door hun waarden te herberekenen
+    edited_df["M2 p/s"] = edited_df.apply(lambda row: calculate_m2_per_piece(row["Breedte"], row["Hoogte"]) if pd.notna(row["Breedte"]) and pd.notna(row["Hoogte"]) else None, axis=1)
+    
     if not edited_df.equals(st.session_state.offer_df):
-        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(row["M2 p/s"].split()[0]) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
+        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(re.sub(r'[^0-9.]', '', row["M2 p/s"])) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
         st.session_state.offer_df = edited_df
