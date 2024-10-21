@@ -207,7 +207,7 @@ def handle_text_input(input_text):
     if matched_articles:
         response_text = "Bedoelt u de volgende samenstellingen:"
         for term, article_number in matched_articles:
-            description = find_article_details(article_number)
+            description, _, _ = find_article_details(article_number)
             if description:
                 response_text += f"- {description} met artikelnummer {article_number}\n"
 
@@ -222,6 +222,7 @@ def generate_pdf(df):
     from reportlab.pdfgen import canvas
     from reportlab.lib import colors
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+    from reportlab.lib.styles import getSampleStyleSheet
     from io import BytesIO
 
     buffer = BytesIO()
@@ -229,28 +230,24 @@ def generate_pdf(df):
     elements = []
 
     # Header
-    from reportlab.platypus import Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
-
     styles = getSampleStyleSheet()
     elements.append(Paragraph("Offerteoverzicht", styles['Heading1']))
 
     # Tabel header
-    data = [["Component 1", "Component 2", "M2/stuk", "Aantal", "M2 totaal", "EUR/stuk"]]
+    data = [["Artikelnaam", "M2 p/s", "Aantal", "M2 totaal", "EUR/stuk (RSP * M2 p/s)"]]
 
     # Voeg gegevens uit df toe aan tabel
     for index, row in df.iterrows():
         data.append([
             row['Artikelnaam'],
-            row['Artikelnummer'],
             row['M2 p/s'],
             row['Aantal'],
             row['M2 totaal'],
-            row['RSP']
+            float(row['RSP'].replace('€', '').strip()) * float(row['M2 p/s'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 p/s']) else None
         ])
 
     # Eindtotaal, BTW, Te betalen
-    total_price = df.apply(lambda row: float(row['Aantal']) * float(row['RSP'].r10x 4-4 ('€', '').strip()) if pd.notna(row['Aantal']) and pd.notna(row['RSP']) else 0, axis=1).sum()
+    total_price = df.apply(lambda row: float(row['Aantal']) * float(row['RSP'].replace('€', '').strip()) if pd.notna(row['Aantal']) and pd.notna(row['RSP']) else 0, axis=1).sum()
     btw = total_price * 0.21
     te_betalen = total_price + btw
 
