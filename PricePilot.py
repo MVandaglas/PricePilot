@@ -309,11 +309,21 @@ if selected_tab == "Offerte Genereren":
 elif selected_tab == "Opgeslagen Offertes":
     st.title("Opgeslagen Offertes")
     if 'saved_offers' in st.session_state and st.session_state.saved_offers:
-        for offer in st.session_state.saved_offers:
-            offer_number = offer['Offertenummer'].iloc[0]
-            if st.button(f"Laad offerte {offer_number}"):
-                st.session_state.offer_df = offer.copy()
-                st.success(f"Offerte {offer_number} succesvol ingeladen.")
+        offers_summary = pd.DataFrame([
+            {
+                'Offertenummer': offer['Offertenummer'].iloc[0],
+                'Klantnummer': offer['Klantnummer'].iloc[0] if 'Klantnummer' in offer.columns else 'Onbekend',
+                'Eindbedrag': offer['RSP'].astype(float).sum()
+            }
+            for offer in st.session_state.saved_offers
+        ])
+        selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Offertenummer'])
+        if st.button("Laad offerte"):
+            for offer in st.session_state.saved_offers:
+                if offer['Offertenummer'].iloc[0] == selected_offer:
+                    st.session_state.offer_df = offer.copy()
+                    st.success(f"Offerte {selected_offer} succesvol ingeladen.")
+                    break
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
     if "saved_offer_df" in st.session_state and not st.session_state.saved_offer_df.empty:
@@ -343,6 +353,7 @@ if st.session_state.offer_df is not None:
 
         # Voeg offertenummer toe aan offerte DataFrame
         edited_df['Offertenummer'] = offer_number
+        edited_df['Klantnummer'] = customer_number
 
         # Sla de offerte op in een lijst van opgeslagen offertes
         if 'saved_offers' not in st.session_state:
