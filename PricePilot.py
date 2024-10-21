@@ -1,4 +1,4 @@
-import streamlit as st
+uimport streamlit as st
 import os
 import pandas as pd
 from PIL import Image
@@ -22,7 +22,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Art.", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 
