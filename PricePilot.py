@@ -313,7 +313,7 @@ elif selected_tab == "Opgeslagen Offertes":
             {
                 'Offertenummer': offer['Offertenummer'].iloc[0],
                 'Klantnummer': offer['Klantnummer'].iloc[0] if 'Klantnummer' in offer.columns else 'Onbekend',
-                'Eindbedrag': offer['RSP'].astype(float).sum()
+                'Eindbedrag': offer['RSP'].apply(lambda x: float(re.sub(r'[^0-9,.]', '', str(x)).replace(',', '.')) if pd.notna(x) else 0).sum()
             }
             for offer in st.session_state.saved_offers
         ])
