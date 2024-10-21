@@ -343,7 +343,7 @@ elif selected_tab == "Opgeslagen Offertes":
             if not offer_rows.empty:
                 st.session_state.offer_df = offer_rows.copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
-                    break
+                    
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
     if "saved_offer_df" in st.session_state and not st.session_state.saved_offer_df.empty:
