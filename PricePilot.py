@@ -22,7 +22,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 
@@ -225,8 +225,9 @@ if st.sidebar.button("Verstuur chat met GPT"):
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
-    st.markdown("<style>.main .block-container { width: 300%; }</style>", unsafe_allow_html=True)
-    st.session_state.offer_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
-    if st.button("Sla artikelen op in geheugen"):
-        st.session_state.saved_offer_df = st.session_state.offer_df.copy()
-        st.success("Artikelen succesvol opgeslagen in het geheugen.")
+    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
+
+    # Herbereken M2 totaal bij wijzigingen in de tabel
+    if not edited_df.equals(st.session_state.offer_df):
+        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(row["M2 p/s"].split()[0]) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
+        st.session_state.offer_df = edited_df
