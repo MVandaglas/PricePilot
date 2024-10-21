@@ -268,9 +268,12 @@ def generate_pdf(df):
     ]))
 
     elements.append(table)
-    elements.append(Paragraph(f"Eindtotaal: € {total_price:.2f}", styles['Normal']))
-    elements.append(Paragraph(f"BTW (21%): € {btw:.2f}", styles['Normal']))
-    elements.append(Paragraph(f"Te betalen: € {te_betalen:.2f}", styles['Normal']))
+
+    # Voeg drie lege regels toe
+    elements.append(Paragraph("<br/><br/><br/>", styles['Normal']))
+    elements.append(Paragraph(f"Eindtotaal: € {total_price:.2f}", styles['Normal'], alignment=2))
+    elements.append(Paragraph(f"BTW (21%): € {btw:.2f}", styles['Normal'], alignment=2))
+    elements.append(Paragraph(f"Te betalen: € {te_betalen:.2f}", styles['Normal'], alignment=2))
     doc.build(elements)
     buffer.seek(0)
     return buffer
