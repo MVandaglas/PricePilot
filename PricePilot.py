@@ -317,34 +317,33 @@ elif selected_tab == "Opgeslagen Offertes":
             }
             for offer in st.session_state.saved_offers
         ])
-        selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Offertenummer'])
-        if st.button("Laad offerte"):
+        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f}", axis=1)
+        selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
+        if st.button("Laad offerte", key='load_offerte_button'):
             for offer in st.session_state.saved_offers:
-                if offer['Offertenummer'].iloc[0] == selected_offer:
+                if f"Offertenummer: {offer['Offertenummer'].iloc[0]} | Klantnummer: {offer['Klantnummer'].iloc[0]} | Eindtotaal: € {offer['RSP'].apply(lambda x: float(re.sub(r'[^0-9,.]', '', str(x)).replace(',', '.')) if pd.notna(x) else 0).sum():.2f}" == selected_offer:
                     st.session_state.offer_df = offer.copy()
                     st.success(f"Offerte {selected_offer} succesvol ingeladen.")
                     break
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
     if "saved_offer_df" in st.session_state and not st.session_state.saved_offer_df.empty:
-        loaded_df = st.data_editor(st.session_state.saved_offer_df, num_rows="dynamic")
-        if st.button("Laad geselecteerde offerte"):
-            st.session_state.offer_df = loaded_df.copy()
-            st.success("Offerte succesvol ingeladen.")
+        loaded_df = st.data_editor(st.session_state.saved_offer_df, num_rows="dynamic", key='saved_offer_editor')
+        
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
 
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     # Voeg een knop toe om de offerte als PDF te downloaden
-    if st.button("Download offerte als PDF"):
+    if st.button("Download offerte als PDF", key='download_pdf_button'):
         pdf_buffer = generate_pdf(st.session_state.offer_df)
         st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
     st.title("Offerteoverzicht")
-    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
+    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic", key='offer_editor')
 
     # Voeg een knop toe om de artikelen op te slaan in het geheugen
-    if st.button("Sla offerte op"):
+    if st.button("Sla offerte op", key='save_offerte_button'):
         # Genereer een uniek offertenummer
         if 'next_offer_number' not in st.session_state:
             st.session_state.next_offer_number = 1
