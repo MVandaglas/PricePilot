@@ -308,6 +308,14 @@ if selected_tab == "Offerte Genereren":
 # Opgeslagen Offertes tab
 elif selected_tab == "Opgeslagen Offertes":
     st.title("Opgeslagen Offertes")
+    if 'saved_offers' in st.session_state and st.session_state.saved_offers:
+        for offer in st.session_state.saved_offers:
+            offer_number = offer['Offertenummer'].iloc[0]
+            if st.button(f"Laad offerte {offer_number}"):
+                st.session_state.offer_df = offer.copy()
+                st.success(f"Offerte {offer_number} succesvol ingeladen.")
+    else:
+        st.warning("Er zijn nog geen offertes opgeslagen.")
     if "saved_offer_df" in st.session_state and not st.session_state.saved_offer_df.empty:
         loaded_df = st.data_editor(st.session_state.saved_offer_df, num_rows="dynamic")
         if st.button("Laad geselecteerde offerte"):
@@ -326,7 +334,22 @@ if st.session_state.offer_df is not None:
     edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
 
     # Voeg een knop toe om de artikelen op te slaan in het geheugen
-    if st.button("Sla artikelen op in geheugen"):
+    if st.button("Sla offerte op"):
+        # Genereer een uniek offertenummer
+        if 'next_offer_number' not in st.session_state:
+            st.session_state.next_offer_number = 1
+        offer_number = st.session_state.next_offer_number
+        st.session_state.next_offer_number += 1
+
+        # Voeg offertenummer toe aan offerte DataFrame
+        edited_df['Offertenummer'] = offer_number
+
+        # Sla de offerte op in een lijst van opgeslagen offertes
+        if 'saved_offers' not in st.session_state:
+            st.session_state.saved_offers = []
+        st.session_state.saved_offers.append(edited_df.copy())
+
+        st.success(f"Offerte {offer_number} succesvol opgeslagen in het geheugen.")
         st.session_state.saved_offer_df = edited_df.copy()
         st.success("Artikelen succesvol opgeslagen in het geheugen.")
 
