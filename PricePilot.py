@@ -216,6 +216,50 @@ def handle_text_input(input_text):
     else:
         st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
 
+# Functie om offerte als PDF te genereren
+def generate_pdf(df):
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from io import BytesIO
+
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    # Header
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(30, height - 50, "Offerteoverzicht")
+    c.setFont("Helvetica", 12)
+
+    # Tabel
+    start_y = height - 100
+    line_height = 20
+    c.drawString(30, start_y, "Productgroep")
+    start_y -= line_height
+
+    for index, row in df.iterrows():
+        c.drawString(30, start_y, f"Artikelnaam: {row['Artikelnaam']}")
+        start_y -= line_height
+        c.drawString(30, start_y, f"Breedte: {row['Breedte']} mm, Hoogte: {row['Hoogte']} mm")
+        start_y -= line_height
+        c.drawString(30, start_y, f"M2/stuk: {row['M2 p/s']}, Aantal: {row['Aantal']}, M2 totaal: {row['M2 totaal']}")
+        start_y -= line_height
+        c.drawString(30, start_y, f"EUR/stuk: {row['RSP']}")
+        start_y -= (line_height * 2)  # Extra ruimte tussen artikelen
+
+    # Eindtotaal
+    total_price = df.apply(lambda row: float(row['Aantal']) * float(row['RSP'].replace('€', '').strip()) if pd.notna(row['Aantal']) and pd.notna(row['RSP']) else 0, axis=1).sum()
+    c.drawString(30, start_y, f"Eindtotaal: € {total_price:.2f}")
+    start_y -= line_height
+    btw = total_price * 0.21
+    c.drawString(30, start_y, f"BTW (21%): € {btw:.2f}")
+    start_y -= line_height
+    c.drawString(30, start_y, f"Te betalen: € {total_price + btw:.2f}")
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
 # Verwerk chat met GPT
 if st.sidebar.button("Verstuur chat met GPT"):
     try:
@@ -225,6 +269,10 @@ if st.sidebar.button("Verstuur chat met GPT"):
 
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
+    # Voeg een knop toe om de offerte als PDF te downloaden
+    if st.button("Download offerte als PDF"):
+        pdf_buffer = generate_pdf(st.session_state.offer_df)
+        st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
     st.title("Offerteoverzicht")
     edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
 
