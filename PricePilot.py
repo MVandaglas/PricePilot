@@ -109,7 +109,7 @@ def extract_dimensions(text, term):
     if quantity_match:
         quantity = quantity_match.group(1)
     # Zoek naar de afmetingen
-    dimension_match = re.search(r'(\d+)\s*(bij|x|-|b|B|breedte|\s)\s*(\d+)', text, re.IGNORECASE)
+    dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte|\s)\s*(\d+)', text, re.IGNORECASE)
     if dimension_match:
         width = dimension_match.group(1)
         height = dimension_match.group(3)
