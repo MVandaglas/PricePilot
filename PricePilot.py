@@ -149,7 +149,7 @@ def handle_gpt_chat():
                     m2_total = float(quantity) * m2_per_piece if m2_per_piece and quantity else None
                     data.append([description, article_number, width, height, quantity, f"€ {recommended_price:.2f}" if recommended_price is not None else None, f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None, f"{m2_total:.2f} m²" if m2_total is not None else None])
 
-            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/stuk", "M2 totaal"])
+            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
             st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
