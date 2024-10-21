@@ -229,7 +229,11 @@ def generate_pdf(df):
     elements = []
 
     # Header
-    elements.append("Offerteoverzicht")
+    from reportlab.platypus import Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+
+    styles = getSampleStyleSheet()
+    elements.append(Paragraph("Offerteoverzicht", styles['Heading1']))
 
     # Tabel header
     data = [["Component 1", "Component 2", "M2/stuk", "Aantal", "M2 totaal", "EUR/stuk"]]
@@ -246,7 +250,7 @@ def generate_pdf(df):
         ])
 
     # Eindtotaal, BTW, Te betalen
-    total_price = df.apply(lambda row: float(row['Aantal']) * float(row['RSP'].replace('€', '').strip()) if pd.notna(row['Aantal']) and pd.notna(row['RSP']) else 0, axis=1).sum()
+    total_price = df.apply(lambda row: float(row['Aantal']) * float(row['RSP'].r10x 4-4 ('€', '').strip()) if pd.notna(row['Aantal']) and pd.notna(row['RSP']) else 0, axis=1).sum()
     btw = total_price * 0.21
     te_betalen = total_price + btw
 
