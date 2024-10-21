@@ -216,7 +216,7 @@ if st.sidebar.button("Verstuur chat met GPT"):
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
-    st.markdown("<style>.main .block-container { width: 150%; }</style>", unsafe_allow_html=True)
+    st.markdown("<style>.main .block-container { width: 300%; }</style>", unsafe_allow_html=True)
     st.session_state.offer_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
     if st.button("Sla artikelen op in geheugen"):
         st.session_state.saved_offer_df = st.session_state.offer_df.copy()
