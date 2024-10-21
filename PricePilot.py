@@ -22,7 +22,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs (€)"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 
@@ -136,9 +136,9 @@ def handle_gpt_chat():
                     if quantity.endswith('x'):
                         quantity = quantity[:-1].strip()
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                    data.append([description, article_number, width, height, quantity, recommended_price])
+                    data.append([description, article_number, width, height, quantity, f"€ {recommended_price:.2f}" if recommended_price is not None else None])
 
-            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs"])
+            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs (€)"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
             st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
@@ -205,6 +205,7 @@ if st.sidebar.button("Verstuur chat met GPT"):
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
+    st.markdown("<style>.main .block-container { width: 150%; }</style>", unsafe_allow_html=True)
     st.session_state.offer_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
     if st.button("Sla artikelen op in geheugen"):
         st.session_state.saved_offer_df = st.session_state.offer_df.copy()
