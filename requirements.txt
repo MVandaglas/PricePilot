@@ -5,3 +5,4 @@ pytesseract
 pdf2image
 openpyxl
 fuzzywuzzy
+reportlab
