@@ -72,7 +72,6 @@ def handle_gpt_chat():
         matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in customer_input]
 
         if matched_articles:
-            response_text = "Bedoelt u de volgende samenstellingen:"
             data = []
             for term, article_number in matched_articles:
                 description = find_article_details(article_number)
@@ -84,15 +83,6 @@ def handle_gpt_chat():
 
             new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
-
-            response_text += "?"
-            st.sidebar.write(response_text)
-
-            verification = st.sidebar.radio("Klopt dit artikelnummer?", ("Ja", "Nee"), key="verification_radio")
-            if verification == "Ja":
-                st.sidebar.write("Dank u voor de bevestiging. We zullen verder gaan met de offerte.")
-            elif verification == "Nee":
-                st.sidebar.write("Gelieve meer informatie te geven om het juiste artikelnummer te vinden.")
         else:
             st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
     elif customer_file:
