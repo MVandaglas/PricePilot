@@ -106,7 +106,7 @@ def replace_synonyms(input_text, synonyms):
 def find_article_details(article_number):
     filtered_articles = article_table[article_table['Material'] == int(article_number)]
     if not filtered_articles.empty:
-        return filtered_articles.iloc[0]['Description'], filtered_articles.iloc[0]['Min_prijs'], filtered_articles.iloc[0]['Max_prijs']
+        return filtered_articles.iloc[0]['Description'], filtered_articles.iloc[0]10 stuks 4-4 2300x800['Min_prijs'], filtered_articles.iloc[0]['Max_prijs']
     return None, None, None
 
 # Functie om synoniemen te matchen in invoertekst
@@ -147,9 +147,11 @@ def handle_gpt_chat():
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                     m2_per_piece = calculate_m2_per_piece(width, height)
                     m2_total = float(quantity) * m2_per_piece if m2_per_piece and quantity else None
-                    data.append([description, article_number, width, height, quantity, f"€ {recommended_price:.2f}" if recommended_price is not None else None, f"{m2_total:.2f} m²" if m2_total is not None else None])
+                    m2_per_piece = calculate_m2_per_piece(width, height)
+m2_total = float(quantity) * m2_per_piece if m2_per_piece and quantity else None
+data.append([description, article_number, width, height, quantity, f"€ {recommended_price:.2f}" if recommended_price is not None else None, f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None, f"{m2_total:.2f} m²" if m2_total is not None else None])
 
-            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 totaal"])
+            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
             st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
@@ -217,7 +219,13 @@ if st.sidebar.button("Verstuur chat met GPT"):
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
     st.markdown("<style>.main .block-container { width: 300%; }</style>", unsafe_allow_html=True)
-    st.session_state.offer_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
+    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
+
+    # Herbereken M2 p/s en M2 totaal bij wijzigingen
+    if not edited_df.equals(st.session_state.offer_df):
+        edited_df["M2 p/s"] = edited_df.apply(lambda row: calculate_m2_per_piece(row["Breedte"], row["Hoogte"]) if pd.notna(row["Breedte"]) and pd.notna(row["Hoogte"]) else None, axis=1)
+        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * row["M2 p/s"] if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
+        st.session_state.offer_df = edited_df
     if st.button("Sla artikelen op in geheugen"):
         st.session_state.saved_offer_df = st.session_state.offer_df.copy()
         st.success("Artikelen succesvol opgeslagen in het geheugen.")
