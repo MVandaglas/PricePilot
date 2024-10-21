@@ -390,9 +390,9 @@ if st.session_state.offer_df is not None:
 
         # Sla op naar CSV-bestand
         saved_offers_df = saved_offers_df[['Offertenummer', 'Klantnummer', 'Artikelnaam', 'Artikelnummer', 'Breedte', 'Hoogte', 'Aantal', 'RSP', 'M2 p/s', 'M2 totaal']]
-saved_offers_df.to_csv(csv_path, index=False)
+        saved_offers_df.to_csv(csv_path, index=False)
 
-        st.success(f"Offerte {offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
+                st.success(f"Offerte {offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
         st.session_state.saved_offer_df = edited_df.copy()
         st.session_state.saved_offer_df = edited_df.copy()
 
