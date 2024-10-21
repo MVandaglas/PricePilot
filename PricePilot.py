@@ -185,32 +185,4 @@ def extract_dimensions(text, term):
 
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
-    matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in input_text]
-
-    if matched_articles:
-        response_text = "Bedoelt u de volgende samenstellingen:"
-        for term, article_number in matched_articles:
-            description = find_article_details(article_number)
-            if description:
-                response_text += f"- {description} met artikelnummer {article_number}\n"
-
-        response_text += "?"
-        st.sidebar.write(response_text)
-    else:
-        st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
-
-# Verwerk chat met GPT
-if st.sidebar.button("Verstuur chat met GPT"):
-    try:
-        handle_gpt_chat()
-    except Exception as e:
-        st.sidebar.error(f"Er is een fout opgetreden: {e}")
-
-# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
-if st.session_state.offer_df is not None:
-    st.title("Offerteoverzicht")
-    st.markdown("<style>.main .block-container { width: 300%; }</style>", unsafe_allow_html=True)
-    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
-
-    # Bereken M2 p/s en M2 totaal opnieuw bij wijzigingen
-    if not edited
+    matched
