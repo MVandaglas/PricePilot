@@ -52,15 +52,48 @@ if customer_number in customer_data:
     prijsscherpte = ""
     if klantgrootte == "A":
         if offer_amount > 50000:
-            prijsscherpte = 90
+            prijsscherpte = 100
         elif offer_amount > 25000:
-            prijsscherpte = 80
+            prijsscherpte = 90
         elif offer_amount > 10000:
-            prijsscherpte = 70
+            prijsscherpte = 80
         elif offer_amount > 5000:
-            prijsscherpte = 60
+            prijsscherpte = 70
         else:
+            prijsscherpte = 60
+    elif klantgrootte == "B":
+        if offer_amount > 50000:
+            prijsscherpte = 80
+        elif offer_amount > 25000:
+            prijsscherpte = 70
+        elif offer_amount > 10000:
+            prijsscherpte = 60
+        elif offer_amount > 5000:
             prijsscherpte = 50
+        else:
+            prijsscherpte = 40
+    elif klantgrootte == "C":
+        if offer_amount > 50000:
+            prijsscherpte = 75
+        elif offer_amount > 25000:
+            prijsscherpte = 65
+        elif offer_amount > 10000:
+            prijsscherpte = 50
+        elif offer_amount > 5000:
+            prijsscherpte = 40
+        else:
+            prijsscherpte = 30
+    elif klantgrootte == "D":
+        if offer_amount > 50000:
+            prijsscherpte = 70
+        elif offer_amount > 25000:
+            prijsscherpte = 60
+        elif offer_amount > 10000:
+            prijsscherpte = 45
+        elif offer_amount > 5000:
+            prijsscherpte = 25
+        else:
+            prijsscherpte = 10
     st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
 # Functie om synoniemen te vervangen in invoertekst
