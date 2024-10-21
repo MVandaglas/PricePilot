@@ -276,7 +276,7 @@ def generate_pdf(df):
     return buffer
 
 # Verwerk chat met GPT
-if st.sidebar.button("Verstuur chat met GPT"):
+if st.sidebar.button("Verzend"):
     try:
         handle_gpt_chat()
     except Exception as e:
