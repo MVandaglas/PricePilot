@@ -22,7 +22,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 
@@ -106,14 +106,20 @@ def replace_synonyms(input_text, synonyms):
 def find_article_details(article_number):
     filtered_articles = article_table[article_table['Material'] == int(article_number)]
     if not filtered_articles.empty:
-        return filtered_articles.iloc[0]['Description']
-    return None
+        return filtered_articles.iloc[0]['Description'], filtered_articles.iloc[0]['Min_prijs'], filtered_articles.iloc[0]['Max_prijs']
+    return None, None, None
 
 # Functie om synoniemen te matchen in invoertekst
 def match_synonyms(input_text, synonyms):
     for term in synonyms:
         if term in input_text:
             return synonyms.get(term)
+    return None
+
+# Functie om aanbevolen prijs te berekenen
+def calculate_recommended_price(min_price, max_price, prijsscherpte):
+    if min_price is not None and max_price is not None and prijsscherpte != "":
+        return min_price + ((max_price - min_price) * (100 - prijsscherpte) / 100)
     return None
 
 # GPT Chat functionaliteit
@@ -124,14 +130,15 @@ def handle_gpt_chat():
         if matched_articles:
             data = []
             for term, article_number in matched_articles:
-                description = find_article_details(article_number)
+                description, min_price, max_price = find_article_details(article_number)
                 if description:
                     quantity, width, height = extract_dimensions(customer_input, term)
                     if quantity.endswith('x'):
                         quantity = quantity[:-1].strip()
-                    data.append([description, article_number, width, height, quantity])
+                    recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                    data.append([description, article_number, width, height, quantity, recommended_price])
 
-            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal"])
+            new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "Aanbevolen prijs"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
             st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
