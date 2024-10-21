@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_option_menu import option_menu
 import os
 import pandas as pd
 from PIL import Image
@@ -34,6 +35,15 @@ from Articles import article_table
 article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
+# Meerdere tabbladen maken in Streamlit
+selected_tab = option_menu(
+    menu_title=None,  # required
+    options=["Offerte Genereren", "Opgeslagen Offertes"],  # required
+    icons=["file-earmark-plus", "folder"],  # optional
+    menu_icon="cast",  # optional
+    default_index=0,
+    orientation="horizontal",
+)
 st.sidebar.title("PricePilot - Klantprijsassistent")
 st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
@@ -178,15 +188,26 @@ def handle_file_upload(file):
     else:
         st.sidebar.error("Bestandstype wordt niet ondersteund voor verwerking.")
 
+# Functie om afmetingen uit tekst te halen
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
-    # Zoek naar het specifieke artikel inclusief hoeveelheid, breedte en hoogte
-    article_pattern = re.compile(r'(\d+)\s*(stuks|ruiten|aantal|x)?\s*' + re.escape(term) + r'\s*(\d+)\s*(bij|x|b|B|breedte)\s*(\d+)', re.IGNORECASE)
-    match = article_pattern.search(text)
-    if match:
-        quantity = match.group(1)
-        width = match.group(3)
-        height = match.group(5)
+    # Zoek naar het aantal
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
+    if quantity_match:
+        quantity = quantity_match.group(1)
+    # Zoek naar de afmetingen ná het artikelnummer
+    term_index = text.find(term)
+    if term_index != -1:
+        text_after_term = text[term_index + len(term):]
+        dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte)\s*(\d+)', text_after_term, re.IGNORECASE)
+        if dimension_match:
+            width = dimension_match.group(1)
+            height = dimension_match.group(3)
+        else:
+            dimension_match_alt = re.search(r'(h|H|hoogte)\s*:?\s*(\d+)\s*(b|B|breedte)\s*:?\s*(\d+)', text_after_term, re.IGNORECASE)
+            if dimension_match_alt:
+                height = dimension_match_alt.group(2)
+                width = dimension_match_alt.group(4)
     return quantity, width, height
 
 # Functie om tekstinvoer te verwerken
@@ -275,12 +296,25 @@ def generate_pdf(df):
     buffer.seek(0)
     return buffer
 
-# Verwerk chat met GPT
-if st.sidebar.button("Verzend"):
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+if st.sidebar.button("Verstuur chat met GPT"):
     try:
         handle_gpt_chat()
     except Exception as e:
         st.sidebar.error(f"Er is een fout opgetreden: {e}")
+
+
+# Opgeslagen Offertes tab
+elif selected_tab == "Opgeslagen Offertes":
+    st.title("Opgeslagen Offertes")
+    if "saved_offer_df" in st.session_state and not st.session_state.saved_offer_df.empty:
+        loaded_df = st.data_editor(st.session_state.saved_offer_df, num_rows="dynamic")
+        if st.button("Laad geselecteerde offerte"):
+            st.session_state.offer_df = loaded_df.copy()
+            st.success("Offerte succesvol ingeladen.")
+    else:
+        st.warning("Er zijn nog geen offertes opgeslagen.")
 
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
