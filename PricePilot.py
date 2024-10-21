@@ -312,8 +312,8 @@ elif selected_tab == "Opgeslagen Offertes":
         offers_summary = pd.DataFrame([
             {
                 'Offertenummer': offer['Offertenummer'].iloc[0],
-                'Klantnummer': offer['Klantnummer'].iloc[0] if 'Klantnummer' in offer.columns else 'Onbekend',
-                'Eindbedrag': offer['RSP'].apply(lambda x: float(re.sub(r'[^0-9,.]', '', str(x)).replace(',', '.')) if pd.notna(x) else 0).sum()
+                'Klantnummer': offer['Klantnummer'].iloc[0] if 'Klantnummer' in offer.columns and not offer['Klantnummer'].isna().all() else 'Onbekend',
+                'Eindbedrag': offer['RSP'].apply(lambda x: float(re.sub(r'[^0-9,.]', '', str(x)).replace(',', '.')) if pd.notna(x) and x != 'None' else 0).sum()
             }
             for offer in st.session_state.saved_offers
         ])
