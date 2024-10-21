@@ -181,7 +181,7 @@ def handle_file_upload(file):
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x| x)', text, re.IGNORECASE)
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal)', text, re.IGNORECASE)
     if quantity_match:
         quantity = quantity_match.group(1)
     # Zoek naar de afmetingen ná het artikelnummer
@@ -225,7 +225,7 @@ if st.sidebar.button("Verstuur chat met GPT"):
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
-    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic")
+    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic", disabled_columns=["M2 p/s", "M2 totaal"])
 
     # Herbereken M2 totaal bij wijzigingen in de tabel
     if not edited_df.equals(st.session_state.offer_df):
