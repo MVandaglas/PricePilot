@@ -319,6 +319,13 @@ if selected_tab == "Offerte Genereren":
 # Opgeslagen Offertes tab
 elif selected_tab == "Opgeslagen Offertes":
     st.title("Opgeslagen Offertes")
+    if os.path.exists(csv_path):
+        try:
+            saved_offers_df = pd.read_csv(csv_path)
+            st.session_state.saved_offers = [saved_offers_df]
+        except Exception as e:
+            st.warning(f"Kon CSV niet laden: {e}")
+
     if 'saved_offers' in st.session_state and st.session_state.saved_offers:
         offers_summary = pd.DataFrame([
             {
@@ -370,9 +377,12 @@ if st.session_state.offer_df is not None:
             st.session_state.saved_offers = []
         st.session_state.saved_offers.append(edited_df.copy())
 
-        st.success(f"Offerte {offer_number} succesvol opgeslagen in het geheugen.")
+        # Sla op naar CSV-bestand
+        saved_offers_df = pd.concat(st.session_state.saved_offers, ignore_index=True)
+        saved_offers_df.to_csv(csv_path, index=False)
+
+        st.success(f"Offerte {offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
         st.session_state.saved_offer_df = edited_df.copy()
-        st.success("Artikelen succesvol opgeslagen in het geheugen.")
 
     # Herbereken M2 totaal bij wijzigingen in de tabel
     if not edited_df.equals(st.session_state.offer_df):
