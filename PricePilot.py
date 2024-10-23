@@ -268,13 +268,9 @@ def generate_pdf(df):
         ])
 
     # Eindtotaal, BTW, Te betalen
-    total_price = df.apply(lambda row: float(row['Aantal']) * float(row['RSP'].replace('€', '').strip()) if pd.notna(row['Aantal']) and pd.notna(row['RSP']) else 0, axis=1).sum()
+    total_price = df.apply(lambda row: float(row['RSP'].replace('€', '').strip()) * float(row['M2 totaal'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
     btw = total_price * 0.21
     te_betalen = total_price + btw
-
-    
-    
-    
 
     # Maak de tabel
     table = Table(data)
@@ -291,7 +287,6 @@ def generate_pdf(df):
     elements.append(table)
 
     # Voeg drie lege regels toe    elements.append(Paragraph(""))
-    elements.append(Paragraph(""))
     elements.append(Paragraph(""))
     elements.append(Paragraph(""))
 
@@ -329,9 +324,9 @@ elif selected_tab == "Opgeslagen Offertes":
     if 'saved_offers' in st.session_state and st.session_state.saved_offers:
         offers_summary = pd.DataFrame([
             {
-                'Offertenummer': offer['Offertenummer'].iloc[0],
-                'Klantnummer': offer['Klantnummer'].iloc[0] if 'Klantnummer' in offer.columns and not offer['Klantnummer'].isna().all() else 'Onbekend',
-                'Eindbedrag': offer['RSP'].apply(lambda x: float(re.sub(r'[^0-9,.]', '', str(x)).replace(',', '.')) if pd.notna(x) and x != 'None' else 0).sum()
+                'Offertenummer': str(int(offer['Offertenummer'].iloc[0])),
+                'Klantnummer': str(int(offer['Klantnummer'].iloc[0])) if 'Klantnummer' in offer.columns and not offer['Klantnummer'].isna().all() else 'Onbekend',
+                'Eindbedrag': offer.apply(lambda row: float(row['RSP'].replace('€', '').strip()) * float(row['M2 totaal'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
             }
             for offer in st.session_state.saved_offers
         ])
@@ -370,8 +365,8 @@ if st.session_state.offer_df is not None:
         st.session_state.next_offer_number += 1
 
         # Voeg offertenummer toe aan offerte DataFrame
-        edited_df['Offertenummer'] = offer_number
-        edited_df['Klantnummer'] = customer_number
+        edited_df['Offertenummer'] = str(offer_number)
+        edited_df['Klantnummer'] = str(customer_number)
 
         # Sla de offerte op in een lijst van opgeslagen offertes
         if 'saved_offers' not in st.session_state:
