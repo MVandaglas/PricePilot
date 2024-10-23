@@ -6,6 +6,7 @@ from PIL import Image
 import pytesseract
 import openai
 import re
+from datetime import datetime
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -325,11 +326,12 @@ elif selected_tab == "Opgeslagen Offertes":
             {
                 'Offertenummer': str(int(offer['Offertenummer'].iloc[0])),
                 'Klantnummer': str(int(offer['Klantnummer'].iloc[0])) if 'Klantnummer' in offer.columns and not offer['Klantnummer'].isna().all() else 'Onbekend',
-                'Eindbedrag': offer.apply(lambda row: float(row['RSP'].replace('€', '').strip()) * float(row['M2 totaal'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+                'Eindbedrag': offer.apply(lambda row: float(row['RSP'].replace('€', '').strip()) * float(row['M2 totaal'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum(),
+                'Datum': offer['Datum'].iloc[0] if 'Datum' in offer.columns else 'Onbekend'
             }
             for offer in st.session_state.saved_offers
         ])
-        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f}", axis=1)
+        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
@@ -364,27 +366,33 @@ if st.session_state.offer_df is not None:
         offer_number = st.session_state.next_offer_number
         st.session_state.next_offer_number += 1
 
-        # Voeg offertenummer toe aan offerte DataFrame
-        edited_df['Offertenummer'] = str(offer_number)
-        edited_df['Klantnummer'] = str(customer_number)
+        # Bereken eindtotaal
+        eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').strip()) * float(row['M2 totaal'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
 
-        # Sla de offerte op in een lijst van opgeslagen offertes
+        # Voeg offerte-informatie toe aan een nieuwe DataFrame
+        offer_summary = pd.DataFrame({
+            'Offertenummer': [offer_number],
+            'Klantnummer': [customer_number],
+            'Eindbedrag': [eindtotaal],
+            'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+        })
+
+        # Voeg offerte-informatie toe aan opgeslagen offertes
         if 'saved_offers' not in st.session_state:
             st.session_state.saved_offers = []
-        st.session_state.saved_offers.append(edited_df.copy())
+        st.session_state.saved_offers.append(offer_summary)
 
         # Controleer of CSV-bestand bestaat en voeg de offerte toe
         if os.path.exists(csv_path):
             try:
                 existing_offers_df = pd.read_csv(csv_path)
-                saved_offers_df = pd.concat([existing_offers_df, edited_df], ignore_index=True)
+                saved_offers_df = pd.concat([existing_offers_df, offer_summary], ignore_index=True)
             except pd.errors.EmptyDataError:
-                saved_offers_df = edited_df
+                saved_offers_df = offer_summary
         else:
-            saved_offers_df = edited_df
+            saved_offers_df = offer_summary
 
         # Sla op naar CSV-bestand
-        saved_offers_df = saved_offers_df[['Offertenummer', 'Klantnummer', 'Artikelnaam', 'Artikelnummer', 'Breedte', 'Hoogte', 'Aantal', 'RSP', 'M2 p/s', 'M2 totaal']]
         saved_offers_df.to_csv(csv_path, index=False)
         st.success(f"Offerte {offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
         st.session_state.saved_offer_df = saved_offers_df.copy()
