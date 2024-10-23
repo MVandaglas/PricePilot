@@ -41,7 +41,6 @@ if os.path.exists(csv_path):
 else:
     st.session_state.saved_offers = []
 
-
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
 
@@ -338,6 +337,7 @@ elif selected_tab == "Opgeslagen Offertes":
             if not offer_rows.empty:
                 st.session_state.offer_df = offer_rows.copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
+            st.session_state.saved_offer_df = saved_offers_df
                     
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
@@ -387,8 +387,7 @@ if st.session_state.offer_df is not None:
         saved_offers_df = saved_offers_df[['Offertenummer', 'Klantnummer', 'Artikelnaam', 'Artikelnummer', 'Breedte', 'Hoogte', 'Aantal', 'RSP', 'M2 p/s', 'M2 totaal']]
         saved_offers_df.to_csv(csv_path, index=False)
         st.success(f"Offerte {offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
-        st.session_state.saved_offer_df = edited_df.copy()
-        st.session_state.saved_offer_df = edited_df.copy()
+        st.session_state.saved_offer_df = saved_offers_df.copy()
 
     # Herbereken M2 totaal bij wijzigingen in de tabel
     if not edited_df.equals(st.session_state.offer_df):
