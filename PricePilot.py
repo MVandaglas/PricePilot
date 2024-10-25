@@ -372,7 +372,7 @@ if st.session_state.offer_df is not None:
         # Voeg offerte-informatie toe aan een nieuwe DataFrame
         offer_summary = pd.DataFrame({
             'Offertenummer': [offer_number],
-            'Klantnummer': [customer_number],
+            'Klantnummer': [st.session_state.customer_number],
             'Eindbedrag': [eindtotaal],
             'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
         })
