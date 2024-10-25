@@ -259,16 +259,20 @@ def generate_pdf(df):
 
     # Voeg gegevens uit df toe aan tabel
     for index, row in df.iterrows():
-        data.append([
-            row['Artikelnaam'],
-            row['M2 p/s'],
-            row['Aantal'],
-            row['M2 totaal'],
-            float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 p/s'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 p/s']) else None
-        ])
+        if all(col in row for col in ['RSP', 'M2 p/s']):
+            data.append([
+                row['Artikelnaam'],
+                row['M2 p/s'],
+                row['Aantal'],
+                row['M2 totaal'],
+                float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 p/s'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 p/s']) else None
+            ])
 
     # Eindtotaal, BTW, Te betalen
-    total_price = df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    if all(col in df.columns for col in ['RSP', 'M2 totaal']):
+        total_price = df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    else:
+        total_price = 0
     btw = total_price * 0.21
     te_betalen = total_price + btw
 
@@ -326,7 +330,7 @@ elif selected_tab == "Opgeslagen Offertes":
             {
                 'Offertenummer': str(int(offer['Offertenummer'].iloc[0])),
                 'Klantnummer': str(int(offer['Klantnummer'].iloc[0])) if 'Klantnummer' in offer.columns and not offer['Klantnummer'].isna().all() else 'Onbekend',
-                'Eindbedrag': offer.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum(),
+                'Eindbedrag': offer.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if 'RSP' in offer.columns and 'M2 totaal' in offer.columns and pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum(),
                 'Datum': offer['Datum'].iloc[0] if 'Datum' in offer.columns else 'Onbekend'
             }
             for offer in st.session_state.saved_offers
@@ -367,7 +371,10 @@ if st.session_state.offer_df is not None:
         st.session_state.next_offer_number += 1
 
         # Bereken eindtotaal
-        eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+        if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
+            eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+        else:
+            eindtotaal = 0
 
         # Voeg offerte-informatie toe aan een nieuwe DataFrame
         offer_summary = pd.DataFrame({
