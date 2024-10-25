@@ -328,7 +328,7 @@ elif selected_tab == "Opgeslagen Offertes":
         offers_summary = pd.DataFrame([
             {
                 'Offertenummer': str(int(offer['Offertenummer'])),
-                'Klantnummer': str(int(offer['Klantnummer'])) if 'Klantnummer' in offer else 'Onbekend',
+                'Klantnummer': str(int(offer['Klantnummer'])) if pd.notna(offer['Klantnummer']) else 'Onbekend',
                 'Eindbedrag': offer['Eindbedrag'],
                 'Datum': offer['Datum']
             }
