@@ -343,24 +343,18 @@ elif selected_tab == "Opgeslagen Offertes":
             if not offer_rows.empty:
                 st.session_state.offer_df = offer_rows.copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
-            st.session_state.saved_offer_df = st.session_state.saved_offers
-                    
-    else:
-        st.warning("Er zijn nog geen offertes opgeslagen.")
-    if "saved_offer_df" in st.session_state and not st.session_state.saved_offer_df.empty:
-        loaded_df = st.data_editor(st.session_state.saved_offer_df, num_rows="dynamic", key='saved_offer_editor')
-        
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
 
-# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
-if st.session_state.offer_df is not None:
+# Toon geselecteerde offerte in het middenscherm
+if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
+    st.title("Offerteoverzicht")
+    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic", key='offer_editor')
+
     # Voeg een knop toe om de offerte als PDF te downloaden
     if st.button("Download offerte als PDF", key='download_pdf_button'):
         pdf_buffer = generate_pdf(st.session_state.offer_df)
         st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
-    st.title("Offerteoverzicht")
-    edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic", key='offer_editor')
 
     # Voeg een knop toe om de artikelen op te slaan in het geheugen en CSV
     if st.button("Sla offerte op", key='save_offerte_button'):
@@ -383,8 +377,3 @@ if st.session_state.offer_df is not None:
         st.session_state.saved_offers.to_csv(csv_path, index=False)
         st.success(f"Offerte {offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
         st.session_state.saved_offer_df = st.session_state.saved_offers.copy()
-
-    # Herbereken M2 totaal bij wijzigingen in de tabel
-    if not edited_df.equals(st.session_state.offer_df):
-        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(row["M2 p/s"].split()[0].replace(',', '.')) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
-        st.session_state.offer_df = edited_df
