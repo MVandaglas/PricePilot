@@ -409,4 +409,4 @@ elif selected_tab == "Opgeslagen Offertes":
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
     st.title("Geladen Offerte")
-    st.dataframe(st.session_state.loaded_offer_df["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+    st.dataframe(st.session_state.loaded_offer_df[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"]])
