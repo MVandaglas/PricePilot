@@ -29,6 +29,8 @@ if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
     st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+if "saved_offers" not in st.session_state:
+    st.session_state.saved_offers = []
 
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
@@ -38,11 +40,9 @@ from Articles import article_table
 csv_path = r'C:\Users\MW014183\OneDrive - vandaglas\Bureaublad\PricePilot\datatabellen\saved_offers.csv'
 if os.path.exists(csv_path):
     try:
-        st.session_state.saved_offers = [pd.read_csv(csv_path)] if os.path.exists(csv_path) else []
+        st.session_state.saved_offers = pd.read_csv(csv_path)
     except Exception as e:
         st.warning(f"Kon CSV niet laden: {e}")
-else:
-    st.session_state.saved_offers = []
 
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
@@ -308,6 +308,13 @@ def generate_pdf(df):
     buffer.seek(0)
     return buffer
 
+# Functie om alle opgeslagen offertes te vergeten
+def forget_all_offers():
+    st.session_state.saved_offers = []
+    if os.path.exists(csv_path):
+        os.remove(csv_path)
+    st.success("Alle opgeslagen offertes zijn vergeten.")
+
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
     if st.sidebar.button("Verstuur chat met GPT"):
@@ -349,8 +356,6 @@ if selected_tab == "Offerte Genereren":
             })
 
             # Voeg offerte-informatie toe aan opgeslagen offertes
-            if 'saved_offers' not in st.session_state:
-                st.session_state.saved_offers = []
             st.session_state.saved_offers.append(offer_summary)
 
             # Controleer of CSV-bestand bestaat en voeg de offerte toe
@@ -379,20 +384,12 @@ elif selected_tab == "Opgeslagen Offertes":
     if os.path.exists(csv_path):
         try:
             saved_offers_df = pd.read_csv(csv_path)
-            st.session_state.saved_offers = [saved_offers_df]
+            st.session_state.saved_offers = saved_offers_df
         except Exception as e:
             st.warning(f"Kon CSV niet laden: {e}")
 
-    if 'saved_offers' in st.session_state and st.session_state.saved_offers:
-        offers_summary = pd.DataFrame([
-            {
-                'Offertenummer': str(int(offer['Offertenummer'].iloc[0])),
-                'Klantnummer': str(int(offer['Klantnummer'].iloc[0])) if 'Klantnummer' in offer.columns and not offer['Klantnummer'].isna().all() else 'Onbekend',
-                'Eindbedrag': offer.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if 'RSP' in offer.columns and 'M2 totaal' in offer.columns and pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum(),
-                'Datum': offer['Datum'].iloc[0] if 'Datum' in offer.columns else 'Onbekend'
-            }
-            for offer in st.session_state.saved_offers
-        ])
+    if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
+        offers_summary = st.session_state.saved_offers
         offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
@@ -402,7 +399,8 @@ elif selected_tab == "Opgeslagen Offertes":
                 st.session_state.loaded_offer_df = offer_rows.copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             st.session_state.saved_offer_df = saved_offers_df
-                    
+        if st.button("Vergeet alle offertes", key='forget_offers_button'):
+            forget_all_offers()
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
 
