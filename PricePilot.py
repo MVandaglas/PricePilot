@@ -408,7 +408,7 @@ elif selected_tab == "Opgeslagen Offertes":
 if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
     st.title("Geladen Offerte")
     required_columns = ["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"]
-if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
-    st.dataframe(st.session_state.loaded_offer_df[required_columns])
-else:
-    st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
+    if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
+        st.dataframe(st.session_state.loaded_offer_df[required_columns])
+    else:
+        st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
