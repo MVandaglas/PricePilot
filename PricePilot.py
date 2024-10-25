@@ -264,11 +264,11 @@ def generate_pdf(df):
             row['M2 p/s'],
             row['Aantal'],
             row['M2 totaal'],
-            float(row['RSP'].replace('€', '').strip()) * float(row['M2 p/s'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 p/s']) else None
+            float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 p/s'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 p/s']) else None
         ])
 
     # Eindtotaal, BTW, Te betalen
-    total_price = df.apply(lambda row: float(row['RSP'].replace('€', '').strip()) * float(row['M2 totaal'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    total_price = df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
     btw = total_price * 0.21
     te_betalen = total_price + btw
 
@@ -326,7 +326,7 @@ elif selected_tab == "Opgeslagen Offertes":
             {
                 'Offertenummer': str(int(offer['Offertenummer'].iloc[0])),
                 'Klantnummer': str(int(offer['Klantnummer'].iloc[0])) if 'Klantnummer' in offer.columns and not offer['Klantnummer'].isna().all() else 'Onbekend',
-                'Eindbedrag': offer.apply(lambda row: float(row['RSP'].replace('€', '').strip()) * float(row['M2 totaal'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum(),
+                'Eindbedrag': offer.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum(),
                 'Datum': offer['Datum'].iloc[0] if 'Datum' in offer.columns else 'Onbekend'
             }
             for offer in st.session_state.saved_offers
@@ -367,7 +367,7 @@ if st.session_state.offer_df is not None:
         st.session_state.next_offer_number += 1
 
         # Bereken eindtotaal
-        eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').strip()) * float(row['M2 totaal'].split()[0]) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+        eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
 
         # Voeg offerte-informatie toe aan een nieuwe DataFrame
         offer_summary = pd.DataFrame({
@@ -399,5 +399,5 @@ if st.session_state.offer_df is not None:
 
     # Herbereken M2 totaal bij wijzigingen in de tabel
     if not edited_df.equals(st.session_state.offer_df):
-        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(row["M2 p/s"].split()[0]) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
+        edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(row["M2 p/s"].split()[0].replace(',', '.')) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
         st.session_state.offer_df = edited_df
