@@ -27,6 +27,8 @@ if "offer_df" not in st.session_state:
     st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
+if "loaded_offer_df" not in st.session_state:
+    st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
 
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
@@ -341,20 +343,20 @@ elif selected_tab == "Opgeslagen Offertes":
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
             offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
-                st.session_state.offer_df = offer_rows.copy()
+                st.session_state.loaded_offer_df = offer_rows.copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             st.session_state.saved_offer_df = saved_offers_df
                     
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
-    if "saved_offer_df" in st.session_state and not st.session_state.saved_offer_df.empty:
-        loaded_df = st.data_editor(st.session_state.saved_offer_df, num_rows="dynamic", key='saved_offer_editor')
-        
-    else:
-        st.warning("Er zijn nog geen offertes opgeslagen.")
+
+# Toon geladen offerte
+if st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
+    st.title("Geladen Offerte")
+    st.dataframe(st.session_state.loaded_offer_df["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
 
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
-if st.session_state.offer_df is not None:
+if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
     # Voeg een knop toe om de offerte als PDF te downloaden
     if st.button("Download offerte als PDF", key='download_pdf_button'):
         pdf_buffer = generate_pdf(st.session_state.offer_df)
