@@ -36,11 +36,11 @@ from Articles import article_table
 csv_path = r'C:\Users\MW014183\OneDrive - vandaglas\Bureaublad\PricePilot\datatabellen\saved_offers.csv'
 if os.path.exists(csv_path):
     try:
-        st.session_state.saved_offers = [pd.read_csv(csv_path)] if os.path.exists(csv_path) else []
+        st.session_state.saved_offers = pd.read_csv(csv_path)
     except Exception as e:
         st.warning(f"Kon CSV niet laden: {e}")
 else:
-    st.session_state.saved_offers = []
+    st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Datum"])
 
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
@@ -320,30 +320,29 @@ elif selected_tab == "Opgeslagen Offertes":
     st.title("Opgeslagen Offertes")
     if os.path.exists(csv_path):
         try:
-            saved_offers_df = pd.read_csv(csv_path)
-            st.session_state.saved_offers = [saved_offers_df]
+            st.session_state.saved_offers = pd.read_csv(csv_path)
         except Exception as e:
             st.warning(f"Kon CSV niet laden: {e}")
 
-    if 'saved_offers' in st.session_state and st.session_state.saved_offers:
+    if not st.session_state.saved_offers.empty:
         offers_summary = pd.DataFrame([
             {
-                'Offertenummer': str(int(offer['Offertenummer'].iloc[0])),
-                'Klantnummer': str(int(offer['Klantnummer'].iloc[0])) if 'Klantnummer' in offer.columns and not offer['Klantnummer'].isna().all() else 'Onbekend',
-                'Eindbedrag': offer.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if 'RSP' in offer.columns and 'M2 totaal' in offer.columns and pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum(),
-                'Datum': offer['Datum'].iloc[0] if 'Datum' in offer.columns else 'Onbekend'
+                'Offertenummer': str(int(offer['Offertenummer'])),
+                'Klantnummer': str(int(offer['Klantnummer'])) if pd.notna(offer['Klantnummer']) else 'Onbekend',
+                'Eindbedrag': offer['Eindbedrag'],
+                'Datum': offer['Datum']
             }
-            for offer in st.session_state.saved_offers
+            for _, offer in st.session_state.saved_offers.iterrows()
         ])
         offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
-            offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
+            offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
                 st.session_state.offer_df = offer_rows.copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
-            st.session_state.saved_offer_df = saved_offers_df
+            st.session_state.saved_offer_df = st.session_state.saved_offers
                     
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
@@ -362,7 +361,7 @@ if st.session_state.offer_df is not None:
     st.title("Offerteoverzicht")
     edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic", key='offer_editor')
 
-    # Voeg een knop toe om de artikelen op te slaan in het geheugen
+    # Voeg een knop toe om de artikelen op te slaan in het geheugen en CSV
     if st.button("Sla offerte op", key='save_offerte_button'):
         # Genereer een uniek offertenummer
         if 'next_offer_number' not in st.session_state:
@@ -370,39 +369,19 @@ if st.session_state.offer_df is not None:
         offer_number = st.session_state.next_offer_number
         st.session_state.next_offer_number += 1
 
-        # Bereken eindtotaal
-        if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
-            eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
-        else:
-            eindtotaal = 0
-
         # Voeg offerte-informatie toe aan een nieuwe DataFrame
-        offer_summary = pd.DataFrame({
-            'Offertenummer': [offer_number],
-            'Klantnummer': [st.session_state.customer_number],
-            'Eindbedrag': [eindtotaal],
-            'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-        })
+        offer_summary = edited_df.copy()
+        offer_summary['Offertenummer'] = offer_number
+        offer_summary['Klantnummer'] = st.session_state.customer_number
+        offer_summary['Datum'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Voeg offerte-informatie toe aan opgeslagen offertes
-        if 'saved_offers' not in st.session_state:
-            st.session_state.saved_offers = []
-        st.session_state.saved_offers.append(offer_summary)
-
-        # Controleer of CSV-bestand bestaat en voeg de offerte toe
-        if os.path.exists(csv_path):
-            try:
-                existing_offers_df = pd.read_csv(csv_path)
-                saved_offers_df = pd.concat([existing_offers_df, offer_summary], ignore_index=True)
-            except pd.errors.EmptyDataError:
-                saved_offers_df = offer_summary
-        else:
-            saved_offers_df = offer_summary
+        st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
 
         # Sla op naar CSV-bestand
-        saved_offers_df.to_csv(csv_path, index=False)
+        st.session_state.saved_offers.to_csv(csv_path, index=False)
         st.success(f"Offerte {offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
-        st.session_state.saved_offer_df = saved_offers_df.copy()
+        st.session_state.saved_offer_df = st.session_state.saved_offers.copy()
 
     # Herbereken M2 totaal bij wijzigingen in de tabel
     if not edited_df.equals(st.session_state.offer_df):
