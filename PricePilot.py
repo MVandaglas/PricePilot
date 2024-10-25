@@ -65,6 +65,7 @@ customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6
 offer_amount = st.sidebar.number_input("Offertebedrag in euro", min_value=0, step=1000)
 
 if customer_number in customer_data:
+    st.session_state.customer_number = customer_number
     st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
     st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
 
@@ -329,12 +330,12 @@ elif selected_tab == "Opgeslagen Offertes":
             {
                 'Offertenummer': str(int(offer['Offertenummer'])),
                 'Klantnummer': str(int(offer['Klantnummer'])) if pd.notna(offer['Klantnummer']) else 'Onbekend',
-                'Eindbedrag': offer['Eindbedrag'],
+                'Eindbedrag': offer['Eindbedrag'] if 'Eindbedrag' in offer else '0',
                 'Datum': offer['Datum']
             }
             for _, offer in st.session_state.saved_offers.iterrows()
         ])
-        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
+        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
