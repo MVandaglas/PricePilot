@@ -31,6 +31,8 @@ if "loaded_offer_df" not in st.session_state:
     st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
 if "saved_offers" not in st.session_state:
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
+if "next_offer_number" not in st.session_state:
+    st.session_state.next_offer_number = 1
 
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
