@@ -206,7 +206,11 @@ def handle_gpt_chat():
 
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
-    
+    if st.sidebar.button("Verstuur chat met GPT", key='send_gpt_button'):
+        try:
+            handle_gpt_chat()
+        except Exception as e:
+            st.sidebar.error(f"Er is een fout opgetreden: {e}")
 
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
@@ -215,11 +219,9 @@ if selected_tab == "Offerte Genereren":
         # Pas het dataframe aan om door GPT geïnterpreteerde waarden rood weer te geven
         offer_df_display = st.session_state.offer_df.copy()
         if 'GPT' in offer_df_display.columns:
-            offer_df_display['Aantal'] = offer_df_display.apply(lambda row: f"**:red[{row['Aantal']}]**" if row['GPT'] else row['Aantal'], axis=1)
+            offer_df_display['Aantal'] = offer_df_display.apply(lambda row: f":red[{row['Aantal']}]" if row['GPT'] else row['Aantal'], axis=1)
 
         st.data_editor(offer_df_display[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor_unique')
-
-
 
 # Functie om bestand te verwerken
 def handle_file_upload(file):
@@ -387,7 +389,7 @@ def generate_pdf(df):
 
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
-    if st.sidebar.button("Verstuur chat met GPT"):
+    if st.sidebar.button("Verstuur chat met GPT", key='send_gpt_button'):
         try:
             handle_gpt_chat()
         except Exception as e:
@@ -396,7 +398,7 @@ if selected_tab == "Offerte Genereren":
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
         st.title("Offerteoverzicht")
-        edited_df = st.data_editor(st.session_state.offer_df[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor')
+        edited_df = st.data_editor(st.session_state.offer_df[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor_unique')
 
 # Voeg een knop toe om de offerte als PDF te downloaden
 if st.button("Download offerte als PDF", key='download_pdf_button_unique'):
