@@ -266,22 +266,22 @@ def generate_pdf(df):
     )
 
     # Header
-    elements.append(Paragraph("Vandaglas - Offerte", header_style))
+    elements.append(Paragraph("Ten Cate Glas - Offerte", header_style))
     elements.append(Spacer(1, 12))
 
     # Introductietekst
     elements.append(Paragraph(
         "Beste klant,<br/><br/>"
         "Hartelijk dank voor uw prijsaanvraag. Hieronder vindt u onze offerte. Wij hopen u een passend aanbod te hebben gedaan. "
-        "Uw contactpersoon graag nog een toelichting en beantwoordt eventuele vragen.<br/><br/>"
+        "Uw contactpersoon, Job, geeft graag nog een toelichting en beantwoordt eventuele vragen.<br/><br/>"
         "Met vriendelijke groet,<br/>"
-        "Job",
+        "Ten Cate Glas",
         normal_style
     ))
     elements.append(Spacer(1, 24))
 
     # Tabel header
-    data = [["Artikelnaam", "Breedte (mm)", "Hoogte (mm)", "Aantal", "Prijs per stuk (EUR)", "M2 per stuk", "Totaal M2", "Totaal prijs (EUR)"]]
+    data = [["Artikelnaam", "Breedte (mm)", "Hoogte (mm)", "Aantal", "Prijs per stuk (EUR)", "Totaal prijs (EUR)"]]
 
     # Voeg gegevens uit df toe aan tabel
     for index, row in df.iterrows():
@@ -292,13 +292,11 @@ def generate_pdf(df):
                 row['Hoogte'],
                 row['Aantal'],
                 row['RSP'],
-                row['M2 p/s'],
-                row['M2 totaal'],
                 float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
             ])
 
     # Maak de tabel
-    table = Table(data, repeatRows=1)
+    table = Table(data, repeatRows=1, colWidths=[100, 70, 70, 50, 100, 100])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.black),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
