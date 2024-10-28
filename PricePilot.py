@@ -369,7 +369,7 @@ if selected_tab == "Offerte Genereren":
             st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
 
         # Voeg een knop toe om de artikelen op te slaan in het geheugen
-        if st.button("Sla offerte op", key='save_offerte_button'):
+                if st.button("Sla offerte op", key='save_offerte_button'):
     # Zoek het hoogste offertenummer
     if not st.session_state.saved_offers.empty:
         max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
