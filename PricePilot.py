@@ -394,10 +394,12 @@ elif selected_tab == "Opgeslagen Offertes":
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
-            offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
+            offer_rows = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
                 st.session_state.loaded_offer_df = offer_rows.copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
+            else:
+                st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
             st.session_state.saved_offer_df = saved_offers_df
         if st.button("Vergeet alle offertes", key='forget_offers_button'):
             forget_all_offers()
