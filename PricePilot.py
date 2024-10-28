@@ -217,7 +217,7 @@ if selected_tab == "Offerte Genereren":
         if 'GPT' in offer_df_display.columns:
             offer_df_display['Aantal'] = offer_df_display.apply(lambda row: f"**:red[{row['Aantal']}]**" if row['GPT'] else row['Aantal'], axis=1)
 
-        st.data_editor(offer_df_display[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor')
+        st.data_editor(offer_df_display[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor_unique')
 
 
 
