@@ -266,7 +266,7 @@ def generate_pdf(df):
     )
 
     # Header
-    elements.append(Paragraph("Ten Cate Glas - Offerte", header_style))
+    elements.append(Paragraph("Vandaglas - Offerte", header_style))
     elements.append(Spacer(1, 12))
 
     # Introductietekst
@@ -275,7 +275,7 @@ def generate_pdf(df):
         "Hartelijk dank voor uw prijsaanvraag. Hieronder vindt u onze offerte. Wij hopen u een passend aanbod te hebben gedaan. "
         "Uw contactpersoon, Job, geeft graag nog een toelichting en beantwoordt eventuele vragen.<br/><br/>"
         "Met vriendelijke groet,<br/>"
-        "Ten Cate Glas",
+        "Vandaglas",
         normal_style
     ))
     elements.append(Spacer(1, 24))
@@ -337,9 +337,7 @@ def generate_pdf(df):
 
     elements.append(totals_table)
     elements.append(Spacer(1, 24))
-    elements.append(Paragraph(f"Eindtotaal: € {total_price:.2f}", right_aligned_style))
-    elements.append(Paragraph(f"BTW (21%): € {btw:.2f}", right_aligned_style))
-    elements.append(Paragraph(f"Te betalen: € {te_betalen:.2f}", right_aligned_style))
+  
 
     # Bouwelementen aan document
     doc.build(elements)
