@@ -395,10 +395,18 @@ elif selected_tab == "Opgeslagen Offertes":
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
-            offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
+            if 'Offertenummer' in saved_offers_df.columns:
+                offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
+            else:
+                st.error("De kolom 'Offertenummer' bestaat niet in de opgeslagen offertes.")
+                offer_rows = pd.DataFrame()
             if not offer_rows.empty:
                 # Laad de volledige offerte met artikelgegevens
-                st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
+                if 'Offertenummer' in st.session_state.offer_df.columns:
+                    st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
+                else:
+                    st.error("De kolom 'Offertenummer' bestaat niet in de offertegegevens.")
+                    st.session_state.loaded_offer_df = pd.DataFrame()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             st.session_state.saved_offer_df = saved_offers_df
         if st.button("Vergeet alle offertes", key='forget_offers_button'):
