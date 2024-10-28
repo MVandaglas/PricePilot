@@ -42,6 +42,7 @@ if os.path.exists(csv_path):
     try:
         saved_offers_df = pd.read_csv(csv_path)
         if 'Offertenummer' not in saved_offers_df.columns:
+                saved_offers_df['Offertenummer'] = range(1, len(saved_offers_df) + 1)
             saved_offers_df['Offertenummer'] = None
         st.session_state.saved_offers = saved_offers_df
     except Exception as e:
@@ -341,7 +342,10 @@ if selected_tab == "Offerte Genereren":
         if st.button("Sla offerte op", key='save_offerte_button'):
             # Genereer een uniek offertenummer
             if 'next_offer_number' not in st.session_state:
-                st.session_state.next_offer_number = 1
+                if not st.session_state.saved_offers.empty:
+                    st.session_state.next_offer_number = int(st.session_state.saved_offers['Offertenummer'].max()) + 1
+                else:
+                    st.session_state.next_offer_number = 1
             offer_number = st.session_state.next_offer_number
             st.session_state.next_offer_number += 1
 
@@ -394,23 +398,29 @@ elif selected_tab == "Opgeslagen Offertes":
 
     if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
         if 'Offertenummer' not in st.session_state.saved_offers.columns:
-            st.session_state.saved_offers['Offertenummer'] = None
-        offers_summary = st.session_state.saved_offers
+            st.session_state.saved_offers['Offertenummer'] = range(1, len(st.session_state.saved_offers) + 1)
+        st.session_state.saved_offers['Offertenummer'] = None
+    offers_summary = st.session_state.saved_offers
         offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
             if 'Offertenummer' not in saved_offers_df.columns:
-                st.error("De kolom 'Offertenummer' ontbreekt in de opgeslagen offertes. Controleer het CSV-bestand en zorg ervoor dat de juiste kolommen aanwezig zijn.")
-            else:
+                saved_offers_df['Offertenummer'] = None
                 offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
-                if not offer_rows.empty:
-                    # Laad de volledige offerte met artikelgegevens
-                    if 'Offertenummer' not in st.session_state.offer_df.columns:
-                        st.error("De kolom 'Offertenummer' ontbreekt in de offertegegevens. Controleer de gegevens en zorg ervoor dat de juiste kolommen aanwezig zijn.")
-                    else:
-                        st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
-                        st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
+            else:
+                st.error("De kolom 'Offertenummer' bestaat niet in de opgeslagen offertes.")
+                offer_rows = pd.DataFrame()
+            if not offer_rows.empty:
+                # Laad de volledige offerte met artikelgegevens
+                if 'Offertenummer' not in st.session_state.offer_df.columns:
+                    st.session_state.offer_df['Offertenummer'] = range(1, len(st.session_state.offer_df) + 1)
+                        st.session_state.offer_df['Offertenummer'] = None
+                    st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
+                else:
+                    st.error("De kolom 'Offertenummer' bestaat niet in de offertegegevens.")
+                    st.session_state.loaded_offer_df = pd.DataFrame()
+                st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             st.session_state.saved_offer_df = saved_offers_df
         if st.button("Vergeet alle offertes", key='forget_offers_button'):
             forget_all_offers()
