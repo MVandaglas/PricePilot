@@ -398,7 +398,8 @@ elif selected_tab == "Opgeslagen Offertes":
     if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
         if 'Offertenummer' not in st.session_state.saved_offers.columns:
             st.session_state.saved_offers['Offertenummer'] = range(1, len(st.session_state.saved_offers) + 1)
-        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
+            offers_summary = st.session_state.saved_offers
+        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
