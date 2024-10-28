@@ -215,7 +215,9 @@ if selected_tab == "Offerte Genereren":
         
         # Pas het dataframe aan om door GPT geïnterpreteerde waarden rood weer te geven
         offer_df_display = st.session_state.offer_df.copy()
-        offer_df_display['Aantal'] = offer_df_display.apply(lambda row: f"**:red[{row['Aantal']}]**" if row['GPT'] else row['Aantal'], axis=1)
+        if 'GPT' in offer_df_display.columns:
+    offer_df_display['Aantal'] = offer_df_display.apply(lambda row: f"**:red[{row['Aantal']}]**" if row['GPT'] else row['Aantal'], axis=1)
+
 
         st.data_editor(offer_df_display[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor')
 
