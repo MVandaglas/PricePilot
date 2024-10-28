@@ -426,7 +426,6 @@ elif selected_tab == "Opgeslagen Offertes":
             offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
             # Voeg bijpassende gegevens uit offer_df toe aan offer_rows
             offer_rows_details = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer]
-            else:
                 offer_rows_details = pd.DataFrame()
             if not offer_rows.empty and not offer_rows_details.empty:
                 st.session_state.loaded_offer_df = offer_rows_details.copy()
