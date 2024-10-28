@@ -393,30 +393,24 @@ elif selected_tab == "Opgeslagen Offertes":
             st.warning(f"Kon CSV niet laden: {e}")
 
     if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
-    if 'Offertenummer' not in st.session_state.saved_offers.columns:
-        st.session_state.saved_offers['Offertenummer'] = None
-    offers_summary = st.session_state.saved_offers
+        if 'Offertenummer' not in st.session_state.saved_offers.columns:
+            st.session_state.saved_offers['Offertenummer'] = None
+        offers_summary = st.session_state.saved_offers
         offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
             if 'Offertenummer' not in saved_offers_df.columns:
                 st.error("De kolom 'Offertenummer' ontbreekt in de opgeslagen offertes. Controleer het CSV-bestand en zorg ervoor dat de juiste kolommen aanwezig zijn.")
-                return
-                offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
             else:
-                st.error("De kolom 'Offertenummer' bestaat niet in de opgeslagen offertes.")
-                offer_rows = pd.DataFrame()
-            if not offer_rows.empty:
-                # Laad de volledige offerte met artikelgegevens
-                if 'Offertenummer' not in st.session_state.offer_df.columns:
-                    st.error("De kolom 'Offertenummer' ontbreekt in de offertegegevens. Controleer de gegevens en zorg ervoor dat de juiste kolommen aanwezig zijn.")
-                    return
-                    st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
-                else:
-                    st.error("De kolom 'Offertenummer' bestaat niet in de offertegegevens.")
-                    st.session_state.loaded_offer_df = pd.DataFrame()
-                st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
+                offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
+                if not offer_rows.empty:
+                    # Laad de volledige offerte met artikelgegevens
+                    if 'Offertenummer' not in st.session_state.offer_df.columns:
+                        st.error("De kolom 'Offertenummer' ontbreekt in de offertegegevens. Controleer de gegevens en zorg ervoor dat de juiste kolommen aanwezig zijn.")
+                    else:
+                        st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
+                        st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             st.session_state.saved_offer_df = saved_offers_df
         if st.button("Vergeet alle offertes", key='forget_offers_button'):
             forget_all_offers()
