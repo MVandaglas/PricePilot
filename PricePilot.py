@@ -186,6 +186,7 @@ def handle_gpt_chat():
 
             new_df = pd.DataFrame(data, columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             
+            new_df['Offertenummer'] = st.session_state.next_offer_number
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
             st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
@@ -351,10 +352,12 @@ if selected_tab == "Offerte Genereren":
             # Genereer een uniek offertenummer
             st.session_state.offer_df['Offertenummer'] = st.session_state.next_offer_number
             if 'next_offer_number' not in st.session_state:
-                if not st.session_state.saved_offers.empty:
-                    st.session_state.next_offer_number = int(st.session_state.saved_offers['Offertenummer'].max()) + 1
-                else:
-                    st.session_state.next_offer_number = 1
+    if not st.session_state.saved_offers.empty:
+        st.session_state.next_offer_number = int(st.session_state.saved_offers['Offertenummer'].max()) + 1
+    elif not st.session_state.offer_df.empty:
+        st.session_state.next_offer_number = int(st.session_state.offer_df['Offertenummer'].max()) + 1
+    else:
+        st.session_state.next_offer_number = 1
             offer_number = st.session_state.next_offer_number
             st.session_state.next_offer_number += 1
 
