@@ -399,7 +399,7 @@ if st.button("Sla offerte op", key='save_offerte_button'):
     # Toon succesbericht
     st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
 
-if not edited_df.equals(st.session_state.offer_df):
+if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
     edited_df = edited_df.copy()
     edited_df["M2 totaal"] = edited_df.apply(
         lambda row: float(row["Aantal"]) * float(str(row["M2 p/s"]).split()[0].replace(',', '.'))
