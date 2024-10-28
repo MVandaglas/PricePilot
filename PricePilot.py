@@ -395,14 +395,15 @@ elif selected_tab == "Opgeslagen Offertes":
         except Exception as e:
             st.warning(f"Kon CSV niet laden: {e}")
 
-    if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:    offers_summary = st.session_state.saved_offers
+    if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
+        offers_summary = st.session_state.saved_offers
         offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
             if 'Offertenummer' not in saved_offers_df.columns:
-                saved_offers_df['Offertenummer'] = None
-                offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
+                saved_offers_df['Offertenummer'] = range(1, len(saved_offers_df) + 1)
+            offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
             else:
                 offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
