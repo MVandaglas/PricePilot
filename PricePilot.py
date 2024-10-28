@@ -281,7 +281,7 @@ def generate_pdf(df):
     elements.append(Spacer(1, 24))
 
     # Tabel header
-    data = [["Artikelnaam", "Breedte (mm)", "Hoogte (mm)", "Aantal", "Prijs per stuk (EUR)", "M2 per stuk", "Totaal M2", "Totaal prijs (EUR)"]]
+    data = [["Artikelnaam", "Breedte", "Hoogte", "Aantal", "Prijs p/s", "M2 p/s", "Totaal M2", "Totaal"]]
 
     # Voeg gegevens uit df toe aan tabel
     for index, row in df.iterrows():
