@@ -122,11 +122,11 @@ def replace_synonyms(input_text, synonyms):
 def find_article_details(article_number):
     filtered_articles = article_table[article_table['Material'] == int(article_number)]
     try:
-    if not filtered_articles.empty:
-        return filtered_articles.iloc[0]['Description'], filtered_articles.iloc[0]['Min_prijs'], filtered_articles.iloc[0]['Max_prijs']
-    except KeyError:
+        if not filtered_articles.empty:
+            return filtered_articles.iloc[0]['Description'], filtered_articles.iloc[0]['Min_prijs'], filtered_articles.iloc[0]['Max_prijs']
+        except KeyError:
+            return None, None, None
         return None, None, None
-    return None, None, None
 
 
 # Functie om synoniemen te matchen in invoertekst
