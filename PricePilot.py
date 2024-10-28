@@ -398,7 +398,7 @@ if selected_tab == "Offerte Genereren":
             st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
 
             # Toon succesbericht
-                st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
+            st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
 
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
