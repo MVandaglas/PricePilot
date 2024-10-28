@@ -64,7 +64,7 @@ st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijze
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
 customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-st.session_state.customer_number = customer_number
+st.session_state.customer_number = str(customer_number) if customer_number else ''
 offer_amount = st.sidebar.number_input("Offertebedrag in euro", min_value=0, step=1000)
 
 if customer_number in customer_data:
