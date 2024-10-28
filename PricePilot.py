@@ -370,7 +370,7 @@ if selected_tab == "Offerte Genereren":
 
         # Voeg een knop toe om de artikelen op te slaan in het geheugen
                 if st.button("Sla offerte op", key='save_offerte_button'):
-    # Zoek het hoogste offertenummer
+        # Zoek het hoogste offertenummer
     if not st.session_state.saved_offers.empty:
         max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
         offer_number = max_offer_number + 1
@@ -400,8 +400,8 @@ if selected_tab == "Offerte Genereren":
             # Toon succesbericht
             st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
 
-        # Herbereken M2 totaal bij wijzigingen in de tabel
-if not edited_df.equals(st.session_state.offer_df):
+                # Herbereken M2 totaal bij wijzigingen in de tabel
+        if not edited_df.equals(st.session_state.offer_df):
     edited_df = edited_df.copy()
     edited_df["M2 totaal"] = edited_df.apply(
         lambda row: float(row["Aantal"]) * float(str(row["M2 p/s"]).split()[0].replace(',', '.'))
