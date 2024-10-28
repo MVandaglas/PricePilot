@@ -256,13 +256,13 @@ def generate_pdf(df):
     # Styles
     styles = getSampleStyleSheet()
     header_style = ParagraphStyle(
-        'HeaderStyle', parent=styles['Heading1'], fontSize=18, alignment=TA_CENTER, textColor=colors.black
+        'HeaderStyle', parent=styles['Heading1'], fontSize=17, alignment=TA_CENTER, textColor=colors.black
     )
     normal_style = ParagraphStyle(
-        'NormalStyle', parent=styles['Normal'], fontSize=12, alignment=TA_LEFT, textColor=colors.black
+        'NormalStyle', parent=styles['Normal'], fontSize=11, alignment=TA_LEFT, textColor=colors.black
     )
     right_aligned_style = ParagraphStyle(
-        'RightAlignedStyle', parent=styles['Normal'], fontSize=12, alignment=TA_LEFT, textColor=colors.black
+        'RightAlignedStyle', parent=styles['Normal'], fontSize=11, alignment=TA_LEFT, textColor=colors.black
     )
 
     # Header
@@ -298,7 +298,7 @@ def generate_pdf(df):
             ])
 
     # Maak de tabel
-    table = Table(data, repeatRows=1, colWidths='*')
+    table = Table(data, repeatRows=1, colWidths=[160, 45, 45, 37.5, 90, 80, 80, 100])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.black),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
