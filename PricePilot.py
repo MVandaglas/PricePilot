@@ -339,8 +339,8 @@ if selected_tab == "Offerte Genereren":
                 st.session_state.next_offer_number = 1
 else:
     st.session_state.next_offer_number = st.session_state.next_offer_number
-            offer_number = st.session_state.next_offer_number
-                st.session_state.next_offer_number += 1
+    offer_number = st.session_state.next_offer_number
+    st.session_state.next_offer_number += 1
 
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
