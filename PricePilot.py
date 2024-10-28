@@ -336,17 +336,16 @@ if selected_tab == "Offerte Genereren":
         # Voeg een knop toe om de artikelen op te slaan in het geheugen
         if st.button("Sla offerte op", key='save_offerte_button'):
             # Genereer een uniek offertenummer
-                st.session_state.next_offer_number = 1
-else:
-    st.session_state.next_offer_number = st.session_state.next_offer_number
-    offer_number = st.session_state.next_offer_number
-    st.session_state.next_offer_number += 1
+                if 'next_offer_number' not in st.session_state:
+    st.session_state.next_offer_number = 1
+            offer_number = st.session_state.next_offer_number
+            st.session_state.next_offer_number += 1
 
-    # Bereken eindtotaal
-    if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
-        eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
-    else:
-        eindtotaal = 0
+            # Bereken eindtotaal
+            if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
+                eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+            else:
+                eindtotaal = 0
 
             # Voeg offerte-informatie toe aan een nieuwe DataFrame
             offer_summary = pd.DataFrame({
@@ -380,40 +379,4 @@ else:
             st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
-st.write(elst.write(f"<div style='position: fixed; bottom: 10px; right: 10px; font-size: 10px;'>Offertenummer: {st.session_state.next_offer_number}</div>", unsafe_allow_html=True)
-
-if selected_tab == "Opgeslagen Offertes":
-    st.title("Opgeslagen Offertes")
-    if os.path.exists(csv_path):
-        try:
-            saved_offers_df = pd.read_csv(csv_path)
-            st.session_state.saved_offers = saved_offers_df
-        except Exception as e:
-            st.warning(f"Kon CSV niet laden: {e}")
-
-    if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
-        offers_summary = st.session_state.saved_offers
-        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
-        selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
-        if st.button("Laad offerte", key='load_offerte_button'):
-            selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
-            offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
-            if not offer_rows.empty:
-                st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
-                st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
-            else:
-                st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
-            st.session_state.saved_offer_df = saved_offers_df
-        if st.button("Vergeet alle offertes", key='forget_offers_button'):
-            forget_all_offers()
-    else:
-        st.warning("Er zijn nog geen offertes opgeslagen.")
-
-# Toon geladen offerte in de tab "Opgeslagen Offertes"
-if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
-    st.title("Geladen Offerte")
-    required_columns = ["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"]
-    if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
-        st.dataframe(st.session_state.loaded_offer_df[required_columns])
-    else:
-        st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
+st.write(f"<div style='position: fixed; bottom: 10px; right: 10px; font-size: 10px;'>Offertenummer: {st.session_state.next_offer_number}</div>", unsafe_allow_html=True)
