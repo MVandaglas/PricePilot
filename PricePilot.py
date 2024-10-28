@@ -1,3 +1,4 @@
+
 import streamlit as st
 st.set_page_config(layout="wide")
 from streamlit_option_menu import option_menu
@@ -206,7 +207,7 @@ def handle_gpt_chat():
 
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
-    if st.sidebar.button("Verstuur chat met GPT"):
+    if st.sidebar.button("Verstuur chat met GPT", key='gpt_button'):
         try:
             handle_gpt_chat()
         except Exception as e:
@@ -402,11 +403,11 @@ if selected_tab == "Offerte Genereren":
         edited_df = st.data_editor(st.session_state.offer_df[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor')
 
 # Voeg een knop toe om de offerte als PDF te downloaden
-if st.button("Download offerte als PDF", key='download_pdf_button'):
+if st.button("Download offerte als PDF", key='download_pdf_button_unique'):
     pdf_buffer = generate_pdf(st.session_state.offer_df)
     st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
 
-if st.button("Sla offerte op", key='save_offerte_button'):
+if st.button("Sla offerte op", key='save_offerte_button_unique'):
     # Zoek het hoogste offertenummer
     if not st.session_state.saved_offers.empty:
         max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
@@ -453,7 +454,7 @@ elif selected_tab == "Opgeslagen Offertes":
         offers_summary = st.session_state.saved_offers
         offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
-        if st.button("Laad offerte", key='load_offerte_button'):
+        if st.button("Laad offerte", key='load_offerte_button_unique'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
             offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
@@ -461,7 +462,7 @@ elif selected_tab == "Opgeslagen Offertes":
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             else:
                 st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
-        if st.button("Vergeet alle offertes", key='forget_offers_button'):
+        if st.button("Vergeet alle offertes", key='forget_offers_button_unique'):
             st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
             st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.success("Alle opgeslagen offertes zijn vergeten.")
