@@ -335,8 +335,20 @@ def generate_pdf(df):
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
     ]))
 
+    from reportlab.lib.units import inch
+    elements.append(Spacer(1, 0.5 * inch))
+    totals_table = Table(totals_data, colWidths=[100, 100], hAlign='RIGHT')
+    totals_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.black),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+    ]))
+    elements.append(Spacer(1, 3 * inch))
     elements.append(totals_table)
-    elements.append(Spacer(1, 24))
   
 
     # Bouwelementen aan document
