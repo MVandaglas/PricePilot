@@ -66,7 +66,7 @@ st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijze
 # Gebruikersinvoer
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
-customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6, key='customer_number_input')
 offer_amount = st.sidebar.number_input("Offertebedrag in euro", min_value=0, step=1000)
 
 if customer_number in customer_data:
@@ -365,7 +365,7 @@ if selected_tab == "Offerte Genereren":
 
             # Voeg offerte-informatie toe aan opgeslagen offertes
             st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
-            st.session_state.customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+            st.session_state.customer_number = customer_number
 
             # Controleer of CSV-bestand bestaat en voeg de offerte toe
             if os.path.exists(csv_path):
