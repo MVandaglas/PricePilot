@@ -151,10 +151,11 @@ def calculate_m2_per_piece(width, height):
 # Functie om afmetingen en hoeveelheden te extraheren
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
-    # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
-    if quantity_match:
-        quantity = quantity_match.group(1)
+    # Zoek naar alle hoeveelheden in de tekst
+    quantity_matches = re.findall(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
+    if quantity_matches:
+        quantity = quantity_matches[0][0]  # Gebruik de eerste hoeveelheid
+
     # Zoek naar de afmetingen ná het artikelnummer
     term_index = text.find(term)
     if term_index != -1:
