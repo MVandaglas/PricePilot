@@ -128,7 +128,7 @@ def find_article_details(article_number):
             return None, None, None
     except Exception as e:
         # In geval van een fout, retourneer altijd drie waarden
-        return None, None, None
+            return None, None, None
 
 
 # Functie om synoniemen te matchen in invoertekst
