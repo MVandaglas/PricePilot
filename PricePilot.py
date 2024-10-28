@@ -244,66 +244,84 @@ def generate_pdf(df):
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
     from reportlab.lib import colors
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_LEFT, TA_CENTER
     from io import BytesIO
 
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     elements = []
 
-    # Header
+    # Styles
     styles = getSampleStyleSheet()
-    elements.append(Paragraph("Offerteoverzicht", styles['Heading1']))
+    header_style = ParagraphStyle(
+        'HeaderStyle', parent=styles['Heading1'], fontSize=18, alignment=TA_CENTER, textColor=colors.black
+    )
+    normal_style = ParagraphStyle(
+        'NormalStyle', parent=styles['Normal'], fontSize=12, alignment=TA_LEFT, textColor=colors.black
+    )
+    right_aligned_style = ParagraphStyle(
+        'RightAlignedStyle', parent=styles['Normal'], fontSize=12, alignment=TA_LEFT, textColor=colors.black
+    )
+
+    # Header
+    elements.append(Paragraph("Vandaglas - Offerte", header_style))
+    elements.append(Spacer(1, 12))
+
+    # Introductietekst
+    elements.append(Paragraph(
+        "Beste klant,<br/><br/>"
+        "Hartelijk dank voor uw prijsaanvraag. Hieronder vindt u onze offerte. Wij hopen u een passend aanbod te hebben gedaan. "
+        "Uw contactpersoon graag nog een toelichting en beantwoordt eventuele vragen.<br/><br/>"
+        "Met vriendelijke groet,<br/>"
+        "Job",
+        normal_style
+    ))
+    elements.append(Spacer(1, 24))
 
     # Tabel header
-    data = [["Artikelnaam", "M2 p/s", "Aantal", "M2 totaal", "EUR/stuk"]]
+    data = [["Artikelnaam", "Breedte (mm)", "Hoogte (mm)", "Aantal", "Prijs per stuk (EUR)", "M2 per stuk", "Totaal M2", "Totaal prijs (EUR)"]]
 
     # Voeg gegevens uit df toe aan tabel
     for index, row in df.iterrows():
-        if all(col in row for col in ['RSP', 'M2 p/s']):
+        if all(col in row for col in ['Artikelnaam', 'Breedte', 'Hoogte', 'Aantal', 'RSP', 'M2 p/s', 'M2 totaal']):
             data.append([
                 row['Artikelnaam'],
-                row['M2 p/s'],
+                row['Breedte'],
+                row['Hoogte'],
                 row['Aantal'],
+                row['RSP'],
+                row['M2 p/s'],
                 row['M2 totaal'],
-                float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 p/s'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 p/s']) else None
+                float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
             ])
 
-    # Eindtotaal, BTW, Te betalen
-    if all(col in df.columns for col in ['RSP', 'M2 totaal']):
-        total_price = df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
-    else:
-        total_price = 0
-    btw = total_price * 0.21
-    te_betalen = total_price + btw
-
     # Maak de tabel
-    table = Table(data)
+    table = Table(data, repeatRows=1)
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.black),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
     ]))
 
     elements.append(table)
+    elements.append(Spacer(1, 24))
 
-    # Voeg drie lege regels toe    elements.append(Paragraph(""))
-    elements.append(Paragraph(""))
-    elements.append(Paragraph(""))
-
-    from reportlab.lib.enums import TA_RIGHT
-
-    right_aligned_style = styles['Normal'].clone('right_aligned')
-    right_aligned_style.alignment = TA_RIGHT
+    # Eindtotaal, BTW, Te betalen
+    total_price = df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    btw = total_price * 0.21
+    te_betalen = total_price + btw
 
     elements.append(Paragraph(f"Eindtotaal: € {total_price:.2f}", right_aligned_style))
     elements.append(Paragraph(f"BTW (21%): € {btw:.2f}", right_aligned_style))
     elements.append(Paragraph(f"Te betalen: € {te_betalen:.2f}", right_aligned_style))
+
+    # Bouwelementen aan document
     doc.build(elements)
     buffer.seek(0)
     return buffer
