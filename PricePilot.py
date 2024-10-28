@@ -356,6 +356,19 @@ if selected_tab == "Offerte Genereren":
             offer_number = st.session_state.next_offer_number
             st.session_state.next_offer_number += 1
 
+        if st.button("Sla offerte op", key='save_offerte_button'):
+    # Genereer een uniek offertenummer
+    if 'next_offer_number' not in st.session_state:
+        if not st.session_state.saved_offers.empty:
+            st.session_state.next_offer_number = int(st.session_state.saved_offers['Offertenummer'].max()) + 1
+        elif not st.session_state.offer_df.empty:
+            st.session_state.next_offer_number = int(st.session_state.offer_df['Offertenummer'].max()) + 1
+        else:
+            st.session_state.next_offer_number = 1
+            
+    offer_number = st.session_state.next_offer_number
+    st.session_state.next_offer_number += 1
+
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
                 eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
