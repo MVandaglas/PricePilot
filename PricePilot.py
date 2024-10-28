@@ -166,8 +166,8 @@ def handle_gpt_chat():
                         if quantity.endswith('x'):
                             quantity = quantity[:-1].strip()
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                        m2_per_piece = calculate_m2_per_piece(width, height)
-                        m2_total = float(quantity) * m2_per_piece if m2_per_piece and quantity else None
+                        m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if calculate_m2_per_piece(width, height) else None
+                        m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
                         data.append([
                             None,  # Placeholder for Offertenummer, to be added later
                             description,
