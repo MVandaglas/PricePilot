@@ -344,7 +344,7 @@ if selected_tab == "Offerte Genereren":
         # Voeg een knop toe om de artikelen op te slaan in het geheugen
         if st.button("Sla offerte op", key='save_offerte_button'):
             # Genereer een uniek offertenummer
-            st.session_state.offer_df['Offertenummer'] = st.session_state.next_offer_number
+            st.session_state.offer_df['Offertenummer'] = offer_number
             if 'next_offer_number' not in st.session_state:
     if not st.session_state.saved_offers.empty:
         st.session_state.next_offer_number = int(st.session_state.saved_offers['Offertenummer'].max()) + 1
@@ -420,7 +420,6 @@ elif selected_tab == "Opgeslagen Offertes":
             offer_rows = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
                 st.session_state.loaded_offer_df = offer_rows.copy()
-                st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             else:
                 st.warning(f"Geen artikelen gevonden voor Offertenummer {selected_offertenummer}")
