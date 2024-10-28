@@ -151,26 +151,27 @@ def calculate_m2_per_piece(width, height):
 # Functie om afmetingen en hoeveelheden te extraheren
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
-    # Zoek naar alle hoeveelheden in de tekst
+    # Zoek naar het aantal
     quantity_matches = re.findall(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
-if quantity_matches:
-    quantities = [match[0] for match in quantity_matches]  # Lijst met alle hoeveelheden
-
+    if quantity_matches:
+        quantity = quantity_matches[0][0]  # Gebruik de eerste gevonden hoeveelheid
+    
     # Zoek naar de afmetingen ná het artikelnummer
-term_index = text.find(term)
-if term_index != -1:
-    text_after_term = text[term_index + len(term):]
-    dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte)\s*(\d+)', text_after_term, re.IGNORECASE)
-    if dimension_match:
-        width = dimension_match.group(1)
-        height = dimension_match.group(3)
-    else:
-        dimension_match_alt = re.search(r'(h|H|hoogte)\s*:?\s*(\d+)\s*(b|B|breedte)\s*:?\s*(\d+)', text_after_term, re.IGNORECASE)
-        if dimension_match_alt:
-            width = dimension_match_alt.group(4)
-            height = dimension_match_alt.group(2)
+    term_index = text.find(term)
+    if term_index != -1:
+        text_after_term = text[term_index + len(term):]
+        dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte)\s*(\d+)', text_after_term, re.IGNORECASE)
+        if dimension_match:
+            width = dimension_match.group(1)
+            height = dimension_match.group(3)
+        else:
+            dimension_match_alt = re.search(r'(h|H|hoogte)\s*:?\s*(\d+)\s*(b|B|breedte)\s*:?\s*(\d+)', text_after_term, re.IGNORECASE)
+            if dimension_match_alt:
+                width = dimension_match_alt.group(4)
+                height = dimension_match_alt.group(2)
+    
+    return quantity, width, height
 
-return quantity, width, height
 
 
 # GPT Chat functionaliteit
