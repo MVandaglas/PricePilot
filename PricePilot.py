@@ -206,7 +206,7 @@ def handle_gpt_chat():
 
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
-    if st.sidebar.button("Verstuur chat met GPT", key='send_gpt_button_unique'):
+    if st.sidebar.button("Verstuur chat met GPT", key='send_gpt_button_1'):
         try:
             handle_gpt_chat()
         except Exception as e:
@@ -214,12 +214,12 @@ if selected_tab == "Offerte Genereren":
 
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
-        st.title("Offerteoverzicht")
+        # Removed duplicate title display for 'Offerteoverzicht'
         
         # Pas het dataframe aan om door GPT geïnterpreteerde waarden rood weer te geven
         offer_df_display = st.session_state.offer_df.copy()
         if 'GPT' in offer_df_display.columns:
-            offer_df_display['Aantal'] = offer_df_display.apply(lambda row: f":red[{row['Aantal']}]" if row['GPT'] else row['Aantal'], axis=1)
+            offer_df_display['Aantal'] = offer_df_display.apply(lambda row: f":red[{row['Aantal']}]" if row.get('GPT', False) else row['Aantal'], axis=1)
 
         st.data_editor(offer_df_display[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor_unique')
 
@@ -397,7 +397,7 @@ if selected_tab == "Offerte Genereren":
 
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
-        st.title("Offerteoverzicht")
+        # Removed duplicate title display for 'Offerteoverzicht'
         edited_df = st.data_editor(st.session_state.offer_df[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor_unique')
 
 # Voeg een knop toe om de offerte als PDF te downloaden
@@ -449,4 +449,29 @@ if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
 elif selected_tab == "Opgeslagen Offertes":
     st.title("Opgeslagen Offertes")
     if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
-        offers_summary = st
+        offers_summary = st.session_state.saved_offers
+        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
+        selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
+        if st.button("Laad offerte", key='load_offerte_button_unique'):
+            selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
+            offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
+            if not offer_rows.empty:
+                st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
+                st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
+            else:
+                st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
+        if st.button("Vergeet alle offertes", key='forget_offers_button_unique'):
+            st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
+            st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+            st.success("Alle opgeslagen offertes zijn vergeten.")
+    else:
+        st.warning("Er zijn nog geen offertes opgeslagen.")
+
+# Toon geladen offerte in de tab "Opgeslagen Offertes"
+if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
+    st.title("Geladen Offerte")
+    required_columns = ["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"]
+    if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
+        st.dataframe(st.session_state.loaded_offer_df[required_columns])
+    else:
+        st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
