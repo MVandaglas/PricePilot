@@ -398,7 +398,7 @@ if selected_tab == "Offerte Genereren":
             st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
 
             # Toon succesbericht
-            st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
+                st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
 
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
@@ -424,7 +424,12 @@ if selected_tab == "Offerte Genereren":
 
         # Herbereken M2 totaal bij wijzigingen in de tabel
         if not edited_df.equals(st.session_state.offer_df):
-            edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(str(row["M2 p/s"]).split()[0].replace(',', '.')) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
+            edited_df = edited_df.copy()
+            edited_df["M2 totaal"] = edited_df.apply(
+                lambda row: float(row["Aantal"]) * float(str(row["M2 p/s"]).split()[0].replace(',', '.'))
+                if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None,
+                axis=1
+            )
             st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
