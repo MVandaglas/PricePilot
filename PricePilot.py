@@ -121,13 +121,9 @@ def replace_synonyms(input_text, synonyms):
 # Functie om artikelgegevens te vinden
 def find_article_details(article_number):
     filtered_articles = article_table[article_table['Material'] == int(article_number)]
-    try:
-        if not filtered_articles.empty:
-            return filtered_articles.iloc[0]['Description'], filtered_articles.iloc[0]['Min_prijs'], filtered_articles.iloc[0]['Max_prijs']
-        except KeyError:
-            return None, None, None
-        return None, None, None
-
+    if not filtered_articles.empty:
+        return filtered_articles.iloc[0]['Description'], filtered_articles.iloc[0]['Min_prijs'], filtered_articles.iloc[0]['Max_prijs']
+    return None, None, None
 
 # Functie om synoniemen te matchen in invoertekst
 def match_synonyms(input_text, synonyms):
@@ -379,32 +375,25 @@ if selected_tab == "Offerte Genereren":
         # Voeg een knop toe om de artikelen op te slaan in het geheugen
         if st.button("Sla offerte op", key='save_offerte_button'):
             # Genereer een uniek offertenummer
+            # Genereer een uniek offertenummer
             if not st.session_state.saved_offers.empty:
                 offer_number = st.session_state.saved_offers['Offertenummer'].max() + 1
             else:
                 offer_number = 1
             
-            # Voeg de kolom 'Offertenummer' toe aan offer_df indien deze nog niet bestaat
-            if 'Offertenummer' not in st.session_state.offer_df.columns:
-                st.session_state.offer_df['Offertenummer'] = offer_number
-            else:
-                st.session_state.offer_df['Offertenummer'] = offer_number
-
-            # Controleer of de kolom 'Offertenummer' in offer_df bestaat, en voeg deze anders toe
-            if 'Offertenummer' not in st.session_state.offer_df.columns:
-                st.session_state.offer_df['Offertenummer'] = None
-    
-            # Wijs het offertenummer toe aan alle rijen in offer_df
-                st.session_state.offer_df['Offertenummer'] = offer_number
-            
             # Toon melding dat offerte is opgeslagen
             st.success(f"Offerte is opgeslagen met offertenummer {offer_number}")
-                    
+            
+
+            # Bereken eindtotaal
+
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
                 eindtotaal = edited_df.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
             else:
                 eindtotaal = 0
+
+            # Voeg offerte-informatie toe aan een nieuwe DataFrame
 
             # Voeg offerte-informatie toe aan een nieuwe DataFrame
             offer_summary = pd.DataFrame({
@@ -413,6 +402,8 @@ if selected_tab == "Offerte Genereren":
                 'Eindbedrag': [eindtotaal],
                 'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
             })
+
+            # Voeg offerte-informatie toe aan opgeslagen offertes
 
             # Voeg offerte-informatie toe aan opgeslagen offertes
             st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
@@ -435,7 +426,6 @@ elif selected_tab == "Opgeslagen Offertes":
             offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
             # Voeg bijpassende gegevens uit offer_df toe aan offer_rows
             offer_rows_details = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer]
-            if offer_rows_details.empty:
                 offer_rows_details = pd.DataFrame()
             if not offer_rows.empty and not offer_rows_details.empty:
                 st.session_state.loaded_offer_df = offer_rows_details.copy()
