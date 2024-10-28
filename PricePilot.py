@@ -40,7 +40,7 @@ from Articles import article_table
 csv_path = r'C:\Users\MW014183\OneDrive - vandaglas\Bureaublad\PricePilot\datatabellen\saved_offers.csv'
 if os.path.exists(csv_path):
     try:
-        st.session_state.saved_offers = pd.read_csv(csv_path)
+        st.session_state.saved_offers = pd.read_csv(csv_path, dtype={'Klantnummer': str})
     except Exception as e:
         st.warning(f"Kon CSV niet laden: {e}")
 
@@ -398,8 +398,8 @@ if selected_tab == "Offerte Genereren":
 
             # Voeg offerte-informatie toe aan een nieuwe DataFrame
             offer_summary = pd.DataFrame({
-                'Offertenummer': [offer_number],
-                'Klantnummer': [st.session_state.customer_number],
+    'Offertenummer': [offer_number],
+    'Klantnummer': [str(st.session_state.customer_number)],
                 'Eindbedrag': [eindtotaal],
                 'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
             })
