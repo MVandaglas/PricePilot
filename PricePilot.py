@@ -290,7 +290,6 @@ def generate_pdf(df):
                 row['M2 p/s'],
                 row['M2 totaal'],
                 f"€ {round(float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(row['M2 p/s'].replace(',', '.')), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
-                f"
             ])
 
     # Maak de tabel
