@@ -281,7 +281,7 @@ def generate_pdf(df):
     elements.append(Spacer(1, 24))
 
     # Tabel header
-    data = [["Artikelnaam", "Breedte (mm)", "Hoogte (mm)", "Aantal", "Prijs per stuk (EUR)", "Totaal prijs (EUR)"]]
+    data = [["Artikelnaam", "Breedte (mm)", "Hoogte (mm)", "Aantal", "Prijs per stuk (EUR)", "M2 per stuk", "Totaal M2", "Totaal prijs (EUR)"]]
 
     # Voeg gegevens uit df toe aan tabel
     for index, row in df.iterrows():
@@ -292,11 +292,13 @@ def generate_pdf(df):
                 row['Hoogte'],
                 row['Aantal'],
                 row['RSP'],
+                row['M2 p/s'],
+                row['M2 totaal'],
                 float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
             ])
 
     # Maak de tabel
-    table = Table(data, repeatRows=1, colWidths=[100, 70, 70, 50, 100, 100])
+    table = Table(data, repeatRows=1, colWidths=[80, 60, 60, 50, 90, 80, 80, 100])
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.black),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
@@ -305,6 +307,7 @@ def generate_pdf(df):
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
         ('BACKGROUND', (0, 1), (-1, -1), colors.white),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('WORDWRAP', (0, 0), (-1, -1), True),
     ]))
 
     elements.append(table)
