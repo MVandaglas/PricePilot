@@ -39,13 +39,6 @@ from Synonyms import synonym_dict
 from Articles import article_table
 
 # Laad opgeslagen offertes CSV
-csv_path = r'C:\Users\MW014183\OneDrive - vandaglas\Bureaublad\PricePilot\datatabellen\saved_offers.csv'
-if os.path.exists(csv_path):
-    try:
-        saved_offers_df = pd.read_csv(csv_path)
-        if 'Offertenummer' not in saved_offers_df.columns:
-            saved_offers_df['Offertenummer'] = range(1, len(saved_offers_df) + 1)
-        st.session_state.saved_offers = saved_offers_df
     except Exception as e:
         st.warning(f"Kon CSV niet laden: {e}")
 
@@ -336,9 +329,19 @@ if selected_tab == "Offerte Genereren":
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
         if st.button("Sla offerte op", key='save_offerte_button'):
-            # Genereer een uniek offertenummer gebaseerd op het hoogste nummer
-            if not st.session_state.saved_offers.empty:
-                st.session_state.next_offer_number = st.session_state.saved_offers['Offertenummer'].max() + 1
+    # Bereken eindtotaal
+    if all(col in st.session_state.offer_df.columns for col in ['RSP', 'M2 totaal']):
+        eindtotaal = st.session_state.offer_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    else:
+        eindtotaal = 0
+    
+    # Genereer een uniek offertenummer gebaseerd op het hoogste nummer
+    if not st.session_state.saved_offers.empty:
+        st.session_state.next_offer_number = st.session_state.saved_offers['Offertenummer'].max() + 1
+    elif not st.session_state.offer_df.empty:
+        st.session_state.next_offer_number = st.session_state.offer_df['Offertenummer'].max() + 1
+    else:
+        st.session_state.next_offer_number = 1
             elif not st.session_state.offer_df.empty:
                 st.session_state.next_offer_number = st.session_state.offer_df['Offertenummer'].max() + 1
             else:
@@ -355,19 +358,7 @@ if selected_tab == "Offerte Genereren":
             # Voeg offerte-informatie toe aan opgeslagen offertes
             st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
 
-            # Controleer of CSV-bestand bestaat en voeg de offerte toe
-            if os.path.exists(csv_path):
-                try:
-                    existing_offers_df = pd.read_csv(csv_path)
-                    saved_offers_df = pd.concat([existing_offers_df, offer_summary], ignore_index=True)
-                except pd.errors.EmptyDataError:
-                    saved_offers_df = offer_summary
-            else:
-                saved_offers_df = offer_summary
-
-            # Sla op naar CSV-bestand
-            saved_offers_df.to_csv(csv_path, index=False)
-            st.success(f"Offerte {st.session_state.next_offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
+                        st.success(f"Offerte {st.session_state.next_offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
         st.title("Offerteoverzicht")
         edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic", key='offer_editor')
 
