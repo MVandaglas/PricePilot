@@ -318,6 +318,25 @@ def generate_pdf(df):
     btw = total_price * 0.21
     te_betalen = total_price + btw
 
+    # Maak klein tabelletje voor totalen
+    totals_data = [
+        ["Eindtotaal:", f"€ {total_price:.2f}"],
+        ["BTW (21%):", f"€ {btw:.2f}"],
+        ["Te betalen:", f"€ {te_betalen:.2f}"]
+    ]
+    totals_table = Table(totals_data, colWidths=[100, 100])
+    totals_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.black),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+    ]))
+
+    elements.append(totals_table)
+    elements.append(Spacer(1, 24))
     elements.append(Paragraph(f"Eindtotaal: € {total_price:.2f}", right_aligned_style))
     elements.append(Paragraph(f"BTW (21%): € {btw:.2f}", right_aligned_style))
     elements.append(Paragraph(f"Te betalen: € {te_betalen:.2f}", right_aligned_style))
