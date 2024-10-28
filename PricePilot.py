@@ -374,7 +374,7 @@ if selected_tab == "Offerte Genereren":
             st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
-st.write(elst.write(f"<div style='position: fixed; bottom: 10px; right: 10px; font-size: 10px;'>Offertenummer: {st.session_state.next_offer_number}</div>", unsafe_allow_html=True)
+st.write(f"<div style='position: fixed; bottom: 10px; right: 10px; font-size: 10px;'>Offertenummer: {st.session_state.next_offer_number}</div>", unsafe_allow_html=True)
 
 if selected_tab == "Opgeslagen Offertes":
     st.title("Opgeslagen Offertes")
