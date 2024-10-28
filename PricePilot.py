@@ -32,6 +32,9 @@ if "loaded_offer_df" not in st.session_state:
 if "saved_offers" not in st.session_state:
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
 
+if "next_offer_number" not in st.session_state:
+    st.session_state.next_offer_number = 1
+
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
 from Articles import article_table
@@ -335,6 +338,9 @@ if selected_tab == "Offerte Genereren":
 
         # Voeg een knop toe om de artikelen op te slaan in het geheugen
         if st.button("Sla offerte op", key='save_offerte_button'):
+    offer_number = st.session_state.next_offer_number
+    st.session_state.next_offer_number += 1
+
     
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
@@ -374,7 +380,7 @@ if selected_tab == "Offerte Genereren":
             st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
-st.write(f"<div style='position: fixed; bottom: 10px; right: 10px; font-size: 10px;'>Offertenummer: {st.session_state.next_offer_number}</div>", unsafe_allow_html=True)
+st.write(f"<div style='position: fixed; bottom: 10px; right: 10px; font-size: 10px;'>Volgend Offertenummer: {st.session_state.next_offer_number}</div>", unsafe_allow_html=True)
 
 if selected_tab == "Opgeslagen Offertes":
     st.title("Opgeslagen Offertes")
