@@ -285,15 +285,16 @@ def generate_pdf(df):
     for index, row in df.iterrows():
         if all(col in row for col in ['Artikelnaam', 'Breedte', 'Hoogte', 'Aantal', 'RSP', 'M2 p/s', 'M2 totaal']):
             data.append([
-                row['Artikelnaam'],
-                row['Breedte'],
-                row['Hoogte'],
-                row['Aantal'],
-                row['RSP'],
-                row['M2 p/s'],
-                row['M2 totaal'],
-                f"€ {round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
-            ])
+    row['Artikelnaam'],
+    row['Breedte'],
+    row['Hoogte'],
+    row['Aantal'],
+    row['RSP'],
+    f"{float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()):.2f} m²" if pd.notna(row['M2 p/s']) else None,
+    f"{float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()):.2f} m²" if pd.notna(row['M2 totaal']) else None,
+    f"€ {round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
+])
+
 
     # Maak de tabel
     table = Table(data, repeatRows=1, colWidths=[150, 45, 45, 45, 45, 45, 45, 45])
