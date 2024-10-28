@@ -368,14 +368,13 @@ if selected_tab == "Offerte Genereren":
             pdf_buffer = generate_pdf(st.session_state.offer_df)
             st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
 
-        # Voeg een knop toe om de artikelen op te slaan in het geheugen
             if st.button("Sla offerte op", key='save_offerte_button'):
         # Zoek het hoogste offertenummer
-    if not st.session_state.saved_offers.empty:
-        max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
-        offer_number = max_offer_number + 1
-    else:
-        offer_number = 1
+        if not st.session_state.saved_offers.empty:
+            max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
+            offer_number = max_offer_number + 1
+        else:
+            offer_number = 1
 
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
@@ -400,15 +399,14 @@ if selected_tab == "Offerte Genereren":
             # Toon succesbericht
             st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
 
-                # Herbereken M2 totaal bij wijzigingen in de tabel
-        if not edited_df.equals(st.session_state.offer_df):
-    edited_df = edited_df.copy()
-    edited_df["M2 totaal"] = edited_df.apply(
-        lambda row: float(row["Aantal"]) * float(str(row["M2 p/s"]).split()[0].replace(',', '.'))
-        if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None,
-        axis=1
-    )
-    st.session_state.offer_df = edited_df
+                    if not edited_df.equals(st.session_state.offer_df):
+        edited_df = edited_df.copy()
+        edited_df["M2 totaal"] = edited_df.apply(
+            lambda row: float(row["Aantal"]) * float(str(row["M2 p/s"]).split()[0].replace(',', '.'))
+            if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None,
+            axis=1
+        )
+        st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
 elif selected_tab == "Opgeslagen Offertes":
