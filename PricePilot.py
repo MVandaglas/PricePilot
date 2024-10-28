@@ -375,7 +375,7 @@ if selected_tab == "Offerte Genereren":
 
         # Herbereken M2 totaal bij wijzigingen in de tabel
         if not edited_df.equals(st.session_state.offer_df):
-            edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(row["M2 p/s"].split()[0].replace(',', '.')) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
+            edited_df["M2 totaal"] = edited_df.apply(lambda row: float(row["Aantal"]) * float(str(row["M2 p/s"]).split()[0].replace(',', '.')) if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None, axis=1)
             st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
