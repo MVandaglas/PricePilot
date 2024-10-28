@@ -335,6 +335,39 @@ if selected_tab == "Offerte Genereren":
 
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
+        if st.button("Sla offerte op", key='save_offerte_button'):
+            # Genereer een uniek offertenummer gebaseerd op het hoogste nummer
+            if not st.session_state.saved_offers.empty:
+                st.session_state.next_offer_number = st.session_state.saved_offers['Offertenummer'].max() + 1
+            elif not st.session_state.offer_df.empty:
+                st.session_state.next_offer_number = st.session_state.offer_df['Offertenummer'].max() + 1
+            else:
+                st.session_state.next_offer_number = 1
+
+            # Voeg offerte-informatie toe aan een nieuwe DataFrame
+            offer_summary = pd.DataFrame({
+                'Offertenummer': [st.session_state.next_offer_number],
+                'Klantnummer': [st.session_state.customer_number],
+                'Eindbedrag': [eindtotaal],
+                'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            })
+
+            # Voeg offerte-informatie toe aan opgeslagen offertes
+            st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
+
+            # Controleer of CSV-bestand bestaat en voeg de offerte toe
+            if os.path.exists(csv_path):
+                try:
+                    existing_offers_df = pd.read_csv(csv_path)
+                    saved_offers_df = pd.concat([existing_offers_df, offer_summary], ignore_index=True)
+                except pd.errors.EmptyDataError:
+                    saved_offers_df = offer_summary
+            else:
+                saved_offers_df = offer_summary
+
+            # Sla op naar CSV-bestand
+            saved_offers_df.to_csv(csv_path, index=False)
+            st.success(f"Offerte {st.session_state.next_offer_number} succesvol opgeslagen in het geheugen en in CSV-bestand.")
         st.title("Offerteoverzicht")
         edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic", key='offer_editor')
 
@@ -404,7 +437,7 @@ elif selected_tab == "Opgeslagen Offertes":
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
-            offer_rows = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer]
+            offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
                 st.session_state.loaded_offer_df = offer_rows.copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
