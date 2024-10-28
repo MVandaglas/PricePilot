@@ -370,12 +370,12 @@ if selected_tab == "Offerte Genereren":
 
         # Voeg een knop toe om de artikelen op te slaan in het geheugen
         if st.button("Sla offerte op", key='save_offerte_button'):
-            # Zoek het hoogste offertenummer
-            if not st.session_state.saved_offers.empty:
-                max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
-                offer_number = max_offer_number + 1
-            else:
-                offer_number = 1
+    # Zoek het hoogste offertenummer
+    if not st.session_state.saved_offers.empty:
+        max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
+        offer_number = max_offer_number + 1
+    else:
+        offer_number = 1
 
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
@@ -399,28 +399,6 @@ if selected_tab == "Offerte Genereren":
 
             # Toon succesbericht
             st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
-
-            # Bereken eindtotaal
-            if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
-                eindtotaal = edited_df.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
-            else:
-                eindtotaal = 0
-
-            # Voeg offerte-informatie toe aan een nieuwe DataFrame
-            offer_summary = pd.DataFrame({
-                'Offertenummer': [offer_number],
-                'Klantnummer': [str(st.session_state.customer_number)],
-                'Eindbedrag': [eindtotaal],
-                'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-            })
-
-            # Voeg offerte-informatie toe aan opgeslagen offertes
-            st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
-
-            # Voeg offertenummer toe aan elke regel in de offerte
-            st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
-            
-    st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
 
         # Herbereken M2 totaal bij wijzigingen in de tabel
 if not edited_df.equals(st.session_state.offer_df):
