@@ -336,8 +336,7 @@ if selected_tab == "Offerte Genereren":
         # Voeg een knop toe om de artikelen op te slaan in het geheugen
         if st.button("Sla offerte op", key='save_offerte_button'):
             # Genereer een uniek offertenummer
-            if 'next_offer_number' not in st.session_state:
-    st.session_state.next_offer_number = 1
+                st.session_state.next_offer_number = 1
 else:
     st.session_state.next_offer_number = st.session_state.next_offer_number
             offer_number = st.session_state.next_offer_number
@@ -381,7 +380,7 @@ else:
             st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
-elst.write(f"<div style='position: fixed; bottom: 10px; right: 10px; font-size: 10px;'>Offertenummer: {st.session_state.next_offer_number}</div>", unsafe_allow_html=True)
+st.write(elst.write(f"<div style='position: fixed; bottom: 10px; right: 10px; font-size: 10px;'>Offertenummer: {st.session_state.next_offer_number}</div>", unsafe_allow_html=True)
 
 if selected_tab == "Opgeslagen Offertes":
     st.title("Opgeslagen Offertes")
