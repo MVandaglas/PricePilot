@@ -26,7 +26,7 @@ customer_data = {
 if "offer_df" not in st.session_state:
     st.session_state.offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"])
 if "customer_number" not in st.session_state:
-    st.session_state.customer_number = ""
+    st.session_state.customer_number = customer_number
 if "loaded_offer_df" not in st.session_state:
     st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
 if "saved_offers" not in st.session_state:
@@ -317,6 +317,7 @@ def forget_all_offers():
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
     if os.path.exists(csv_path):
         os.remove(csv_path)
+    st.session_state.next_offer_number = 1
     st.success("Alle opgeslagen offertes zijn vergeten.")
 
 # Offerte Genereren tab
@@ -364,6 +365,7 @@ if selected_tab == "Offerte Genereren":
 
             # Voeg offerte-informatie toe aan opgeslagen offertes
             st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
+            st.session_state.customer_number = customer_number
 
             # Controleer of CSV-bestand bestaat en voeg de offerte toe
             if os.path.exists(csv_path):
@@ -409,7 +411,7 @@ elif selected_tab == "Opgeslagen Offertes":
                 # Laad de volledige offerte met artikelgegevens
                 if 'Offertenummer' not in st.session_state.offer_df.columns:
                     st.session_state.offer_df['Offertenummer'] = range(1, len(st.session_state.offer_df) + 1)
-                st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
+                st.session_state.loaded_offer_df = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer].copy()
                 
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             st.session_state.saved_offer_df = saved_offers_df
