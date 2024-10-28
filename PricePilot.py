@@ -148,6 +148,28 @@ def calculate_m2_per_piece(width, height):
         return m2
     return None
 
+# Functie om afmetingen en hoeveelheden te extraheren
+def extract_dimensions(text, term):
+    quantity, width, height = "", "", ""
+    # Zoek naar het aantal
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
+    if quantity_match:
+        quantity = quantity_match.group(1)
+    # Zoek naar de afmetingen ná het artikelnummer
+    term_index = text.find(term)
+    if term_index != -1:
+        text_after_term = text[term_index + len(term):]
+        dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte)\s*(\d+)', text_after_term, re.IGNORECASE)
+        if dimension_match:
+            width = dimension_match.group(1)
+            height = dimension_match.group(3)
+        else:
+            dimension_match_alt = re.search(r'(h|H|hoogte)\s*:?\s*(\d+)\s*(b|B|breedte)\s*:?\s*(\d+)', text_after_term, re.IGNORECASE)
+            if dimension_match_alt:
+                height = dimension_match_alt.group(2)
+                width = dimension_match_alt.group(4)
+    return quantity, width, height
+
 # GPT Chat functionaliteit
 def handle_gpt_chat():
     if customer_input:
@@ -206,7 +228,7 @@ def handle_gpt_chat():
 
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
-    if st.sidebar.button("Verstuur chat met GPT", key='send_gpt_button_1'):
+    if st.sidebar.button("Verstuur chat met GPT", key='send_gpt_button'):
         try:
             handle_gpt_chat()
         except Exception as e:
@@ -219,7 +241,7 @@ if selected_tab == "Offerte Genereren":
         # Pas het dataframe aan om door GPT geïnterpreteerde waarden rood weer te geven
         offer_df_display = st.session_state.offer_df.copy()
         if 'GPT' in offer_df_display.columns:
-            offer_df_display['Aantal'] = offer_df_display.apply(lambda row: f":red[{row['Aantal']}]" if row.get('GPT', False) else row['Aantal'], axis=1)
+            offer_df_display['Aantal'] = offer_df_display.apply(lambda row: f"**:red[{row['Aantal']}]**" if row.get('GPT', False) else row['Aantal'], axis=1)
 
         st.data_editor(offer_df_display[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor_unique')
 
@@ -232,27 +254,6 @@ def handle_file_upload(file):
         handle_text_input(extracted_text)
     else:
         st.sidebar.error("Bestandstype wordt niet ondersteund voor verwerking.")
-
-def extract_dimensions(text, term):
-    quantity, width, height = "", "", ""
-    # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
-    if quantity_match:
-        quantity = quantity_match.group(1)
-    # Zoek naar de afmetingen ná het artikelnummer
-    term_index = text.find(term)
-    if term_index != -1:
-        text_after_term = text[term_index + len(term):]
-        dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte)\s*(\d+)', text_after_term, re.IGNORECASE)
-        if dimension_match:
-            width = dimension_match.group(1)
-            height = dimension_match.group(3)
-        else:
-            dimension_match_alt = re.search(r'(h|H|hoogte)\s*:?\s*(\d+)\s*(b|B|breedte)\s*:?\s*(\d+)', text_after_term, re.IGNORECASE)
-            if dimension_match_alt:
-                height = dimension_match_alt.group(2)
-                width = dimension_match_alt.group(4)
-    return quantity, width, height
 
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
@@ -274,7 +275,7 @@ def handle_text_input(input_text):
 def generate_pdf(df):
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
-    from reportlab.lib import colors
+    from reportlab.lib.colors import colors
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.enums import TA_LEFT, TA_CENTER
@@ -387,19 +388,6 @@ def generate_pdf(df):
     buffer.seek(0)
     return buffer
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
-    if st.sidebar.button("Verstuur chat met GPT", key='send_gpt_button_unique'):
-        try:
-            handle_gpt_chat()
-        except Exception as e:
-            st.sidebar.error(f"Er is een fout opgetreden: {e}")
-
-    # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
-    if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
-        # Removed duplicate title display for 'Offerteoverzicht'
-        edited_df = st.data_editor(st.session_state.offer_df[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor_unique')
-
 # Voeg een knop toe om de offerte als PDF te downloaden
 if st.button("Download offerte als PDF", key='download_pdf_button_unique'):
     pdf_buffer = generate_pdf(st.session_state.offer_df)
@@ -414,8 +402,8 @@ if st.button("Sla offerte op", key='save_offerte_button_unique'):
         offer_number = 1
 
     # Bereken eindtotaal
-    if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
-        eindtotaal = edited_df.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    if all(col in st.session_state.offer_df.columns for col in ['RSP', 'M2 totaal']):
+        eindtotaal = st.session_state.offer_df.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
     else:
         eindtotaal = 0
 
