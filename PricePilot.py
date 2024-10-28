@@ -339,14 +339,14 @@ if selected_tab == "Offerte Genereren":
                 st.session_state.next_offer_number = 1
 else:
     st.session_state.next_offer_number = st.session_state.next_offer_number
-            offer_number = st.session_state.next_offer_number
-            st.session_state.next_offer_number += 1
+    offer_number = st.session_state.next_offer_number
+    st.session_state.next_offer_number += 1
 
-            # Bereken eindtotaal
-            if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
-                eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
-            else:
-                eindtotaal = 0
+    # Bereken eindtotaal
+    if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
+        eindtotaal = edited_df.apply(lambda row: float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    else:
+        eindtotaal = 0
 
             # Voeg offerte-informatie toe aan een nieuwe DataFrame
             offer_summary = pd.DataFrame({
