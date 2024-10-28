@@ -385,20 +385,22 @@ if selected_tab == "Offerte Genereren":
                 st.session_state.offer_df['Offertenummer'] = offer_number
             else:
                 st.session_state.offer_df['Offertenummer'] = offer_number
+
+            # Controleer of de kolom 'Offertenummer' in offer_df bestaat, en voeg deze anders toe
+            if 'Offertenummer' not in st.session_state.offer_df.columns:
+                st.session_state.offer_df['Offertenummer'] = None
+    
+            # Wijs het offertenummer toe aan alle rijen in offer_df
+                st.session_state.offer_df['Offertenummer'] = offer_number
             
             # Toon melding dat offerte is opgeslagen
             st.success(f"Offerte is opgeslagen met offertenummer {offer_number}")
-            
-
-            # Bereken eindtotaal
-
+                    
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
                 eindtotaal = edited_df.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
             else:
                 eindtotaal = 0
-
-            # Voeg offerte-informatie toe aan een nieuwe DataFrame
 
             # Voeg offerte-informatie toe aan een nieuwe DataFrame
             offer_summary = pd.DataFrame({
@@ -407,8 +409,6 @@ if selected_tab == "Offerte Genereren":
                 'Eindbedrag': [eindtotaal],
                 'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
             })
-
-            # Voeg offerte-informatie toe aan opgeslagen offertes
 
             # Voeg offerte-informatie toe aan opgeslagen offertes
             st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
