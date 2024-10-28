@@ -411,29 +411,4 @@ elif selected_tab == "Opgeslagen Offertes":
         offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
-            selected_offertenummer = int(selected_offer.split(' | ')[0].split(': ')[1])|')[0].split(':')[1].strip())
-            if 'Offertenummer' not in saved_offers_df.columns:
-                saved_offers_df['Offertenummer'] = range(1, len(saved_offers_df) + 1)
-            offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
-            offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
-            if not offer_rows.empty:
-                # Laad de volledige offerte met artikelgegevens
-                if 'Offertenummer' not in st.session_state.offer_df.columns:
-                    st.session_state.offer_df['Offertenummer'] = range(1, len(st.session_state.offer_df) + 1)
-                st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
-                
-                st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
-            st.session_state.saved_offer_df = saved_offers_df
-        if st.button("Vergeet alle offertes", key='forget_offers_button'):
-            forget_all_offers()
-    else:
-        st.warning("Er zijn nog geen offertes opgeslagen.")
-
-# Toon geladen offerte in de tab "Opgeslagen Offertes"
-if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
-    st.title("Geladen Offerte")
-    required_columns = ["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"]
-    if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
-        st.dataframe(st.session_state.loaded_offer_df[required_columns])
-    else:
-        st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
+            selected_offertenummer = int(selected_offer.split(' | ')[0].split(': ')[1])
