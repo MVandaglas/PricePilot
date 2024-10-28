@@ -396,7 +396,7 @@ elif selected_tab == "Opgeslagen Offertes":
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
             offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
-                st.session_state.loaded_offer_df = offer_rows.copy()
+                st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             else:
                 st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
