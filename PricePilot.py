@@ -1,4 +1,5 @@
 import streamlit as st
+st.set_page_config(layout="wide")
 from streamlit_option_menu import option_menu
 import os
 import pandas as pd
@@ -361,7 +362,7 @@ if selected_tab == "Offerte Genereren":
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
         st.title("Offerteoverzicht")
-        edited_df = st.data_editor(st.session_state.offer_df, num_rows="dynamic", key='offer_editor')
+        edited_df = st.data_editor(st.session_state.offer_df[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor')
 
 # Voeg een knop toe om de offerte als PDF te downloaden
 if st.button("Download offerte als PDF", key='download_pdf_button'):
