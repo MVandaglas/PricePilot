@@ -289,7 +289,7 @@ def generate_pdf(df):
                 row['RSP'],
                 row['M2 p/s'],
                 row['M2 totaal'],
-                total_price = df.apply(lambda row: round(float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].replace('m²', '').replace(',', '.').strip()), 2) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+                f"€ {round(float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(row['M2 p/s'].replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
             ])
 
     # Maak de tabel
@@ -309,7 +309,7 @@ def generate_pdf(df):
     elements.append(Spacer(1, 24))
 
     # Eindtotaal, BTW, Te betalen
-    total_price = df.apply(lambda row: round(float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].split()[0].replace(',', '.')), 2) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    total_price = df.apply(lambda row: round(float(row['RSP'].replace('€', '').replace(',', '.').strip()) * float(row['M2 totaal'].replace('m²', '').replace(',', '.').strip()), 2) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
     btw = total_price * 0.21
     te_betalen = total_price + btw
 
