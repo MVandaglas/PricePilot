@@ -372,7 +372,7 @@ if selected_tab == "Offerte Genereren":
             })
 
             # Voeg offerte-informatie toe aan opgeslagen offertes
-            offer_summary['Klantnummer'] = st.session_state.customer_number
+            offer_summary['Klantnummer'] = str(st.session_state.customer_number)
             st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
             
 
@@ -411,7 +411,7 @@ elif selected_tab == "Opgeslagen Offertes":
         offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
         selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
         if st.button("Laad offerte", key='load_offerte_button'):
-            selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
+            selected_offertenummer = int(selected_offer.split(' | ')[0].split(': ')[1])|')[0].split(':')[1].strip())
             if 'Offertenummer' not in saved_offers_df.columns:
                 saved_offers_df['Offertenummer'] = range(1, len(saved_offers_df) + 1)
             offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
