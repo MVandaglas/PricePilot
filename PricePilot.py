@@ -337,7 +337,9 @@ if selected_tab == "Offerte Genereren":
         if st.button("Sla offerte op", key='save_offerte_button'):
             # Genereer een uniek offertenummer
             if 'next_offer_number' not in st.session_state:
-                st.session_state.next_offer_number = 1
+    st.session_state.next_offer_number = 1
+else:
+    st.session_state.next_offer_number = st.session_state.next_offer_number
             offer_number = st.session_state.next_offer_number
             st.session_state.next_offer_number += 1
 
@@ -379,7 +381,9 @@ if selected_tab == "Offerte Genereren":
             st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
-elif selected_tab == "Opgeslagen Offertes":
+elst.write(f"<div style='position: fixed; bottom: 10px; right: 10px; font-size: 10px;'>Offertenummer: {st.session_state.next_offer_number}</div>", unsafe_allow_html=True)
+
+if selected_tab == "Opgeslagen Offertes":
     st.title("Opgeslagen Offertes")
     if os.path.exists(csv_path):
         try:
@@ -396,7 +400,7 @@ elif selected_tab == "Opgeslagen Offertes":
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
             offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
-                st.session_state.loaded_offer_df = offer_rows.copy()
+                st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             else:
                 st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
