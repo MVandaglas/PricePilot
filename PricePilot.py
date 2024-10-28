@@ -315,8 +315,11 @@ def generate_pdf(df):
 # Functie om alle opgeslagen offertes te vergeten
 def forget_all_offers():
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
+    st.session_state.loaded_offer_df = pd.DataFrame()
     if os.path.exists(csv_path):
         os.remove(csv_path)
+    st.session_state.next_offer_number = 1
+    st.success("Alle opgeslagen offertes zijn vergeten.")
     st.session_state.next_offer_number = 1
     st.success("Alle opgeslagen offertes zijn vergeten.")
 
@@ -364,8 +367,9 @@ if selected_tab == "Offerte Genereren":
             })
 
             # Voeg offerte-informatie toe aan opgeslagen offertes
+            offer_summary['Klantnummer'] = customer_number
             st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
-            st.session_state.customer_number = customer_number
+            
 
             # Controleer of CSV-bestand bestaat en voeg de offerte toe
             if os.path.exists(csv_path):
