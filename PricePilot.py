@@ -396,8 +396,11 @@ elif selected_tab == "Opgeslagen Offertes":
             selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
             offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
             # Voeg bijpassende gegevens uit offer_df toe aan offer_rows
-            offer_rows_details = st.session_state.offer_df[st.session_state.offer_df['Klantnummer'] == offer_rows['Klantnummer'].values[0]]
-            if not offer_rows.empty and not offer_rows_details.empty:
+            if 'Klantnummer' in st.session_state.offer_df.columns and 'Klantnummer' in offer_rows.columns:
+                offer_rows_details = st.session_state.offer_df[st.session_state.offer_df['Klantnummer'] == offer_rows['Klantnummer'].values[0]]
+            else:
+                offer_rows_details = pd.DataFrame()
+            if not offer_rows.empty and not offer_rows_details.empty and 'Klantnummer' in offer_rows.columns:
                 st.session_state.loaded_offer_df = offer_rows_details.copy()
                 st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
             else:
