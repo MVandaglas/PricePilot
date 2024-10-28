@@ -196,7 +196,6 @@ def handle_file_upload(file):
     else:
         st.sidebar.error("Bestandstype wordt niet ondersteund voor verwerking.")
 
-# Functie om afmetingen uit tekst te halen
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar het aantal
