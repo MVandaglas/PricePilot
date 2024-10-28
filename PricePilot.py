@@ -153,8 +153,8 @@ def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar alle hoeveelheden in de tekst
     quantity_matches = re.findall(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
-    if quantity_matches:
-        quantity = quantity_matches[0][0]  # Gebruik de eerste hoeveelheid
+if quantity_matches:
+    quantities = [match[0] for match in quantity_matches]  # Lijst met alle hoeveelheden
 
     # Zoek naar de afmetingen ná het artikelnummer
     term_index = text.find(term)
