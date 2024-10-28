@@ -404,8 +404,7 @@ elif selected_tab == "Opgeslagen Offertes":
             if 'Offertenummer' not in saved_offers_df.columns:
                 saved_offers_df['Offertenummer'] = range(1, len(saved_offers_df) + 1)
             offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
-            else:
-                offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
+            offer_rows = saved_offers_df[saved_offers_df['Offertenummer'] == selected_offertenummer]
             if not offer_rows.empty:
                 # Laad de volledige offerte met artikelgegevens
                 if 'Offertenummer' not in st.session_state.offer_df.columns:
