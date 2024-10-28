@@ -345,29 +345,15 @@ if selected_tab == "Offerte Genereren":
         if st.button("Sla offerte op", key='save_offerte_button'):
             # Genereer een uniek offertenummer
             st.session_state.offer_df['Offertenummer'] = offer_number
-        if 'next_offer_number' not in st.session_state:
+            if 'next_offer_number' not in st.session_state:
     if not st.session_state.saved_offers.empty:
         st.session_state.next_offer_number = int(st.session_state.saved_offers['Offertenummer'].max()) + 1
     elif not st.session_state.offer_df.empty:
         st.session_state.next_offer_number = int(st.session_state.offer_df['Offertenummer'].max()) + 1
     else:
         st.session_state.next_offer_number = 1
-
             offer_number = st.session_state.next_offer_number
             st.session_state.next_offer_number += 1
-
-        if st.button("Sla offerte op", key='save_offerte_button'):
-    # Genereer een uniek offertenummer
-    if 'next_offer_number' not in st.session_state:
-        if not st.session_state.saved_offers.empty:
-            st.session_state.next_offer_number = int(st.session_state.saved_offers['Offertenummer'].max()) + 1
-        elif not st.session_state.offer_df.empty:
-            st.session_state.next_offer_number = int(st.session_state.offer_df['Offertenummer'].max()) + 1
-        else:
-            st.session_state.next_offer_number = 1
-            
-    offer_number = st.session_state.next_offer_number
-    st.session_state.next_offer_number += 1
 
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
