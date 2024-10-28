@@ -196,7 +196,7 @@ def handle_file_upload(file):
 
 # Functie om afmetingen uit tekst te halen
 def extract_dimensions(text, term):
-    quantity, width, height = "", "", ""
+    quantity, width, height = "", ""
     # Zoek naar het aantal
     quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
     if quantity_match:
@@ -375,10 +375,17 @@ if selected_tab == "Offerte Genereren":
         # Voeg een knop toe om de artikelen op te slaan in het geheugen
         if st.button("Sla offerte op", key='save_offerte_button'):
             # Genereer een uniek offertenummer
-            if 'next_offer_number' not in st.session_state:
-                st.session_state.next_offer_number = 1
-            offer_number = st.session_state.next_offer_number
-            st.session_state.next_offer_number += 1
+            # Genereer een uniek offertenummer
+            if not st.session_state.saved_offers.empty:
+                offer_number = st.session_state.saved_offers['Offertenummer'].max() + 1
+            else:
+                offer_number = 1
+            
+            # Toon melding dat offerte is opgeslagen
+            st.success(f"Offerte is opgeslagen met offertenummer {offer_number}")
+            
+
+            # Bereken eindtotaal
 
             # Bereken eindtotaal
             if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
@@ -387,12 +394,16 @@ if selected_tab == "Offerte Genereren":
                 eindtotaal = 0
 
             # Voeg offerte-informatie toe aan een nieuwe DataFrame
+
+            # Voeg offerte-informatie toe aan een nieuwe DataFrame
             offer_summary = pd.DataFrame({
-    'Offertenummer': [offer_number],
-    'Klantnummer': [str(st.session_state.customer_number)],
+                'Offertenummer': [offer_number],
+                'Klantnummer': [str(st.session_state.customer_number)],
                 'Eindbedrag': [eindtotaal],
                 'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
             })
+
+            # Voeg offerte-informatie toe aan opgeslagen offertes
 
             # Voeg offerte-informatie toe aan opgeslagen offertes
             st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
