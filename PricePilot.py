@@ -207,11 +207,7 @@ def handle_gpt_chat():
 
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
-    if st.sidebar.button("Verstuur chat met GPT", key='gpt_button'):
-        try:
-            handle_gpt_chat()
-        except Exception as e:
-            st.sidebar.error(f"Er is een fout opgetreden: {e}")
+    
 
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
