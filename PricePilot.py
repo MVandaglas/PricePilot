@@ -151,33 +151,37 @@ def calculate_m2_per_piece(width, height):
 # GPT Chat functionaliteit
 def handle_gpt_chat():
     if customer_input:
-        matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in customer_input]
+        # Verwerk de invoer regel voor regel
+        lines = customer_input.splitlines()
 
-        if matched_articles:
-            data = []
-            for term, article_number in matched_articles:
-                description, min_price, max_price = find_article_details(article_number)
-                if description:
-                    quantity, width, height = extract_dimensions(customer_input, term)
-                    if quantity.endswith('x'):
-                        quantity = quantity[:-1].strip()
-                    recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                    m2_per_piece = calculate_m2_per_piece(width, height)
-                    m2_total = float(quantity) * m2_per_piece if m2_per_piece and quantity else None
-                    data.append([
-                        None,  # Placeholder for Offertenummer, to be added later
-                        description,
-                        article_number,
-                        width,
-                        height,
-                        quantity,
-                        f"€ {recommended_price:.2f}" if recommended_price is not None else None,
-                        f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None,
-                        f"{m2_total:.2f} m²" if m2_total is not None else None
-                    ])
+        data = []
+        for line in lines:
+            matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in line]
 
+            if matched_articles:
+                for term, article_number in matched_articles:
+                    description, min_price, max_price = find_article_details(article_number)
+                    if description:
+                        quantity, width, height = extract_dimensions(line, term)
+                        if quantity.endswith('x'):
+                            quantity = quantity[:-1].strip()
+                        recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                        m2_per_piece = calculate_m2_per_piece(width, height)
+                        m2_total = float(quantity) * m2_per_piece if m2_per_piece and quantity else None
+                        data.append([
+                            None,  # Placeholder for Offertenummer, to be added later
+                            description,
+                            article_number,
+                            width,
+                            height,
+                            quantity,
+                            f"€ {recommended_price:.2f}" if recommended_price is not None else None,
+                            f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None,
+                            f"{m2_total:.2f} m²" if m2_total is not None else None
+                        ])
+
+        if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
-            
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
             st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
