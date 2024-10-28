@@ -298,7 +298,7 @@ def generate_pdf(df):
             ])
 
     # Maak de tabel
-    table = Table(data, repeatRows=1, colWidths=[80, 60, 60, 50, 90, 80, 80, 100])
+    table = Table(data, repeatRows=1, colWidths='*')
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.black),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
