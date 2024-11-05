@@ -10,5 +10,8 @@ COPY . /app
 # Installeer de benodigde Python-pakketten
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Maak poort 8501 toegankelijk
+EXPOSE 8501
+
 # Start de Streamlit-applicatie
-CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "PricePilot.py", "--server.port=8501", "--server.address=0.0.0.0"]
