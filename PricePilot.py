@@ -370,8 +370,9 @@ def generate_pdf(df):
 
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
+    
     if st.sidebar.button("Verstuur chat met GPT"):
-    try:
+        try:
         import asyncio
         asyncio.run(handle_gpt_chat())
         except Exception as e:
