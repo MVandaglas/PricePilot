@@ -194,9 +194,7 @@ def handle_gpt_chat():
                     model=" gpt-4o-mini" ,
                     prompt=(
                         "Je bent een offerte generatie assistent in de b2b glaswereld. Je krijgt klantverzoeken binnen die glassamenstellingen bevatten. Dit zal zeer waarschijnlijk een combinatie zijn van aantal, de desbetreffende samenstelling met productkenmerken, breedte en hoogte."
-                        f"Analyseer de volgende tekst en geef het aantal, de samenstelling, en de breedte en hoogte terug. Geef de resultaten terug in rode kleur in het overzicht. 
-
-{line}"
+                        f"Analyseer de volgende tekst en geef het aantal, de samenstelling, en de breedte en hoogte terug. Geef de resultaten terug in rode kleur in het overzicht.{line}"
                     ),
                     max_tokens=150
                 )
