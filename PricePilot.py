@@ -1,4 +1,4 @@
-import streamlit as st
+port streamlit as st
 st.set_page_config(layout="wide")
 from streamlit_option_menu import option_menu
 import os
@@ -188,7 +188,7 @@ async def handle_gpt_chat():
                 # Gebruik GPT om te proberen ontbrekende details te vinden
                 response = await client.chat.completions.create(
     model="gpt-3.5-turbo",
-    messages=[{"role": "assistant", "content": "Je bent een assistent bij het opstellen van een offerte, vertaald uit een mail van een klant. Help de gebruiker met het identificeren van ontbrekende details als aantal, afmeting van breedte en hoogte en de glassamenstelling."}, {"role": "user", "content": line}]
+    messages=[{"role": "assistant", "content": "Je bent een glas offerte assistent. Help de gebruiker met het identificeren van ontbrekende details, zoals aantal, afmeting van breedte en hoogte, en de glassamenstelling. Bijvoorbeeld: 'tien keer' moet worden herkend als een aantal en 'vierkante meterprijs' als 1000 als breedte en ook hoogte"}, {"role": "user", "content": line}]
 )
                 gpt_output = response.choices[0].text.strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
