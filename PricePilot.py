@@ -154,7 +154,7 @@ def calculate_m2_per_piece(width, height):
 
 # GPT Chat functionaliteit
 
-def handle_gpt_chat():
+async def handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
         lines = customer_input.splitlines()
@@ -186,7 +186,7 @@ def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                response = await client.chat.completions.create(
+                response = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[{"role": "user", "content": line}]
 )
