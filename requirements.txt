@@ -7,3 +7,4 @@ openpyxl
 fuzzywuzzy
 reportlab
 streamlit-option-menu
+streamlit-aggrid
