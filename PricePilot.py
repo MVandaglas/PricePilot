@@ -8,6 +8,7 @@ import pytesseract
 import openai
 import re
 from datetime import datetime
+from st_aggrid import AgGrid
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -366,7 +367,7 @@ if selected_tab == "Offerte Genereren":
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
         st.title("Offerteoverzicht")
-        edited_df = st.data_editor(st.session_state.offer_df[["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Offertenummer"]], num_rows="dynamic", key='offer_editor')
+        edited_df = AgGrid(st.session_state.offer_df, editable=True, fit_columns_on_grid_load=True, theme='light')['data']
 
 # Voeg een knop toe om de offerte als PDF te downloaden
 if st.button("Download offerte als PDF", key='download_pdf_button'):
