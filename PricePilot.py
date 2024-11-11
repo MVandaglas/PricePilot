@@ -186,9 +186,9 @@ async def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                response = client.chat.completions.create(
+                response = await client.chat.completions.create(
     model="gpt-3.5-turbo",
-    messages=[{"role": "user", "content": line}]
+    messages=[{"role": "assistant", "content": "Je bent een assistent bij het opstellen van een offerte, vertaald uit een mail van een klant. Help de gebruiker met het identificeren van ontbrekende details als aantal, afmeting van breedte en hoogte en de glassamenstelling."}, {"role": "user", "content": line}]
 )
                 gpt_output = response.choices[0].text.strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
