@@ -11,8 +11,6 @@ from datetime import datetime
 from st_aggrid import AgGrid
 from openai import AsyncOpenAI
 
-
-
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
@@ -187,15 +185,15 @@ async def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                line = re.sub(r'(?i)(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer', lambda x: str(text2num(x.group(1))) + ' keer', line)
+                line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
                 response = await client.chat.completions.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de breedte, en de hoogte terug. Het aantal moet worden herkend uit woorden zoals 'tien keer'."},
-        {"role": "user", "content": line}
-    ]
-)
-                        gpt_output = response.choices[0].text.strip()
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de breedte, en de hoogte terug. Het aantal moet worden herkend uit woorden zoals 'tien keer'."},
+                        {"role": "user", "content": line}
+                    ]
+                )
+                gpt_output = response.choices[0].text.strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
 
         if data:
