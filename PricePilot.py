@@ -8,7 +8,7 @@ import pytesseract
 import re
 from datetime import datetime
 from st_aggrid import AgGrid
-from openai import OpenAI
+import openai
 
 
 
@@ -17,7 +17,7 @@ api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
-    client = OpenAI()
+    client = openai.ChatCompletion()  # Initialize OpenAI ChatCompletion client
     
 
 # Hard gecodeerde klantgegevens
@@ -186,14 +186,11 @@ def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                response = client.chat.completions.create(
-                    model=" gpt-4o-mini" ,
-                    prompt=(
-                        "Je bent een offerte generatie assistent in de b2b glaswereld. Je krijgt klantverzoeken binnen die glassamenstellingen bevatten. Dit zal zeer waarschijnlijk een combinatie zijn van aantal, de desbetreffende samenstelling met productkenmerken, breedte en hoogte."
-                        f"Analyseer de volgende tekst en geef het aantal, de samenstelling, en de breedte en hoogte terug. Geef de resultaten terug in rode kleur in het overzicht.{line}"
-                    ),
-                    max_tokens=150
-                )
+                response = client.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": line}],
+    max_tokens=150
+)
                 gpt_output = response.choices[0].text.strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
 
