@@ -190,7 +190,10 @@ async def handle_gpt_chat():
                 line = re.sub(r'(?i)(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer', lambda x: str(text2num(x.group(1))) + ' keer', line)
                 response = await client.chat.completions.create(
     model="gpt-3.5-turbo",
-    messages=[{"role": "assistant", "content": "Je bent een glas offerte assistent. Help de gebruiker met het identificeren van ontbrekende details, zoals aantal, afmeting van breedte en hoogte, en de glassamenstelling. Bijvoorbeeld: 'tien keer' moet worden herkend als een aantal en 'vierkante meterprijs' als 1000 als breedte en ook hoogte."}, {"role": "user", "content": line}]
+    messages=[
+        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de breedte, en de hoogte terug. Het aantal moet worden herkend uit woorden zoals 'tien keer'."},
+        {"role": "user", "content": line}
+    ]
 )
                 gpt_output = response.choices[0].text.strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
