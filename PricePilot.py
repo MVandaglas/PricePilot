@@ -186,7 +186,7 @@ def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                response = client.create(
+                response = client.chat.completions.create(
     model="gpt-4",
     messages=[{"role": "user", "content": line}],
     max_tokens=150
