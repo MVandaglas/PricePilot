@@ -183,11 +183,11 @@ def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                response = openai.ChatCompletions.create(
+                    model="gpt-4",
                     messages=[
                         {"role": "system", "content": "Je bent een offerte generatie assistent in de b2b glaswereld. Je krijgt klantverzoeken binnen die glassamenstellingen bevatten. Dit zal zeer waarschijnlijk een combinatie zijn van aantal, de desbetreffende samenstelling met productkenmerken, breedte en hoogte."},
-                        {"role": "user", "content": f"Analyseer de volgende tekst en geef het aantal, de samenstelling, en de breedte en hoogte terug. Geef de resultaten terug in rode kleur in het overzicht. \n\n{line}"}
+                        {"role": "user", "content": f"Analyseer de volgende tekst en geef het aantal, de samenstelling, en de breedte en hoogte terug. Geef de resultaten terug in het overzicht. \n\n{line}"}
                     ],
                     max_tokens=150
                 )
