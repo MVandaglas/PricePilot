@@ -18,8 +18,8 @@ if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
     client = OpenAI(
-        azure_endpoint=openai.api_base,
-        api_key=openai.api_key,
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_key=api_key,
         api_version="2024–02–15-preview",
     )
     
