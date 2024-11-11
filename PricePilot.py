@@ -150,6 +150,7 @@ def calculate_m2_per_piece(width, height):
     return None
 
 # GPT Chat functionaliteit
+
 def handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
@@ -180,6 +181,20 @@ def handle_gpt_chat():
                             f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None,
                             f"{m2_total:.2f} m²" if m2_total is not None else None
                         ])
+            else:
+                # Gebruik GPT om te proberen ontbrekende details te vinden
+                response = openai.Completion.create(
+                    engine="text-davinci-003",
+                    prompt=(
+                        "Je bent een offerte generatie assistent in de b2b glaswereld. Je krijgt klantverzoeken binnen die glassamenstellingen bevatten. "
+                        "Dit zal zeer waarschijnlijk een combinatie zijn van aantal, de desbetreffende samenstelling met productkenmerken, breedte en hoogte. "
+                        "Analyseer de volgende tekst en geef het aantal, de samenstelling, en de breedte en hoogte terug. Geef de resultaten terug in rode kleur in het overzicht. \n\n"
+                        f"{line}"
+                    ),
+                    max_tokens=150
+                )
+                gpt_output = response.choices[0].text.strip()
+                st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
 
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
