@@ -5,22 +5,24 @@ import os
 import pandas as pd
 from PIL import Image
 import pytesseract
-import openai
 import re
 from datetime import datetime
 from st_aggrid import AgGrid
+from openai import OpenAI
+
+
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
-    client = AzureOpenAI(
+    client = OpenAI(
         azure_endpoint=openai.api_base,
         api_key=openai.api_key,
         api_version="2024–02–15-preview",
     )
-    deployment_name = 'REPLACE_WITH_YOUR_DEPLOYMENT_NAME'  # This will correspond to the custom name you chose for your deployment when you deployed a model.
+    
 
 # Hard gecodeerde klantgegevens
 customer_data = {
@@ -188,8 +190,8 @@ def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                response = client.completions.create(
-                    model=gpt-4o,
+                response = client.chat.completions.create(
+                    model=" gpt-4o-mini" ,
                     prompt=(
                         "Je bent een offerte generatie assistent in de b2b glaswereld. Je krijgt klantverzoeken binnen die glassamenstellingen bevatten. Dit zal zeer waarschijnlijk een combinatie zijn van aantal, de desbetreffende samenstelling met productkenmerken, breedte en hoogte."
                         f"Analyseer de volgende tekst en geef het aantal, de samenstelling, en de breedte en hoogte terug. Geef de resultaten terug in rode kleur in het overzicht. 
