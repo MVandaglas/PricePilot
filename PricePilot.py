@@ -187,16 +187,15 @@ async def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
-response = await client.chat.completions.create(
+                line = re.sub(r'(?i)(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer', lambda x: str(text2num(x.group(1))) + ' keer', line)
+                response = await client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de breedte, en de hoogte terug. Het aantal moet worden herkend uit woorden zoals 'tien keer'."},
         {"role": "user", "content": line}
     ]
 )
-
-                gpt_output = response.choices[0].text.strip()
+                        gpt_output = response.choices[0].text.strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
 
         if data:
@@ -221,21 +220,15 @@ def handle_file_upload(file):
 
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
-    # Zoek naar het aantal op basis van woorden (zoals "tien keer")
-    quantity_match_word = re.search(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', text)
-    if quantity_match_word:
-        quantity = str(text2num(quantity_match_word.group(1)))
-    else:
-        # Zoek naar het aantal in getallen
-        quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal)', text, re.IGNORECASE)
-        if quantity_match:
-            quantity = quantity_match.group(1)
-
+    # Zoek naar het aantal
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
+    if quantity_match:
+        quantity = quantity_match.group(1)
     # Zoek naar de afmetingen ná het artikelnummer
     term_index = text.find(term)
     if term_index != -1:
         text_after_term = text[term_index + len(term):]
-        dimension_match = re.search(r'(\d{3,})\s*(x|bij|b|B|breedte)\s*(\d{3,})', text_after_term, re.IGNORECASE)
+        dimension_match = re.search(r'(\d+)\s*(bij|x|b|B|breedte)\s*(\d+)', text_after_term, re.IGNORECASE)
         if dimension_match:
             width = dimension_match.group(1)
             height = dimension_match.group(3)
