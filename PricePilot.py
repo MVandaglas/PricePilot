@@ -10,13 +10,17 @@ import re
 from datetime import datetime
 from st_aggrid import AgGrid
 
-
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
-    openai.api_key = api_key
+    client = AzureOpenAI(
+        azure_endpoint=openai.api_base,
+        api_key=openai.api_key,
+        api_version="2024–02–15-preview",
+    )
+    deployment_name = 'REPLACE_WITH_YOUR_DEPLOYMENT_NAME'  # This will correspond to the custom name you chose for your deployment when you deployed a model.
 
 # Hard gecodeerde klantgegevens
 customer_data = {
@@ -184,15 +188,17 @@ def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                response = openai.chat.completions.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "Je bent een offerte generatie assistent in de b2b glaswereld. Je krijgt klantverzoeken binnen die glassamenstellingen bevatten. Dit zal zeer waarschijnlijk een combinatie zijn van aantal, de desbetreffende samenstelling met productkenmerken, breedte en hoogte."},
-                        {"role": "user", "content": f"Analyseer de volgende tekst en geef het aantal, de samenstelling, en de breedte en hoogte terug. Geef de resultaten terug in het overzicht. \n\n{line}"}
-                    ],
+                response = client.completions.create(
+                    model=gpt-4o,
+                    prompt=(
+                        "Je bent een offerte generatie assistent in de b2b glaswereld. Je krijgt klantverzoeken binnen die glassamenstellingen bevatten. Dit zal zeer waarschijnlijk een combinatie zijn van aantal, de desbetreffende samenstelling met productkenmerken, breedte en hoogte."
+                        f"Analyseer de volgende tekst en geef het aantal, de samenstelling, en de breedte en hoogte terug. Geef de resultaten terug in rode kleur in het overzicht. 
+
+{line}"
+                    ),
                     max_tokens=150
                 )
-                gpt_output = response['choices'][0]['message']['content'].strip()
+                gpt_output = response.choices[0].text.strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
 
         if data:
