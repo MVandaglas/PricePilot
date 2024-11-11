@@ -221,7 +221,7 @@ def handle_file_upload(file):
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal)', text, re.IGNORECASE)
     if quantity_match:
         quantity = quantity_match.group(1)
     # Zoek naar de afmetingen ná het artikelnummer
