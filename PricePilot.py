@@ -8,7 +8,7 @@ import pytesseract
 import re
 from datetime import datetime
 from st_aggrid import AgGrid
-from openai import OpenAI
+import openai
 
 
 
@@ -17,7 +17,11 @@ api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
-    client = openai()
+    client = openai.Client(
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_key=api_key,
+        api_version="2024–02–15-preview",
+    )
     
 
 # Hard gecodeerde klantgegevens
