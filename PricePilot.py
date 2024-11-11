@@ -186,7 +186,7 @@ async def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                response = client.chat.completions.create(
+                response = await client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[{"role": "user", "content": line}]
 )
