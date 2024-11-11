@@ -8,7 +8,7 @@ import pytesseract
 import re
 from datetime import datetime
 from st_aggrid import AgGrid
-import openai
+from openai import OpenAI
 
 
 
