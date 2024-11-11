@@ -154,7 +154,7 @@ def calculate_m2_per_piece(width, height):
 
 # GPT Chat functionaliteit
 
-async def handle_gpt_chat():
+async def await handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
         lines = customer_input.splitlines()
@@ -186,7 +186,7 @@ async def handle_gpt_chat():
                         ])
             else:
                 # Gebruik GPT om te proberen ontbrekende details te vinden
-                response = await client.chat.completions.create(
+                response = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[{"role": "user", "content": line}]
 )
@@ -372,7 +372,7 @@ def generate_pdf(df):
 if selected_tab == "Offerte Genereren":
     if st.sidebar.button("Verstuur chat met GPT"):
         try:
-            handle_gpt_chat()
+            await handle_gpt_chat()
         except Exception as e:
             st.sidebar.error(f"Er is een fout opgetreden: {e}")
 
