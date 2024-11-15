@@ -153,7 +153,7 @@ def calculate_m2_per_piece(width, height):
 
 # GPT Chat functionaliteit
 
-def handle_gpt_chat():
+async def handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
         lines = customer_input.splitlines()
@@ -170,7 +170,7 @@ def handle_gpt_chat():
                         if not quantity:
                             # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
                             try:
-                                response = await openai.cha.completions.create(
+                                response = openai.chat.completions.create(
                                     model="gpt-3.5-turbo",
                                     messages=[
                                         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal terug."},
@@ -185,7 +185,7 @@ def handle_gpt_chat():
                                     quantity = quantity_match.group(0)
                                     # Voeg de waarde met een rode kleur toe aan het overzicht
                                     st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
-                                  if quantity.endswith('x'):
+                        if quantity and quantity.endswith('x'):
                             quantity = quantity[:-1].strip()
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if calculate_m2_per_piece(width, height) else None
@@ -244,7 +244,7 @@ def handle_file_upload(file):
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x|maal)', text, re.IGNORECASE)
     if quantity_match:
         quantity = quantity_match.group(1)
     # Zoek naar de afmetingen ná het artikelnummer
