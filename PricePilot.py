@@ -11,6 +11,9 @@ from datetime import datetime
 from st_aggrid import AgGrid
 import openai
 from openai import ChatCompletion
+from openai.types.chat import (
+    ChatCompletion,
+)
 
 print(dir(openai))  # Dit toont alle beschikbare attributen en functies in de openai module
 
