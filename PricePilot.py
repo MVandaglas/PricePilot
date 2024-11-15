@@ -159,7 +159,7 @@ def calculate_m2_per_piece(width, height):
 
 # GPT Chat functionaliteit
 
-async def handle_gpt_chat():
+def handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
         lines = customer_input.splitlines()
@@ -193,19 +193,13 @@ async def handle_gpt_chat():
                 try:
                     # Gebruik GPT om te proberen ontbrekende details te vinden
                     line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
-                    response = openai.ChatCompletion.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
-                        {"role": "user", "content": line}
-                        ]
+                    response = openai.Completion.create(
+                        model="text-davinci-003",
+                        prompt=f"Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt.\n{line}",
+                        max_tokens=100,
+                        temperature=0.7
                     )
-
-                    # Debugging: Controleer de volledige API-response
-                    print(f"GPT API response: {response}")
-
-                    # Verwerk de response
-                    gpt_output = response['choices'][0]['message']['content'].strip()
+                    gpt_output = response.choices[0].text.strip()
                     st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
                     print("API-aanroep succesvol.")  # Bevestiging dat de aanroep succesvol was
                 except Exception as e:
@@ -221,7 +215,6 @@ async def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-
 
 # Functie om bestand te verwerken
 def handle_file_upload(file):
