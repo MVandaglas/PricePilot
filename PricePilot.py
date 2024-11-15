@@ -167,6 +167,24 @@ def handle_gpt_chat():
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         quantity, width, height = extract_dimensions(line, term)
+                         if not quantity:
+                            # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
+                            try:
+                                response = await openai.cha.completions.create(
+                                    model="gpt-3.5-turbo",
+                                    messages=[
+                                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal terug."},
+                                        {"role": "user", "content": line}
+                                    ],
+                                    max_tokens=50,
+                                    temperature=0.9
+                                )
+                                gpt_output = response.choices[0].message.content.strip()
+                                quantity_match = re.search(r'\d+', gpt_output)
+                                if quantity_match:
+                                    quantity = quantity_match.group(0)
+                                    # Voeg de waarde met een rode kleur toe aan het overzicht
+                                    st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
                         if quantity.endswith('x'):
                             quantity = quantity[:-1].strip()
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
