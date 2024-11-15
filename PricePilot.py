@@ -17,7 +17,7 @@ api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
-    openai.api_key = api_key  # Initialize OpenAI Chat.Completions client
+    openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
 # Hard gecodeerde klantgegevens
@@ -171,7 +171,7 @@ async def handle_gpt_chat():
                         if not quantity:
                             # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
                             try:
-                                response = openai.chat.completions.create(
+                                response = await openai.ChatCompletion.create(
                                     model="gpt-3.5-turbo",
                                     messages=[
                                         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal terug."},
@@ -184,12 +184,8 @@ async def handle_gpt_chat():
                                 quantity_match = re.search(r'\d+', gpt_output)
                                 if quantity_match:
                                     quantity = quantity_match.group(0)
-                            except Exception as e:
-                                st.error(f"Fout bij het aanroepen van de OpenAI API voor aantal: {str(e)}")
-                                print(f"Foutmelding: {str(e)}")  # Print de foutmelding
-
-                        if quantity.endswith('x'):
-                            quantity = quantity[:-1].strip()
+                                    # Voeg de waarde met een rode kleur toe aan het overzicht
+                                    st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if calculate_m2_per_piece(width, height) else None
                         m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
@@ -208,7 +204,7 @@ async def handle_gpt_chat():
                 try:
                     # Gebruik GPT om te proberen ontbrekende details te vinden
                     line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
-                    response = await openai.chat.completions.create(
+                    response = await openai.ChatCompletion.create(
                         model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
@@ -329,16 +325,15 @@ def generate_pdf(df):
     for index, row in df.iterrows():
         if all(col in row for col in ['Artikelnaam', 'Breedte', 'Hoogte', 'Aantal', 'RSP', 'M2 p/s', 'M2 totaal']):
             data.append([
-    row['Artikelnaam'],
-    row['Breedte'],
-    row['Hoogte'],
-    row['Aantal'],
-    row['RSP'],
-    f"{float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()):.2f} m²" if pd.notna(row['M2 p/s']) else None,
-    f"{float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()):.2f} m²" if pd.notna(row['M2 totaal']) else None,
-    f"€ {round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
-])
-
+                row['Artikelnaam'],
+                row['Breedte'],
+                row['Hoogte'],
+                row['Aantal'],
+                row['RSP'],
+                f"{float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()):.2f} m²" if pd.notna(row['M2 p/s']) else None,
+                f"{float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()):.2f} m²" if pd.notna(row['M2 totaal']) else None,
+                f"€ {round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
+            ])
 
     # Maak de tabel
     table = Table(data, repeatRows=1, colWidths=[150, 45, 45, 45, 45, 45, 45, 60])
@@ -367,19 +362,6 @@ def generate_pdf(df):
         ["BTW (21%):", f"€ {btw:.2f}"],
         ["Te betalen:", f"€ {te_betalen:.2f}"]
     ]
-    totals_table = Table(totals_data, colWidths=[100, 100])
-    totals_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.black),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-    ]))
-
-    from reportlab.lib.units import inch
-    elements.append(Spacer(1, 0.5 * inch))
     totals_table = Table(totals_data, colWidths=[100, 100], hAlign='RIGHT')
     totals_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.black),
@@ -390,9 +372,8 @@ def generate_pdf(df):
         ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
     ]))
-    elements.append(Spacer(1, 3 * inch))
+    elements.append(Spacer(1, 12))
     elements.append(totals_table)
-  
 
     # Bouwelementen aan document
     doc.build(elements)
@@ -402,11 +383,11 @@ def generate_pdf(df):
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
     
-  if st.sidebar.button("Verstuur chat met GPT"):
-    try:
-        asyncio.run(handle_gpt_chat())
-    except Exception as e:
-        st.sidebar.error(f"Er is een fout opgetreden: {e}")
+    if st.sidebar.button("Verstuur chat met GPT"):
+        try:
+            asyncio.run(handle_gpt_chat())
+        except Exception as e:
+            st.sidebar.error(f"Er is een fout opgetreden: {e}")
 
     # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
