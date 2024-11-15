@@ -189,11 +189,11 @@ async def handle_gpt_chat():
                 response = await client.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
-                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de breedte, en de hoogte terug. Het aantal moet worden herkend uit woorden zoals 'tien keer'."},
+                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
                         {"role": "user", "content": line}
                     ]
                 )
-                gpt_output = response.choices[0].text.strip()
+                gpt_output = response.choices[0].message['content'].strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
 
         if data:
