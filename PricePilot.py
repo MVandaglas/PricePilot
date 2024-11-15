@@ -171,7 +171,7 @@ async def handle_gpt_chat():
                         if not quantity:
                             # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
                             try:
-                                response = await openai.chat.completions.create(
+                                response = openai.chat.completions.create(
                                     model="gpt-3.5-turbo",
                                     messages=[
                                         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal terug."},
