@@ -196,7 +196,7 @@ def handle_gpt_chat():
                         max_tokens=100,
                         temperature=0.7
                     )
-                    gpt_output = response.choices[0].message['content'].strip()
+                    gpt_output = response.choices[0].message.content.strip()
                     st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
                     print("API-aanroep succesvol.")  # Bevestiging dat de aanroep succesvol was
                 except Exception as e:
