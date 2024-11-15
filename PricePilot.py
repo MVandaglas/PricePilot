@@ -10,13 +10,14 @@ from word2number import w2n as text2num
 from datetime import datetime
 from st_aggrid import AgGrid
 import openai
+import asyncio
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
-    openai.api_key = api_key  # Initialize OpenAI chat.completions client
+    openai.api_key = api_key  # Initialize OpenAI Chat.Completions client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
 # Hard gecodeerde klantgegevens
@@ -153,7 +154,7 @@ def calculate_m2_per_piece(width, height):
 
 # GPT Chat functionaliteit
 
-def handle_gpt_chat():
+async def handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
         lines = customer_input.splitlines()
@@ -170,7 +171,7 @@ def handle_gpt_chat():
                         if not quantity:
                             # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
                             try:
-                                response = openai.chat.completions.create(
+                                response = await openai.chat.completions.acreate(
                                     model="gpt-3.5-turbo",
                                     messages=[
                                         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal terug."},
@@ -207,7 +208,7 @@ def handle_gpt_chat():
                 try:
                     # Gebruik GPT om te proberen ontbrekende details te vinden
                     line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
-                    response = openai.chat.completions.create(
+                    response = await openai.chat.completions.acreate(
                         model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
@@ -403,7 +404,6 @@ if selected_tab == "Offerte Genereren":
     
   if st.sidebar.button("Verstuur chat met GPT"):
     try:
-        import asyncio
         asyncio.run(handle_gpt_chat())
     except Exception as e:
         st.sidebar.error(f"Er is een fout opgetreden: {e}")
