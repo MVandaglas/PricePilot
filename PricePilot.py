@@ -1,5 +1,6 @@
 import streamlit as st
 st.set_page_config(layout="wide")
+print(dir(openai))  # Dit toont alle beschikbare attributen en functies in de openai module
 from streamlit_option_menu import option_menu
 import os
 import pandas as pd
