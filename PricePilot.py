@@ -167,7 +167,7 @@ def handle_gpt_chat():
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         quantity, width, height = extract_dimensions(line, term)
-                         if not quantity:
+                        if not quantity:
                             # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
                             try:
                                 response = await openai.cha.completions.create(
