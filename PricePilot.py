@@ -167,6 +167,26 @@ def handle_gpt_chat():
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         quantity, width, height = extract_dimensions(line, term)
+                        if not quantity:
+                            # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
+                            try:
+                                response = openai.ChatCompletion.create(
+                                    model="gpt-3.5-turbo",
+                                    messages=[
+                                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal terug."},
+                                        {"role": "user", "content": line}
+                                    ],
+                                    max_tokens=50,
+                                    temperature=0.7
+                                )
+                                gpt_output = response.choices[0].message.content.strip()
+                                quantity_match = re.search(r'\d+', gpt_output)
+                                if quantity_match:
+                                    quantity = quantity_match.group(0)
+                            except Exception as e:
+                                st.error(f"Fout bij het aanroepen van de OpenAI API voor aantal: {str(e)}")
+                                print(f"Foutmelding: {str(e)}")  # Print de foutmelding
+
                         if quantity.endswith('x'):
                             quantity = quantity[:-1].strip()
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -187,7 +207,7 @@ def handle_gpt_chat():
                 try:
                     # Gebruik GPT om te proberen ontbrekende details te vinden
                     line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
-                    response = openai.chat.completions.create(
+                    response = openai.ChatCompletion.create(
                         model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
@@ -226,7 +246,7 @@ def handle_file_upload(file):
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x|maal)', text, re.IGNORECASE)
     if quantity_match:
         quantity = quantity_match.group(1)
     # Zoek naar de afmetingen ná het artikelnummer
