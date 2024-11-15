@@ -155,6 +155,8 @@ def calculate_m2_per_piece(width, height):
 
 # GPT Chat functionaliteit
 
+# GPT Chat functionaliteit
+
 async def handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
