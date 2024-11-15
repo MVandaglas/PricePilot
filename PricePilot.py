@@ -155,8 +155,6 @@ def calculate_m2_per_piece(width, height):
 
 # GPT Chat functionaliteit
 
-# GPT Chat functionaliteit
-
 async def handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
@@ -194,13 +192,13 @@ async def handle_gpt_chat():
                     response = await openai.ChatCompletion.acreate(
                         model="gpt-3.5-turbo",
                         messages=[
-                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
-                        {"role": "user", "content": line}
+                            {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
+                            {"role": "user", "content": line}
                         ]
                     )
                     # Debugging: Controleer de volledige API-response
                     print(f"GPT API response: {response}")
-                    
+
                     # Verwerk de response
                     gpt_output = response['choices'][0]['message']['content'].strip()
                     st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
@@ -218,6 +216,7 @@ async def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 # Functie om bestand te verwerken
 def handle_file_upload(file):
