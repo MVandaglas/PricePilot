@@ -11,8 +11,6 @@ from datetime import datetime
 from st_aggrid import AgGrid
 import openai
 
-client = OpenAI()
-
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
@@ -189,7 +187,7 @@ def handle_gpt_chat():
                 try:
                     # Gebruik GPT om te proberen ontbrekende details te vinden
                     line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
-                    response = client.chat.completions.create(
+                    response = openai.chat.completions.create(
                         model="text-davinci-003",
                         prompt=f"Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt.\n{line}",
                         max_tokens=100,
