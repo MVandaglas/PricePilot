@@ -191,7 +191,7 @@ async def handle_gpt_chat():
                     line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
                     response = openai.Completion.create(
                         model="text-davinci-003",
-                        prompt=line,
+                        prompt=f"Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt.\n{line}",
                         max_tokens=100,
                         temperature=0.7
                     )
@@ -201,8 +201,6 @@ async def handle_gpt_chat():
                 except Exception as e:
                     st.error(f"Fout bij het aanroepen van de OpenAI API: {str(e)}")
                     print(f"Foutmelding: {str(e)}")  # Print de foutmelding
-
-                
 
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
