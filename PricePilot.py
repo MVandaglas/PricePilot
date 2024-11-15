@@ -187,7 +187,7 @@ async def handle_gpt_chat():
                 # Gebruik GPT om te proberen ontbrekende details te vinden
                 line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
                 response = await openai.ChatCompletion.acreate(
-                    model="gpt-3.5-turbo",
+                    model="text-davinci-003",
                     messages=[
                         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
                         {"role": "user", "content": line}
