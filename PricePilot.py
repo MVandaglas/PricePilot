@@ -1,4 +1,4 @@
-import streamlit as st
+                                              import streamlit as st
 st.set_page_config(layout="wide")
 from streamlit_option_menu import option_menu
 import os
@@ -188,20 +188,20 @@ async def handle_gpt_chat():
             else:
                 try:
                     # Gebruik GPT om te proberen ontbrekende details te vinden
-                line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
-                response = await openai.ChatCompletion.acreate(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
-                        {"role": "user", "content": line}
-                    ]
-                )
-                gpt_output = response.choices[0].message['content'].strip()
-                st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
+                    line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
+                    response = await openai.ChatCompletion.acreate(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal, de samenstelling, de breedte, en de hoogte terug. Als een aantal ontbreekt, probeer te interpreteren wat de gebruiker mogelijk bedoelt."},
+                            {"role": "user", "content": line}
+                        ]
+                    )
+                    gpt_output = response.choices[0].message['content'].strip()
+                    st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
                     print("API-aanroep succesvol.")  # Bevestiging dat de aanroep succesvol was
                 except Exception as e:
-                st.error(f"Fout bij het aanroepen van de OpenAI API: {str(e)}")
-                print(f"Foutmelding: {str(e)}")  # Print de foutmelding
+                    st.error(f"Fout bij het aanroepen van de OpenAI API: {str(e)}")
+                    print(f"Foutmelding: {str(e)}")  # Print de foutmelding
                 
 
         if data:
