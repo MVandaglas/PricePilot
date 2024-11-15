@@ -13,8 +13,6 @@ from openai import OpenAI
 
 client = OpenAI()
 
-print(dir(openai))  # Dit toont alle beschikbare attributen en functies in de openai module
-
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
