@@ -195,12 +195,15 @@ async def handle_gpt_chat():
                         {"role": "user", "content": line}
                     ]
                 )
-                print("API-aanroep succesvol.")  # Bevestiging dat de aanroep succesvol was
-                    except Exception as e:
-                st.error(f"Fout bij het aanroepen van de OpenAI API: {str(e)}")
-                print(f"Foutmelding: {str(e)}")  # Print de foutmelding
                 gpt_output = response.choices[0].message['content'].strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
+                
+                print("API-aanroep succesvol.")  # Bevestiging dat de aanroep succesvol was
+                
+            except Exception as e:
+                st.error(f"Fout bij het aanroepen van de OpenAI API: {str(e)}")
+                print(f"Foutmelding: {str(e)}")  # Print de foutmelding
+                
 
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
