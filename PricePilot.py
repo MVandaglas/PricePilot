@@ -196,7 +196,7 @@ async def handle_gpt_chat():
                     ]
                 )
                 print("API-aanroep succesvol.")  # Bevestiging dat de aanroep succesvol was
-            except Exception as e:
+                    except Exception as e:
                 st.error(f"Fout bij het aanroepen van de OpenAI API: {str(e)}")
                 print(f"Foutmelding: {str(e)}")  # Print de foutmelding
                 gpt_output = response.choices[0].message['content'].strip()
