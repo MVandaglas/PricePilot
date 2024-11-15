@@ -11,12 +11,15 @@ from datetime import datetime
 from st_aggrid import AgGrid
 import openai
 
+print(dir(openai))  # Dit toont alle beschikbare attributen en functies in de openai module
+
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
+    print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
 # Hard gecodeerde klantgegevens
 customer_data = {
@@ -192,6 +195,10 @@ async def handle_gpt_chat():
                         {"role": "user", "content": line}
                     ]
                 )
+                print("API-aanroep succesvol.")  # Bevestiging dat de aanroep succesvol was
+            except Exception as e:
+                st.error(f"Fout bij het aanroepen van de OpenAI API: {str(e)}")
+                print(f"Foutmelding: {str(e)}")  # Print de foutmelding
                 gpt_output = response.choices[0].message['content'].strip()
                 st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
 
