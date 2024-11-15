@@ -9,7 +9,7 @@ import re
 from word2number import w2n as text2num
 from datetime import datetime
 from st_aggrid import AgGrid
-from openai import OPENAI
+from openai import OpenAI
 
 client = OpenAI()
 
