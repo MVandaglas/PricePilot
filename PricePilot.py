@@ -16,7 +16,7 @@ api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
-    openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
+    openai.api_key = api_key  # Initialize OpenAI chat.completions client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
 # Hard gecodeerde klantgegevens
@@ -170,7 +170,7 @@ def handle_gpt_chat():
                         if not quantity:
                             # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
                             try:
-                                response = openai.ChatCompletion.create(
+                                response = openai.chat.completions.create(
                                     model="gpt-3.5-turbo",
                                     messages=[
                                         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het aantal terug."},
