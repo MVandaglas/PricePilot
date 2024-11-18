@@ -467,7 +467,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
         st.session_state.offer_df,
         editable=True,
         fit_columns_on_grid_load=True,
-        theme='streamlit'
+        theme='ag-theme-quartz'
     )
     edited_df = edited_df_response['data']
     if not edited_df.equals(st.session_state.offer_df):
