@@ -474,7 +474,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     edited_df_response = AgGrid(
         st.session_state.offer_df,
         gridOptions=grid_options,
-        theme='material',  # Specificeer het material-thema
+        theme='dark',  # Specificeer het material-thema
         fit_columns_on_grid_load=True
     )
     
