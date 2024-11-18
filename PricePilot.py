@@ -150,7 +150,6 @@ def calculate_m2_per_piece(width, height):
         m2 = max(width_m * height_m, 0.65)
         return m2
     return None
-
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
     pattern = r'\b(1|[1-9]|[1-9][0-9]|100)\b'
@@ -190,7 +189,7 @@ def handle_gpt_chat():
 
                         if quantity is None or width is None or height is None:
                             try:
-                                response = openai.chat.completions.create(
+                                response = openai.ChatCompletion.create(
                                     model="gpt-3.5-turbo",
                                     messages=[
                                         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal (in cijfers) en de afmetingen (hoogte en breedte) terug."},
@@ -249,6 +248,8 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
+
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
     matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in input_text]
