@@ -11,23 +11,6 @@ from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder
 import openai
 
-st.markdown(
-    '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-material.min.css">',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    """
-    <style>
-    .ag-theme-material .ag-header-cell {
-        background-color: black !important;
-        color: white !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
