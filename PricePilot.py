@@ -46,20 +46,14 @@ article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
 # Meerdere tabbladen maken in Streamlit
-selected_tab = option_menu(
-    menu_title=None,
-    options=["Offerte Genereren", "Opgeslagen Offertes"],
-    icons=["file-earmark-plus", "folder"],
-    menu_icon="cast",
-    default_index=0,
-    orientation="horizontal",
-    styles={
-        "container": {"padding": "0!important", "background-color": "#333333"},
-        "icon": {"color": "#e0e0e0", "font-size": "20px"},
-        "nav-link": {"font-size": "16px", "text-align": "center", "margin": "5px", "color": "#b0b0b0"},
-        "nav-link-selected": {"background-color": "#444444", "color": "#ffffff"},
-    }
+selected_tab = st.radio(
+    "Selecteer een optie:",
+    ["Offerte Genereren", "Opgeslagen Offertes"],
+    index=0,
+    horizontal=True,
 )
+st.sidebar.title("PricePilot - Klantprijsassistent")
+st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
 st.sidebar.title("PricePilot - Klantprijsassistent")
 st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
