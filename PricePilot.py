@@ -186,7 +186,7 @@ def handle_gpt_chat():
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         quantity = extract_quantity(line)
-                        width, height = extract_dimensions(line, term)
+                        width, height = extract_dimensions(line)
 
                         if quantity is None or width is None or height is None:
                             try:
@@ -249,7 +249,6 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
     matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in input_text]
