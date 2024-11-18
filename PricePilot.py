@@ -16,7 +16,7 @@ api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
-    openai.api_key = api_key  # Initialize OpenAI chat.completions client
+    openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
 # Hard gecodeerde klantgegevens
@@ -153,7 +153,7 @@ def calculate_m2_per_piece(width, height):
 
 # GPT Chat functionaliteit
 
-async def handle_gpt_chat():
+def handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
         lines = customer_input.splitlines()
@@ -167,30 +167,8 @@ async def handle_gpt_chat():
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         quantity, width, height = extract_dimensions(line, term)
-                        if not quantity:
-                            # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
-                            try:
-                                response = openai.chat.completions.create(
-                                    model="gpt-3.5-turbo",
-                                    messages=[
-                                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal terug."},
-                                        {"role": "user", "content": line}
-                                    ],
-                                    max_tokens=50,
-                                    temperature=0.9
-                                )
-                                gpt_output = response['choices'][0]['message']['content'].strip()
-                                quantity_match = re.search(r'\d+', gpt_output)
-                                if quantity_match:
-                                    quantity = quantity_match.group(0)
-                                    # Voeg de waarde met een rode kleur toe aan het overzicht
-                                    st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
-                            except Exception as e:
-                                st.error(f"Er is een fout opgetreden bij het gebruik van GPT: {str(e)}")
-
-                        if quantity and isinstance(quantity, str) and quantity.endswith('x'):
+                        if quantity.endswith('x'):
                             quantity = quantity[:-1].strip()
-
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if calculate_m2_per_piece(width, height) else None
                         m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
@@ -218,10 +196,12 @@ async def handle_gpt_chat():
                         max_tokens=100,
                         temperature=0.7
                     )
-                    gpt_output = response['choices'][0]['message']['content'].strip()
+                    gpt_output = response.choices[0].message.content.strip()
                     st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
+                    print("API-aanroep succesvol.")  # Bevestiging dat de aanroep succesvol was
                 except Exception as e:
                     st.error(f"Fout bij het aanroepen van de OpenAI API: {str(e)}")
+                    print(f"Foutmelding: {str(e)}")  # Print de foutmelding
 
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
@@ -246,7 +226,7 @@ def handle_file_upload(file):
 def extract_dimensions(text, term):
     quantity, width, height = "", "", ""
     # Zoek naar het aantal
-    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x|maal)', text, re.IGNORECASE)
+    quantity_match = re.search(r'(\d+)\s*(stuks|ruiten|aantal|x)', text, re.IGNORECASE)
     if quantity_match:
         quantity = quantity_match.group(1)
     # Zoek naar de afmetingen ná het artikelnummer
