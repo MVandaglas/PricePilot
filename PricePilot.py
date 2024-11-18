@@ -11,10 +11,6 @@ from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder
 import openai
 
-st.markdown(
-    '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-quartz.min.css">',
-    unsafe_allow_html=True
-)
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -480,7 +476,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     edited_df_response = AgGrid(
         st.session_state.offer_df,
         gridOptions=grid_options,
-        theme='alpine',  # Specificeer het Quartz-thema
+        theme='balham',  # Specificeer het Quartz-thema
         fit_columns_on_grid_load=True
     )
     
