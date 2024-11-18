@@ -164,6 +164,16 @@ def extract_quantity(text):
         return quantity_matches[0]  # Neem het eerste gevonden aantal
     return None
 
+# Functie om afmetingen (breedte en hoogte) uit tekst te extraheren
+def extract_dimensions(text):
+    # Zoek naar een patroon zoals '800x900'
+    match = re.search(r'(\d+)x(\d+)', text)
+    if match:
+        width = match.group(1)
+        height = match.group(2)
+        return width, height
+    return None, None
+
 def handle_gpt_chat():
     if customer_input:
         lines = customer_input.splitlines()
