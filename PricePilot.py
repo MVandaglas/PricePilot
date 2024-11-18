@@ -185,14 +185,12 @@ async def handle_gpt_chat():
                                     quantity = quantity_match.group(0)
                                     # Voeg de waarde met een rode kleur toe aan het overzicht
                                     st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
-                        try:
-    if quantity and isinstance(quantity, str) and quantity.endswith('x'):
+                        if quantity and isinstance(quantity, str) and quantity.endswith('x'):
+    try:
         quantity = quantity[:-1].strip()
-except Exception as e:
-    st.error(f"Er is een fout opgetreden: {str(e)}")
-except Exception as e:
-    st.error(f"Er is een fout opgetreden: {str(e)}")
-                            quantity = quantity[:-1].strip()
+    except Exception as e:
+        st.error(f"Er is een fout opgetreden: {str(e)}")
+                                quantity = quantity[:-1].strip()
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if calculate_m2_per_piece(width, height) else None
                         m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
