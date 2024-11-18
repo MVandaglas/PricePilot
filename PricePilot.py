@@ -217,11 +217,16 @@ def handle_gpt_chat():
         lines = customer_input.splitlines()
         data = []
         for line in lines:
-            # Check voor direct aantal in m2, bijvoorbeeld '5-4 200m2'
-            m2_match = re.search(r'(\d+-\d+)\s+(\d+)\s*m2', line, re.IGNORECASE)
+            # Check voor direct aantal in m2, bijvoorbeeld '5-4 200m2' of '200m2 5-4'
+            m2_match = re.search(r'(\d+-\d+)\s+(\d+)\s*m2|(\d+)\s*m2\s+(\d+-\d+)', line, re.IGNORECASE)
             if m2_match:
-                article_number = m2_match.group(1)
-                total_m2 = int(m2_match.group(2))
+                if m2_match.group(1) and m2_match.group(2):
+                    article_number = m2_match.group(1)
+                    total_m2 = float(m2_match.group(2))
+                else:
+                    article_number = m2_match.group(4)
+                    total_m2 = float(m2_match.group(3))
+                
                 description, min_price, max_price = find_article_details(article_number)
                 if description:
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -298,14 +303,13 @@ def handle_gpt_chat():
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
-           
+        
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-
 
 
 # Functie om tekstinvoer te verwerken
