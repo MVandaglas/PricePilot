@@ -55,9 +55,6 @@ selected_tab = st.radio(
 st.sidebar.title("PricePilot - Klantprijsassistent")
 st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
-st.sidebar.title("PricePilot - Klantprijsassistent")
-st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
-
 # Gebruikersinvoer
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
