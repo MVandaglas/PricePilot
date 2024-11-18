@@ -9,3 +9,4 @@ reportlab
 streamlit-option-menu
 streamlit-aggrid
 word2number
+num2words
