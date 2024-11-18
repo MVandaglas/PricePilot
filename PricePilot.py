@@ -11,6 +11,23 @@ from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder
 import openai
 
+st.markdown(
+    '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-material.min.css">',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    <style>
+    .ag-theme-material .ag-header-cell {
+        background-color: black !important;
+        color: white !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -472,11 +489,11 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     gb.configure_default_column(flex=1, min_width=100, editable=True)  # Kolommen bewerkbaar maken
     grid_options = gb.build()
 
-    # Toon de AG Grid met het Quartz-thema
+    # Toon de AG Grid met het material-thema
     edited_df_response = AgGrid(
         st.session_state.offer_df,
         gridOptions=grid_options,
-        theme='material',  # Specificeer het Quartz-thema
+        theme='material',  # Specificeer het material-thema
         fit_columns_on_grid_load=True
     )
     
