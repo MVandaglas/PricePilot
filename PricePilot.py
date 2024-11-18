@@ -150,6 +150,9 @@ def calculate_m2_per_piece(width, height):
         m2 = max(width_m * height_m, 0.65)
         return m2
     return None
+
+
+
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
     pattern = r'\b(1|[1-9]|[1-9][0-9]|100)\b'
@@ -158,18 +161,22 @@ def extract_numbers(text):
 
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
+    # Zoek naar woorden die een aantal beschrijven
     quantity_matches = extract_numbers(text)
+    word_matches = re.findall(r'\b(twaalf|tien|vijftien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd)\b', text)
+    if word_matches:
+        return w2n.word_to_num(word_matches[0])  # Neem het eerste gevonden aantal in woorden
     if quantity_matches:
-        return quantity_matches[0]  # Neem het eerste gevonden aantal
+        return quantity_matches[0]  # Neem het eerste gevonden aantal in cijfers
     return None
 
 # Functie om afmetingen (breedte en hoogte) uit tekst te extraheren
 def extract_dimensions(text):
-    # Zoek naar een patroon zoals '800x900'
-    match = re.search(r'(\d+)x(\d+)', text)
+    # Zoek naar een patroon zoals '800 bij 900' of '800x900'
+    match = re.search(r'(\d+)\s*(bij|x)\s*(\d+)', text)
     if match:
         width = match.group(1)
-        height = match.group(2)
+        height = match.group(3)
         return width, height
     return None, None
 
@@ -200,16 +207,16 @@ def handle_gpt_chat():
                                 )
                                 gpt_output = response['choices'][0]['message']['content'].strip()
                                 gpt_quantity_match = re.search(r'\d+', gpt_output)
-                                gpt_dimensions_match = re.search(r'(\d+)x(\d+)', gpt_output)
+                                gpt_dimensions_match = re.search(r'(\d+)\s*(bij|x)\s*(\d+)', gpt_output)
 
                                 if gpt_quantity_match:
                                     quantity = gpt_quantity_match.group(0)
 
                                 if gpt_dimensions_match:
                                     width = gpt_dimensions_match.group(1)
-                                    height = gpt_dimensions_match.group(2)
+                                    height = gpt_dimensions_match.group(3)
 
-                                st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}, afmetingen: {width}x{height}</span>", unsafe_allow_html=True)
+                                st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}, afmetingen: {width} bij {height}</span>", unsafe_allow_html=True)
 
                             except Exception as e:
                                 st.warning("Er is een fout opgetreden tijdens de verwerking met GPT. Probeer het opnieuw of controleer de invoer.")
@@ -248,6 +255,7 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 # Functie om tekstinvoer te verwerken
