@@ -1,6 +1,6 @@
 # GPT Chat functionaliteit
 
-async def handle_gpt_chat():
+def handle_gpt_chat():
     if customer_input:
         # Verwerk de invoer regel voor regel
         lines = customer_input.splitlines()
@@ -17,7 +17,7 @@ async def handle_gpt_chat():
                         if not quantity:
                             # Gebruik GPT om het ontbrekende aantal te vinden als het niet is herkend
                             try:
-                                response = await openai.chat.completions.acreate(
+                                response = openai.chat.completions.create(
                                     model="gpt-3.5-turbo",
                                     messages=[
                                         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal terug."},
@@ -56,7 +56,7 @@ async def handle_gpt_chat():
                 try:
                     # Gebruik GPT om te proberen ontbrekende details te vinden
                     line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
-                    response = await openai.chat.completions.acreate(
+                    response = openai.chat.completions.create(
                                     model="gpt-3.5-turbo",
                                     messages=[
                                         {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal terug."},
