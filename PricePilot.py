@@ -217,7 +217,6 @@ def handle_gpt_chat():
         lines = customer_input.splitlines()
         data = []
         for line in lines:
-                    for line in lines:
             # Check voor direct aantal in m2, bijvoorbeeld '5-4 200m2'
             m2_match = re.search(r'(\d+-\d+)\s+(\d+)\s*m2', line, re.IGNORECASE)
             if m2_match:
@@ -238,8 +237,6 @@ def handle_gpt_chat():
                         f"{total_m2:.2f} m²"
                     ])
                 continue
-
-            matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in line]
 
             matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in line]
 
