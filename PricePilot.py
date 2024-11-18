@@ -183,7 +183,7 @@ def handle_gpt_chat():
                                 quantity_match = re.search(r'\d+', gpt_output)
                                 
     if quantity_match:
-        quantity = quantity_match.group(0)
+    quantity = quantity_match.group(0)
         # Voeg de waarde met een rode kleur toe aan het overzicht
         st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
         # Voeg het gevonden aantal direct toe aan het tabel "offerte overzicht"
