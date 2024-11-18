@@ -217,6 +217,30 @@ def handle_gpt_chat():
         lines = customer_input.splitlines()
         data = []
         for line in lines:
+                    for line in lines:
+            # Check voor direct aantal in m2, bijvoorbeeld '5-4 200m2'
+            m2_match = re.search(r'(\d+-\d+)\s+(\d+)\s*m2', line, re.IGNORECASE)
+            if m2_match:
+                article_number = m2_match.group(1)
+                total_m2 = int(m2_match.group(2))
+                description, min_price, max_price = find_article_details(article_number)
+                if description:
+                    recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                    data.append([
+                        None,  # Placeholder voor Offertenummer
+                        description,
+                        article_number,
+                        None,  # Breedte niet van toepassing
+                        None,  # Hoogte niet van toepassing
+                        None,  # Aantal niet van toepassing
+                        f"€ {recommended_price:.2f}" if recommended_price is not None else None,
+                        None,  # M2 per stuk niet van toepassing
+                        f"{total_m2:.2f} m²"
+                    ])
+                continue
+
+            matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in line]
+
             matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in line]
 
             if matched_articles:
