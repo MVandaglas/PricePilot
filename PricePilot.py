@@ -227,7 +227,8 @@ def handle_gpt_chat():
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
-            
+    pass
+        
     elif customer_file:
         handle_file_upload(customer_file)
     else:
