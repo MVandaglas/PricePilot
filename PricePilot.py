@@ -181,12 +181,13 @@ def handle_gpt_chat():
                                 )
                                 gpt_output = response['choices'][0]['message']['content'].strip()
                                 quantity_match = re.search(r'\d+', gpt_output)
-                                if quantity_match:
-    quantity = quantity_match.group(0)
-    # Voeg de waarde met een rode kleur toe aan het overzicht
-    st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
-    # Voeg het gevonden aantal direct toe aan het tabel "offerte overzicht"
-    data.append([
+                                
+    if quantity_match:
+        quantity = quantity_match.group(0)
+        # Voeg de waarde met een rode kleur toe aan het overzicht
+        st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
+        # Voeg het gevonden aantal direct toe aan het tabel "offerte overzicht"
+        data.append([
         None,  # Placeholder for Offertenummer, to be added later
         description,
         article_number,
@@ -245,7 +246,6 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-
 
 
 # Functie om bestand te verwerken
