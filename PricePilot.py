@@ -465,19 +465,30 @@ if selected_tab == "Offerte Genereren":
     except Exception as e:
         st.sidebar.error(f"Er is een fout opgetreden: {e}")
 
+
+
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
 if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
     st.title("Offerteoverzicht")
+
+    # Maak grid-opties aan voor AgGrid
+    gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
+    gb.configure_default_column(flex=1, min_width=100, editable=True)  # Kolommen bewerkbaar maken
+    grid_options = gb.build()
+
+    # Toon de AG Grid met het Quartz-thema
     edited_df_response = AgGrid(
         st.session_state.offer_df,
         gridOptions=grid_options,
         theme='ag-theme-quartz',  # Specificeer het Quartz-thema
-        fit_columns_on_grid_load=True,
-        editable=True,
+        fit_columns_on_grid_load=True
     )
+    
+    # Bewaar de wijzigingen die de gebruiker heeft aangebracht
     edited_df = edited_df_response['data']
     if not edited_df.equals(st.session_state.offer_df):
         st.session_state.offer_df = edited_df.copy()
+
 
 
 # Voeg een knop toe om de offerte als PDF te downloaden
