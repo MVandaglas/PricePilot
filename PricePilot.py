@@ -187,6 +187,9 @@ async def handle_gpt_chat():
                                     st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
                         try:
     if quantity and isinstance(quantity, str) and quantity.endswith('x'):
+        quantity = quantity[:-1].strip()
+except Exception as e:
+    st.error(f"Er is een fout opgetreden: {str(e)}")
 except Exception as e:
     st.error(f"Er is een fout opgetreden: {str(e)}")
                             quantity = quantity[:-1].strip()
