@@ -227,10 +227,11 @@ def handle_gpt_chat():
                     article_number = m2_match.group(4)
                     total_m2 = float(m2_match.group(3))
                 
-                # Zorg ervoor dat 'article_number' altijd als string wordt behandeld
                 description, min_price, max_price = find_article_details(article_number)
+                
                 if description:
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                    st.sidebar.info(f"Artikel gevonden: {description}, Aanbevolen prijs: €{recommended_price:.2f}")
                     data.append([
                         None,  # Placeholder voor Offertenummer
                         description,
@@ -242,13 +243,14 @@ def handle_gpt_chat():
                         None,  # M2 per stuk niet van toepassing
                         f"{total_m2:.2f} m²"
                     ])
+                else:
+                    st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
                 continue
 
             matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in line]
 
             if matched_articles:
                 for term, article_number in matched_articles:
-                    # Zorg ervoor dat 'article_number' altijd als string wordt behandeld
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         quantity = extract_quantity(line)
@@ -277,7 +279,7 @@ def handle_gpt_chat():
                                     height = gpt_dimensions_match.group(3)
 
                             except Exception as e:
-                                st.warning("Er is een fout opgetreden tijdens de verwerking met GPT. Probeer het opnieuw of controleer de invoer.")
+                                st.warning(f"Er is een fout opgetreden tijdens de verwerking met GPT: {e}")
 
                         # Bereken aanbevolen prijs en m²
                         try:
@@ -285,19 +287,20 @@ def handle_gpt_chat():
                             m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
                             m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
 
-                            data.append([
-                                None,  # Placeholder voor Offertenummer
-                                description,
-                                article_number,
-                                width,
-                                height,
-                                quantity,
-                                f"€ {recommended_price:.2f}" if recommended_price is not None else None,
-                                f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None,
-                                f"{m2_total:.2f} m²" if m2_total is not None else None
-                            ])
+                            if description and quantity and width and height:
+                                data.append([
+                                    None,  # Placeholder voor Offertenummer
+                                    description,
+                                    article_number,
+                                    width,
+                                    height,
+                                    quantity,
+                                    f"€ {recommended_price:.2f}" if recommended_price is not None else None,
+                                    f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None,
+                                    f"{m2_total:.2f} m²" if m2_total is not None else None
+                                ])
                         except Exception as e:
-                            st.warning("Er is een fout opgetreden bij het berekenen van de prijs of oppervlakte.")
+                            st.warning(f"Er is een fout opgetreden bij het berekenen van de prijs of oppervlakte: {e}")
 
             else:
                 st.sidebar.warning("Geen artikelen gevonden in de invoer.")
@@ -305,7 +308,7 @@ def handle_gpt_chat():
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
-        
+           
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
