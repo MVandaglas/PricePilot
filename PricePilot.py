@@ -232,8 +232,6 @@ def handle_gpt_chat():
                                     width = gpt_dimensions_match.group(1)
                                     height = gpt_dimensions_match.group(3)
 
-                                st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}, afmetingen: {width} bij {height}</span>", unsafe_allow_html=True)
-
                             except Exception as e:
                                 st.warning("Er is een fout opgetreden tijdens de verwerking met GPT. Probeer het opnieuw of controleer de invoer.")
 
@@ -263,7 +261,10 @@ def handle_gpt_chat():
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
-           
+            for index in new_df.index:
+                st.markdown(f"<span style='color: red;'>{new_df.iloc[index]}</span>", unsafe_allow_html=True)
+        else:
+            st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
         handle_file_upload(customer_file)
     else:
