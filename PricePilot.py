@@ -151,9 +151,23 @@ def calculate_m2_per_piece(width, height):
         return m2
     return None
 
+# Functie om getallen van 1 tot 100 te herkennen
+def extract_numbers(text):
+    pattern = r'\b(1|[1-9]|[1-9][0-9]|100)\b'
+    matches = re.findall(pattern, text)
+    return [int(match) for match in matches]
+
+# Functie om het aantal uit tekst te extraheren
+def extract_quantity(text):
+    # Zoek naar woorden die een aantal beschrijven
+    quantity_matches = extract_numbers(text)
+    if quantity_matches:
+        return quantity_matches[0]  # Neem het eerste gevonden aantal
+    return None
+
 def handle_gpt_chat():
     if customer_input:
-        # Process input line by line
+        # Verwerk de invoer regel voor regel
         lines = customer_input.splitlines()
 
         data = []
@@ -164,52 +178,44 @@ def handle_gpt_chat():
                 for term, article_number in matched_articles:
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
-                        quantity, width, height = extract_dimensions(line, term)
-                        if not quantity:
-                            # Use GPT to find the missing quantity if not recognized
+                        # Extract quantity and dimensions
+                        quantity = extract_quantity(line)
+                        width, height = extract_dimensions(line, term)
+
+                        if quantity is None or width is None or height is None:
+                            # Gebruik GPT om het ontbrekende aantal en afmetingen te vinden
                             try:
                                 response = openai.chat.completions.create(
                                     model="gpt-3.5-turbo",
                                     messages=[
-                                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal en afmetingen in hoogte en breedte terug."},
+                                        {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal (in cijfers) en de afmetingen (hoogte en breedte) terug."},
                                         {"role": "user", "content": line}
                                     ],
-                                    max_tokens=5,
+                                    max_tokens=50,
                                     temperature=0.9
                                 )
                                 gpt_output = response['choices'][0]['message']['content'].strip()
-                                quantity_match = re.search(r'\d+', gpt_output)
+                                gpt_quantity_match = re.search(r'\d+', gpt_output)
+                                gpt_dimensions_match = re.search(r'(\d+)x(\d+)', gpt_output)
 
-                                if quantity_match:
-                                    quantity = quantity_match.group(0)
-                                    # Add the value with red color to the overview
-                                    st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
-                                    # Add the found quantity directly to the "offerte overzicht" table
-                                    recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                                    m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if calculate_m2_per_piece(width, height) else None
-                                    m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
-                                    data.append([
-                                        None,  # Placeholder for Offertenummer, to be added later
-                                        description,
-                                        article_number,
-                                        width,
-                                        height,
-                                        quantity,
-                                        f"€ {recommended_price:.2f}" if recommended_price is not None else None,
-                                        f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None,
-                                        f"{m2_total:.2f} m²" if m2_total is not None else None
-                                    ])
-                            except Exception as e:
-                                st.warning("Er is een fout opgetreden tijdens de verwerking met GPT. Probeer het opnieuw of controleer de invoer.")
+                                if gpt_quantity_match:
+                                    quantity = gpt_quantity_match.group(0)
 
-                        if quantity and isinstance(quantity, str) and quantity.endswith('x'):
-                            quantity = quantity[:-1].strip()
+                                if gpt_dimensions_match:
+                                    width = gpt_dimensions_match.group(1)
+                                    height = gpt_dimensions_match.group(2)
 
+                                # Voeg de waarde met een rode kleur toe aan het overzicht
+                                st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}, afmetingen: {width}x{height}</span>", unsafe_allow_html=True)
+
+                        # Bereken aanbevolen prijs en m²
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                        m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if calculate_m2_per_piece(width, height) else None
+                        m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
                         m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
+
+                        # Voeg de gegevens toe aan de tabel
                         data.append([
-                            None,  # Placeholder for Offertenummer, to be added later
+                            None,  # Placeholder voor Offertenummer
                             description,
                             article_number,
                             width,
@@ -220,26 +226,14 @@ def handle_gpt_chat():
                             f"{m2_total:.2f} m²" if m2_total is not None else None
                         ])
             else:
-                try:
-                    # Use GPT to try to find missing details
-                    line = re.sub(r'(?i)\b(tien|twintig|dertig|veertig|vijftig|zestig|zeventig|tachtig|negentig|honderd) keer\b', lambda x: str(text2num(x.group(1))), line)
-                    response = openai.chat.completions.create(
-                        model="gpt-3.5-turbo",
-                        messages=[
-                            {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal terug."},
-                            {"role": "user", "content": line}
-                        ],
-                        max_tokens=50,
-                        temperature=0.9
-                    )
-                    gpt_output = response['choices'][0]['message']['content'].strip()
-                    st.sidebar.markdown(f"<span style='color: red;'>GPT Suggestie: {gpt_output}</span>", unsafe_allow_html=True)
-                except Exception as e:
-                    st.warning("Er is een fout opgetreden tijdens de verwerking. Probeer het opnieuw of controleer de invoer.")
+                st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
+            # Markeer de rijen die door GPT zijn aangevuld in rood
+            for index in new_df.index:
+                st.markdown(f"<span style='color: red;'>{new_df.iloc[index]}</span>", unsafe_allow_html=True)
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
