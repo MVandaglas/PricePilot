@@ -227,6 +227,7 @@ def handle_gpt_chat():
                     article_number = m2_match.group(4)
                     total_m2 = float(m2_match.group(3))
                 
+                # Zorg ervoor dat 'article_number' altijd als string wordt behandeld
                 description, min_price, max_price = find_article_details(article_number)
                 if description:
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -247,6 +248,7 @@ def handle_gpt_chat():
 
             if matched_articles:
                 for term, article_number in matched_articles:
+                    # Zorg ervoor dat 'article_number' altijd als string wordt behandeld
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         quantity = extract_quantity(line)
