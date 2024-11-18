@@ -221,17 +221,15 @@ def handle_gpt_chat():
             m2_match = re.search(r'(\d+-\d+)\s+(\d+)\s*m2|(\d+)\s*m2\s+(\d+-\d+)', line, re.IGNORECASE)
             if m2_match:
                 if m2_match.group(1) and m2_match.group(2):
-                    article_number = m2_match.group(1)
+                    article_number = synonym_dict.get(m2_match.group(1), m2_match.group(1))
                     total_m2 = float(m2_match.group(2))
                 else:
-                    article_number = m2_match.group(4)
+                    article_number = synonym_dict.get(m2_match.group(4), m2_match.group(4))
                     total_m2 = float(m2_match.group(3))
                 
                 description, min_price, max_price = find_article_details(article_number)
-                
                 if description:
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                    st.sidebar.info(f"Artikel gevonden: {description}, Aanbevolen prijs: €{recommended_price:.2f}")
                     data.append([
                         None,  # Placeholder voor Offertenummer
                         description,
@@ -247,6 +245,7 @@ def handle_gpt_chat():
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
                 continue
 
+            # Zoek naar synoniemen in de invoerregel
             matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in line]
 
             if matched_articles:
@@ -287,18 +286,17 @@ def handle_gpt_chat():
                             m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
                             m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
 
-                            if description and quantity and width and height:
-                                data.append([
-                                    None,  # Placeholder voor Offertenummer
-                                    description,
-                                    article_number,
-                                    width,
-                                    height,
-                                    quantity,
-                                    f"€ {recommended_price:.2f}" if recommended_price is not None else None,
-                                    f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None,
-                                    f"{m2_total:.2f} m²" if m2_total is not None else None
-                                ])
+                            data.append([
+                                None,  # Placeholder voor Offertenummer
+                                description,
+                                article_number,
+                                width,
+                                height,
+                                quantity,
+                                f"€ {recommended_price:.2f}" if recommended_price is not None else None,
+                                f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None,
+                                f"{m2_total:.2f} m²" if m2_total is not None else None
+                            ])
                         except Exception as e:
                             st.warning(f"Er is een fout opgetreden bij het berekenen van de prijs of oppervlakte: {e}")
 
@@ -308,13 +306,14 @@ def handle_gpt_chat():
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
-           
+        
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 # Functie om tekstinvoer te verwerken
