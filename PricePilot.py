@@ -182,12 +182,13 @@ def handle_gpt_chat():
                                 gpt_output = response['choices'][0]['message']['content'].strip()
                                 quantity_match = re.search(r'\d+', gpt_output)
                                 
+    try:
     if quantity_match:
-    quantity = quantity_match.group(0)
-        # Voeg de waarde met een rode kleur toe aan het overzicht
-        st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
-        # Voeg het gevonden aantal direct toe aan het tabel "offerte overzicht"
-        data.append([
+        quantity = quantity_match.group(0)
+            # Voeg de waarde met een rode kleur toe aan het overzicht
+            st.sidebar.markdown(f"<span style='color: red;'>GPT vond aantal: {quantity}</span>", unsafe_allow_html=True)
+            # Voeg het gevonden aantal direct toe aan het tabel "offerte overzicht"
+            data.append([
         None,  # Placeholder for Offertenummer, to be added later
         description,
         article_number,
@@ -240,13 +241,14 @@ def handle_gpt_chat():
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         else:
-    pass
-            
-    elif customer_file:
+    else:
+    except Exception as e:
+        st.warning("Er is een fout opgetreden tijdens de verwerking. Probeer het opnieuw of controleer de invoer.")
+
+elif customer_file:
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-
 
 # Functie om bestand te verwerken
 def handle_file_upload(file):
