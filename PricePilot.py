@@ -6,7 +6,7 @@ import pandas as pd
 from PIL import Image
 import pytesseract
 import re
-from word2number import w2n as text2num
+from word2number import w2n
 from datetime import datetime
 from st_aggrid import AgGrid
 import openai
