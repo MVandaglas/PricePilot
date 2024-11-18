@@ -264,7 +264,7 @@ def handle_gpt_chat():
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
             for index in new_df.index:
-                st.markdown(f"<span style='color: red;'>{new_df.iloc[index]}</span>", unsafe_allow_html=True)
+                #st.markdown(f"<span style='color: red;'>{new_df.iloc[index]}</span>", unsafe_allow_html=True)
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
