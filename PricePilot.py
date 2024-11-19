@@ -241,7 +241,7 @@ def handle_gpt_chat():
                 if description:
                     if quantity is None or width is None or height is None:
                         try:
-                            response = openai.ChatCompletion.create(
+                            response = openai.chat.completions.create(
                                 model="gpt-3.5-turbo",
                                 messages=[
                                     {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal (in cijfers) en de afmetingen (hoogte en breedte) terug."},
