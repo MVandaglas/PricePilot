@@ -8,7 +8,7 @@ import pytesseract
 import re
 from num2words import num2words
 from datetime import datetime
-from st_aggrid import AgGrid, GridOptionsBuilder
+from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 import openai
 
 
@@ -475,6 +475,29 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     # Maak grid-opties aan voor AgGrid
     gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
     gb.configure_default_column(flex=1, min_width=100, editable=True)  # Kolommen bewerkbaar maken
+    gb.configure_column("Breedte", editable=True, type=["numericColumn"])
+    gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
+    gb.configure_column("Aantal", editable=True, type=["numericColumn"])
+    grid_options = gb.build()
+
+    # Gebruik Javascript om wijzigingen door te voeren en afhankelijkheden te herberekenen
+    jscode = JsCode(
+        '''
+        function(params) {
+            let breedte = params.data.Breedte;
+            let hoogte = params.data.Hoogte;
+            let aantal = params.data.Aantal;
+            if (breedte && hoogte) {
+                params.data['M2 p/s'] = Math.max((breedte / 1000) * (hoogte / 1000), 0.65);
+            }
+            if (aantal && params.data['M2 p/s']) {
+                params.data['M2 totaal'] = aantal * params.data['M2 p/s'];
+            }
+            return params;
+        }
+        '''
+    )
+    gb.configure_grid_options(onCellValueChanged=jscode)
     grid_options = gb.build()
 
     # Toon de AG Grid met het material-thema
@@ -482,13 +505,14 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
         st.session_state.offer_df,
         gridOptions=grid_options,
         theme='dark',  # Specificeer het material-thema
-        fit_columns_on_grid_load=True
+        fit_columns_on_grid_load=True,
+        enable_enterprise_modules=True,
+        update_mode='MODEL_CHANGED'
     )
     
     # Bewaar de wijzigingen die de gebruiker heeft aangebracht
     edited_df = edited_df_response['data']
     if not edited_df.equals(st.session_state.offer_df):
-        edited_df = update_offer_data(edited_df)
         st.session_state.offer_df = edited_df.copy()
 
 
