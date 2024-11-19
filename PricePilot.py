@@ -150,7 +150,14 @@ def calculate_m2_per_piece(width, height):
         return m2
     return None
 
-
+# Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
+def update_offer_data(df):
+    for index, row in df.iterrows():
+        if pd.notna(row['Breedte']) and pd.notna(row['Hoogte']):
+            df.at[index, 'M2 p/s'] = calculate_m2_per_piece(row['Breedte'], row['Hoogte'])
+        if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
+            df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
+    return df
 
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
@@ -481,8 +488,8 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     # Bewaar de wijzigingen die de gebruiker heeft aangebracht
     edited_df = edited_df_response['data']
     if not edited_df.equals(st.session_state.offer_df):
+        edited_df = update_offer_data(edited_df)
         st.session_state.offer_df = edited_df.copy()
-
 
 
 # Voeg een knop toe om de offerte als PDF te downloaden
@@ -523,11 +530,7 @@ if st.button("Sla offerte op", key='save_offerte_button'):
 
 if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
     edited_df = edited_df.copy()
-    edited_df["M2 totaal"] = edited_df.apply(
-        lambda row: float(row["Aantal"]) * float(str(row["M2 p/s"]).split()[0].replace(',', '.'))
-        if pd.notna(row["Aantal"]) and pd.notna(row["M2 p/s"]) else None,
-        axis=1
-    )
+    edited_df = update_offer_data(edited_df)
     st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
@@ -560,3 +563,4 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.dataframe(st.session_state.loaded_offer_df[required_columns])
     else:
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
+
