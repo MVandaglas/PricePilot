@@ -496,11 +496,12 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     
     # Bewaar de wijzigingen die de gebruiker heeft aangebracht
     edited_df = edited_df_response['data']
-    
-    with st.spinner('Bezig met verwerken van wijzigingen...'):
-        if not edited_df.equals(st.session_state.offer_df):
-        st.session_state.offer_df = edited_df.copy()
-        st.experimental_rerun()
+    if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
+        with st.spinner('Bezig met verwerken van wijzigingen...'):
+            if not edited_df.equals(st.session_state.offer_df):
+                st.session_state.offer_df = edited_df.copy()
+                st.experimental_rerun()
+
 
 
 # Voeg een knop toe om de offerte als PDF te downloaden
