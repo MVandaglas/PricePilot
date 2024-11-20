@@ -490,24 +490,14 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
         theme='ag-theme-material',  # Specificeer het material-thema
         fit_columns_on_grid_load=True,
         enable_enterprise_modules=True,
-        update_mode='VALUE_CHANGED'
+        update_mode='NO_UPDATE'
     )
     
     # Bewaar de wijzigingen die de gebruiker heeft aangebracht
     edited_df = edited_df_response['data']
+    if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
     if not edited_df.equals(st.session_state.offer_df):
         st.session_state.offer_df = edited_df.copy()
-
-    # Voeg een prullenbak icoontje toe om geselecteerde regels te verwijderen
-    if st.button("Verwijder geselecteerde regels", key='delete_selected_rows_button'):
-        selected = edited_df_response['selected_rows']
-        if selected:
-            selected_indices = [row['_selectedRowNodeInfo']['nodeIndex'] for row in selected]
-            st.session_state.offer_df.drop(index=selected_indices, inplace=True)
-            st.session_state.offer_df.reset_index(drop=True, inplace=True)
-            st.success("Geselecteerde regels zijn verwijderd.")
-        else:
-            st.warning("Geen regels geselecteerd om te verwijderen.")
 
 
 # Voeg een knop toe om de offerte als PDF te downloaden
