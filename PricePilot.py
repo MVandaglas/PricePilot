@@ -459,7 +459,6 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
     gb.configure_column("Aantal", editable=True, type=["numericColumn"])
     gb.configure_selection('multiple', use_checkbox=True)  # Checkboxen toevoegen om meerdere regels te selecteren
-    gb.configure_grid_options(domLayout='normal')
     grid_options = gb.build()
 
     # Gebruik Javascript om wijzigingen door te voeren en afhankelijkheden te herberekenen
@@ -486,7 +485,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     edited_df_response = AgGrid(
         st.session_state.offer_df,
         gridOptions=grid_options,
-        theme='dark',  # Specificeer het material-thema
+        theme='ag-theme-material',  # Specificeer het material-thema
         fit_columns_on_grid_load=True,
         enable_enterprise_modules=True,
         update_mode='MODEL_CHANGED'
