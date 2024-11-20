@@ -453,46 +453,48 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     st.title("Offerteoverzicht")
 
     # Maak grid-opties aan voor AgGrid
-    gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
-    gb.configure_default_column(flex=1, min_width=100, editable=True)
-    gb.configure_column("Offertenummer", hide=True)  # Kolommen bewerkbaar maken
-    gb.configure_column("Breedte", editable=True, type=["numericColumn"])
-    gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
-    gb.configure_column("Aantal", editable=True, type=["numericColumn"])
-    gb.configure_column("RSP", editable=True, type=["numericColumn"])
-    gb.configure_selection('multiple', use_checkbox=True)  # Checkboxen toevoegen om meerdere regels te selecteren
-    grid_options = gb.build()
+gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
+gb.configure_default_column(flex=1, min_width=100, editable=True)
+gb.configure_column("Offertenummer", hide=True)  # Kolommen bewerkbaar maken
+gb.configure_column("Breedte", editable=True, type=["numericColumn"])
+gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
+gb.configure_column("Aantal", editable=True, type=["numericColumn"])
+gb.configure_column("RSP", editable=True, type=["numericColumn"])
+gb.configure_selection('multiple', use_checkbox=True)  # Checkboxen toevoegen om meerdere regels te selecteren
 
-    # Gebruik Javascript om wijzigingen door te voeren en afhankelijkheden te herberekenen
-    jscode = JsCode(
-        '''
-        function(params) {
-            let breedte = params.data.Breedte;
-            let hoogte = params.data.Hoogte;
-            let aantal = params.data.Aantal;
-            let rsp = params.data.RSP;
-            if (breedte && hoogte) {
-                params.data['M2 p/s'] = Math.max((breedte / 1000) * (hoogte / 1000), 0.65);
-            }
-            if (aantal && params.data['M2 p/s']) {
-                params.data['M2 totaal'] = aantal * params.data['M2 p/s'];
-            }
-            return params;
+# Gebruik Javascript om wijzigingen door te voeren en afhankelijkheden te herberekenen
+jscode = JsCode(
+    '''
+    function(params) {
+        let breedte = params.data.Breedte;
+        let hoogte = params.data.Hoogte;
+        let aantal = params.data.Aantal;
+        let rsp = params.data.RSP;
+        if (breedte && hoogte) {
+            params.data['M2 p/s'] = Math.max((breedte / 1000) * (hoogte / 1000), 0.65);
         }
-        '''
-    )
-    gb.configure_grid_options(onCellValueChanged=jscode)
-    grid_options = gb.build()
+        if (aantal && params.data['M2 p/s']) {
+            params.data['M2 totaal'] = aantal * params.data['M2 p/s'];
+        }
+        return params;
+    }
+    '''
+)
+gb.configure_grid_options(onCellValueChanged=jscode)
 
-    # Toon de AG Grid met het material-thema
-    edited_df_response = AgGrid(
-        st.session_state.offer_df,
-        gridOptions=grid_options,
-        theme='ag-theme-material',  # Specificeer het material-thema
-        fit_columns_on_grid_load=True,
-        enable_enterprise_modules=True,
-        update_mode='MANUAL'
-    )
+# Maak de grid opties met de correcte configuratie
+grid_options = gb.build()
+
+# Toon de AG Grid met het material-thema
+edited_df_response = AgGrid(
+    st.session_state.offer_df,
+    gridOptions=grid_options,
+    theme='ag-theme-material',  # Specificeer het material-thema
+    fit_columns_on_grid_load=True,
+    enable_enterprise_modules=True,
+    update_mode='MANUAL'
+)
+
     
     # Bewaar de wijzigingen die de gebruiker heeft aangebracht
     edited_df = edited_df_response['data']
