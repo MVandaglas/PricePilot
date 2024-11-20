@@ -22,7 +22,7 @@ else:
 
 # Hard gecodeerde klantgegevens
 customer_data = {
-    "111111": {"revenue": "50.000 euro", "size": "D"},
+    "111111": {"revenue": "40.000 euro", "size": "D"},
     "222222": {"revenue": "140.000 euro", "size": "B"},
     "333333": {"revenue": "600.000 euro", "size": "A"}
 }
@@ -455,7 +455,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     # Maak grid-opties aan voor AgGrid
     gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
     gb.configure_default_column(flex=1, min_width=100, editable=True)
-    gb.configure_column("Offertenummer", hide=True)  # Kolommen bewerkbaar maken
+gb.configure_column("Offertenummer", hide=True)  # Kolommen bewerkbaar maken
     gb.configure_column("Breedte", editable=True, type=["numericColumn"])
     gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
     gb.configure_column("Aantal", editable=True, type=["numericColumn"])
@@ -496,7 +496,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     
     # Bewaar de wijzigingen die de gebruiker heeft aangebracht
     edited_df = edited_df_response['data']
-    if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
+    
     with st.spinner('Bezig met verwerken van wijzigingen...'):
         if not edited_df.equals(st.session_state.offer_df):
         st.session_state.offer_df = edited_df.copy()
@@ -574,3 +574,4 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.dataframe(st.session_state.loaded_offer_df[required_columns])
     else:
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
+
