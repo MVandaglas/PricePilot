@@ -458,6 +458,8 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     gb.configure_column("Breedte", editable=True, type=["numericColumn"])
     gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
     gb.configure_column("Aantal", editable=True, type=["numericColumn"])
+    gb.configure_selection('multiple', use_checkbox=True)  # Checkboxen toevoegen om meerdere regels te selecteren
+    gb.configure_grid_options(domLayout='normal')
     grid_options = gb.build()
 
     # Gebruik Javascript om wijzigingen door te voeren en afhankelijkheden te herberekenen
@@ -494,6 +496,17 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     edited_df = edited_df_response['data']
     if not edited_df.equals(st.session_state.offer_df):
         st.session_state.offer_df = edited_df.copy()
+
+    # Voeg een prullenbak icoontje toe om geselecteerde regels te verwijderen
+    if st.button("Verwijder geselecteerde regels", key='delete_selected_rows_button'):
+        selected = edited_df_response['selected_rows']
+        if selected:
+            selected_indices = [row['_selectedRowNodeInfo']['nodeIndex'] for row in selected]
+            st.session_state.offer_df.drop(index=selected_indices, inplace=True)
+            st.session_state.offer_df.reset_index(drop=True, inplace=True)
+            st.success("Geselecteerde regels zijn verwijderd.")
+        else:
+            st.warning("Geen regels geselecteerd om te verwijderen.")
 
 
 # Voeg een knop toe om de offerte als PDF te downloaden
@@ -567,4 +580,3 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.dataframe(st.session_state.loaded_offer_df[required_columns])
     else:
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
-
