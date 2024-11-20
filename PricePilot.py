@@ -455,7 +455,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     # Maak grid-opties aan voor AgGrid
     gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
     gb.configure_default_column(flex=1, min_width=100, editable=True)
-gb.configure_column("Offertenummer", hide=True)  # Kolommen bewerkbaar maken
+    gb.configure_column("Offertenummer", hide=True)  # Kolommen bewerkbaar maken
     gb.configure_column("Breedte", editable=True, type=["numericColumn"])
     gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
     gb.configure_column("Aantal", editable=True, type=["numericColumn"])
