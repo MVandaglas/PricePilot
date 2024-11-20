@@ -458,6 +458,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     gb.configure_column("Breedte", editable=True, type=["numericColumn"])
     gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
     gb.configure_column("Aantal", editable=True, type=["numericColumn"])
+    gb.configure_column("RSP", editable=True, type=["numericColumn"])
     gb.configure_selection('multiple', use_checkbox=True)  # Checkboxen toevoegen om meerdere regels te selecteren
     grid_options = gb.build()
 
@@ -468,6 +469,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
             let breedte = params.data.Breedte;
             let hoogte = params.data.Hoogte;
             let aantal = params.data.Aantal;
+            let rsp = params.data.RSP;
             if (breedte && hoogte) {
                 params.data['M2 p/s'] = Math.max((breedte / 1000) * (hoogte / 1000), 0.65);
             }
@@ -488,7 +490,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
         theme='ag-theme-material',  # Specificeer het material-thema
         fit_columns_on_grid_load=True,
         enable_enterprise_modules=True,
-        update_mode='MODEL_CHANGED'
+        update_mode='VALUE_CHANGED'
     )
     
     # Bewaar de wijzigingen die de gebruiker heeft aangebracht
