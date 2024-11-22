@@ -70,9 +70,17 @@ st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 
 # Sidebar configureren met uitklapbare sectie
+
+st.title("PricePilot - Klantprijsassistent")
+st.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
+
+if st.sidebar.button("Verstuur chat met GPT"):
+    try:
+       handle_gpt_chat()
+    except Exception as e:
+        st.sidebar.error(f"Er is een fout opgetreden: {e}")
+
 with st.sidebar.expander("Invoeropties", expanded=False):
-    st.title("PricePilot - Klantprijsassistent")
-    st.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
     # Gebruikersinvoer
     customer_input = st.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
@@ -479,11 +487,7 @@ def generate_pdf(df):
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
     
-  if st.sidebar.button("Verstuur chat met GPT"):
-    try:
-       handle_gpt_chat()
-    except Exception as e:
-        st.sidebar.error(f"Er is een fout opgetreden: {e}")
+  
 
 
 
