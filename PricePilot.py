@@ -63,7 +63,7 @@ totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
 totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["RSP"]).sum()
 
 # Resultaten weergeven
-st.sidebar.title("PricePilot
+st.sidebar.title("PricePilot")
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
 st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
