@@ -245,6 +245,9 @@ def handle_gpt_chat():
                     article_number = m2_match.group(3)
                     m2_total = int(m2_match.group(4))
 
+                # Zoek artikelnummer op in synoniemenlijst
+                article_number = synonym_dict.get(article_number, article_number)
+
                 description, min_price, max_price = find_article_details(article_number)
                 if description:
                     # Voeg een regel toe aan de data met alleen m² en artikelnummer
@@ -265,6 +268,7 @@ def handle_gpt_chat():
                 # Bestaande logica voor het extraheren van aantal, breedte, hoogte, etc.
                 quantity, width, height, article_number = extract_all_details(line)
                 if article_number:
+                    # Zoek artikelnummer op in synoniemenlijst
                     article_number = synonym_dict.get(article_number, article_number)
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
@@ -300,6 +304,7 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 
