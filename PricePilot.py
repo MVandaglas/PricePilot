@@ -8,7 +8,7 @@ import pytesseract
 import re
 from num2words import num2words
 from datetime import datetime
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
+from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode
 import openai
 
 
