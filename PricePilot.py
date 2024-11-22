@@ -475,23 +475,23 @@ gb.configure_grid_options(onFirstDataRendered=auto_size_script)
     
 grid_options = gb.build()
 
-    # Toon de AG Grid met het material-thema
-    edited_df_response = AgGrid(
-        st.session_state.offer_df,
-        gridOptions=grid_options,
-        theme='material',
-        fit_columns_on_grid_load=True,
-        enable_enterprise_modules=True,
-        update_mode='MANUAL'
-    )
+# Toon de AG Grid met het material-thema
+edited_df_response = AgGrid(
+    st.session_state.offer_df,
+    gridOptions=grid_options,
+    theme='material',
+    fit_columns_on_grid_load=True,
+    enable_enterprise_modules=True,
+    update_mode='MANUAL'
+)
 
-    # Bewaar de wijzigingen die de gebruiker heeft aangebracht
-    edited_df = edited_df_response['data']
-    if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
-        with st.spinner('Bezig met verwerken van wijzigingen...'):
-            if not edited_df.equals(st.session_state.offer_df):
-                st.session_state.offer_df = update_offer_data(edited_df.copy())
-                st.experimental_rerun()
+# Bewaar de wijzigingen die de gebruiker heeft aangebracht
+edited_df = edited_df_response['data']
+if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
+    with st.spinner('Bezig met verwerken van wijzigingen...'):
+        if not edited_df.equals(st.session_state.offer_df):
+            st.session_state.offer_df = update_offer_data(edited_df.copy())
+            st.experimental_rerun()
 
 
 
