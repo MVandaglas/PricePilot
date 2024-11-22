@@ -52,6 +52,18 @@ selected_tab = st.radio(
     index=0,
     horizontal=True,
 )
+
+# Bovenin rechts twee alleen-lezen calculatievelden toevoegen
+col1, col2 = st.columns(2)
+
+with col2:
+    totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["RSP"]).sum()
+    st.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
+
+with col1:
+    totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
+    st.metric("Totaal m2", f"{totaal_m2:.2f}")
+
 st.sidebar.title("PricePilot - Klantprijsassistent")
 st.sidebar.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
