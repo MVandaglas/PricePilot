@@ -464,7 +464,7 @@ gb.configure_column("RSP", editable=True, type=["numericColumn"])
 gb.configure_selection('multiple', use_checkbox=True)
 gb.configure_auto_height(autoHeight=True)
 gb.configure_grid_options(domLayout='normal')  # Dit zorgt ervoor dat scrollen mogelijk is
-gb.columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS
+AgGrid(data=df, columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS
 
 grid_options = gb.build()
 
