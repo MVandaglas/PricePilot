@@ -572,9 +572,15 @@ elif selected_tab == "Opgeslagen Offertes":
 # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 
+# Omzetting naar numerieke waarden en lege waarden vervangen door 0
+st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
+st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
+
+# Berekeningen uitvoeren
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
 totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["RSP"]).sum()
 
+# Resultaten weergeven
 st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
 st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
 
