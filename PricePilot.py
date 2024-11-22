@@ -570,6 +570,16 @@ elif selected_tab == "Opgeslagen Offertes":
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
 
+# Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
+st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+
+totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
+totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["RSP"]).sum()
+
+st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
+st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
+
+
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
     st.title("Geladen Offerte")
