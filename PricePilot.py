@@ -234,8 +234,8 @@ def handle_gpt_chat():
         lines = customer_input.splitlines()
         data = []
         for line in lines:
-            # Controleer of het patroon '200m² 4-4', '200 m² 4-4', '4-4 200m²', '4-4 200 m²' in de lijn staat
-            m2_match = re.search(r'(\d+)\s*m2\s*(\d+-\d+)|(\d+-\d+)\s*(\d+)\s*m2', line, re.IGNORECASE)
+            # Nieuwe regex voor herkenning van patronen zoals "400m2 van 4-4" of "4-4 400m2"
+            m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
             if m2_match:
                 # Afhankelijk van de volgorde in de match, haal het artikelnummer en m2 op
                 if m2_match.group(1):
@@ -304,6 +304,7 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 
