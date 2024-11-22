@@ -234,38 +234,41 @@ def handle_gpt_chat():
         lines = customer_input.splitlines()
         data = []
         for line in lines:
-            quantity, width, height, article_number = extract_all_details(line)
-            if article_number:
-                article_number = synonym_dict.get(article_number, article_number)
+            # Controleer of het patroon '200m² 4-4', '200 m² 4-4', '4-4 200m²', '4-4 200 m²' in de lijn staat
+            m2_match = re.search(r'(\d+)\s*m2\s*(\d+-\d+)|(\d+-\d+)\s*(\d+)\s*m2', line, re.IGNORECASE)
+            if m2_match:
+                # Afhankelijk van de volgorde in de match, haal het artikelnummer en m2 op
+                if m2_match.group(1):
+                    m2_total = int(m2_match.group(1))
+                    article_number = m2_match.group(2)
+                else:
+                    article_number = m2_match.group(3)
+                    m2_total = int(m2_match.group(4))
+
                 description, min_price, max_price = find_article_details(article_number)
                 if description:
-                    if quantity is None or width is None or height is None:
-                        try:
-                            response = openai.chat.completions.create(
-                                model="gpt-3.5-turbo",
-                                messages=[
-                                    {"role": "system", "content": "Je bent een glas offerte assistent. Analyseer de volgende tekst en geef specifiek het gevraagde aantal (in cijfers) en de afmetingen (hoogte en breedte) terug."},
-                                    {"role": "user", "content": line}
-                                ],
-                                max_tokens=50,
-                                temperature=0.9
-                            )
-                            gpt_output = response['choices'][0]['message']['content'].strip()
-                            gpt_quantity_match = re.search(r'\d+', gpt_output)
-                            gpt_dimensions_match = re.search(r'(\d+)\s*(bij|x)\s*(\d+)', gpt_output)
-
-                            if gpt_quantity_match:
-                                quantity = gpt_quantity_match.group(0)
-
-                            if gpt_dimensions_match:
-                                width = gpt_dimensions_match.group(1)
-                                height = gpt_dimensions_match.group(3)
-
-                        except Exception as e:
-                            st.warning(f"Er is een fout opgetreden tijdens de verwerking met GPT: {e}")
-
-                    # Bereken aanbevolen prijs en m²
-                    try:
+                    # Voeg een regel toe aan de data met alleen m² en artikelnummer
+                    data.append([
+                        None,  # Placeholder voor Offertenummer
+                        description,
+                        article_number,
+                        None,  # Breedte blijft leeg
+                        None,  # Hoogte blijft leeg
+                        None,  # Aantal blijft leeg
+                        None,  # RSP blijft leeg
+                        None,  # M2 p/s blijft leeg
+                        f"{m2_total:.2f}"  # M2 totaal
+                    ])
+                else:
+                    st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
+            else:
+                # Bestaande logica voor het extraheren van aantal, breedte, hoogte, etc.
+                quantity, width, height, article_number = extract_all_details(line)
+                if article_number:
+                    article_number = synonym_dict.get(article_number, article_number)
+                    description, min_price, max_price = find_article_details(article_number)
+                    if description:
+                        # Rest van de bestaande verwerking voor als er geen specifieke m2 is
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
                         m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
@@ -281,13 +284,10 @@ def handle_gpt_chat():
                             f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
                             f"{m2_total:.2f}" if m2_total is not None else None
                         ])
-                    except Exception as e:
-                        st.warning(f"Er is een fout opgetreden bij het berekenen van de prijs of oppervlakte: {e}")
-
+                    else:
+                        st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
                 else:
-                    st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
-            else:
-                st.sidebar.warning("Geen artikelen gevonden in de invoer.")
+                    st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
@@ -300,6 +300,7 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 
