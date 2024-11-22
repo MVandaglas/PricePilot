@@ -452,8 +452,9 @@ if selected_tab == "Offerte Genereren":
 if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
     st.title("Offerteoverzicht")
 
-# Voeg rijnummers toe aan de offerte DataFrame
-st.session_state.offer_df.insert(0, 'Rijnummer', range(1, len(st.session_state.offer_df) + 1))
+# Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
+if 'Rijnummer' not in st.session_state.offer_df.columns:
+    st.session_state.offer_df.insert(0, 'Rijnummer', range(1, len(st.session_state.offer_df) + 1))
     
     # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
