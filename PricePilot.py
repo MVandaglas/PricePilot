@@ -144,12 +144,16 @@ def calculate_recommended_price(min_price, max_price, prijsscherpte):
 
 # Functie om m2 per stuk te berekenen
 def calculate_m2_per_piece(width, height):
-    if width and height:
-        width_m = int(width) / 1000
-        height_m = int(height) / 1000
-        m2 = max(width_m * height_m, 0.65)
-        return m2
+    if pd.notna(width) and pd.notna(height):
+        try:
+            width_m = int(width) / 1000
+            height_m = int(height) / 1000
+            m2 = max(width_m * height_m, 0.65)
+            return round(m2, 2)
+        except ValueError:
+            return None  # Waarden zijn ongeldig
     return None
+
 
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
