@@ -453,13 +453,6 @@ if selected_tab == "Offerte Genereren":
 if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
     st.title("Offerteoverzicht")
 
-# Definieer de JavaScript-code die de kolommen automatisch aanpast
-auto_size_script = JsCode("""
-function(params) {
-    params.columnApi.autoSizeAllColumns();
-}
-""")
-    
     
     # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
