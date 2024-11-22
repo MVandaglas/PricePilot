@@ -453,6 +453,14 @@ if selected_tab == "Offerte Genereren":
 if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
     st.title("Offerteoverzicht")
 
+# Definieer de JavaScript-code die de kolommen automatisch aanpast
+auto_size_script = JsCode("""
+function(params) {
+    params.columnApi.autoSizeAllColumns();
+}
+""")
+    
+    
     # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
     gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
     gb.configure_default_column(flex=1, min_width=100, editable=True)
@@ -463,6 +471,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     gb.configure_column("RSP", editable=True, type=["numericColumn"])
     gb.configure_selection('multiple', use_checkbox=True)
     gb.configure_auto_height(autoHeight=True)
+    gb.configure_grid_options(onFirstDataRendered=auto_size_script)
     
     grid_options = gb.build()
 
