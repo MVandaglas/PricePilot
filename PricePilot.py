@@ -463,17 +463,17 @@ function(params) {
     
     # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
-    gb.configure_default_column(flex=1, min_width=100, editable=True)
-    gb.configure_column("Offertenummer", hide=True)
-    gb.configure_column("Breedte", editable=True, type=["numericColumn"])
-    gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
-    gb.configure_column("Aantal", editable=True, type=["numericColumn"])
-    gb.configure_column("RSP", editable=True, type=["numericColumn"])
-    gb.configure_selection('multiple', use_checkbox=True)
-    gb.configure_auto_height(autoHeight=True)
-    gb.configure_grid_options(onFirstDataRendered=auto_size_script)
+gb.configure_default_column(flex=1, min_width=100, editable=True)
+gb.configure_column("Offertenummer", hide=True)
+gb.configure_column("Breedte", editable=True, type=["numericColumn"])
+gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
+gb.configure_column("Aantal", editable=True, type=["numericColumn"])
+gb.configure_column("RSP", editable=True, type=["numericColumn"])
+gb.configure_selection('multiple', use_checkbox=True)
+gb.configure_auto_height(autoHeight=True)
+gb.configure_grid_options(onFirstDataRendered=auto_size_script)
     
-    grid_options = gb.build()
+grid_options = gb.build()
 
     # Toon de AG Grid met het material-thema
     edited_df_response = AgGrid(
