@@ -372,8 +372,8 @@ def generate_pdf(df):
     row['Hoogte'],
     row['Aantal'],
     row['RSP'],
-    f"{float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()):.2f}" if pd.notna(row['M2 p/s']) else None,
-    f"{float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()):.2f}" if pd.notna(row['M2 totaal']) else None,
+    f"{float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()):.2f} m2" if pd.notna(row['M2 p/s']) else None,
+    f"{float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()):.2f} m2" if pd.notna(row['M2 totaal']) else None,
     f"{round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
 ])
 
