@@ -472,7 +472,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
         theme='material',
         fit_columns_on_grid_load=True,
         enable_enterprise_modules=True,
-        update_mode='VALUE_CHANGED'
+        update_mode='MANUAL'
     )
 
     # Bewaar de wijzigingen die de gebruiker heeft aangebracht
