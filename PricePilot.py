@@ -278,8 +278,8 @@ def handle_gpt_chat():
                             height,
                             quantity,
                             f"€ {recommended_price:.2f}" if recommended_price is not None else None,
-                            f"{m2_per_piece:.2f} m²" if m2_per_piece is not None else None,
-                            f"{m2_total:.2f} m²" if m2_total is not None else None
+                            f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
+                            f"{m2_total:.2f}" if m2_total is not None else None
                         ])
                     except Exception as e:
                         st.warning(f"Er is een fout opgetreden bij het berekenen van de prijs of oppervlakte: {e}")
@@ -372,9 +372,9 @@ def generate_pdf(df):
     row['Hoogte'],
     row['Aantal'],
     row['RSP'],
-    f"{float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()):.2f} m²" if pd.notna(row['M2 p/s']) else None,
-    f"{float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()):.2f} m²" if pd.notna(row['M2 totaal']) else None,
-    f"€ {round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
+    f"{float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()):.2f}" if pd.notna(row['M2 p/s']) else None,
+    f"{float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()):.2f}" if pd.notna(row['M2 totaal']) else None,
+    f"{round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
 ])
 
 
