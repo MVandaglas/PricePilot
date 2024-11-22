@@ -480,8 +480,7 @@ gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=True, type=["numericColumn"])
 gb.configure_selection('multiple', use_checkbox=True)
-gb.configure_auto_height(autoHeight=True)
-gb.configure_grid_options(domLayout='normal')  # Dit zorgt ervoor dat scrollen mogelijk is
+gb.configure_grid_options(domLayout='normal', rowHeight=20)  # Dit zorgt ervoor dat scrollen mogelijk is
 
 grid_options = gb.build()
 
