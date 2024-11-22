@@ -324,8 +324,6 @@ def handle_gpt_chat():
             # Update de sessie state met de nieuwe gegevens
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
             st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Update de tabel na toevoegen van nieuwe data
-            
-            st.experimental_rerun()  # Hiermee vernieuw je de Streamlit app, zodat de AgGrid bijgewerkt wordt met de nieuwe data
         
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
