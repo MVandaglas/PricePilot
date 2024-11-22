@@ -277,7 +277,7 @@ def handle_gpt_chat():
                             width,
                             height,
                             quantity,
-                            f"€ {recommended_price:.2f}" if recommended_price is not None else None,
+                            f"{recommended_price:.2f}" if recommended_price is not None else None,
                             f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
                             f"{m2_total:.2f}" if m2_total is not None else None
                         ])
@@ -463,6 +463,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     gb.configure_column("RSP", editable=True, type=["numericColumn"])
     gb.configure_selection('multiple', use_checkbox=True)
     gb.configure_auto_height(autoHeight=True)
+    gb.configure_auto_width(autoWidth=True)
 
     grid_options = gb.build()
 
