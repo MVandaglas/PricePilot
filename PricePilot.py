@@ -74,6 +74,17 @@ with st.sidebar.expander("Invoeropties", expanded=False):
     st.title("PricePilot - Klantprijsassistent")
     st.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
+    # Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+    
+  if st.sidebar.button("Verstuur chat met GPT"):
+    try:
+       handle_gpt_chat()
+    except Exception as e:
+        st.sidebar.error(f"Er is een fout opgetreden: {e}")
+
+
+
     # Gebruikersinvoer
     customer_input = st.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_file = st.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
@@ -475,15 +486,6 @@ def generate_pdf(df):
     doc.build(elements)
     buffer.seek(0)
     return buffer
-
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
-    
-  if st.sidebar.button("Verstuur chat met GPT"):
-    try:
-       handle_gpt_chat()
-    except Exception as e:
-        st.sidebar.error(f"Er is een fout opgetreden: {e}")
 
 
 
