@@ -321,11 +321,6 @@ def handle_gpt_chat():
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
 
 
-
-
-
-
-
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
     matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in input_text]
