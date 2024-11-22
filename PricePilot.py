@@ -297,6 +297,14 @@ def handle_gpt_chat():
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
             st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Update de tabel na toevoegen van nieuwe data
+            
+            # Update rijnummers zodat ze correct doorlopen
+            st.session_state.offer_df.reset_index(drop=True, inplace=True)  # Reset de index voor een consistente nummering
+            if 'Rijnummer' in st.session_state.offer_df.columns:
+                st.session_state.offer_df['Rijnummer'] = range(1, len(st.session_state.offer_df) + 1)
+            else:
+                st.session_state.offer_df.insert(0, 'Rijnummer', range(1, len(st.session_state.offer_df) + 1))
+
         
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
