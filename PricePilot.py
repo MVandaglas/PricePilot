@@ -272,7 +272,7 @@ def handle_gpt_chat():
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
 
-                    # Voeg een regel toe aan de data met alleen m² en artikelnummer
+                    # Voeg een regel toe aan de data met m² en artikelnummer
                     data.append([
                         None,  # Placeholder voor Offertenummer
                         description,
@@ -323,14 +323,17 @@ def handle_gpt_chat():
 
             # Update de sessie state met de nieuwe gegevens
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
+            
+            # Update de waarden direct om de RSP en andere kolommen te berekenen
             st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Update de tabel na toevoegen van nieuwe data
-        
+
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 
