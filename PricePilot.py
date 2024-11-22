@@ -12,7 +12,6 @@ from st_aggrid import AgGrid, GridOptionsBuilder, JsCode
 import openai
 
 
-
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
@@ -144,16 +143,12 @@ def calculate_recommended_price(min_price, max_price, prijsscherpte):
 
 # Functie om m2 per stuk te berekenen
 def calculate_m2_per_piece(width, height):
-    if pd.notna(width) and pd.notna(height):
-        try:
-            width_m = int(width) / 1000
-            height_m = int(height) / 1000
-            m2 = max(width_m * height_m, 0.65)
-            return round(m2, 2)
-        except ValueError:
-            return None  # Waarden zijn ongeldig
+    if width and height:
+        width_m = int(width) / 1000
+        height_m = int(height) / 1000
+        m2 = max(width_m * height_m, 0.65)
+        return m2
     return None
-
 
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
@@ -297,6 +292,7 @@ def handle_gpt_chat():
         if data:
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
+            st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Update de tabel na toevoegen van nieuwe data
         
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
@@ -466,7 +462,6 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     gb.configure_column("Aantal", editable=True, type=["numericColumn"])
     gb.configure_column("RSP", editable=True, type=["numericColumn"])
     gb.configure_selection('multiple', use_checkbox=True)
-    gb.configure_grid_options(rowHeight=20)
 
     grid_options = gb.build()
 
@@ -561,4 +556,3 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.dataframe(st.session_state.loaded_offer_df[required_columns])
     else:
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
-
