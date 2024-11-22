@@ -462,7 +462,7 @@ function(params) {
     
     
     # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
-    gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
+gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
     gb.configure_default_column(flex=1, min_width=100, editable=True)
     gb.configure_column("Offertenummer", hide=True)
     gb.configure_column("Breedte", editable=True, type=["numericColumn"])
