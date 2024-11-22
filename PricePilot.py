@@ -471,7 +471,7 @@ function(params) {
     gb.configure_column("RSP", editable=True, type=["numericColumn"])
     gb.configure_selection('multiple', use_checkbox=True)
     gb.configure_auto_height(autoHeight=True)
-    gb.configure_grid_options(onFirstDataRendered=auto_size_script)
+gb.configure_grid_options(onFirstDataRendered=auto_size_script)
     
     grid_options = gb.build()
 
