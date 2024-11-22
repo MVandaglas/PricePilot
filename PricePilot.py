@@ -253,7 +253,10 @@ def handle_gpt_chat():
 
                 description, min_price, max_price = find_article_details(article_number)
                 if description:
-                    # Voeg een regel toe aan de data met alleen m² en artikelnummer
+                    # Bereken de aanbevolen prijs (RSP)
+                    recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+
+                    # Voeg een regel toe aan de data met m², artikelnummer en RSP
                     data.append([
                         None,  # Placeholder voor Offertenummer
                         description,
@@ -261,7 +264,7 @@ def handle_gpt_chat():
                         None,  # Breedte blijft leeg
                         None,  # Hoogte blijft leeg
                         None,  # Aantal blijft leeg
-                        None,  # RSP blijft leeg
+                        f"{recommended_price:.2f}" if recommended_price is not None else 0,  # RSP gevuld
                         None,  # M2 p/s blijft leeg
                         f"{m2_total:.2f}"  # M2 totaal
                     ])
@@ -287,7 +290,7 @@ def handle_gpt_chat():
                             width,
                             height,
                             quantity,
-                            f"{recommended_price:.2f}" if recommended_price is not None else None,
+                            f"{recommended_price:.2f}" if recommended_price is not None else 0,
                             f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
                             f"{m2_total:.2f}" if m2_total is not None else None
                         ])
