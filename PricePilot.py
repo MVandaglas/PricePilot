@@ -463,8 +463,7 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
     gb.configure_column("RSP", editable=True, type=["numericColumn"])
     gb.configure_selection('multiple', use_checkbox=True)
     gb.configure_auto_height(autoHeight=True)
-    gb.configure_auto_width(autoWidth=True)
-
+    
     grid_options = gb.build()
 
     # Toon de AG Grid met het material-thema
