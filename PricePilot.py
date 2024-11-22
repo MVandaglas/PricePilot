@@ -272,7 +272,7 @@ def handle_gpt_chat():
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
 
-                    # Voeg een regel toe aan de data met m², artikelnummer en RSP
+                    # Voeg een regel toe aan de data met alleen m² en artikelnummer
                     data.append([
                         None,  # Placeholder voor Offertenummer
                         description,
@@ -319,6 +319,22 @@ def handle_gpt_chat():
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
             st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Update de tabel na toevoegen van nieuwe data
+
+            # AgGrid bijwerken
+            gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
+            gb.configure_default_column(flex=1, min_width=100, editable=True)
+            gb.configure_selection('multiple', use_checkbox=True)
+            gb.configure_grid_options(domLayout='normal')
+            grid_options = gb.build()
+
+            # Toon de AgGrid met bijgewerkte gegevens
+            AgGrid(
+                st.session_state.offer_df,
+                gridOptions=grid_options,
+                fit_columns_on_grid_load=True,
+                enable_enterprise_modules=True,
+                theme='material'
+            )
         
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
