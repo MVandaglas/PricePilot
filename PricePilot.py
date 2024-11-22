@@ -53,14 +53,17 @@ selected_tab = st.radio(
     horizontal=True,
 )
 
-st.sidebar.title("PricePilot - Offerte app")
+# Sidebar configureren met uitklapbare sectie
+with st.sidebar.expander("Invoeropties", expanded=False):
+    st.title("PricePilot - Klantprijsassistent")
+    st.write("Dit is een tool voor het genereren van klant specifieke prijzen op basis van ingevoerde gegevens.")
 
-# Gebruikersinvoer
-customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-customer_file = st.sidebar.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
-customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-st.session_state.customer_number = str(customer_number) if customer_number else ''
-offer_amount = st.sidebar.number_input("Offertebedrag in euro", min_value=0, step=1000)
+    # Gebruikersinvoer
+    customer_input = st.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
+    customer_file = st.file_uploader("Of upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
+    customer_number = st.text_input("Klantnummer (6 karakters)", max_chars=6)
+    st.session_state.customer_number = str(customer_number) if customer_number else ''
+    offer_amount = st.number_input("Offertebedrag in euro", min_value=0, step=1000)
 
 if customer_number in customer_data:
     st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
