@@ -511,6 +511,7 @@ if 'Rijnummer' not in st.session_state.offer_df.columns:
     # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
+gb.configure_column("Rijnummer", editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
 gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
 gb.configure_column("Offertenummer", hide=True)
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
