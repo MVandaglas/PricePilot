@@ -554,7 +554,7 @@ if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
 
 # Verwijder geselecteerde rijen
 if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-    selected = edited_df_response['selected_rows']
+    selected = edited_df_response['selected_rows'] if edited_df_response['selected_rows'] is not None else []
     st.write("Geselecteerde rijen:", selected)
     if len(selected) > 0:
         if selected is not None and len(selected) > 0:
