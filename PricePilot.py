@@ -547,10 +547,10 @@ edited_df_response = AgGrid(
 edited_df = edited_df_response['data']
 if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
     with st.spinner('Bezig met verwerken van wijzigingen...'):
-        if not edited_df.equals(st.session_state.offer_df):
-        st.session_state.offer_df = update_offer_data(edited_df.copy())
-        st.session_state['trigger_update'] = True
-                st.session_state['trigger_update'] = True
+    if not edited_df.equals(st.session_state.offer_df):
+    st.session_state.offer_df = update_offer_data(edited_df.copy())
+    st.session_state['trigger_update'] = True
+            st.session_state['trigger_update'] = True
 
 # Verwijder geselecteerde rijen
 if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
