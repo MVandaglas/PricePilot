@@ -550,7 +550,7 @@ if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
         if not edited_df.equals(st.session_state.offer_df):
             st.session_state.offer_df = update_offer_data(edited_df.copy())
             st.session_state['trigger_update'] = True
-                st.session_state['trigger_update'] = True
+            st.session_state['trigger_update'] = True
 
 # Verwijder geselecteerde rijen
 if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
