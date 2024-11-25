@@ -192,8 +192,8 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 # Functie om geselecteerde rijen te verwijderen
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
-        selected_indices = [row['_selectedRowNodeInfo']['nodeRowIndex'] for row in selected_rows]
-        df = df.drop(df.index[selected_indices])
+        selected_indices = [row['Rijnummer'] - 1 for row in selected_rows]
+        df = df.drop(selected_indices).reset_index(drop=True)
     else:
         st.warning("Selecteer eerst rijen om te verwijderen.")
     return df
