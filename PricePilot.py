@@ -8,7 +8,7 @@ import pytesseract
 import re
 from num2words import num2words
 from datetime import datetime
-from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode
+from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
 
 
@@ -189,6 +189,15 @@ def update_rsp_for_all_rows(df, prijsscherpte):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
     return df
 
+# Functie om geselecteerde rijen te verwijderen
+def delete_selected_rows(df, selected_rows):
+    if selected_rows:
+        selected_custom_ids = [row['Rijnummer'] for row in selected_rows]
+        df = df[~df['Rijnummer'].isin(selected_custom_ids)]
+    else:
+        st.warning("Selecteer eerst rijen om te verwijderen.")
+    return df
+
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
     pattern = r'\b(1|[1-9]|[1-9][0-9]|100)\b'
@@ -350,7 +359,6 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-
 
 
 
@@ -532,6 +540,7 @@ edited_df_response = AgGrid(
     enable_enterprise_modules=True,
     update_mode='MANUAL',
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+    data_return_mode=DataReturnMode.AS_INPUT,
 )
 
 # Bewaar de wijzigingen die de gebruiker heeft aangebracht
@@ -542,7 +551,11 @@ if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
             st.session_state.offer_df = update_offer_data(edited_df.copy())
             st.experimental_rerun()
 
-
+# Verwijder geselecteerde rijen
+if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
+    selected = edited_df_response['selected_rows']
+    st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+    st.experimental_rerun()
 
 # Voeg een knop toe om de offerte als PDF te downloaden
 if st.button("Download offerte als PDF", key='download_pdf_button'):
