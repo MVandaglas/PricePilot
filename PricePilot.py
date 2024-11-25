@@ -192,8 +192,8 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 # Functie om geselecteerde rijen te verwijderen
 def delete_selected_rows(df, selected_rows):
     if selected_rows:
-        selected_custom_ids = [int(row['Rijnummer']) for row in selected_rows]
-        df = df[~df['Rijnummer'].astype(int).isin(selected_custom_ids)]
+        selected_indices = [row['_selectedRowNodeInfo']['nodeRowIndex'] for row in selected_rows]
+        df = df.drop(df.index[selected_indices])
     else:
         st.warning("Selecteer eerst rijen om te verwijderen.")
     return df
@@ -555,7 +555,8 @@ if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
 # Verwijder geselecteerde rijen
 if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
     selected = edited_df_response['selected_rows']
-    st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+    if selected:
+        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
     st.session_state['trigger_update'] = True
     st.session_state['trigger_update'] = True
 
