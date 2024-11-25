@@ -516,7 +516,7 @@ gb.configure_column("Offertenummer", hide=True)
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
-gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f0f0f0"}))
+gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f0f0f0"})
 gb.configure_selection('multiple', use_checkbox=True)
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
