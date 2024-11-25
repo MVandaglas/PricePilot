@@ -547,15 +547,17 @@ edited_df_response = AgGrid(
 edited_df = edited_df_response['data']
 if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
     with st.spinner('Bezig met verwerken van wijzigingen...'):
-        if not edited_df.equals(st.session_state.offer_df):
-            st.session_state.offer_df = update_offer_data(edited_df.copy())
-            st.experimental_rerun()
+    if not edited_df.equals(st.session_state.offer_df):
+    st.session_state.offer_df = update_offer_data(edited_df.copy())
+    st.session_state['trigger_update'] = True
+            st.session_state['trigger_update'] = True
 
 # Verwijder geselecteerde rijen
 if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
     selected = edited_df_response['selected_rows']
     st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-    st.experimental_rerun()
+    st.session_state['trigger_update'] = True
+    st.session_state['trigger_update'] = True
 
 # Voeg een knop toe om de offerte als PDF te downloaden
 if st.button("Download offerte als PDF", key='download_pdf_button'):
