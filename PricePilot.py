@@ -75,7 +75,7 @@ st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
 st.session_state.customer_number = str(customer_number) if customer_number else ''
-offer_amount = st.sidebar.number_input("Offertebedrag in euro", min_value=0, step=1000)
+offer_amount = totaal_bedrag
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
