@@ -179,6 +179,16 @@ def update_offer_data(df):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
     return df
 
+# Functie om de RSP voor alle regels te updaten
+def update_rsp_for_all_rows(df, prijsscherpte):
+    # Controleer of prijsscherpte geldig is
+    if prijsscherpte:
+        for index, row in df.iterrows():
+            min_price, max_price = row.get('Min_prijs', None), row.get('Max_prijs', None)
+            if pd.notna(min_price) and pd.notna(max_price):
+                df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
+    return df
+
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
     pattern = r'\b(1|[1-9]|[1-9][0-9]|100)\b'
@@ -328,6 +338,9 @@ def handle_gpt_chat():
             # Update de waarden direct om de RSP en andere kolommen te berekenen
             st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Update de tabel na toevoegen van nieuwe data
             
+            # Update de RSP voor alle regels op basis van de nieuwe prijsscherpte
+            st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
+
             # Trigger update via een verborgen knop of simulatie
             st.session_state["trigger_update"] = True
 
@@ -337,7 +350,6 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-
 
 
 
