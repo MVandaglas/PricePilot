@@ -555,6 +555,7 @@ if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
 # Verwijder geselecteerde rijen
 if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
     selected = edited_df_response['selected_rows']
+    st.write("Geselecteerde rijen:", selected)
     if len(selected) > 0:
         st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
     st.session_state['trigger_update'] = True
