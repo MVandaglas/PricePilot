@@ -201,12 +201,13 @@ def delete_selected_rows(selected_rows):
 # Functie om nieuwe offerte te starten
 def start_new_offer():
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
-        confirm = st.text_input("Weet je het zeker? Je verliest je huidige offerte", value="")
-        if confirm.lower() == "ja":
-            st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
-            st.success("Offerteoverzicht is succesvol leeggepoetst.")
-        else:
-            st.warning("Typ 'ja' om door te gaan met het verwijderen van de huidige offerte.")
+        if st.button("Nieuwe Offerte"):
+            confirm = st.text_input("Weet je het zeker? Je verliest je huidige offerte", value="")
+            if confirm.lower() == "ja":
+                st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+                st.success("Offerteoverzicht is succesvol leeggepoetst.")
+            else:
+                st.warning("Typ 'ja' om door te gaan met het verwijderen van de huidige offerte.")
 
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
