@@ -549,6 +549,8 @@ if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
     with st.spinner('Bezig met verwerken van wijzigingen...'):
         if not edited_df.equals(st.session_state.offer_df):
             st.session_state.offer_df = update_offer_data(edited_df.copy())
+            # RSP opnieuw updaten na het bevestigen van wijzigingen
+            st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state['trigger_update'] = True
           
 
