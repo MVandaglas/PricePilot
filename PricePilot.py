@@ -192,8 +192,8 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 # Functie om geselecteerde rijen te verwijderen
 def delete_selected_rows(df, selected_rows):
     if selected_rows:
-        selected_custom_ids = [row['Rijnummer'] for row in selected_rows]
-        df = df[~df['Rijnummer'].isin(selected_custom_ids)]
+        selected_custom_ids = [int(row['Rijnummer']) for row in selected_rows]
+        df = df[~df['Rijnummer'].astype(int).isin(selected_custom_ids)]
     else:
         st.warning("Selecteer eerst rijen om te verwijderen.")
     return df
