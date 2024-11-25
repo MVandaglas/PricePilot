@@ -198,6 +198,11 @@ def delete_selected_rows(selected_rows):
     else:
         st.warning("Geen regels geselecteerd om te verwijderen.")
 
+# Voeg een knop toe om geselecteerde regels te verwijderen
+if st.button("Verwijder Geselecteerde Regels"):
+    selected_rows = st.multiselect("Selecteer rijnummers om te verwijderen", st.session_state.offer_df.index)
+    delete_selected_rows(selected_rows)
+
 # Functie om nieuwe offerte te starten
 def start_new_offer():
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
@@ -214,6 +219,10 @@ def extract_numbers(text):
     pattern = r'\b(1|[1-9]|[1-9][0-9]|100)\b'
     matches = re.findall(pattern, text)
     return [int(match) for match in matches]
+
+# Voeg een knop toe om een nieuwe offerte te starten
+if st.button("Start Nieuwe Offerte"):
+    start_new_offer()
 
 # Functie om woorden naar getallen om te zetten
 def word_to_number(word):
@@ -390,6 +399,37 @@ def handle_text_input(input_text):
         st.sidebar.write(response_text)
     else:
         st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
+
+# AgGrid voor het weergeven van de offerte DataFrame
+gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
+gb.configure_pagination()
+gb.configure_selection('multiple', use_checkbox=True)
+gb.configure_grid_options(domLayout='normal')
+grid_options = gb.build()
+
+# Tabel voor offerte overzicht
+response = AgGrid(
+    st.session_state.offer_df,
+    gridOptions=grid_options,
+    enable_enterprise_modules=False,
+    allow_unsafe_jscode=True,
+    update_mode='value_changed',
+    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS
+)
+
+# Voeg functie toe om geselecteerde rijen te verwijderen via de AgGrid selectie
+if st.button("Verwijder geselecteerde regels"):
+    selected = response['selected_rows']
+    if selected:
+        selected_indices = [row['_selectedRowNodeInfo']['nodeRowIndex'] for row in selected]
+        delete_selected_rows(selected_indices)
+
+# Nieuwe offerte knop onder de AgGrid tabel
+if st.button("Nieuwe offerte starten"):
+    if st.confirm("Weet je het zeker? Je verliest je huidige offerte."):
+        st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+        st.success("Nieuwe offerte gestart.")
+
 
 # Functie om offerte als PDF te genereren
 def generate_pdf(df):
