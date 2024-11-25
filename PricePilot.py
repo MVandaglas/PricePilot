@@ -400,22 +400,6 @@ def handle_text_input(input_text):
     else:
         st.sidebar.warning("Geen gerelateerde artikelen gevonden. Gelieve meer details te geven.")
 
-# AgGrid voor het weergeven van de offerte DataFrame
-gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
-gb.configure_pagination()
-gb.configure_selection('multiple', use_checkbox=True)
-gb.configure_grid_options(domLayout='normal')
-grid_options = gb.build()
-
-# Tabel voor offerte overzicht
-response = AgGrid(
-    st.session_state.offer_df,
-    gridOptions=grid_options,
-    enable_enterprise_modules=False,
-    allow_unsafe_jscode=True,
-    update_mode='value_changed',
-    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS
-)
 
 # Voeg functie toe om geselecteerde rijen te verwijderen via de AgGrid selectie
 if st.button("Verwijder geselecteerde regels"):
