@@ -203,6 +203,12 @@ def delete_selected_rows(df, selected_rows):
         st.warning("Selecteer eerst rijen om te verwijderen.")
     return df
 
+# Functie om een nieuwe rij toe te voegen
+def add_new_row(df):
+    new_row = {col: '' for col in df.columns}
+    df = df.append(new_row, ignore_index=True)
+    return df
+
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
     pattern = r'\b(1|[1-9]|[1-9][0-9]|100)\b'
@@ -539,6 +545,23 @@ gb.configure_selection('multiple', use_checkbox=True)
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
 grid_options = gb.build()
+
+# Voeg knoppen voor verwijderen en toevoegen van rijen toe
+if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
+    selected = AgGrid(
+        st.session_state.offer_df,
+        gridOptions=grid_options,
+        theme='material',
+        fit_columns_on_grid_load=True,
+        enable_enterprise_modules=True,
+        update_mode='MANUAL',
+        columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+        data_return_mode=DataReturnMode.AS_INPUT,
+    )['selected_rows']
+    st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+
+if st.button("Voeg nieuwe rij toe", key='add_row_button'):
+    st.session_state.offer_df = add_new_row(st.session_state.offer_df)
 
 # Toon de AG Grid met het material-thema
 edited_df_response = AgGrid(
