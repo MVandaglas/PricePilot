@@ -10,6 +10,7 @@ from num2words import num2words
 from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
+import dash_bootstrap_components as dbc
 
 
 # OpenAI API-sleutel instellen
@@ -197,11 +198,28 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 # Functie om geselecteerde rijen te verwijderen
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
-        selected_indices = [row['_selectedRowNodeInfo']['nodeRowIndex'] for row in selected_rows if '_selectedRowNodeInfo' in row]
-        df = df.drop(df.index[selected_indices]).reset_index(drop=True)
+        df = df.drop(df.index[selected_rows]).reset_index(drop=True)
     else:
         st.warning("Selecteer eerst rijen om te verwijderen.")
     return df
+
+# Knoppen toevoegen aan de GUI
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("Voeg een rij toe"):
+        # Voeg een lege rij toe aan het DataFrame
+        new_row = pd.DataFrame({
+            "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Breedte": [0], "Hoogte": [0],
+            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0]
+        })
+        st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
+
+with col2:
+    if st.button("Verwijder geselecteerde rij(en)"):
+        # Verwijder de geselecteerde rijen uit het DataFrame
+        selected_rows = edited_df_response['selected_rows'] if edited_df_response['selected_rows'] is not None else []
+        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
+
 
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
