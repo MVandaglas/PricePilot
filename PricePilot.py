@@ -37,6 +37,8 @@ if "loaded_offer_df" not in st.session_state:
     st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
 if "saved_offers" not in st.session_state:
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
+if "selected_rows" not in st.session_state:
+    st.session_state.selected_rows = []
 
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
@@ -198,7 +200,7 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 # Functie om geselecteerde rijen te verwijderen
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
-        df = df.drop(df.index[selected_rows]).reset_index(drop=True)
+        df = df.drop(selected_rows).reset_index(drop=True)
     else:
         st.warning("Selecteer eerst rijen om te verwijderen.")
     return df
@@ -268,6 +270,7 @@ def word_to_number(word):
         "negenennegentig": 99, "honderd": 100
     }
     return mapping.get(word, None)
+
   
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
