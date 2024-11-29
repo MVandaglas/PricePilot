@@ -224,14 +224,12 @@ response = AgGrid(
 )
 
 # Sla de geselecteerde rijen op in sessie status
-
-
 if 'selected_rows' in response and response['selected_rows'] is not None:
     selected_rows = response.get('selected_rows', [])
-if selected_rows:
-    st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
-else:
-    st.session_state.selected_rows = []
+    if selected_rows:
+        st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
+    else:
+        st.session_state.selected_rows = []
 
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
@@ -251,8 +249,8 @@ with col2:
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, st.session_state.selected_rows)
             # Reset geselecteerde rijen na verwijdering
             st.session_state.selected_rows = []
-    else:
-        st.warning("Selecteer eerst rijen om te verwijderen.")
+        else:
+            st.warning("Selecteer eerst rijen om te verwijderen.")
 
 
 # Functie om getallen van 1 tot 100 te herkennen
@@ -302,6 +300,7 @@ def update_dash_table(n_dlt, n_add, data):
 
 
 # Rest van de bestaande code blijft intact...
+
 
 
   
