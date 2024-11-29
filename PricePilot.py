@@ -203,9 +203,16 @@ def delete_selected_rows(df, selected_rows):
         st.warning("Selecteer eerst rijen om te verwijderen.")
     return df
 
+# Configuratie voor AgGrid
+gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
+gb.configure_selection(selection_mode="multiple", use_checkbox=True)
+gb.configure_default_column(editable=True, resizable=True)
+grid_options = gb.build()
+
 # Toon de AG Grid met het material-thema
 edited_df_response = AgGrid(
     st.session_state.offer_df,
+    gridOptions=grid_options,
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
@@ -228,7 +235,7 @@ with col1:
 with col2:
     if st.button("Verwijder geselecteerde rij(en)"):
         # Verwijder de geselecteerde rijen uit het DataFrame
-        selected_rows = edited_df_response['selected_rows'] if 'selected_rows' in edited_df_response else []
+        selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in edited_df_response['selected_rows']] if 'selected_rows' in edited_df_response else []
         st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
 
 
@@ -253,7 +260,6 @@ def word_to_number(word):
         "negenennegentig": 99, "honderd": 100
     }
     return mapping.get(word, None)
-
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
     # Zoek naar een getal of woord dat voor 'stuks', 'aantal', 'ruiten', 'st', 'keer', of 'x' staat
