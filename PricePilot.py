@@ -235,6 +235,23 @@ if 'selected_rows' in response and response['selected_rows'] is not None:
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
 with col1:
+    dbc.Button(
+        id="add-row-btn",
+        children="Add row",
+        color="primary",
+        size="md",
+        className='mt-3'
+    )
+with col2:
+    dbc.Button(
+        id="delete-row-btn",
+        children="Delete row",
+        color="secondary",
+        size="md",
+        className='mt-3 me-1'
+    )
+
+with col1:
     if st.button("Voeg een rij toe"):
         # Voeg een lege rij toe aan het DataFrame
         new_row = pd.DataFrame({
@@ -252,7 +269,6 @@ with col2:
             st.session_state.selected_rows = []
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
-
 
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
