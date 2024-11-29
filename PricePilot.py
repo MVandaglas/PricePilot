@@ -11,6 +11,7 @@ from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
 import dash_bootstrap_components as dbc
+from dash import ctx
 
 
 # OpenAI API-sleutel instellen
@@ -282,14 +283,14 @@ def update_dash_table(n_dlt, n_add, data):
         new_row = {
             "Artikelnaam": [""],
             "Artikelnummer": [""],
-            "Breedte": [0],
-            "Hoogte": [0],
-            "Aantal": [0],
-            "RSP": [0],
-            "M2 p/s": [0],
-            "M2 totaal": [0],
-            "Min_prijs": [0],
-            "Max_prijs": [0]
+            "Breedte": [""],
+            "Hoogte": [""],
+            "Aantal": [""],
+            "RSP": [""],
+            "M2 p/s": [""],
+            "M2 totaal": [""],
+            "Min_prijs": [""],
+            "Max_prijs": [""]
         }
         df_new_row = pd.DataFrame(new_row)
         updated_table = pd.concat([pd.DataFrame(data), df_new_row])
