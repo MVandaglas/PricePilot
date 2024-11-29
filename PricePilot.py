@@ -207,7 +207,7 @@ def delete_selected_rows(df, selected_rows):
 
 # Configuratie voor AgGrid
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
-gb.configure_selection(selection_mode="multiple", use_checkbox=True)
+gb.configure_selection(selection_mode="multiple", use_checkbox=True, pre_selected_rows=[])
 gb.configure_default_column(editable=True, resizable=True)
 grid_options = gb.build()
 
@@ -226,7 +226,8 @@ response = AgGrid(
 # Sla de geselecteerde rijen op in sessie status
 # Debugging: print de response van de AgGrid
 st.write("Debug - Type AgGrid response:", type(response))
-if 'selected_rows' in response:
+st.write("Debug - Full AgGrid response:", response)
+if 'selected_rows' in response and response['selected_rows'] is not None:
     st.write("Debug - Type selected_rows:", type(response['selected_rows']))
     st.write("Debug - Length of selected_rows:", len(response['selected_rows']))
     st.write("Debug - Content of selected_rows:", response['selected_rows'])
@@ -308,6 +309,7 @@ def update_dash_table(n_dlt, n_add, data):
 
 
 # Rest van de bestaande code blijft intact...
+
 
   
 # Functie om het aantal uit tekst te extraheren
