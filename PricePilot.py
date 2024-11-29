@@ -252,7 +252,7 @@ def word_to_number(word):
         "negenentachtig": 89, "negentig": 90, "eenennegentig": 91, "tweeënnegentig": 92, "drieënnegentig": 93, "vierennegentig": 94, "vijfennegentig": 95, "zesennegentig": 96, "zevenennegentig": 97, "achtennegentig": 98, 
         "negenennegentig": 99, "honderd": 100
     }
-    return mapping.get(word, None
+    return mapping.get(word, None)
 
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
