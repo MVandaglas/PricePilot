@@ -17,7 +17,7 @@ import dash_bootstrap_components as dbc
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
-else:
+    else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
@@ -225,6 +225,11 @@ response = AgGrid(
 
 # Sla de geselecteerde rijen op in sessie status
 # Debugging: print de response van de AgGrid
+st.write("Debug - Type AgGrid response:", type(response))
+if 'selected_rows' in response:
+    st.write("Debug - Type selected_rows:", type(response['selected_rows']))
+    st.write("Debug - Length of selected_rows:", len(response['selected_rows']))
+    st.write("Debug - Content of selected_rows:", response['selected_rows'])
 st.write("Debug - AgGrid response:", response)
 selected_rows = response.get('selected_rows', [])
 st.write("Debug - Geselecteerde rijen:", selected_rows)
@@ -252,8 +257,8 @@ with col2:
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, st.session_state.selected_rows)
             # Reset geselecteerde rijen na verwijdering
             st.session_state.selected_rows = []
-    else:
-        st.warning("Selecteer eerst rijen om te verwijderen.")
+        else:
+            st.warning("Selecteer eerst rijen om te verwijderen.")
 
 
 # Functie om getallen van 1 tot 100 te herkennen
