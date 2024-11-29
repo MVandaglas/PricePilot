@@ -294,6 +294,17 @@ def word_to_number(word):
 
 # Callback functie voor het verwijderen van geselecteerde rijen
 @st.cache_data
+
+# add or delete rows of table
+@app.callback(
+    Output("portfolio-table", "deleteSelectedRows"),
+    Output("portfolio-table", "rowData"),
+    Input("delete-row-btn", "n_clicks"),
+    Input("add-row-btn", "n_clicks"),
+    State("portfolio-table", "rowData"),
+    prevent_initial_call=True,
+)
+
 def update_dash_table(n_dlt, n_add, data):
     if ctx.triggered_id == "add-row-btn":
         new_row = {
