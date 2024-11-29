@@ -10,3 +10,8 @@ streamlit-option-menu
 streamlit-aggrid
 word2number
 num2words
+dash
+dash-ag-grid
+dash-bootstrap-components
+pandas
+plotly
