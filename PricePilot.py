@@ -224,7 +224,10 @@ response = AgGrid(
 )
 
 # Sla de geselecteerde rijen op in sessie status
-st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in response['selected_rows'] if '_selectedRowNodeInfo' in r]
+if response['selected_rows'] is not None:
+    st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in response['selected_rows'] if '_selectedRowNodeInfo' in r]
+else:
+    st.session_state.selected_rows = []
 
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
