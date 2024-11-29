@@ -224,7 +224,7 @@ response = AgGrid(
 )
 
 # Sla de geselecteerde rijen op in sessie status
-if response['selected_rows'] is not None:
+if response['selected_rows']:
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in response['selected_rows'] if '_selectedRowNodeInfo' in r]
 else:
     st.session_state.selected_rows = []
@@ -245,6 +245,8 @@ with col2:
         # Controleer of er geselecteerde rijen zijn voordat je de verwijderactie uitvoert
         if st.session_state.selected_rows:
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, st.session_state.selected_rows)
+            # Reset geselecteerde rijen na verwijdering
+            st.session_state.selected_rows = []
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
@@ -293,6 +295,9 @@ def update_dash_table(n_dlt, n_add, data):
 
     elif ctx.triggered_id == "delete-row-btn":
         return True, no_update
+
+
+# Rest van de bestaande code blijft intact...
 
   
 # Functie om het aantal uit tekst te extraheren
