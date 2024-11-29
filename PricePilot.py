@@ -271,6 +271,29 @@ def word_to_number(word):
     }
     return mapping.get(word, None)
 
+# Callback functie voor het verwijderen van geselecteerde rijen
+@st.cache_data
+def update_dash_table(n_dlt, n_add, data):
+    if ctx.triggered_id == "add-row-btn":
+        new_row = {
+            "Artikelnaam": [""],
+            "Artikelnummer": [""],
+            "Breedte": [0],
+            "Hoogte": [0],
+            "Aantal": [0],
+            "RSP": [0],
+            "M2 p/s": [0],
+            "M2 totaal": [0],
+            "Min_prijs": [0],
+            "Max_prijs": [0]
+        }
+        df_new_row = pd.DataFrame(new_row)
+        updated_table = pd.concat([pd.DataFrame(data), df_new_row])
+        return False, updated_table.to_dict("records")
+
+    elif ctx.triggered_id == "delete-row-btn":
+        return True, no_update
+
   
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
