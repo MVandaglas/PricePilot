@@ -258,6 +258,8 @@ def word_to_number(word):
     }
     return mapping.get(word, None)
 
+
+
     
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
