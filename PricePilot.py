@@ -224,8 +224,9 @@ response = AgGrid(
 )
 
 # Sla de geselecteerde rijen op in sessie status
-if response['selected_rows'] is not None and len(response['selected_rows']) > 0:
-    st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in response['selected_rows'] if '_selectedRowNodeInfo' in r]
+selected_rows = response.get('selected_rows', [])
+if selected_rows:
+    st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
 else:
     st.session_state.selected_rows = []
 
@@ -298,6 +299,7 @@ def update_dash_table(n_dlt, n_add, data):
 
 
 # Rest van de bestaande code blijft intact...
+
 
   
 # Functie om het aantal uit tekst te extraheren
