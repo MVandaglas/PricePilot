@@ -248,7 +248,7 @@ with col2:
     if st.button("Verwijder geselecteerde rij(en)"):
         # Controleer of er geselecteerde rijen zijn voordat je de verwijderactie uitvoert
         st.write("Debug - Geselecteerde rijen in sessiestatus:", st.session_state.selected_rows)
-if st.session_state.selected_rows:
+    if st.session_state.selected_rows:
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, st.session_state.selected_rows)
             # Reset geselecteerde rijen na verwijdering
             st.session_state.selected_rows = []
