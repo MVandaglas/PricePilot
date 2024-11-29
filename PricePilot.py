@@ -210,6 +210,7 @@ gb.configure_default_column(editable=True, resizable=True)
 grid_options = gb.build()
 
 
+
 # Sla de geselecteerde rijen op in sessie status
 if response['selected_rows']:
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in response['selected_rows'] if '_selectedRowNodeInfo' in r]
@@ -257,8 +258,6 @@ def word_to_number(word):
         "negenennegentig": 99, "honderd": 100
     }
     return mapping.get(word, None)
-
-
 
     
 # Functie om het aantal uit tekst te extraheren
