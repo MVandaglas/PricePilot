@@ -209,18 +209,6 @@ gb.configure_selection(selection_mode="multiple", use_checkbox=True)
 gb.configure_default_column(editable=True, resizable=True)
 grid_options = gb.build()
 
-# Toon de AG Grid met het material-thema
-edited_df_response = AgGrid(
-    st.session_state.offer_df,
-    gridOptions=grid_options,
-    theme='material',
-    fit_columns_on_grid_load=True,
-    enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.MANUAL,
-    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.AS_INPUT,
-)
-
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
 with col1:
@@ -235,8 +223,8 @@ with col1:
 with col2:
     if st.button("Verwijder geselecteerde rij(en)"):
         # Controleer of er geselecteerde rijen zijn voordat je de verwijderactie uitvoert
-        if edited_df_response and 'selected_rows' in edited_df_response and edited_df_response['selected_rows']:
-            selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in edited_df_response['selected_rows'] if '_selectedRowNodeInfo' in r]
+        if 'selected_rows' in st.session_state and st.session_state.selected_rows:
+            selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in st.session_state.selected_rows if '_selectedRowNodeInfo' in r]
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
