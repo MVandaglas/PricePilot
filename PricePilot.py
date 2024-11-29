@@ -209,17 +209,6 @@ gb.configure_selection(selection_mode="multiple", use_checkbox=True)
 gb.configure_default_column(editable=True, resizable=True)
 grid_options = gb.build()
 
-# Toon de AG Grid met het material-thema
-response = AgGrid(
-    st.session_state.offer_df,
-    gridOptions=grid_options,
-    theme='material',
-    fit_columns_on_grid_load=True,
-    enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.MANUAL,
-    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.AS_INPUT,
-)
 
 # Sla de geselecteerde rijen op in sessie status
 if response['selected_rows']:
