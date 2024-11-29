@@ -252,8 +252,8 @@ with col2:
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, st.session_state.selected_rows)
             # Reset geselecteerde rijen na verwijdering
             st.session_state.selected_rows = []
-        else:
-            st.warning("Selecteer eerst rijen om te verwijderen.")
+    else:
+        st.warning("Selecteer eerst rijen om te verwijderen.")
 
 
 # Functie om getallen van 1 tot 100 te herkennen
