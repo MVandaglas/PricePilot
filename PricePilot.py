@@ -234,9 +234,12 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rij(en)"):
-        # Verwijder de geselecteerde rijen uit het DataFrame
-        selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in edited_df_response['selected_rows']] if 'selected_rows' in edited_df_response else []
-        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
+        # Controleer of er geselecteerde rijen zijn voordat je de verwijderactie uitvoert
+        if edited_df_response and 'selected_rows' in edited_df_response and edited_df_response['selected_rows']:
+            selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in edited_df_response['selected_rows'] if '_selectedRowNodeInfo' in r]
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
+        else:
+            st.warning("Selecteer eerst rijen om te verwijderen.")
 
 
 # Functie om getallen van 1 tot 100 te herkennen
@@ -260,6 +263,8 @@ def word_to_number(word):
         "negenennegentig": 99, "honderd": 100
     }
     return mapping.get(word, None)
+
+    
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
     # Zoek naar een getal of woord dat voor 'stuks', 'aantal', 'ruiten', 'st', 'keer', of 'x' staat
