@@ -224,7 +224,7 @@ response = AgGrid(
 )
 
 # Sla de geselecteerde rijen op in sessie status
-if response['selected_rows']:
+if not response['selected_rows'].empty:
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in response['selected_rows'] if '_selectedRowNodeInfo' in r]
 else:
     st.session_state.selected_rows = []
