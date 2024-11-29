@@ -11,7 +11,6 @@ from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
 import dash_bootstrap_components as dbc
-from dash import ctx
 
 
 # OpenAI API-sleutel instellen
@@ -202,8 +201,6 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
         df = df.drop(selected_rows).reset_index(drop=True)
-    else:
-        st.warning("Selecteer eerst rijen om te verwijderen.")
     return df
 
 # Configuratie voor AgGrid
@@ -225,32 +222,23 @@ response = AgGrid(
 )
 
 # Sla de geselecteerde rijen op in sessie status
+# Debugging: print de response van de AgGrid
+st.write("Debug - Type AgGrid response:", type(response))
+st.write("Debug - Full AgGrid response:", response)
 if 'selected_rows' in response and response['selected_rows'] is not None:
-    selected_rows = response.get('selected_rows', [])
-    if selected_rows:
-        st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
-    else:
-        st.session_state.selected_rows = []
+    st.write("Debug - Type selected_rows:", type(response['selected_rows']))
+    st.write("Debug - Length of selected_rows:", len(response['selected_rows']))
+    st.write("Debug - Content of selected_rows:", response['selected_rows'])
+st.write("Debug - AgGrid response:", response)
+selected_rows = response.get('selected_rows', [])
+st.write("Debug - Geselecteerde rijen:", selected_rows)
+if selected_rows:
+    st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
+else:
+    st.session_state.selected_rows = []
 
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
-with col1:
-    dbc.Button(
-        id="add-row-btn",
-        children="Add row",
-        color="primary",
-        size="md",
-        className='mt-3'
-    )
-with col2:
-    dbc.Button(
-        id="delete-row-btn",
-        children="Delete row",
-        color="secondary",
-        size="md",
-        className='mt-3 me-1'
-    )
-
 with col1:
     if st.button("Voeg een rij toe"):
         # Voeg een lege rij toe aan het DataFrame
@@ -269,6 +257,7 @@ with col2:
             st.session_state.selected_rows = []
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
+
 
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
@@ -294,21 +283,19 @@ def word_to_number(word):
 
 # Callback functie voor het verwijderen van geselecteerde rijen
 @st.cache_data
-
-# add or delete rows of table
 def update_dash_table(n_dlt, n_add, data):
     if ctx.triggered_id == "add-row-btn":
         new_row = {
             "Artikelnaam": [""],
             "Artikelnummer": [""],
-            "Breedte": [""],
-            "Hoogte": [""],
-            "Aantal": [""],
-            "RSP": [""],
-            "M2 p/s": [""],
-            "M2 totaal": [""],
-            "Min_prijs": [""],
-            "Max_prijs": [""]
+            "Breedte": [0],
+            "Hoogte": [0],
+            "Aantal": [0],
+            "RSP": [0],
+            "M2 p/s": [0],
+            "M2 totaal": [0],
+            "Min_prijs": [0],
+            "Max_prijs": [0]
         }
         df_new_row = pd.DataFrame(new_row)
         updated_table = pd.concat([pd.DataFrame(data), df_new_row])
