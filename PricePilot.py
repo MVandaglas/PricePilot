@@ -203,16 +203,6 @@ def delete_selected_rows(df, selected_rows):
         st.warning("Selecteer eerst rijen om te verwijderen.")
     return df
 
-# Toon de AG Grid met het material-thema
-edited_df_response = AgGrid(
-    st.session_state.offer_df,
-    theme='material',
-    fit_columns_on_grid_load=True,
-    enable_enterprise_modules=True,
-    update_mode='MANUAL',
-    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.AS_INPUT,
-)
 
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
