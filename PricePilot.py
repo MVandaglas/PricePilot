@@ -217,9 +217,9 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        # Controleer of de geselecteerde rijen aanwezig zijn in de AgGrid response
-        if 'selected_rows' in response and response['selected_rows'] is not None:
-            selected_rows = response['selected_rows']
+        # Controleer of de geselecteerde rijen aanwezig zijn in de AgGrid edited_df_response
+        if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None:
+            selected_rows = edited_df_response['selected_rows']
         else:
             selected_rows = []
         
