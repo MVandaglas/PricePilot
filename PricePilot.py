@@ -238,6 +238,12 @@ edited_df_response = AgGrid(
 # Voeg extra debug logging toe
 st.write("Volledige AgGrid response (debug informatie):", edited_df_response)
 
+# Extra debug-informatie om te kijken naar event_data
+if hasattr(edited_df_response, 'event_data'):
+    st.write("Event data (debug informatie):", edited_df_response.event_data)
+else:
+    st.write("Geen event_data gevonden in AgGrid response.")
+
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
 with col1:
@@ -254,6 +260,8 @@ with col2:
         # Controleer of de geselecteerde rijen aanwezig zijn in de AgGrid edited_df_response
         if 'selected_rows' in edited_df_response and isinstance(edited_df_response['selected_rows'], list):
             selected_rows = edited_df_response['selected_rows']
+        elif hasattr(edited_df_response, 'event_data') and 'selected' in edited_df_response.event_data:
+            selected_rows = edited_df_response.event_data['selected']
         else:
             selected_rows = []
         
@@ -270,6 +278,7 @@ with col2:
                 st.error(f"Een fout is opgetreden bij het verwerken van de geselecteerde rijen: {e}")
         else:
             st.warning("Er zijn geen rijen geselecteerd.")
+
 
 
 # Functie om getallen van 1 tot 100 te herkennen
