@@ -226,12 +226,10 @@ edited_df_response = AgGrid(
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
 
-
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
 
 # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
-# Verwijder oude typecontroles, deze zijn niet langer nodig
 if selected_rows is None or not isinstance(selected_rows, list):
     selected_rows = []
 
@@ -248,17 +246,13 @@ if isinstance(selected_rows, list) and len(selected_rows) > 0:
 else:
     st.session_state.selected_rows = []
 
-
-def delete_selected_rows(edited_df_response, selected):
+def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
-        # Zorg dat de geselecteerde rijen als integers worden doorgegeven
-        selected = [int(idx) for idx in selected]
         # Verwijder de geselecteerde rijen en reset de index
-        new_df = edited_df_response.drop(index=selected, errors='ignore').reset_index(drop=True)
+        new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
         return new_df
     else:
-        return edited_df_response
-
+        return df
 
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
@@ -274,30 +268,16 @@ with col1:
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
-        selected = edited_df_response.get('selected_rows', [])
+        selected = st.session_state.selected_rows
         
         # Debugging: Controleer de inhoud van 'selected'
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
         st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
 
-        # Verwijder rijen op basis van Rijnummer
-        selected_rijnummers = []
-        if isinstance(selected, list) and len(selected) > 0:
-            for r in selected:
-                if isinstance(r, dict) and 'Rijnummer' in r:
-                    try:
-                        # Haal Rijnummer op en voeg deze toe aan de lijst
-                        rijnummer = int(r['Rijnummer'])
-                        selected_rijnummers.append(rijnummer)
-                    except ValueError as e:
-                        st.write(f"Waarschuwing: Fout bij het converteren van 'Rijnummer' naar integer: {e}")
-        
-        st.write("Geselecteerde rijnummers voor verwijdering (debug informatie):", selected_rijnummers)
-
-        # Controleer of 'selected_rijnummers' een geldige lijst is en voer verwijderactie uit
-        if len(selected_rijnummers) > 0:
-            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde rijnummers
-            st.session_state.offer_df = st.session_state.offer_df[~st.session_state.offer_df['Rijnummer'].isin(selected_rijnummers)].reset_index(drop=True)
+        # Verwijder rijen op basis van index
+        if len(selected) > 0:
+            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
