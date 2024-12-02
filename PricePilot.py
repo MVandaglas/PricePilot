@@ -255,11 +255,12 @@ else:
 
 
 
-def delete_selected_rows(offer_df, selected_rows):
+def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
-        # Controleer of de geselecteerde indices bestaan
-        offer.df = offer.df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
+        # Verwijder de geselecteerde rijen en reset de index
+        df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
     return df
+
 
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
@@ -273,14 +274,23 @@ with col1:
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
 
 with col2:
-    if st.button("Verwijder geselecteerde rij(en)"):
-        # Controleer of er geselecteerde rijen zijn voordat je de verwijderactie uitvoert
-        if st.session_state.selected_rows:
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, st.session_state.selected_rows)
-            # Reset geselecteerde rijen na verwijdering
-            st.session_state.selected_rows = []
-        else:
-            st.warning("Selecteer eerst rijen om te verwijderen.")
+    if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
+    selected = edited_df_response['selected_rows'] if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None else []
+    st.write("Geselecteerde rijen (debug informatie):", selected)
+
+    # Converteer geselecteerde rijen naar integer indexen, indien nodig
+    if isinstance(selected, list):
+        selected = [int(r) for r in selected if str(r).isdigit()]
+
+    if selected and len(selected) > 0:
+        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+        # Reset de sessie status
+        st.session_state.selected_rows = []
+    else:
+        st.warning("Selecteer eerst rijen om te verwijderen.")
+
+    st.session_state['trigger_update'] = True
+
 
 
 # Functie om getallen van 1 tot 100 te herkennen
