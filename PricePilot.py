@@ -294,8 +294,8 @@ with col2:
                     # Voeg een debug statement toe om te kijken welke sleutels beschikbaar zijn
                     st.write("Beschikbare sleutels in geselecteerde rij:", r.keys())
 
-# Converteer de geselecteerde indices naar integers als ze strings zijn
-selected_indices = [int(idx) for idx in selected_indices]
+        # Converteer de geselecteerde indices naar integers als ze strings zijn
+        selected_indices = [int(idx) for idx in selected_indices]
 
         st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
