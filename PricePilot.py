@@ -258,14 +258,19 @@ def delete_selected_rows(df, selected):
 col1, col2 = st.columns(2)
 with col1:
     if st.button("Voeg een rij toe"):
-        # Voeg een lege rij toe aan het DataFrame
+         # Voeg een lege rij toe aan het DataFrame
         new_row = pd.DataFrame({
             "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Breedte": [0], "Hoogte": [0],
             "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0]
         })
-        new_row.insert(0, 'Rijnummer', new_row.index + 1)  # Voeg regelnummers toe als indices +1
-        st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
 
+        # Voeg de nieuwe rij toe aan het bestaande DataFrame
+        st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
+    
+        # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
+        st.session_state.offer_df['Rijnummer'] = st.session_state.offer_df.index + 1
+
+       
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
