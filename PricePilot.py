@@ -275,20 +275,18 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        selected = edited_df_response['selected_rows'] if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None else []
+        selected = edited_df_response.get('selected_rows', [])  # Zorg dat 'selected' goed wordt geïnitialiseerd
         st.write("Geselecteerde rijen (debug informatie):", selected)
-
-    # Converteer geselecteerde rijen naar integer indexen, indien nodig
-    if isinstance(selected, list):
-        selected = [int(r) for r in selected if str(r).isdigit()]
-
-    if selected and len(selected) > 0:
+    
+    # Controleer of 'selected' een geldige lijst is en converteer naar integers indien nodig
+    if isinstance(selected, list) and len(selected) > 0:
+        selected = [int(r['_selectedRowNodeInfo']['nodeRowIndex']) for r in selected if '_selectedRowNodeInfo' in r]
         st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-        # Reset de sessie status
-        st.session_state.selected_rows = []
+        st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
     else:
         st.warning("Selecteer eerst rijen om te verwijderen.")
 
+    # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
 
 
