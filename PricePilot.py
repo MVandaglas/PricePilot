@@ -227,10 +227,11 @@ edited_df_response = AgGrid(
 
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows', [])
-if selected_rows:
+if len(selected_rows) > 0:
     st.session_state.selected_rows = [r for r in selected_rows]
 else:
     st.session_state.selected_rows = []
+
 
 
 # Knoppen toevoegen aan de GUI
