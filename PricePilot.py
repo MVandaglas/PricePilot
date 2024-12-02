@@ -282,7 +282,7 @@ with col1:
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op uit de sessie
-        selected = st.session_state.get('selected_rows', [])
+        selected = edited_df_response.get('selected_rows', [])
         
         st.write("Geselecteerde rijen (debug informatie):", selected)
 
