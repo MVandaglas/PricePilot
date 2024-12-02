@@ -207,7 +207,7 @@ gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
-gb.configure_selection('multiple', use_checkbox=True, pre_selected_rows=[])
+gb.configure_selection('multiple', use_checkbox=True, pre_selected_rows=[], selection_mode='multiple')
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
 grid_options = gb.build()
@@ -219,7 +219,7 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode='MODEL_CHANGED',
+    update_mode=GridUpdateMode.SELECTION_CHANGED | GridUpdateMode.VALUE_CHANGED,
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
     data_return_mode=DataReturnMode.FILTERED,
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
@@ -228,7 +228,7 @@ edited_df_response = AgGrid(
 
 
 # Sla de geselecteerde rijen op in sessie status
-selected_rows = edited_df_response['selected_rows'] if 'selected_rows' in edited_df_response else []  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
+selected_rows = edited_df_response.selected_rows if hasattr(edited_df_response, 'selected_rows') else []  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
 
 # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
 # Verwijder oude typecontroles, deze zijn niet langer nodig
@@ -293,6 +293,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
