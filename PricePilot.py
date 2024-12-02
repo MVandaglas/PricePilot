@@ -283,22 +283,24 @@ with col2:
         
         # Debugging: Controleer de inhoud van 'selected'
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
+        st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
 
-        # Gebruik 'Rijnummer' om de index te bepalen van de te verwijderen rijen
         selected_indices = []
         for r in selected:
-            if isinstance(r, dict) and 'Rijnummer' in r:
-                try:
-                    # Zoek naar de index van de rij in het DataFrame op basis van 'Rijnummer'
-                    index_to_remove = st.session_state.offer_df.index[st.session_state.offer_df['Rijnummer'] == r['Rijnummer']].tolist()
-                    if index_to_remove:
-                        selected_indices.extend(index_to_remove)
-                except Exception as e:
-                    st.write(f"Fout bij het vinden van de index voor Rijnummer {r['Rijnummer']}: {e}")
+            if isinstance(r, dict):
+                if 'Rijnummer' in r:  # Controleer op een bestaande, unieke kolom zoals Rijnummer
+                    try:
+                        # Converteer naar integer en voeg toe aan lijst met te verwijderen indices
+                        selected_indices.append(int(r['Rijnummer']) - 1)  # Houd rekening met het feit dat indexen vaak bij 0 beginnen
+                    except ValueError:
+                        st.write(f"Waarschuwing: Kan 'Rijnummer' niet converteren naar integer: {r['Rijnummer']}")
+                else:
+                    # Voeg een debug statement toe om te kijken welke sleutels beschikbaar zijn
+                    st.write("Beschikbare sleutels in geselecteerde rij:", r.keys())
 
-        st.write("Geselecteerde indices voor verwijdering (debug informatie):", selected_indices)
+        st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
-        # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
+        # Controleer of 'selected_indices' een geldige lijst is en voer verwijderactie uit
         if len(selected_indices) > 0:
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
