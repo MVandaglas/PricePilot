@@ -287,14 +287,14 @@ with col2:
         st.write("Geselecteerde rijen (debug informatie):", selected)
 
         # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
-        if selected:
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
+        if not selected.empty:st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
