@@ -258,9 +258,8 @@ else:
     st.session_state.selected_rows = []
 
 
-
 def delete_selected_rows(df, selected_rows):
-    if 'selected_rows' is not None and len(selected_rows) > 0:
+    if selected_rows is not None and len(selected_rows) > 0:
         # Verwijder de geselecteerde rijen en reset de index
         df = df.drop(index=selected_rows_id, errors='ignore').reset_index(drop=True)
     return df
