@@ -278,30 +278,32 @@ with col2:
         
         # Debugging: Controleer de inhoud van 'selected'
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
+        st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
+
+        # Verwijder rijen op basis van Rijnummer
+        selected_rijnummers = []
+        if isinstance(selected, list) and len(selected) > 0:
+            for r in selected:
+                if isinstance(r, dict) and 'Rijnummer' in r:
+                    try:
+                        # Haal Rijnummer op en voeg deze toe aan de lijst
+                        rijnummer = int(r['Rijnummer'])
+                        selected_rijnummers.append(rijnummer)
+                    except ValueError as e:
+                        st.write(f"Waarschuwing: Fout bij het converteren van 'Rijnummer' naar integer: {e}")
         
-        selected_indices = []
-        for r in selected:
-            if isinstance(r, dict) and 'Rijnummer' in r:
-                try:
-                    # Zoek naar de index van de rij in het DataFrame op basis van 'Rijnummer'
-                    index_to_remove = st.session_state.offer_df.index[st.session_state.offer_df['Rijnummer'] == int(r['Rijnummer'])].tolist()
-                    if index_to_remove:
-                        selected_indices.extend(index_to_remove)
-                except ValueError as e:
-                    st.write(f"Fout bij het vinden van de index voor Rijnummer {r['Rijnummer']}: {e}")
+        st.write("Geselecteerde rijnummers voor verwijdering (debug informatie):", selected_rijnummers)
 
-        st.write("Geselecteerde indices voor verwijdering (debug informatie):", selected_indices)
-
-        # Controleer of 'selected_indices' een geldige lijst is en voer verwijderactie uit
-        if len(selected_indices) > 0:
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
+        # Controleer of 'selected_rijnummers' een geldige lijst is en voer verwijderactie uit
+        if len(selected_rijnummers) > 0:
+            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde rijnummers
+            st.session_state.offer_df = st.session_state.offer_df[~st.session_state.offer_df['Rijnummer'].isin(selected_rijnummers)].reset_index(drop=True)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
-
 
 
 
