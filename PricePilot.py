@@ -283,18 +283,20 @@ with col2:
         
         # Debugging: Controleer de inhoud van 'selected'
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
-        st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
 
+        # Gebruik 'Rijnummer' om de index te bepalen van de te verwijderen rijen
         selected_indices = []
         for r in selected:
-            if isinstance(r, dict):
-                if 'Rijnummer' in r:
-                    selected_indices.append(int(r['Rijnummer']) - 1)  # Trek 1 af, omdat DataFrame indexen bij 0 beginnen
-                else:
-                    # Voeg een debug statement toe om te kijken welke sleutels beschikbaar zijn
-                    st.write("Beschikbare sleutels in geselecteerde rij:", r.keys())
+            if isinstance(r, dict) and 'Rijnummer' in r:
+                try:
+                    # Zoek naar de index van de rij in het DataFrame op basis van 'Rijnummer'
+                    index_to_remove = st.session_state.offer_df.index[st.session_state.offer_df['Rijnummer'] == r['Rijnummer']].tolist()
+                    if index_to_remove:
+                        selected_indices.extend(index_to_remove)
+                except Exception as e:
+                    st.write(f"Fout bij het vinden van de index voor Rijnummer {r['Rijnummer']}: {e}")
 
-        st.write("Geselecteerde rijen (debug informatie):", selected_indices)
+        st.write("Geselecteerde indices voor verwijdering (debug informatie):", selected_indices)
 
         # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
         if len(selected_indices) > 0:
@@ -305,6 +307,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
