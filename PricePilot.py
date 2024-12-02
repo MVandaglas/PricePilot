@@ -280,11 +280,17 @@ with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = edited_df_response.get('selected_rows', [])
+        
+        # Debugging: Controleer de inhoud van 'selected'
+        st.write("Debug - Geselecteerde rijen (origineel):", selected)
+
         if len(selected) > 0:
-            # Controleer dat 'selected' een lijst is en haal deze op als indexen
+            # Controleer dat 'selected' een lijst is van rijnummers en haal deze op als indexen
             try:
-                selected_indices = [int(r) if isinstance(r, str) else r for r in selected]
-            except ValueError:
+                # De lijst bevat de index van de DataFrame rijen, hier halen we de werkelijke indexen op.
+                selected_indices = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected if isinstance(r, dict) and '_selectedRowNodeInfo' in r]
+            except (KeyError, TypeError) as e:
+                st.write("Error bij ophalen van geselecteerde rijen:", e)
                 selected_indices = []
 
             st.write("Geselecteerde rijen (debug informatie):", selected_indices)
@@ -298,6 +304,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
