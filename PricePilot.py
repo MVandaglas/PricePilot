@@ -227,10 +227,11 @@ edited_df_response = AgGrid(
 
 # Haal geselecteerde rijen op
 selected_rows = edited_df_response.get('selected_rows', [])
-if selected_rows:
+if selected_rows is not None and len(selected_rows) > 0:
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
 else:
     st.session_state.selected_rows = []
+
     
 
 # Debugging om te controleren welke gegevens er in selected_rows zitten
