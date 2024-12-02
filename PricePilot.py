@@ -221,12 +221,14 @@ edited_df_response = AgGrid(
     enable_enterprise_modules=True,
     update_mode='MODEL_CHANGED',
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.AS_INPUT,
+    data_return_mode=DataReturnMode.FILTERED,
+    allow_unsafe_jscode=True,  # Voor volledige functionaliteit
+    enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
 
 
 # Sla de geselecteerde rijen op in sessie status
-selected_rows = edited_df_response.data.get('selected_rows', []) if isinstance(edited_df_response.data, dict) else []  # Probeer geselecteerde rijen op te halen vanuit data
+selected_rows = edited_df_response['selected_rows'] if 'selected_rows' in edited_df_response else []  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
 
 # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
 # Verwijder oude typecontroles, deze zijn niet langer nodig
@@ -246,6 +248,7 @@ else:
 st.write("Debug - Type selected_rows:", type(selected_rows))
 st.write("Debug - Inhoud edited_df_response:", edited_df_response)
 st.write("Debug - Inhoud edited_df_response.data:", edited_df_response.data if hasattr(edited_df_response, 'data') else 'Geen data beschikbaar')
+st.write("Debug - Geselecteerde rijen uit AgGrid:", selected_rows)
 st.write("Debug - Inhoud selected_rows:", selected_rows)  # Voeg extra debugging toe
 st.write("Debug - Geselecteerde rijen:", selected_rows)
 
@@ -290,9 +293,6 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
-
-
-
 
 
 
