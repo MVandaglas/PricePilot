@@ -1,4 +1,4 @@
-import streamlit as st
+    data_return_mode=DataReturnMode.FILTERED,import streamlit as st
 st.set_page_config(layout="wide")
 from streamlit_option_menu import option_menu
 import os
@@ -219,7 +219,7 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.VALUE_CHANGED,
+    update_mode=GridUpdateMode.SELECTION_CHANGED,
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
