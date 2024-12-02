@@ -283,25 +283,25 @@ with col2:
         
         # Debugging: Controleer de inhoud van 'selected'
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
+        st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
 
-        if len(selected) > 0:
-            # Controleer dat 'selected' een lijst is van rijnummers en haal deze op als indexen
-            try:
-                # De lijst bevat de index van de DataFrame rijen, hier halen we de werkelijke indexen op.
-                selected_indices = [int(r['_selectedRowNodeInfo']['nodeRowIndex']) for r in selected if isinstance(r, dict) and '_selectedRowNodeInfo' in r]
-            except (KeyError, TypeError) as e:
-                st.write("Error bij ophalen van geselecteerde rijen:", e)
-                selected_indices = []
+        selected_indices = []
+        for r in selected:
+            if isinstance(r, dict):
+                if '_selectedRowNodeInfo' in r:
+                    selected_indices.append(int(r['_selectedRowNodeInfo']['nodeRowIndex']))
+                else:
+                    # Voeg een debug statement toe om te kijken welke sleutels beschikbaar zijn
+                    st.write("Beschikbare sleutels in geselecteerde rij:", r.keys())
 
-            st.write("Geselecteerde rijen (debug informatie):", selected_indices)
+        st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
-            # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
-            if len(selected_indices) > 0:
-                st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
-                st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
-            else:
-                st.warning("Selecteer eerst rijen om te verwijderen.")
-                st.write("Debug - Geselecteerde indices (als integers):", selected_indices)
+        # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
+        if len(selected_indices) > 0:
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
+            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+        else:
+            st.warning("Selecteer eerst rijen om te verwijderen.")
 
     
     # Zorg dat de update wordt getriggerd na verwijdering
