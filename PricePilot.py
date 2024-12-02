@@ -203,6 +203,33 @@ def delete_selected_rows(df, selected_rows):
         df = df.drop(selected_rows).reset_index(drop=True)
     return df
 
+    # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
+gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
+gb.configure_default_column(flex=1, min_width=100, editable=True)
+gb.configure_column("Rijnummer", editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
+gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
+gb.configure_column("Offertenummer", hide=True)
+gb.configure_column("Breedte", editable=True, type=["numericColumn"])
+gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
+gb.configure_column("Aantal", editable=True, type=["numericColumn"])
+gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
+gb.configure_selection('multiple', use_checkbox=True)
+gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
+
+grid_options = gb.build()
+
+# Toon de AG Grid met het material-thema
+edited_df_response = AgGrid(
+    st.session_state.offer_df,
+    gridOptions=grid_options,
+    theme='material',
+    fit_columns_on_grid_load=True,
+    enable_enterprise_modules=True,
+    update_mode='MANUAL',
+    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+    data_return_mode=DataReturnMode.AS_INPUT,
+)
+
     
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
@@ -582,32 +609,6 @@ if st.session_state.offer_df is not None and not st.session_state.offer_df.empty
 if 'Rijnummer' not in st.session_state.offer_df.columns:
     st.session_state.offer_df.insert(0, 'Rijnummer', range(1, len(st.session_state.offer_df) + 1))
     
-    # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
-gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
-gb.configure_default_column(flex=1, min_width=100, editable=True)
-gb.configure_column("Rijnummer", editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
-gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
-gb.configure_column("Offertenummer", hide=True)
-gb.configure_column("Breedte", editable=True, type=["numericColumn"])
-gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
-gb.configure_column("Aantal", editable=True, type=["numericColumn"])
-gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
-gb.configure_selection('multiple', use_checkbox=True)
-gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
-
-grid_options = gb.build()
-
-# Toon de AG Grid met het material-thema
-edited_df_response = AgGrid(
-    st.session_state.offer_df,
-    gridOptions=grid_options,
-    theme='material',
-    fit_columns_on_grid_load=True,
-    enable_enterprise_modules=True,
-    update_mode='MANUAL',
-    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.AS_INPUT,
-)
 
 # Bewaar de wijzigingen die de gebruiker heeft aangebracht
 edited_df = edited_df_response['data']
