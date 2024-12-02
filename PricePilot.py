@@ -204,8 +204,8 @@ def delete_selected_rows(df, selected_rows):
     return df
 
 # Sla de geselecteerde rijen op in sessie status
-if 'selected_rows' in response and response['selected_rows'] is not None:
-    selected_rows = response.get('selected_rows', [])
+if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None:
+    selected_rows = edited_df_response.get('selected_rows', [])
 if selected_rows:
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
 else:
@@ -622,10 +622,10 @@ if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
 
 # Verwijder geselecteerde rijen
 if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-    selected = edited_df_response['selected_rows'] if edited_df_response['selected_rows'] is not None else []
+    selected = df['selected_rows'] if st.session_state.offer_df['selected_rows'] is not None else []
     st.write("Geselecteerde rijen (debug informatie):", selected)
     if selected is not None and len(selected) > 0:
-        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+        st.session_state.offer_df = delete_selected_rows(df, selected)
     st.session_state['trigger_update'] = True
 
 
