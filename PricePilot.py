@@ -231,9 +231,12 @@ edited_df_response = AgGrid(
     enable_enterprise_modules=True,
     update_mode='SELECTION_CHANGED',  # Update als selectie verandert
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.FILTERED,
+    data_return_mode=DataReturnMode.AS_INPUT,  # Volledige invoer terugkrijgen, inclusief selectie
     allow_unsafe_jscode=True  # Sta het gebruik van onveilige JsCode toe om de selectie juist te maken
 )
+
+# Voeg extra debug logging toe
+st.write("Volledige AgGrid response (debug informatie):", edited_df_response)
 
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
