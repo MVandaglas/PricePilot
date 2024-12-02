@@ -280,7 +280,7 @@ with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = edited_df_response.get('selected_rows', [])
-         if len(selected) > 0:
+        if len(selected) > 0:
             # Controleer dat 'selected' een lijst is van rijnummers en haal deze op als indexen
             selected_indices = [int(r['Rijnummer']) for r in selected if 'Rijnummer' in r]
 
