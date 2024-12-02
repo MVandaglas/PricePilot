@@ -200,10 +200,14 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 # Functie om geselecteerde rijen te verwijderen
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
-        df = df.drop(selected_rows).reset_index(drop=True)
+        # Controleer of de indices in selected_rows geldig zijn voor het DataFrame
+        valid_indices = [idx for idx in selected_rows if idx in df.index]
+        if len(valid_indices) != len(selected_rows):
+            print("Waarschuwing: Een of meer geselecteerde rijen bestaan niet in het DataFrame.")
+        df = df.drop(valid_indices).reset_index(drop=True)
     return df
 
-    # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
+# Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
 gb.configure_column("Rijnummer", editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
@@ -245,7 +249,7 @@ with col1:
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         # Controleer of de geselecteerde rijen aanwezig zijn in de AgGrid edited_df_response
-        if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None:
+        if 'selected_rows' in edited_df_response and isinstance(edited_df_response['selected_rows'], list):
             selected_rows = edited_df_response['selected_rows']
         else:
             selected_rows = []
@@ -254,8 +258,12 @@ with col2:
         
         # Controleer of er daadwerkelijk rijen zijn geselecteerd voordat je verwijdert
         if len(selected_rows) > 0:
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r])
-            st.session_state['trigger_update'] = True
+            try:
+                valid_selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
+                st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, valid_selected_rows)
+                st.session_state['trigger_update'] = True
+            except KeyError as e:
+                st.error(f"Een fout is opgetreden bij het verwerken van de geselecteerde rijen: {e}")
         else:
             st.warning("Er zijn geen rijen geselecteerd.")
 
