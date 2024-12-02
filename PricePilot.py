@@ -58,15 +58,8 @@ selected_tab = st.radio(
 
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
-if "M2 totaal" in st.session_state.offer_df.columns:
-    st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
-else:
-    st.session_state.offer_df["M2 totaal"] = 0
-
-if "RSP" in st.session_state.offer_df.columns:
-    st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
-else:
-    st.session_state.offer_df["RSP"] = 0
+st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
+st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 
 # Berekeningen uitvoeren
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
@@ -205,16 +198,40 @@ def update_rsp_for_all_rows(df, prijsscherpte):
     return df
 
 # Functie om geselecteerde rijen te verwijderen
-def delete_selected_rows(edited_df, selected_rows):
+def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
-        edited_df = edited_df.drop(selected_rows).reset_index(drop=True)
-    return edited_df
+        df = df.drop(selected_rows).reset_index(drop=True)
+    return df
 
+# Configuratie voor AgGrid
+gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
+gb.configure_selection(selection_mode="multiple", use_checkbox=True, pre_selected_rows=[])
+gb.configure_default_column(editable=True, resizable=True)
+grid_options = gb.build()
+
+# Toon de AG Grid met het material-thema
+response = AgGrid(
+    st.session_state.offer_df,
+    gridOptions=grid_options,
+    theme='material',
+    fit_columns_on_grid_load=True,
+    enable_enterprise_modules=True,
+    update_mode=GridUpdateMode.MANUAL,
+    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+    data_return_mode=DataReturnMode.AS_INPUT,
+)
 
 # Sla de geselecteerde rijen op in sessie status
-
-if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None:
-    selected_rows = edited_df_response.get('selected_rows', [])
+# Debugging: print de response van de AgGrid
+st.write("Debug - Type AgGrid response:", type(response))
+st.write("Debug - Full AgGrid response:", response)
+if 'selected_rows' in response and response['selected_rows'] is not None:
+    st.write("Debug - Type selected_rows:", type(response['selected_rows']))
+    st.write("Debug - Length of selected_rows:", len(response['selected_rows']))
+    st.write("Debug - Content of selected_rows:", response['selected_rows'])
+st.write("Debug - AgGrid response:", response)
+selected_rows = response.get('selected_rows', [])
+st.write("Debug - Geselecteerde rijen:", selected_rows)
 if selected_rows:
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
 else:
