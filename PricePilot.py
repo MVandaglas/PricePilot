@@ -281,7 +281,7 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        selected = st.session_state.get('selected_rows', [])
+        selected = st.session_state.get('selected_rows_id', [])
         if selected is None or not isinstance(selected, list):
             selected = []
         st.write("Geselecteerde rijen (debug informatie):", selected)
