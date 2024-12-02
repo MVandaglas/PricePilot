@@ -217,7 +217,7 @@ gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
-gb.configure_selection('multiple', use_checkbox=True, pre_selected_rows=[])  # Gebruik checkboxes voor selectie
+gb.configure_selection('multiple', use_checkbox=True)
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
 grid_options = gb.build()
@@ -229,12 +229,12 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode='SELECTION_CHANGED',  # Update als selectie verandert
+    update_mode='MANUAL',
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.FILTERED,
-    allow_unsafe_jscode=True  # Sta het gebruik van onveilige JsCode toe om de selectie juist te maken
+    data_return_mode=DataReturnMode.AS_INPUT,
 )
 
+    
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
 with col1:
@@ -249,7 +249,7 @@ with col1:
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         # Controleer of de geselecteerde rijen aanwezig zijn in de AgGrid edited_df_response
-        if 'selected_rows' in edited_df_response and isinstance(edited_df_response['selected_rows'], list):
+        if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None:
             selected_rows = edited_df_response['selected_rows']
         else:
             selected_rows = []
@@ -258,15 +258,11 @@ with col2:
         
         # Controleer of er daadwerkelijk rijen zijn geselecteerd voordat je verwijdert
         if len(selected_rows) > 0:
-            try:
-                valid_selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
-                st.write("Geldige geselecteerde rijen (debug informatie):", valid_selected_rows)  # Extra debug informatie
-                st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, valid_selected_rows)
-                st.session_state['trigger_update'] = True
-            except KeyError as e:
-                st.error(f"Een fout is opgetreden bij het verwerken van de geselecteerde rijen: {e}")
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r])
+            st.session_state['trigger_update'] = True
         else:
             st.warning("Er zijn geen rijen geselecteerd.")
+
 
 
 
