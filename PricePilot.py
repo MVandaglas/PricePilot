@@ -204,6 +204,52 @@ def update_rsp_for_all_rows(df, prijsscherpte):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
     return df
 
+# Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
+gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
+gb.configure_default_column(flex=1, min_width=100, editable=True)
+gb.configure_column("Rijnummer", editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
+gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
+gb.configure_column("Offertenummer", hide=True)
+gb.configure_column("Breedte", editable=True, type=["numericColumn"])
+gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
+gb.configure_column("Aantal", editable=True, type=["numericColumn"])
+gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
+gb.configure_selection('multiple', use_checkbox=True)
+gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
+
+grid_options = gb.build()
+
+# Toon de AG Grid met het material-thema
+edited_df_response = AgGrid(
+    st.session_state.offer_df,
+    gridOptions=grid_options,
+    theme='material',
+    fit_columns_on_grid_load=True,
+    enable_enterprise_modules=True,
+    update_mode='MANUAL',
+    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+    data_return_mode=DataReturnMode.AS_INPUT,
+)
+
+# Bewaar de wijzigingen die de gebruiker heeft aangebracht
+edited_df = edited_df_response['data']
+if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
+    with st.spinner('Bezig met verwerken van wijzigingen...'):
+        if not edited_df.equals(st.session_state.offer_df):
+            st.session_state.offer_df = update_offer_data(edited_df.copy())
+            # RSP opnieuw updaten na het bevestigen van wijzigingen
+            st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
+            st.session_state['trigger_update'] = True
+          
+
+# Verwijder geselecteerde rijen
+if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
+    selected = edited_df_response['selected_rows'] if edited_df_response['selected_rows'] is not None else []
+    st.write("Geselecteerde rijen (debug informatie):", selected)
+    if selected is not None and len(selected) > 0:
+        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+    st.session_state['trigger_update'] = True
+
 # Functie om geselecteerde rijen te verwijderen
 def delete_selected_rows(edited_df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
