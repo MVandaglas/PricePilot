@@ -199,12 +199,12 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 
 
 # Sla de geselecteerde rijen op in sessie status
-if 'selected_rows' in st.session_state.offer_df and st.session_state.offer_df[st.session_state.selected_rows] is not None:
-    selected_rows = st.session_state.offer_df.get(st.session_state.selected_rows, [])
-if st.session_state.selected_rows:
-    st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
+selected_rows = edited_df_response.get('selected_rows', [])
+if selected_rows:
+    st.session_state.selected_rows = [r for r in selected_rows]
 else:
     st.session_state.selected_rows = []
+
 
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
