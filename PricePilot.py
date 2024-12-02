@@ -280,8 +280,8 @@ with col1:
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         selected = st.session_state.get('selected_rows', [])
-        if 'selected' not in locals() or selected is None or not isinstance(selected, list):
-            selected = []
+        if 'selected_rows' not in locals() or selected_rows is None or not isinstance(selected_rows, list):
+            selected_rows = []
         
     if 'selected' not in locals() or selected is None or not isinstance(selected, list):
         selected = []
