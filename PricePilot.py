@@ -58,8 +58,15 @@ selected_tab = st.radio(
 
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
-st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
-st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
+if "M2 totaal" in st.session_state.offer_df.columns:
+    st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
+else:
+    st.session_state.offer_df["M2 totaal"] = 0
+
+if "RSP" in st.session_state.offer_df.columns:
+    st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
+else:
+    st.session_state.offer_df["RSP"] = 0
 
 # Berekeningen uitvoeren
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
