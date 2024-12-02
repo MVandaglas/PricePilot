@@ -610,16 +610,6 @@ if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state['trigger_update'] = True
           
-
-# Verwijder geselecteerde rijen
-if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-    selected = edited_df_response['selected_rows'] if edited_df_response['selected_rows'] is not None else []
-    st.write("Geselecteerde rijen (debug informatie):", selected)
-    if selected is not None and len(selected) > 0:
-        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-    st.session_state['trigger_update'] = True
-
-
 # Voeg een knop toe om de offerte als PDF te downloaden
 if st.button("Download offerte als PDF", key='download_pdf_button'):
     pdf_buffer = generate_pdf(st.session_state.offer_df)
