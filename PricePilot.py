@@ -275,8 +275,8 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-    selected = edited_df_response['selected_rows'] if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None else []
-    st.write("Geselecteerde rijen (debug informatie):", selected)
+        selected = edited_df_response['selected_rows'] if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None else []
+        st.write("Geselecteerde rijen (debug informatie):", selected)
 
     # Converteer geselecteerde rijen naar integer indexen, indien nodig
     if isinstance(selected, list):
