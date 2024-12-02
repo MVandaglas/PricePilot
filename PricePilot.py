@@ -221,7 +221,6 @@ edited_df_response = AgGrid(
     enable_enterprise_modules=True,
     update_mode=GridUpdateMode.SELECTION_CHANGED,
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.FILTERED,
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
