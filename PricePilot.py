@@ -282,8 +282,10 @@ with col1:
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         selected = st.session_state.get('selected_rows', [])
+        if 'selected' not in locals() or selected is None or not isinstance(selected, list):
+            selected = []
         
-    if selected is None or not isinstance(selected, list):
+    if 'selected' not in locals() or selected is None or not isinstance(selected, list):
         selected = []
         st.write("Geselecteerde rijen (debug informatie):", selected)
     
@@ -297,9 +299,6 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
-
-
-
 
 
 # Functie om getallen van 1 tot 100 te herkennen
