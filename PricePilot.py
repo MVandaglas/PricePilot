@@ -255,7 +255,7 @@ else:
 
 
 
-def delete_selected_rows(df, selected_rows):
+def delete_selected_rows(offer_df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
         # Controleer of de geselecteerde indices bestaan
         offer.df = offer.df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
