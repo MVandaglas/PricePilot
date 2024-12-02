@@ -203,15 +203,6 @@ def delete_selected_rows(df, selected_rows):
         df = df.drop(selected_rows).reset_index(drop=True)
     return df
 
-# Sla de geselecteerde rijen op in sessie status
-if 'selected_rows' in response and response['selected_rows'] is not None:
-    selected_rows = response.get('selected_rows', [])
-else:
-    selected_rows = []
-if selected_rows:
-    st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
-else:
-    st.session_state.selected_rows = []
     
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
