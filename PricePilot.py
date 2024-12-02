@@ -225,9 +225,12 @@ edited_df_response = AgGrid(
 )
 
 
-# Haal geselecteerde rijen op
+# Haal geselecteerde rijen op vanuit de AgGrid response
 selected_rows = edited_df_response.get('selected_rows', [])
-if selected_rows is not None and len(selected_rows) > 0:
+
+# Controleer specifiek of het geen DataFrame is en of het een geldige lijst bevat
+if isinstance(selected_rows, list) and len(selected_rows) > 0:
+    # Update de sessie status met de geselecteerde rijen
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
 else:
     st.session_state.selected_rows = []
