@@ -217,11 +217,20 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        selected = st.session_state.selected_rows if 'selected_rows' in st.session_state else []
-        st.write("Geselecteerde rijen (debug informatie):", selected)
-        if selected is not None and len(selected) > 0:
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-        st.session_state['trigger_update'] = True
+        # Controleer of de geselecteerde rijen aanwezig zijn in de AgGrid response
+        if 'selected_rows' in response and response['selected_rows'] is not None:
+            selected_rows = response['selected_rows']
+        else:
+            selected_rows = []
+        
+        st.write("Geselecteerde rijen (debug informatie):", selected_rows)
+        
+        # Controleer of er daadwerkelijk rijen zijn geselecteerd voordat je verwijdert
+        if len(selected_rows) > 0:
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r])
+            st.session_state['trigger_update'] = True
+        else:
+            st.warning("Er zijn geen rijen geselecteerd.")
 
 
 # Functie om getallen van 1 tot 100 te herkennen
