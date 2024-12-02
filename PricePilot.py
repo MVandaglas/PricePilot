@@ -204,9 +204,6 @@ def update_rsp_for_all_rows(df, prijsscherpte):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
     return df
 
-
-
-
 # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
@@ -244,31 +241,24 @@ if st.button("Bevestig wijzigingen", key='confirm_changes_button'):
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state['trigger_update'] = True
           
-# Knoppen toevoegen aan de GUI
-col1, col2 = st.columns(2)
-with col1:
-    if st.button("Voeg een rij toe"):
-        # Voeg een lege rij toe aan het DataFrame
-        new_row = pd.DataFrame({
-            "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Breedte": [0], "Hoogte": [0],
-            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0]
-        })
-        st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
 
-with col2:
-    if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        selected = st.session_state.selected_rows if 'selected_rows' in st.session_state else []
-        st.write("Geselecteerde rijen (debug informatie):", selected)
-        if selected is not None and len(selected) > 0:
-            edited_df_response['data'] = delete_selected_rows(pd.DataFrame(edited_df_response['data']), selected)
-        st.session_state['trigger_update'] = True
+# Verwijder geselecteerde rijen
+if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
+    selected = edited_df_response['selected_rows'] if edited_df_response['selected_rows'] is not None else []
+    st.write("Geselecteerde rijen (debug informatie):", selected)
+    if selected is not None and len(selected) > 0:
+        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+    st.session_state['trigger_update'] = True
 
-
-
-
+# Functie om geselecteerde rijen te verwijderen
+def delete_selected_rows(edited_df, selected_rows):
+    if selected_rows is not None and len(selected_rows) > 0:
+        edited_df = edited_df.drop(selected_rows).reset_index(drop=True)
+    return edited_df
 
 
 # Sla de geselecteerde rijen op in sessie status
+
 if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None:
     selected_rows = edited_df_response.get('selected_rows', [])
 if selected_rows:
