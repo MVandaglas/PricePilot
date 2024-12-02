@@ -226,7 +226,7 @@ edited_df_response = AgGrid(
 
 
 # Sla de geselecteerde rijen op in sessie status
-selected_rows = edited_df_response.get('selected_rows', [])
+selected_rows = [int(row) if isinstance(row, str) and row.isdigit() else row for row in edited_df_response.get('selected_rows', [])]
 
 # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
 if isinstance(selected_rows, pd.DataFrame):
@@ -235,7 +235,7 @@ elif selected_rows is None:
     selected_rows = []
 
 # Controleer vervolgens op de lengte van de lijst
-if len(selected_rows) > 0:
+if len(selected_rows) > 0 and all(isinstance(r, dict) for r in selected_rows):
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
 else:
     st.session_state.selected_rows = []
@@ -280,7 +280,7 @@ with col2:
     
     # Controleer of 'selected' een geldige lijst is en converteer naar integers indien nodig
     if 'selected' in locals() and isinstance(selected, list) and len(selected) > 0:
-        selected = [int(r['_selectedRowNodeInfo']['nodeRowIndex']) for r in selected if '_selectedRowNodeInfo' in r]
+        selected = [int(r['_selectedRowNodeInfo']['nodeRowIndex']) for r in selected_rows if '_selectedRowNodeInfo' in r]
         st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
         st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
     else:
@@ -288,6 +288,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
