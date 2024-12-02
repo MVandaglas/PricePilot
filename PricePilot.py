@@ -281,12 +281,21 @@ with col2:
         st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
 
         selected_indices = []
-        try:
-            selected_indices = [int(r) for r in selected]
-        except ValueError:
-            st.write("Waarschuwing: Fout bij het converteren van geselecteerde rijen naar indices.")
+        for r in selected:
+            # Controleer of 'r' een dictionary is en of we een specifiek veld kunnen gebruiken als index
+            if isinstance(r, dict):
+                st.write("Debug - Beschikbare sleutels in geselecteerde rij:", r.keys())
+                # Probeer een specifiek veld te gebruiken, bijvoorbeeld een veld dat de rij index of een unieke waarde aangeeft
+                if 'Rijnummer' in r and r['Rijnummer'].isdigit():
+                    try:
+                        # Als 'Rijnummer' een string is die een nummer bevat, converteer deze naar een integer
+                        selected_indices.append(int(r['Rijnummer']) - 1)  # Trek 1 af omdat de index waarschijnlijk bij 0 begint
+                    except ValueError:
+                        st.write(f"Fout bij het converteren van 'Rijnummer' naar een integer: {r['Rijnummer']}")
+            else:
+                st.write("Waarschuwing: 'r' is geen dictionary, maar:", type(r), r)
 
-        st.write("Geselecteerde rijen (debug informatie):", selected_indices)
+        st.write("Geselecteerde indices voor verwijdering (debug informatie):", selected_indices)
 
         # Controleer of 'selected_indices' een geldige lijst is en voer verwijderactie uit
         if len(selected_indices) > 0:
@@ -297,6 +306,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
