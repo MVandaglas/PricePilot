@@ -197,11 +197,6 @@ def update_rsp_for_all_rows(df, prijsscherpte):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
     return df
 
-# Functie om geselecteerde rijen te verwijderen
-def delete_selected_rows(df, selected_rows):
-    if selected_rows is not None and len(selected_rows) > 0:
-        df = df.drop(selected_rows).reset_index(drop=True)
-    return df
 
 # Sla de geselecteerde rijen op in sessie status
 if 'selected_rows' in st.session_state.offer_df and st.session_state.offer_df[st.session_state.selected_rows] is not None:
