@@ -205,16 +205,16 @@ def update_rsp_for_all_rows(df, prijsscherpte):
     return df
 
 # Functie om geselecteerde rijen te verwijderen
-def delete_selected_rows(df, selected_rows):
+def delete_selected_rows(edited_df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
-        df = df.drop(selected_rows).reset_index(drop=True)
-    return df
+        edited_df = edited_df.drop(selected_rows).reset_index(drop=True)
+    return edited_df
 
 
 # Sla de geselecteerde rijen op in sessie status
 
-if 'selected_rows' in response and response['selected_rows'] is not None:
-    selected_rows = response.get('selected_rows', [])
+if 'selected_rows' in edited_df_response and edited_df_response['selected_rows'] is not None:
+    selected_rows = edited_df_response.get('selected_rows', [])
 if selected_rows:
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
 else:
