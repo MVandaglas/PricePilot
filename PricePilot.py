@@ -258,7 +258,7 @@ else:
 
 
 
-def delete_selected_rows(df, selected_rows):
+def delete_selected_rows(offer_df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
         # Verwijder de geselecteerde rijen en reset de index
         df = offer_df.drop(index=selected, errors='ignore').reset_index(drop=True)
