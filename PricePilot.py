@@ -259,8 +259,8 @@ def delete_selected_rows(edited_df_response, selected):
         # Zorg dat de geselecteerde rijen als integers worden doorgegeven
         selected = [int(idx) for idx in selected]
         # Verwijder de geselecteerde rijen en reset de index
-        df = edited_df_response.drop(index=st.session_state.selected, errors='ignore').reset_index(drop=True)
-    return df
+        new_df = edited_df_response.drop(index=st.session_state.selected, errors='ignore').reset_index(drop=True)
+    return new_df
 
 
 # Knoppen toevoegen aan de GUI
