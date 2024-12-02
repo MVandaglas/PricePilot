@@ -301,7 +301,9 @@ with col2:
                 st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             else:
                 st.warning("Selecteer eerst rijen om te verwijderen.")
+                st.write("Debug - Geselecteerde indices (als integers):", selected_indices)
 
+    
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
 
