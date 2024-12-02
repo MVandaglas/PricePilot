@@ -281,12 +281,12 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        selected = st.session_state.get('selected_rows', [])  # Zorg dat 'selected' goed wordt geïnitialiseerd
+        selected = [int(r) for r in st.session_state.get('selected_rows', []) if isinstance(r, (int, str)) and str(r).isdigit()]  # Zorg dat 'selected' goed wordt geïnitialiseerd en naar integers wordt geconverteerd
         st.write("Geselecteerde rijen (debug informatie):", selected)
     
     # Controleer of 'selected' een geldige lijst is en converteer naar integers indien nodig
-    if 'selected' in locals() and isinstance(selected, list) and len(selected) > 0:
-        selected = [int(r) for r in selected_rows if isinstance(r, (int, str)) and str(r).isdigit()]
+    if isinstance(selected, list) and len(selected) > 0:
+        
         st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
         st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
     else:
@@ -294,6 +294,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
