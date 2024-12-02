@@ -285,14 +285,20 @@ with col2:
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
         st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
 
-        # Converteer de rijnummers direct naar integers, aangezien ze als strings worden weergegeven
-        try:
-            selected_indices = [int(r) for r in selected]
-        except ValueError as e:
-            st.write("Fout bij het converteren van geselecteerde rijen naar indices:", e)
-            selected_indices = []
+        selected_indices = []
+        for r in selected:
+            if isinstance(r, dict):
+                # In plaats van naar '_selectedRowNodeInfo' te zoeken, gebruik direct de waarde van 'Rijnummer' of vergelijkbare veld
+                if 'Rijnummer' in r and r['Rijnummer'].isdigit():
+                    try:
+                        # Converteer Rijnummer naar een integer voor verwijdering
+                        selected_indices.append(int(r['Rijnummer']) - 1)  # Correctie voor index die bij 0 begint
+                    except ValueError as e:
+                        st.write(f"Fout bij het converteren van 'Rijnummer' naar een integer: {e}")
+                else:
+                    st.write("Waarschuwing: 'Rijnummer' ontbreekt of is niet geldig:", r)
 
-        st.write("Geselecteerde rijen (debug informatie):", selected_indices)
+        st.write("Geselecteerde indices voor verwijdering (debug informatie):", selected_indices)
 
         # Controleer of 'selected_indices' een geldige lijst is en voer verwijderactie uit
         if len(selected_indices) > 0:
@@ -303,10 +309,6 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
-
-
-
-
 
 
 
