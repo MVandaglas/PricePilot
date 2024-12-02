@@ -235,23 +235,18 @@ selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.ge
 if selected_rows is None or not isinstance(selected_rows, list):
     selected_rows = []
 
-# Controleer vervolgens op de lengte van de lijst
-if isinstance(selected_rows, list) and len(selected_rows) > 0:
-    st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
-else:
-    st.session_state.selected_rows = []
-
 # Debugging om te controleren welke gegevens er in selected_rows zitten
 st.write("Debug - Inhoud edited_df_response.data:", edited_df_response.data if hasattr(edited_df_response, 'data') else 'Geen data beschikbaar')
 st.write("Debug - Geselecteerde rijen uit AgGrid (selected_rows, selected_data, selected_rows_id):", selected_rows)
 
-
 # Als er rijen zijn geselecteerd, zet deze in de sessie state
-if selected_rows:
-    st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if isinstance(r, dict) and '_selectedRowNodeInfo' in r]
+if isinstance(selected_rows, list) and len(selected_rows) > 0:
+    try:
+        st.session_state.selected_rows = [int(r) for r in selected_rows]
+    except ValueError:
+        st.write("Waarschuwing: Fout bij het converteren van geselecteerde rijen naar indices.")
 else:
     st.session_state.selected_rows = []
-
 
 
 def delete_selected_rows(edited_df_response, selected):
@@ -286,19 +281,12 @@ with col2:
         st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
 
         selected_indices = []
-        for r in selected:
-            if isinstance(r, dict):
-                # In plaats van naar '_selectedRowNodeInfo' te zoeken, gebruik direct de waarde van 'Rijnummer' of vergelijkbare veld
-                if 'Rijnummer' in r and r['Rijnummer'].isdigit():
-                    try:
-                        # Converteer Rijnummer naar een integer voor verwijdering
-                        selected_indices.append(int(r['Rijnummer']) - 1)  # Correctie voor index die bij 0 begint
-                    except ValueError as e:
-                        st.write(f"Fout bij het converteren van 'Rijnummer' naar een integer: {e}")
-                else:
-                    st.write("Waarschuwing: 'Rijnummer' ontbreekt of is niet geldig:", r)
+        try:
+            selected_indices = [int(r) for r in selected]
+        except ValueError:
+            st.write("Waarschuwing: Fout bij het converteren van geselecteerde rijen naar indices.")
 
-        st.write("Geselecteerde indices voor verwijdering (debug informatie):", selected_indices)
+        st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
         # Controleer of 'selected_indices' een geldige lijst is en voer verwijderactie uit
         if len(selected_indices) > 0:
@@ -309,9 +297,6 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
-
-
-
 
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
