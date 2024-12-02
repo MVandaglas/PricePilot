@@ -232,10 +232,10 @@ if len(selected_rows) > 0:
 else:
     st.session_state.selected_rows = []
 
-# Functie om geselecteerde rijen te verwijderen
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
-        df = df.drop(selected_rows).reset_index(drop=True)
+        # Controleer of de geselecteerde indices bestaan
+        df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
     return df
 
 # Knoppen toevoegen aan de GUI
