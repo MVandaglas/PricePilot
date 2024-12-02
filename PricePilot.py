@@ -226,11 +226,13 @@ edited_df_response = AgGrid(
 
 
 # Sla de geselecteerde rijen op in sessie status
-selected_rows = edited_df_response.get('selected_rows', [])
+selected_rows = response.get('selected_rows', [])  # Zorg dat de default waarde een lege lijst is
+
 if len(selected_rows) > 0:
     st.session_state.selected_rows = [r for r in selected_rows]
 else:
     st.session_state.selected_rows = []
+
 
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
