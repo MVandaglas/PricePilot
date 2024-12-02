@@ -207,7 +207,7 @@ gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
-gb.configure_selection('multiple', use_checkbox=False, selection_mode='multiple')
+gb.configure_selection(use_checkbox=False, selection_mode='multiple')
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
 grid_options = gb.build()
