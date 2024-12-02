@@ -264,7 +264,7 @@ else:
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
         # Verwijder de geselecteerde rijen en reset de index
-        df = df.drop(index=selected_rows_id, errors='ignore').reset_index(drop=True)
+        df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
     return df
 
 
@@ -281,13 +281,13 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        selected = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
-        if selected is None or not isinstance(selected, list):
-            selected = []
+        # Haal de geselecteerde rijen op uit de sessie
+        selected = st.session_state.get('selected_rows', [])
+        
         st.write("Geselecteerde rijen (debug informatie):", selected)
-    
+
         # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
-        if isinstance(selected, list) and len(selected) > 0:
+        if selected:
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
         else:
@@ -295,6 +295,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
