@@ -231,18 +231,9 @@ edited_df_response = AgGrid(
     enable_enterprise_modules=True,
     update_mode='SELECTION_CHANGED',  # Update als selectie verandert
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.AS_INPUT,  # Volledige invoer terugkrijgen, inclusief selectie
+    data_return_mode=DataReturnMode.FILTERED,
     allow_unsafe_jscode=True  # Sta het gebruik van onveilige JsCode toe om de selectie juist te maken
 )
-
-# Voeg extra debug logging toe
-st.write("Volledige AgGrid response (debug informatie):", edited_df_response)
-
-# Extra debug-informatie om te kijken naar event_data
-if hasattr(edited_df_response, 'event_data'):
-    st.write("Event data (debug informatie):", edited_df_response.event_data)
-else:
-    st.write("Geen event_data gevonden in AgGrid response.")
 
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
@@ -260,8 +251,6 @@ with col2:
         # Controleer of de geselecteerde rijen aanwezig zijn in de AgGrid edited_df_response
         if 'selected_rows' in edited_df_response and isinstance(edited_df_response['selected_rows'], list):
             selected_rows = edited_df_response['selected_rows']
-        elif hasattr(edited_df_response, 'event_data') and 'selected' in edited_df_response.event_data:
-            selected_rows = edited_df_response.event_data['selected']
         else:
             selected_rows = []
         
