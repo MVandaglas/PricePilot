@@ -217,7 +217,7 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        selected = edited_df_response['selected_rows'] if edited_df_response['selected_rows'] is not None else []
+        selected = response['selected_rows'] if 'selected_rows' in response and response['selected_rows'] is not None else []
         st.write("Geselecteerde rijen (debug informatie):", selected)
         if selected is not None and len(selected) > 0:
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
