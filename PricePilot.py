@@ -285,11 +285,14 @@ with col2:
         if selected is None or not isinstance(selected, list):
             selected = []
         st.write("Geselecteerde rijen (debug informatie):", selected)
+        if selected is None or not isinstance(selected, list):
+            selected = []
+        st.write("Geselecteerde rijen (debug informatie):", selected)
         
     
     
     # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
-    if isinstance(selected, list) and len(selected) > 0:
+        if isinstance(selected, list) and len(selected) > 0:
         
         st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
         st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
@@ -298,6 +301,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 # Functie om getallen van 1 tot 100 te herkennen
