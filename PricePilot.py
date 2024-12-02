@@ -278,25 +278,25 @@ with col2:
         
         # Debugging: Controleer de inhoud van 'selected'
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
-        st.write("Debug - Volledige structuur van geselecteerde rijen:")
-
-        # Doorloop elke geselecteerde rij en toon de structuur
-        for r in selected:
-            st.write("Type van geselecteerde rij:", type(r))
-            st.write("Inhoud van geselecteerde rij:", r)
-
+        
+        # Loop door elke geselecteerde rij en toon de structuur
         selected_indices = []
-        # Kijk of 'r' eigenlijk een dictionary is, zodat we een specifieke sleutel kunnen gebruiken
         for r in selected:
+            # Voeg een debug statement toe om te zien wat er in elke 'r' zit
+            st.write("Inhoud van geselecteerde rij:", r)
+            st.write("Type van geselecteerde rij:", type(r))
+
             if isinstance(r, dict):
-                if 'Rijnummer' in r and r['Rijnummer'].isdigit():
+                st.write("Beschikbare sleutels in geselecteerde rij:", r.keys())
+                # Probeer de waarde van de sleutel 'Rijnummer' te gebruiken als deze aanwezig is
+                if 'Rijnummer' in r:
                     try:
-                        # Probeer 'Rijnummer' te converteren naar een integer
+                        # Voeg de waarde van 'Rijnummer' toe als integer
                         selected_indices.append(int(r['Rijnummer']) - 1)
                     except ValueError as e:
                         st.write(f"Fout bij het converteren van 'Rijnummer' naar integer: {e}")
             else:
-                st.write("Waarschuwing: 'r' is geen dictionary, maar een:", type(r))
+                st.write("Waarschuwing: 'r' is geen dictionary, maar:", type(r), r)
 
         st.write("Geselecteerde indices voor verwijdering (debug informatie):", selected_indices)
 
