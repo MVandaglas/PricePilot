@@ -288,14 +288,11 @@ with col2:
         selected_indices = []
         for r in selected:
             if isinstance(r, dict):
-                if '_selectedRowNodeInfo' in r:
-                    selected_indices.append(int(r['_selectedRowNodeInfo']['nodeRowIndex']))
+                if 'Rijnummer' in r:
+                    selected_indices.append(int(r['Rijnummer']) - 1)  # Trek 1 af, omdat DataFrame indexen bij 0 beginnen
                 else:
                     # Voeg een debug statement toe om te kijken welke sleutels beschikbaar zijn
                     st.write("Beschikbare sleutels in geselecteerde rij:", r.keys())
-
-        # Converteer de geselecteerde indices naar integers als ze strings zijn
-        selected_indices = [int(idx) for idx in selected_indices]
 
         st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
@@ -306,7 +303,6 @@ with col2:
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
-    
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
 
