@@ -258,7 +258,7 @@ else:
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
         # Controleer of de geselecteerde indices bestaan
-        offer.df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
+        offer.df = offer.df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
     return df
 
 # Knoppen toevoegen aan de GUI
