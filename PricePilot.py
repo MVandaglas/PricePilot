@@ -288,7 +288,7 @@ with col2:
             # Controleer dat 'selected' een lijst is van rijnummers en haal deze op als indexen
             try:
                 # De lijst bevat de index van de DataFrame rijen, hier halen we de werkelijke indexen op.
-                selected_indices = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected if isinstance(r, dict) and '_selectedRowNodeInfo' in r]
+                selected_indices = [int(r['_selectedRowNodeInfo']['nodeRowIndex']) for r in selected if isinstance(r, dict) and '_selectedRowNodeInfo' in r]
             except (KeyError, TypeError) as e:
                 st.write("Error bij ophalen van geselecteerde rijen:", e)
                 selected_indices = []
