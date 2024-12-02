@@ -200,7 +200,7 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
-gb.configure_column("Rijnummer", editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
+gb.configure_column("Rijnummer", type=["numericColumn"], gb.configure_column("Rijnummer", editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
 gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
 gb.configure_column("Offertenummer", hide=True)
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
@@ -278,27 +278,15 @@ with col2:
         
         # Debugging: Controleer de inhoud van 'selected'
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
-        
-        # Loop door elke geselecteerde rij en toon de structuur
+        st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
+
         selected_indices = []
-        for r in selected:
-            # Voeg een debug statement toe om te zien wat er in elke 'r' zit
-            st.write("Inhoud van geselecteerde rij:", r)
-            st.write("Type van geselecteerde rij:", type(r))
+        try:
+            selected_indices = [int(float(r)) for r in selected if str(r).isdigit() or str(r).replace('.', '', 1).isdigit()]
+        except ValueError:
+            st.write("Waarschuwing: Fout bij het converteren van geselecteerde rijen naar indices.")
 
-            if isinstance(r, dict):
-                st.write("Beschikbare sleutels in geselecteerde rij:", r.keys())
-                # Probeer de waarde van de sleutel 'Rijnummer' te gebruiken als deze aanwezig is
-                if 'Rijnummer' in r:
-                    try:
-                        # Voeg de waarde van 'Rijnummer' toe als integer
-                        selected_indices.append(int(r['Rijnummer']) - 1)
-                    except ValueError as e:
-                        st.write(f"Fout bij het converteren van 'Rijnummer' naar integer: {e}")
-            else:
-                st.write("Waarschuwing: 'r' is geen dictionary, maar:", type(r), r)
-
-        st.write("Geselecteerde indices voor verwijdering (debug informatie):", selected_indices)
+        st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
         # Controleer of 'selected_indices' een geldige lijst is en voer verwijderactie uit
         if len(selected_indices) > 0:
@@ -309,6 +297,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 # Functie om getallen van 1 tot 100 te herkennen
