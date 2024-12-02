@@ -197,7 +197,7 @@ def update_rsp_for_all_rows(df, prijsscherpte):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
     return df
 
-    # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
+# Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
 gb.configure_column("Rijnummer", editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
@@ -228,7 +228,7 @@ edited_df_response = AgGrid(
 
 
 # Sla de geselecteerde rijen op in sessie status
-selected_rows = edited_df_response.selected_rows if hasattr(edited_df_response, 'selected_rows') else []  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
+selected_rows = edited_df_response.get('selected_rows', edited_df_response.get('selected_data', []))  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
 
 # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
 # Verwijder oude typecontroles, deze zijn niet langer nodig
