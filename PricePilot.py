@@ -226,8 +226,9 @@ edited_df_response = AgGrid(
 
 
 # Sla de geselecteerde rijen op in sessie status
-selected_rows = edited_df_response.get('selectedRows', [])  # Pas de key aan voor het ophalen van geselecteerde rijen
+selected_rows = edited_df_response.selected_rows if hasattr(edited_df_response, 'selected_rows') else []  # Gebruik de juiste eigenschap van het AgGridReturn object
 
+# Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
 # Verwijder oude typecontroles, deze zijn niet langer nodig
 if selected_rows is None or not isinstance(selected_rows, list):
     selected_rows = []
@@ -243,7 +244,8 @@ else:
 
 # Debugging om te controleren welke gegevens er in selected_rows zitten
 st.write("Debug - Type selected_rows:", type(selected_rows))
-st.write("Debug - Inhoud edited_df_response:", edited_df_response)  # Voeg extra debugging toe
+st.write("Debug - Inhoud edited_df_response:", edited_df_response)
+st.write("Debug - Inhoud selected_rows:", selected_rows)  # Voeg extra debugging toe
 st.write("Debug - Geselecteerde rijen:", selected_rows)
 
 # Als er rijen zijn geselecteerd, zet deze in de sessie state
@@ -287,7 +289,6 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
-
 
 
 
