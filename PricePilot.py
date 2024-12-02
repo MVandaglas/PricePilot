@@ -279,18 +279,17 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        selected = st.session_state.get('selected_rows', [])
         if 'selected_rows' not in locals() or selected_rows is None or not isinstance(selected_rows, list):
             selected_rows = []
         
-    if 'selected' not in locals() or selected is None or not isinstance(selected, list):
-        selected = []
-        st.write("Geselecteerde rijen (debug informatie):", selected)
+    if 'selected_rows' not in locals() or selected_rows is None or not isinstance(selected, list):
+        selected_rows = []
+        st.write("Geselecteerde rijen (debug informatie):", selected_rows)
     
-    # Controleer of 'selected' een geldige lijst is en converteer naar integers indien nodig
-    if isinstance(selected, list) and len(selected) > 0:
+    # Controleer of 'selected_rows' een geldige lijst is en converteer naar integers indien nodig
+    if isinstance(selected_rows, list) and len(selected_rows) > 0:
         
-        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
         st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
     else:
         st.warning("Selecteer eerst rijen om te verwijderen.")
