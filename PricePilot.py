@@ -249,6 +249,8 @@ st.write("Debug - Type selected_rows:", type(selected_rows))
 st.write("Debug - Inhoud edited_df_response:", edited_df_response)
 st.write("Debug - Eigenschappen van edited_df_response:", dir(edited_df_response))
 st.write("Debug - Inhoud edited_df_response.data:", edited_df_response.data if hasattr(edited_df_response, 'data') else 'Geen data beschikbaar')
+st.write("Debug - Geselecteerde rijen uit AgGrid (selected_rows, selected_data, selected_rows_id):", selected_rows)
+st.write("Debug - Inhoud selected_rows:", selected_rows)  # Voeg extra debugging toe
 st.write("Debug - Geselecteerde rijen:", selected_rows)
 
 # Als er rijen zijn geselecteerd, zet deze in de sessie state
@@ -258,10 +260,11 @@ else:
     st.session_state.selected_rows = []
 
 
+
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
         # Verwijder de geselecteerde rijen en reset de index
-        df = df.drop(index=selected_rows_id, errors='ignore').reset_index(drop=True)
+        df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
     return df
 
 
@@ -278,17 +281,17 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        if 'selected_rows' not in locals() or selected_rows is None or not isinstance(selected_rows, list):
-            selected_rows = []
+        selected = st.session_state.get('selected_rows', [])
+        if selected is None or not isinstance(selected, list):
+            selected = []
+        st.write("Geselecteerde rijen (debug informatie):", selected)
         
-    if 'selected_rows' not in locals() or selected_rows is None or not isinstance(selected_rows, list):
-        selected_rows = []
-        st.write("Geselecteerde rijen (debug informatie):", selected_rows)
     
-    # Controleer of 'selected_rows' een geldige lijst is en converteer naar integers indien nodig
-    if isinstance(selected_rows, list) and len(selected_rows) > 0:
+    
+    # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
+    if isinstance(selected, list) and len(selected) > 0:
         
-        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
+        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
         st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
     else:
         st.warning("Selecteer eerst rijen om te verwijderen.")
