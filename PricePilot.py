@@ -231,10 +231,10 @@ edited_df_response = AgGrid(
     enable_enterprise_modules=True,
     update_mode='MANUAL',
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-    data_return_mode=DataReturnMode.AS_INPUT,
+    data_return_mode=DataReturnMode.FILTERED,
+    allow_unsafe_jscode=True  # Sta het gebruik van onveilige JsCode toe om de selectie juist te maken
 )
 
-    
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
 with col1:
@@ -266,6 +266,7 @@ with col2:
                 st.error(f"Een fout is opgetreden bij het verwerken van de geselecteerde rijen: {e}")
         else:
             st.warning("Er zijn geen rijen geselecteerd.")
+
 
 
 # Functie om getallen van 1 tot 100 te herkennen
