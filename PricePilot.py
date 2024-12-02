@@ -282,7 +282,7 @@ with col2:
         selected = edited_df_response.get('selected_rows', [])
         if len(selected) > 0:
             # Controleer dat 'selected' een lijst is van rijnummers en haal deze op als indexen
-            selected_indices = [int(r['Rijnummer']) for r in selected if 'Rijnummer' in r]
+            selected_indices = [int(r.get('Rijnummer', -1)) for r in selected if isinstance(r, dict) and 'Rijnummer' in r]
 
             st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
@@ -295,6 +295,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
