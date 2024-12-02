@@ -241,9 +241,6 @@ if isinstance(selected_rows, list) and len(selected_rows) > 0:
 else:
     st.session_state.selected_rows = []
 
-
-    
-
 # Debugging om te controleren welke gegevens er in selected_rows zitten
 st.write("Debug - Type selected_rows:", type(selected_rows))
 st.write("Debug - Inhoud edited_df_response:", edited_df_response)
@@ -281,21 +278,23 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        # Haal de geselecteerde rijen op uit de sessie
+        # Haal de geselecteerde rijen op in de juiste vorm
         selected = edited_df_response.get('selected_rows', [])
-        
-        st.write("Geselecteerde rijen (debug informatie):", selected)
+        if selected:
+            # Controleer dat 'selected' een lijst is van rijnummers en haal deze op als indexen
+            selected_indices = [int(r['Rijnummer']) for r in selected if 'Rijnummer' in r]
 
-        # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
-        if len(selected) > 0:
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
-        else:
-            st.warning("Selecteer eerst rijen om te verwijderen.")
+            st.write("Geselecteerde rijen (debug informatie):", selected_indices)
+
+            # Controleer of 'selected_indices' een geldige lijst is en voer verwijderactie uit
+            if len(selected_indices) > 0:
+                st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
+                st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+            else:
+                st.warning("Selecteer eerst rijen om te verwijderen.")
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
-
 
 
 
