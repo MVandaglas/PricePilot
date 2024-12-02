@@ -1,4 +1,4 @@
-    data_return_mode=DataReturnMode.FILTERED,import streamlit as st
+import streamlit as st
 st.set_page_config(layout="wide")
 from streamlit_option_menu import option_menu
 import os
