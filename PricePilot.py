@@ -285,18 +285,12 @@ with col2:
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
         st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
 
-        selected_indices = []
-        for r in selected:
-            if isinstance(r, dict):
-                if 'Rijnummer' in r:  # Controleer op een bestaande, unieke kolom zoals Rijnummer
-                    try:
-                        # Converteer naar integer en voeg toe aan lijst met te verwijderen indices
-                        selected_indices.append(int(r['Rijnummer']) - 1)  # Houd rekening met het feit dat indexen vaak bij 0 beginnen
-                    except ValueError:
-                        st.write(f"Waarschuwing: Kan 'Rijnummer' niet converteren naar integer: {r['Rijnummer']}")
-                else:
-                    # Voeg een debug statement toe om te kijken welke sleutels beschikbaar zijn
-                    st.write("Beschikbare sleutels in geselecteerde rij:", r.keys())
+        # Converteer de rijnummers direct naar integers, aangezien ze als strings worden weergegeven
+        try:
+            selected_indices = [int(r) for r in selected]
+        except ValueError as e:
+            st.write("Fout bij het converteren van geselecteerde rijen naar indices:", e)
+            selected_indices = []
 
         st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
@@ -309,6 +303,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
