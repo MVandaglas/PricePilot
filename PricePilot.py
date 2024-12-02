@@ -282,7 +282,7 @@ with col2:
         if 'selected_rows' not in locals() or selected_rows is None or not isinstance(selected_rows, list):
             selected_rows = []
         
-    if 'selected_rows' not in locals() or selected_rows is None or not isinstance(selected, list):
+    if 'selected_rows' not in locals() or selected_rows is None or not isinstance(selected_rows, list):
         selected_rows = []
         st.write("Geselecteerde rijen (debug informatie):", selected_rows)
     
