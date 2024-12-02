@@ -211,19 +211,17 @@ with col1:
         # Voeg een lege rij toe aan het DataFrame
         new_row = pd.DataFrame({
             "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Breedte": [0], "Hoogte": [0],
-            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0]
+            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0]
         })
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
 
 with col2:
-    if st.button("Verwijder geselecteerde rij(en)"):
-        # Controleer of er geselecteerde rijen zijn voordat je de verwijderactie uitvoert
-        if st.session_state.selected_rows:
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, st.session_state.selected_rows)
-            # Reset geselecteerde rijen na verwijdering
-            st.session_state.selected_rows = []
-        else:
-            st.warning("Selecteer eerst rijen om te verwijderen.")
+    if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
+        selected = edited_df_response['selected_rows'] if edited_df_response['selected_rows'] is not None else []
+        st.write("Geselecteerde rijen (debug informatie):", selected)
+        if selected is not None and len(selected) > 0:
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+        st.session_state['trigger_update'] = True
 
 
 # Functie om getallen van 1 tot 100 te herkennen
