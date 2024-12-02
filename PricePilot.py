@@ -278,22 +278,25 @@ with col2:
         
         # Debugging: Controleer de inhoud van 'selected'
         st.write("Debug - Geselecteerde rijen (origineel):", selected)
-        st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
+        st.write("Debug - Volledige structuur van geselecteerde rijen:")
+
+        # Doorloop elke geselecteerde rij en toon de structuur
+        for r in selected:
+            st.write("Type van geselecteerde rij:", type(r))
+            st.write("Inhoud van geselecteerde rij:", r)
 
         selected_indices = []
+        # Kijk of 'r' eigenlijk een dictionary is, zodat we een specifieke sleutel kunnen gebruiken
         for r in selected:
-            # Controleer of 'r' een dictionary is en of we een specifiek veld kunnen gebruiken als index
             if isinstance(r, dict):
-                st.write("Debug - Beschikbare sleutels in geselecteerde rij:", r.keys())
-                # Probeer een specifiek veld te gebruiken, bijvoorbeeld een veld dat de rij index of een unieke waarde aangeeft
                 if 'Rijnummer' in r and r['Rijnummer'].isdigit():
                     try:
-                        # Als 'Rijnummer' een string is die een nummer bevat, converteer deze naar een integer
-                        selected_indices.append(int(r['Rijnummer']) - 1)  # Trek 1 af omdat de index waarschijnlijk bij 0 begint
-                    except ValueError:
-                        st.write(f"Fout bij het converteren van 'Rijnummer' naar een integer: {r['Rijnummer']}")
+                        # Probeer 'Rijnummer' te converteren naar een integer
+                        selected_indices.append(int(r['Rijnummer']) - 1)
+                    except ValueError as e:
+                        st.write(f"Fout bij het converteren van 'Rijnummer' naar integer: {e}")
             else:
-                st.write("Waarschuwing: 'r' is geen dictionary, maar:", type(r), r)
+                st.write("Waarschuwing: 'r' is geen dictionary, maar een:", type(r))
 
         st.write("Geselecteerde indices voor verwijdering (debug informatie):", selected_indices)
 
