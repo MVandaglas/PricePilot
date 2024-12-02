@@ -254,12 +254,12 @@ else:
 
 
 
-def delete_selected_rows(df, selected):
+def delete_selected_rows(edited_df_response, selected):
     if selected is not None and len(selected) > 0:
         # Zorg dat de geselecteerde rijen als integers worden doorgegeven
         selected = [int(idx) for idx in selected]
         # Verwijder de geselecteerde rijen en reset de index
-        df = df.drop(index=st.session_state.selected, errors='ignore').reset_index(drop=True)
+        df = edited_df_response.drop(index=st.session_state.selected, errors='ignore').reset_index(drop=True)
     return df
 
 
