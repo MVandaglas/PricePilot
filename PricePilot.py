@@ -249,8 +249,6 @@ st.write("Debug - Type selected_rows:", type(selected_rows))
 st.write("Debug - Inhoud edited_df_response:", edited_df_response)
 st.write("Debug - Eigenschappen van edited_df_response:", dir(edited_df_response))
 st.write("Debug - Inhoud edited_df_response.data:", edited_df_response.data if hasattr(edited_df_response, 'data') else 'Geen data beschikbaar')
-st.write("Debug - Geselecteerde rijen uit AgGrid (selected_rows, selected_data, selected_rows_id):", selected_rows)
-st.write("Debug - Inhoud selected_rows:", selected_rows)  # Voeg extra debugging toe
 st.write("Debug - Geselecteerde rijen:", selected_rows)
 
 # Als er rijen zijn geselecteerd, zet deze in de sessie state
@@ -264,7 +262,7 @@ else:
 def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
         # Verwijder de geselecteerde rijen en reset de index
-        df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
+        df = df.drop(index=selected_rows_id, errors='ignore').reset_index(drop=True)
     return df
 
 
