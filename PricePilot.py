@@ -219,7 +219,7 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode='SELECTION_CHANGED',
+    update_mode='MODEL_CHANGED',
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
     data_return_mode=DataReturnMode.AS_INPUT,
 )
