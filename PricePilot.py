@@ -226,7 +226,7 @@ edited_df_response = AgGrid(
 
 
 # Sla de geselecteerde rijen op in sessie status
-selected_rows = response.get('selected_rows', [])  # Zorg ervoor dat we altijd een lege lijst hebben
+selected_rows = edited_df_response.get('selected_rows', [])  # Zorg ervoor dat we altijd een lege lijst hebben
 if not isinstance(selected_rows, list):
     selected_rows = []  # Als selected_rows geen lijst is, zet deze dan naar een lege lijst
 
