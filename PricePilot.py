@@ -259,8 +259,10 @@ def delete_selected_rows(edited_df_response, selected):
         # Zorg dat de geselecteerde rijen als integers worden doorgegeven
         selected = [int(idx) for idx in selected]
         # Verwijder de geselecteerde rijen en reset de index
-        new_df = edited_df_response.drop(index=st.session_state.selected, errors='ignore').reset_index(drop=True)
-    return new_df
+        new_df = edited_df_response.drop(index=selected, errors='ignore').reset_index(drop=True)
+        return new_df
+    else:
+        return edited_df_response
 
 
 # Knoppen toevoegen aan de GUI
@@ -294,7 +296,7 @@ with col2:
             st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
             # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
-            if len(selected) > 0:
+            if len(selected_indices) > 0:
                 st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
                 st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             else:
@@ -302,6 +304,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
