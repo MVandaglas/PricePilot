@@ -263,7 +263,9 @@ with col1:
             "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Breedte": [0], "Hoogte": [0],
             "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0]
         })
+        new_row.insert(0, 'Rijnummer', new_row.index + 1)  # Voeg regelnummers toe als indices +1
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
+
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
@@ -459,7 +461,7 @@ def handle_gpt_chat():
             new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs"])
             
             # Voeg regelnummers toe
-            new_df.insert(0, 'Rijnummer', range(len(st.session_state.offer_df) + 1, len(st.session_state.offer_df) + len(new_df) + 1))
+            new_df.insert(0, 'Rijnummer', new_df.index + 1)
 
             # Update de sessie state met de nieuwe gegevens
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
