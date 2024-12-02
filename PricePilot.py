@@ -204,9 +204,9 @@ def delete_selected_rows(df, selected_rows):
     return df
 
 # Sla de geselecteerde rijen op in sessie status
-if 'selected_rows' in st.session_state.offer_df and st.session_state.offer_df['selected_rows'] is not None:
-    selected_rows = st.session_state.offer_df.get('selected_rows', [])
-if selected_rows:
+if 'selected_rows' in st.session_state.offer_df and st.session_state.offer_df[st.session_state.selected_rows] is not None:
+    selected_rows = st.session_state.offer_df.get(st.session_state.selected_rows, [])
+if st.session_state.selected_rows:
     st.session_state.selected_rows = [r['_selectedRowNodeInfo']['nodeRowIndex'] for r in selected_rows if '_selectedRowNodeInfo' in r]
 else:
     st.session_state.selected_rows = []
