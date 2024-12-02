@@ -275,11 +275,11 @@ with col1:
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
-        selected = edited_df_response.get('selected_rows', [])  # Zorg dat 'selected' goed wordt geïnitialiseerd
+        selected = st.session_state.get('selected_rows', [])  # Zorg dat 'selected' goed wordt geïnitialiseerd
         st.write("Geselecteerde rijen (debug informatie):", selected)
     
     # Controleer of 'selected' een geldige lijst is en converteer naar integers indien nodig
-    if isinstance(selected, list) and len(selected) > 0:
+    if 'selected' in locals() and isinstance(selected, list) and len(selected) > 0:
         selected = [int(r['_selectedRowNodeInfo']['nodeRowIndex']) for r in selected if '_selectedRowNodeInfo' in r]
         st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
         st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
