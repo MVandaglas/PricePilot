@@ -288,7 +288,7 @@ with col2:
 
         # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
         if selected:
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_rows)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
