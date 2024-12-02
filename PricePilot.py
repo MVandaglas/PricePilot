@@ -293,8 +293,8 @@ with col2:
 
             st.write("Geselecteerde rijen (debug informatie):", selected_indices)
 
-            # Controleer of 'selected_indices' een geldige lijst is en voer verwijderactie uit
-            if len(selected_indices) > 0:
+            # Controleer of 'selected' een geldige lijst is en voer verwijderactie uit
+            if len(selected) > 0:
                 st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
                 st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             else:
