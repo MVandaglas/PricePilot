@@ -203,7 +203,7 @@ def update_offer_data(df):
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
         if pd.notna(row['Artikelnummer']):
-            df.at[index, 'Spacer'] = determine_spacer(row['Samenstelling'])
+            df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
     return df
 
 # Functie om de RSP voor alle regels te updaten
