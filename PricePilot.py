@@ -176,7 +176,7 @@ def calculate_m2_per_piece(width, height):
 
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
 def determine_spacer(customer_input):
-    if term and isinstance(customer_input, str):
+    if customer_input and isinstance(customer_input, str):
         parts = customer_input.split("-")
         if len(parts) >= 2:
             try:
