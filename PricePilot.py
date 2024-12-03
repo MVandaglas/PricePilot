@@ -473,6 +473,8 @@ def handle_gpt_chat():
                     article_number = synonym_dict.get(article_number, article_number)
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
+                        # Bepaal de spacer waarde
+                        spacer = determine_spacer(line)
                         # Rest van de bestaande verwerking voor als er geen specifieke m2 is
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
@@ -527,7 +529,6 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-    
 
 
 
