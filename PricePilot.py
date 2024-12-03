@@ -676,9 +676,9 @@ with col6:
         st.button("Download offerte als PDF", key='download_pdf_button', disabled=True)
         st.button("Autoriseer offerte", key='authorize_offer_button')
     else:
-    if st.button("Download offerte als PDF", key='download_pdf_button'):
-        pdf_buffer = generate_pdf(st.session_state.offer_df)
-        st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
+        if st.button("Download offerte als PDF", key='download_pdf_button'):
+            pdf_buffer = generate_pdf(st.session_state.offer_df)
+            st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
 
     if st.button("Sla offerte op", key='save_offerte_button'):
         # Zoek het hoogste offertenummer
