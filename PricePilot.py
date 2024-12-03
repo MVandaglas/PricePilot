@@ -442,7 +442,7 @@ def handle_gpt_chat():
         data = []
         for line in lines:
             # Nieuwe regex voor herkenning van patronen zoals "400m2 van 4-4" of "4-4 400m2"
-            m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+-\d+)|(\d+-\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
+            m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
             if m2_match:
                 # Afhankelijk van de volgorde in de match, haal het artikelnummer en m2 op
                 if m2_match.group(1):
