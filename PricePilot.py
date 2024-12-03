@@ -175,36 +175,24 @@ def calculate_m2_per_piece(width, height):
     return None
 
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
-def determine_spacer(composition_text):
-    if composition_text and isinstance(composition_text, str):
-        parts = composition_text.split("-")
-        if len(parts) == 3:
+def determine_spacer(input_text):
+    if input_text and isinstance(input_text, str):
+        parts = input_text.split("-")
+        if len(parts) >= 2:
             try:
-                values = [int(part) for part in parts]
-                spacer_value = values[1]
-                if 3 < spacer_value < 30:
-                    if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
-                        return f"{spacer_value} - warm edge"
-                    else:
-                        return f"{spacer_value} - alu"
+                values = [int(part) for part in parts if part.isdigit()]
+                if len(values) > 1:
+                    spacer_value = values[1]
+                    if 3 < spacer_value < 30:
+                        if any(term in input_text.lower() for term in ["we", "warmedge", "warm edge"]):
+                            return f"{spacer_value} - warm edge"
+                        else:
+                            return f"{spacer_value} - alu"
             except ValueError:
-                pass
-        elif len(parts) == 2:
-            try:
-                spacer_value = int(parts[1])
-                if 3 < spacer_value < 30:
-                    if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
-                        return f"{spacer_value} - warm edge"
-                    else:
-                        return f"{spacer_value} - alu"
-            except (IndexError, ValueError):
                 pass
     return "15 - alu"
 
-# Test de functie
-composition_text = "4-16-4"
-spacer = determine_spacer(composition_text)
-print(f"Determined spacer: {spacer}")
+
 
 
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
