@@ -175,26 +175,24 @@ def calculate_m2_per_piece(width, height):
     return None
 
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
-def determine_spacer(input_text, row_index, data):
-    if input_text and isinstance(input_text, str):
-        parts = input_text.split("-")
-        if len(parts) >= 3:
+def determine_spacer(term):
+    if term and isinstance(term, str):
+        parts = term.split("-")
+        if len(parts) >= 2:
             try:
-                values = [int(part) for part in parts if part.isdigit() and 3 < int(part) < 30]
-                if len(values) >= 2:
+                values = [int(part) for part in parts if part.isdigit()]
+                if len(values) > 1:
                     spacer_value = values[1]
                     if 3 < spacer_value < 30:
-                        if any(keyword in input_text.lower() for keyword in ["we", "warmedge", "warm edge"]):
-                            data[row_index]['spacer'] = f"{spacer_value} - warm edge"
+                        if any(term in term.lower() for term in ["we", "warmedge", "warm edge"]):
+                            return f"{spacer_value} - warm edge"
                         else:
-                            data[row_index]['spacer'] = f"{spacer_value} - alu"
-                        return
+                            return f"{spacer_value} - alu"
             except ValueError:
                 pass
+    return "15 - alu"
 
-    # Default waarde indien de condities niet worden voldaan
-    if row_index < len(data):
-        data[row_index]['spacer'] = f"{values[0]} - alu (rij {row_index})" if values else f"15 - alu (rij {row_index})"
+
 
 
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
@@ -210,7 +208,7 @@ def update_offer_data(df):
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
         if pd.notna(row['Artikelnummer']):
-            determine_spacer(row['Spacer'], index, df)  # Pas de juiste parameters toe
+            df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
     return df
 
 # Functie om de RSP voor alle regels te updaten
@@ -483,8 +481,7 @@ def handle_gpt_chat():
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         # Bepaal de spacer waarde
-                        if len(data) > 0:
-                            determine_spacer(line, len(data) - 1, data)
+                        spacer = determine_spacer(line)
                         # Rest van de bestaande verwerking voor als er geen specifieke m2 is
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
@@ -494,7 +491,7 @@ def handle_gpt_chat():
                             None,  # Placeholder voor Offertenummer
                             description,
                             article_number,
-                            data[-1]['spacer'] if data else None,  # Spacer bepaald door determine_spacer
+                            spacer,
                             width,
                             height,
                             quantity,
