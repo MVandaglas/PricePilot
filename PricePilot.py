@@ -173,6 +173,22 @@ def calculate_m2_per_piece(width, height):
         return m2
     return None
 
+# Functie om spacer waarde te bepalen uit samenstellingstekst
+def determine_spacer(composition_text):
+    if composition_text.count("-") == 2:
+        parts = composition_text.split("-")
+        try:
+            values = [int(part) for part in parts]
+            if all(3 < value < 30 for value in values):
+                spacer_value = values[1]
+                if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
+                    return f"{spacer_value}-warm edge"
+                else:
+                    return f"{spacer_value}-alu"
+        except ValueError:
+            pass
+    return "15-alu"
+
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
     for index, row in df.iterrows():
@@ -185,6 +201,8 @@ def update_offer_data(df):
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
+        if pd.notna(row['Samenstelling']):
+            df.at[index, 'Spacer'] = determine_spacer(row['Samenstelling'])
     return df
 
 # Functie om de RSP voor alle regels te updaten
@@ -218,6 +236,7 @@ gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
+
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
 gb.configure_selection(
