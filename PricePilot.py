@@ -185,10 +185,10 @@ def determine_spacer(composition_text):
                 if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
                     return f"{spacer_value}-warm edge"
                 else:
-                    return f"{spacer_value}-alu"
+                    return f"{spacer_value} - alu"
         except ValueError:
             pass
-    return "15-alu"
+    return "15 - alu"
 
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
