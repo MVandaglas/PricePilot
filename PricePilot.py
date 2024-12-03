@@ -138,6 +138,9 @@ if customer_number in customer_data:
             prijsscherpte = 10
     st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
+# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
+if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
+    st.title("Offerteoverzicht")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
@@ -685,9 +688,7 @@ if selected_tab == "Offerte Genereren":
 
 
 
-# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
-if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
-    st.title("Offerteoverzicht")
+
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
