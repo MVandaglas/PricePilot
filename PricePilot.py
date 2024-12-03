@@ -264,20 +264,20 @@ def delete_selected_rows(df, selected):
 # Knoppen toevoegen aan de GUI
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
-    if st.button("Voeg rij toe", key='add_row_button', help="Rode knop om een rij toe te voegen", style="color: white; background-color: #007bff;"):
+    if st.button("Voeg rij toe", key='add_row_button', help="Rode knop om een rij toe te voegen", style="color: white; background-color: #ff0000;"):
         # Voeg een lege rij toe aan het DataFrame
         new_row = pd.DataFrame({
             "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Breedte": [0], "Hoogte": [0],
-            "Aantal": [0], "RSP": [""], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [""], "Max_prijs": [""]
+            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0]
         })
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
         # Vernieuw de AgGrid
-        st.rerun()
+        st.experimental_rerun()
 
 with col2:
-    if st.button("Verwijder rijen", key='delete_rows_button', help="Blauwe knop om rijen te verwijderen", style="color: white; background-color: #ff0000;"): 
+    if st.button("Verwijder rijen", key='delete_rows_button', help="Blauwe knop om rijen te verwijderen", style="color: white; background-color: #007bff;"):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
         # Verwijder rijen op basis van index
@@ -289,7 +289,7 @@ with col2:
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
             
             # Vernieuw de AgGrid
-            st.rerun()
+            st.experimental_rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
