@@ -202,7 +202,7 @@ def update_offer_data(df):
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
-        if pd.notna(row['Samenstelling']):
+        if pd.notna(row['Artikelnummer']):
             df.at[index, 'Spacer'] = determine_spacer(row['Samenstelling'])
     return df
 
