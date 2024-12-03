@@ -193,7 +193,8 @@ def determine_spacer(input_text, row_index, data):
                 pass
 
     # Default waarde indien de condities niet worden voldaan
-    data[row_index]['spacer'] = f"{values[0]} - alu (rij {row_index})" if values else f"15 - alu (rij {row_index})"
+     if row_index < len(data):
+        data[row_index]['spacer'] = f"{values[0]} - alu (rij {row_index})" if values else f"15 - alu (rij {row_index})"
 
 
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
@@ -482,7 +483,8 @@ def handle_gpt_chat():
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         # Bepaal de spacer waarde
-                        determine_spacer(line, len(data), data)
+                        if len(data) > 0:
+                            determine_spacer(line, len(data) - 1, data)
                         # Rest van de bestaande verwerking voor als er geen specifieke m2 is
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
