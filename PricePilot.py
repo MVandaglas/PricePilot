@@ -138,6 +138,9 @@ if customer_number in customer_data:
             prijsscherpte = 10
     st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
+Het lijkt erop dat er een kleine fout in je code zit. De foutmelding "name 'spacer' is not defined" komt waarschijnlijk doordat de variabele `spacer` niet correct is gedefinieerd of doorgegeven. Hier is een aangepaste versie van je code met enkele correcties:
+
+```python
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
     for term, synonym in synonyms.items():
@@ -147,7 +150,7 @@ def replace_synonyms(input_text, synonyms):
 # Functie om artikelgegevens te vinden
 def find_article_details(article_number):
     filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
-    if not filtered_articles.empty:
+    if not filtered_articles.empty: 
         return filtered_articles.iloc[0]['Description'], filtered_articles.iloc[0]['Min_prijs'], filtered_articles.iloc[0]['Max_prijs']
     return None, None, None
 
@@ -197,7 +200,7 @@ def update_offer_data(df):
         if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
-            description, min_price, max_price = find_article_details(str(row['Artikelnummer']).strip())
+            description, min_price, max_price = find_article_details(row['Artikelnummer'])
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
@@ -214,7 +217,6 @@ def update_rsp_for_all_rows(df, prijsscherpte):
             if pd.notna(min_price) and pd.notna(max_price):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
     return df
-
 
 def reset_rijnummers(df):
     # Maak alle rijnummers leeg door de kolom te resetten naar None of NaN
