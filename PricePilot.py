@@ -475,7 +475,7 @@ def handle_gpt_chat():
             st.session_state["trigger_update"] = True
 
             # Vernieuw de AgGrid
-            st.experimental_rerun()
+            st.rerun()
 
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
