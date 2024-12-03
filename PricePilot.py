@@ -262,7 +262,7 @@ def delete_selected_rows(df, selected):
 
 
 # Knoppen toevoegen aan de GUI
-col1, col2 = st.columns(2)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
     if st.button("Voeg een rij toe"):
         # Voeg een lege rij toe aan het DataFrame
@@ -276,7 +276,7 @@ with col1:
         # Vernieuw de AgGrid
         st.rerun()
 
-with col1:
+with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
