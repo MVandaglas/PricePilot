@@ -138,9 +138,7 @@ if customer_number in customer_data:
             prijsscherpte = 10
     st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
-Het lijkt erop dat er een kleine fout in je code zit. De foutmelding "name 'spacer' is not defined" komt waarschijnlijk doordat de variabele `spacer` niet correct is gedefinieerd of doorgegeven. Hier is een aangepaste versie van je code met enkele correcties:
 
-```python
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
     for term, synonym in synonyms.items():
