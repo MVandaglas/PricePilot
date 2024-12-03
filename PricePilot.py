@@ -486,6 +486,9 @@ def handle_gpt_chat():
             # Trigger update via een verborgen knop of simulatie
             st.session_state["trigger_update"] = True
 
+            # Reset de Rijnummer-kolom na verwijderen
+            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+
             # Vernieuw de AgGrid
             st.rerun()
 
