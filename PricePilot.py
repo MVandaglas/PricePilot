@@ -261,22 +261,9 @@ def delete_selected_rows(df, selected):
 
 
 
-# Knoppen toevoegen aan de GUI
+Knoppen toevoegen aan de GUI
 col1, col2, col3, col4, col5, col6 = st.columns(6)
-
-# Rode knop voor "Voeg rij toe"
 with col1:
-    st.markdown(
-        """
-        <style>
-        div.stButton > button:first-child {
-            background-color: #ff0000;
-            color: white;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
     if st.button("Voeg rij toe"):
         # Voeg een lege rij toe aan het DataFrame
         new_row = pd.DataFrame({
@@ -287,34 +274,22 @@ with col1:
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
         # Vernieuw de AgGrid
-        st.experimental_rerun()
+        st.rerun()
 
-# Blauwe knop voor "Verwijder rijen"
 with col2:
-    st.markdown(
-        """
-        <style>
-        div.stButton > button:first-child {
-            background-color: #007bff;
-            color: white;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
     if st.button("Verwijder rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
         # Verwijder rijen op basis van index
         if len(selected) > 0:
-            # Verwijder de rijen uit het DataFrame op basis van de geselecteerde indices
+            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
             
             # Vernieuw de AgGrid
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
