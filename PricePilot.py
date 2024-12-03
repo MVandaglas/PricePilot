@@ -176,7 +176,7 @@ def calculate_m2_per_piece(width, height):
 
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
 def determine_spacer(composition_text):
-    if composition_text.count("-") == 2:
+    if composition_text and isinstance(composition_text, str) and composition_text.count("-") == 2:
         parts = composition_text.split("-")
         try:
             values = [int(part) for part in parts]
@@ -188,7 +188,7 @@ def determine_spacer(composition_text):
                     return f"{spacer_value} - alu"
         except ValueError:
             pass
-    elif composition_text.count("-") == 1:
+    elif composition_text and isinstance(composition_text, str) and composition_text.count("-") == 1:
         # Handle the case where only two parts are given
         try:
             parts = composition_text.split("-")
