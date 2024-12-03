@@ -242,10 +242,6 @@ selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.ge
 if selected_rows is None or not isinstance(selected_rows, list):
     selected_rows = []
 
-# Debugging om te controleren welke gegevens er in selected_rows zitten
-st.write("Debug - Inhoud edited_df_response.data:", edited_df_response.data if hasattr(edited_df_response, 'data') else 'Geen data beschikbaar')
-st.write("Debug - Geselecteerde rijen uit AgGrid (selected_rows, selected_data, selected_rows_id):", selected_rows)
-
 # Als er rijen zijn geselecteerd, zet deze in de sessie state
 if isinstance(selected_rows, list) and len(selected_rows) > 0:
     try:
