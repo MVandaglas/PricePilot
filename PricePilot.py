@@ -205,42 +205,26 @@ def reset_rijnummers(df):
     df['Rijnummer'] = df.index + 1
     return df
 
-# Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
+# Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
 gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
 gb.configure_column("Offertenummer", hide=True)
-gb.configure_column("Min_prijs", hide=True)
-gb.configure_column("Max_prijs", hide=True)
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
-gb.configure_selection(use_checkbox=True, selection_mode='multiple')
 
-# Voeg een checkbox toe aan de header om alle rijen te selecteren
-select_all_js = JsCode("""
-    function(params) {
-        let e = document.createElement('input');
-        e.setAttribute('type', 'checkbox');
-        e.onclick = function(event) {
-            if (event.target.checked) {
-                params.api.selectAll();
-            } else {
-                params.api.deselectAll();
-            }
-        };
-        return e;
-    }
-""")
-gb.configure_column(
-    "select_all",
-    headerCheckboxSelection=True,
-    headerCheckboxSelectionFilteredOnly=True
+# Configuratie voor selectie, inclusief checkbox in de header voor "select all"
+gb.configure_selection(
+    selection_mode='multiple',
+    use_checkbox=True,
+    header_checkbox=True  # Voeg een selectievakje in de header toe
 )
 
-gb.configure_grid_options(domLayout='normal', rowHeight=24)  # Dit zorgt ervoor dat scrollen mogelijk is
+# Overige configuratie van de grid
+gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
 grid_options = gb.build()
 
@@ -251,7 +235,7 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.SELECTION_CHANGED,
+    update_mode=GridUpdateMode.SELECTION_CHANGED | GridUpdateMode.VALUE_CHANGED,
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
