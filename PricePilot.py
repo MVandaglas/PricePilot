@@ -237,7 +237,6 @@ gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
 
-
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
 gb.configure_selection(
     selection_mode='multiple',
