@@ -197,7 +197,7 @@ def update_offer_data(df):
         if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
-            description, min_price, max_price = find_article_details(row['Artikelnummer'])
+            description, min_price, max_price = find_article_details(str(row['Artikelnummer']).strip())
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
