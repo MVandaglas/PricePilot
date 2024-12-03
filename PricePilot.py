@@ -474,12 +474,16 @@ def handle_gpt_chat():
             # Trigger update via een verborgen knop of simulatie
             st.session_state["trigger_update"] = True
 
+            # Vernieuw de AgGrid
+            st.experimental_rerun()
+
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+    
 
 
 
@@ -626,8 +630,7 @@ if selected_tab == "Offerte Genereren":
        handle_gpt_chat()
     except Exception as e:
         st.sidebar.error(f"Er is een fout opgetreden: {e}")
-        # Vernieuw de AgGrid
-        st.experimental_rerun()
+
 
 
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
