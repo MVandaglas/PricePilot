@@ -209,7 +209,7 @@ def update_offer_data(df):
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
         if pd.notna(row['Artikelnummer']):
-            df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
+            determine_spacer(row['Spacer'], index, df)  # Pas de juiste parameters toe
     return df
 
 # Functie om de RSP voor alle regels te updaten
@@ -482,7 +482,7 @@ def handle_gpt_chat():
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         # Bepaal de spacer waarde
-                        spacer = determine_spacer(line)
+                        determine_spacer(line, len(data), data)
                         # Rest van de bestaande verwerking voor als er geen specifieke m2 is
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
@@ -492,7 +492,7 @@ def handle_gpt_chat():
                             None,  # Placeholder voor Offertenummer
                             description,
                             article_number,
-                            spacer,
+                            data[-1]['spacer'] if data else None,  # Spacer bepaald door determine_spacer
                             width,
                             height,
                             quantity,
