@@ -276,7 +276,7 @@ with col1:
         # Vernieuw de AgGrid
         st.rerun()
 
-with col2:
+with col1:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
