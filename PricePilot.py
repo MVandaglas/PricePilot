@@ -182,12 +182,23 @@ def determine_spacer(composition_text):
             try:
                 values = [int(part) for part in parts]
                 spacer_value = values[1]
-                if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
-                    return f"{spacer_value} - warm edge"
-                else:
-                    return f"{spacer_value} - alu"
+                if 3 < spacer_value < 30:
+                    if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
+                        return f"{spacer_value} - warm edge"
+                    else:
+                        return f"{spacer_value} - alu"
             except ValueError:
-                return "ValueError encountered"
+                pass
+        elif len(parts) == 2:
+            try:
+                spacer_value = int(parts[1])
+                if 3 < spacer_value < 30:
+                    if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
+                        return f"{spacer_value} - warm edge"
+                    else:
+                        return f"{spacer_value} - alu"
+            except (IndexError, ValueError):
+                pass
     return "15 - alu"
 
 # Test de functie
