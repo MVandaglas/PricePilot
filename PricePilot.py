@@ -265,6 +265,8 @@ with col1:
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df['Rijnummer'] = st.session_state.offer_df.index + 1
+        # Vernieuw de AgGrid
+        st.rerun()
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
