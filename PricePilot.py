@@ -193,7 +193,7 @@ def determine_spacer(input_text, row_index, data):
                 pass
 
     # Default waarde indien de condities niet worden voldaan
-     if row_index < len(data):
+    if row_index < len(data):
         data[row_index]['spacer'] = f"{values[0]} - alu (rij {row_index})" if values else f"15 - alu (rij {row_index})"
 
 
