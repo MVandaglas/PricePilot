@@ -197,6 +197,14 @@ def update_rsp_for_all_rows(df, prijsscherpte):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
     return df
 
+
+def reset_rijnummers(df):
+    # Maak alle rijnummers leeg door de kolom te resetten naar None of NaN
+    df['Rijnummer'] = None
+    # Ken de nieuwe rijnummers toe door de indexwaarde + 1
+    df['Rijnummer'] = df.index + 1
+    return df
+
 # Maak grid-opties aan voor AgGrid zonder gebruik van JsCode
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
@@ -253,6 +261,8 @@ def delete_selected_rows(df, selected):
     else:
         return df
 
+
+
 # Knoppen toevoegen aan de GUI
 col1, col2 = st.columns(2)
 with col1:
@@ -264,7 +274,7 @@ with col1:
         })
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
-        st.session_state.offer_df['Rijnummer'] = st.session_state.offer_df.index + 1
+        st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
         # Vernieuw de AgGrid
         st.rerun()
 
@@ -272,16 +282,14 @@ with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
-        
-        # Debugging: Controleer de inhoud van 'selected'
-        st.write("Debug - Geselecteerde rijen (origineel):", selected)
-        st.write("Debug - Volledige structuur van geselecteerde rijen:", selected)
-
         # Verwijder rijen op basis van index
         if len(selected) > 0:
             # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+            # Reset de Rijnummer-kolom na verwijderen
+            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            
             # Vernieuw de AgGrid
             st.rerun()
         else:
