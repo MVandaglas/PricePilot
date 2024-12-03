@@ -250,8 +250,8 @@ def delete_selected_rows(df, selected):
         # Verwijder de geselecteerde rijen en reset de index
         new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
         return new_df
-            # Vernieuw de AgGrid
-            st.rerun()
+        # Vernieuw de AgGrid
+        st.rerun()
     else:
         return df
 
