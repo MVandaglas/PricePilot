@@ -174,14 +174,13 @@ def calculate_m2_per_piece(width, height):
         return m2
     return None
 
-# Functie om determine_spacer waarde te bepalen uit samenstellingstekst
 def determine_spacer(composition_text):
     if composition_text and isinstance(composition_text, str) and composition_text.count("-") == 2:
         parts = composition_text.split("-")
         try:
             values = [int(part) for part in parts]
-            if all(3 < value < 30 for value in values):
-                spacer_value = values[1]
+            spacer_value = values[1]  # Gebruik de tweede waarde altijd als spacer
+            if 3 < spacer_value < 30:
                 if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
                     return f"{spacer_value} - warm edge"
                 else:
@@ -200,6 +199,7 @@ def determine_spacer(composition_text):
         else:
             return f"{spacer_value} - alu"
     return "15 - alu"
+
 
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
