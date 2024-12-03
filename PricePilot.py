@@ -435,6 +435,7 @@ def handle_gpt_chat():
                         None,  # Placeholder voor Offertenummer
                         description,
                         article_number,
+                        None,  # Spacer blijft leeg
                         None,  # Breedte blijft leeg
                         None,  # Hoogte blijft leeg
                         None,  # Aantal blijft leeg
@@ -463,6 +464,7 @@ def handle_gpt_chat():
                             None,  # Placeholder voor Offertenummer
                             description,
                             article_number,
+                            spacer,
                             width,
                             height,
                             quantity,
