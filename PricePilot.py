@@ -30,11 +30,11 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
-    st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+    st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
 if "saved_offers" not in st.session_state:
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
 if "selected_rows" not in st.session_state:
@@ -208,6 +208,7 @@ def reset_rijnummers(df):
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
+gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', cellEditorParams={"values": ["4 - alu", "6 - alu", "7 - alu", "8 - alu", "9 - alu", "10 - alu", "12 - alu", "13 - alu", "14 - alu", "15 - alu", "16 - alu", "18 - alu", "20 - alu", "24 - alu", "10 - warm edge", "12 - warm edge", "14 - warm edge", "15 - warm edge", "16 - warm edge", "18 - warm edge", "20 - warm edge", "24 - warm edge"]})
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
 gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
 gb.configure_column("Offertenummer", hide=True)
@@ -275,7 +276,7 @@ with col1:
     if st.button("Voeg rij toe"):
         # Voeg een lege rij toe aan het DataFrame
         new_row = pd.DataFrame({
-            "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Breedte": [0], "Hoogte": [0],
+            "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
             "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0]
         })
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
@@ -336,6 +337,7 @@ def update_dash_table(n_dlt, n_add, data):
         new_row = {
             "Artikelnaam": [""],
             "Artikelnummer": [""],
+            "Spacer": [15-alu],
             "Breedte": [0],
             "Hoogte": [0],
             "Aantal": [0],
@@ -476,7 +478,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
@@ -726,7 +728,7 @@ elif selected_tab == "Opgeslagen Offertes":
                 st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
         if st.button("Vergeet alle offertes", key='forget_offers_button'):
             st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
-            st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+            st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.success("Alle opgeslagen offertes zijn vergeten.")
     else:
         st.warning("Er zijn nog geen offertes opgeslagen.")
@@ -737,7 +739,7 @@ elif selected_tab == "Opgeslagen Offertes":
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
     st.title("Geladen Offerte")
-    required_columns = ["Artikelnaam", "Artikelnummer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"]
+    required_columns = ["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"]
     if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
         st.dataframe(st.session_state.loaded_offer_df[required_columns])
     else:
