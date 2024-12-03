@@ -193,8 +193,6 @@ def determine_spacer(input_text):
     return f"{values[0]} - alu" if values else "15 - alu"
 
 
-
-
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
     for index, row in df.iterrows():
