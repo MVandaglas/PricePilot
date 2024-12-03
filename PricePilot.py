@@ -219,7 +219,7 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.SELECTION_CHANGED | GridUpdateMode.VALUE_CHANGED,
+    update_mode=GridUpdateMode.SELECTION_CHANGED,
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
@@ -254,7 +254,7 @@ def delete_selected_rows(df, selected):
         return df
 
 # Knoppen toevoegen aan de GUI
-col1, col2, col3 = st.columns(3)
+col1, col2 = st.columns(2)
 with col1:
     if st.button("Voeg een rij toe"):
         # Voeg een lege rij toe aan het DataFrame
@@ -265,8 +265,6 @@ with col1:
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df['Rijnummer'] = st.session_state.offer_df.index + 1
-        # Vernieuw de AgGrid
-        st.experimental_rerun()
 
 with col2:
     if st.button("Verwijder geselecteerde rijen", key='delete_rows_button'):
@@ -282,19 +280,13 @@ with col2:
             # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
-            # Vernieuw de AgGrid
-            st.experimental_rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
-with col3:
-    if st.sidebar.button("Verstuur chat met GPT"):
-        try:
-            handle_gpt_chat()
-            # Vernieuw de AgGrid
-            st.experimental_rerun()
-        except Exception as e:
-            st.sidebar.error(f"Er is een fout opgetreden: {e}")
+    # Zorg dat de update wordt getriggerd na verwijdering
+    st.session_state['trigger_update'] = True
+
+
 
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
@@ -318,7 +310,32 @@ def word_to_number(word):
     }
     return mapping.get(word, None)
 
+# Callback functie voor het verwijderen van geselecteerde rijen
+@st.cache_data
+def update_dash_table(n_dlt, n_add, data):
+    if ctx.triggered_id == "add-row-btn":
+        new_row = {
+            "Artikelnaam": [""],
+            "Artikelnummer": [""],
+            "Breedte": [0],
+            "Hoogte": [0],
+            "Aantal": [0],
+            "RSP": [0],
+            "M2 p/s": [0],
+            "M2 totaal": [0],
+            "Min_prijs": [0],
+            "Max_prijs": [0]
+        }
+        df_new_row = pd.DataFrame(new_row)
+        updated_table = pd.concat([pd.DataFrame(data), df_new_row])
+        return False, updated_table.to_dict("records")
+
+    elif ctx.triggered_id == "delete-row-btn":
+        return True, no_update
+
+
 # Rest van de bestaande code blijft intact...
+
   
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
@@ -699,8 +716,3 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.dataframe(st.session_state.loaded_offer_df[required_columns])
     else:
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
-
-
-
-
-
