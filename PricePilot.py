@@ -624,11 +624,10 @@ if selected_tab == "Offerte Genereren":
   if st.sidebar.button("Verstuur chat met GPT"):
     try:
        handle_gpt_chat()
-         # Vernieuw de AgGrid
-        st.experimental_rerun()
     except Exception as e:
         st.sidebar.error(f"Er is een fout opgetreden: {e}")
-
+        # Vernieuw de AgGrid
+        st.experimental_rerun()
 
 
 # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
