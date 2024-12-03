@@ -658,19 +658,19 @@ if 'Rijnummer' not in st.session_state.offer_df.columns:
 
       
 
+with col6:
+    # Voeg een knop toe om de offerte als PDF te downloaden
+        if st.button("Download offerte als PDF", key='download_pdf_button'):
+        pdf_buffer = generate_pdf(st.session_state.offer_df)
+        st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
 
-# Voeg een knop toe om de offerte als PDF te downloaden
-if st.button("Download offerte als PDF", key='download_pdf_button'):
-    pdf_buffer = generate_pdf(st.session_state.offer_df)
-    st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
-
-if st.button("Sla offerte op", key='save_offerte_button'):
-    # Zoek het hoogste offertenummer
-    if not st.session_state.saved_offers.empty:
-        max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
-        offer_number = max_offer_number + 1
-    else:
-        offer_number = 1
+    if st.button("Sla offerte op", key='save_offerte_button'):
+        # Zoek het hoogste offertenummer
+        if not st.session_state.saved_offers.empty:
+            max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
+            offer_number = max_offer_number + 1
+        else:
+            offer_number = 1
 
     # Bereken eindtotaal
     if all(col in edited_df.columns for col in ['RSP', 'M2 totaal']):
