@@ -250,8 +250,6 @@ def delete_selected_rows(df, selected):
         # Verwijder de geselecteerde rijen en reset de index
         new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
         return new_df
-        # Vernieuw de AgGrid
-        st.rerun()
     else:
         return df
 
@@ -282,6 +280,8 @@ with col2:
             # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+            # Vernieuw de AgGrid
+            st.rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
