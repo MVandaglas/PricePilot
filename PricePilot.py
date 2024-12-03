@@ -190,7 +190,11 @@ def determine_spacer(composition_text):
             pass
     elif composition_text.count("-") == 1:
         # Handle the case where only two parts are given
-        spacer_value = 15  # Default to 15
+        try:
+            parts = composition_text.split("-")
+            spacer_value = int(parts[1])  # Use the second value as the spacer
+        except (IndexError, ValueError):
+            spacer_value = 15  # Default to 15 if there is an issue
         if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
             return f"{spacer_value} - warm edge"
         else:
