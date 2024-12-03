@@ -176,32 +176,30 @@ def calculate_m2_per_piece(width, height):
 
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
 def determine_spacer(composition_text):
-    if composition_text and isinstance(composition_text, str) and composition_text.count("-") == 2:
+    if composition_text and isinstance(composition_text, str):
         parts = composition_text.split("-")
-        try:
-            values = [int(part) for part in parts]
-            # We gebruiken hier alleen de middelste waarde als spacer, zonder dat alle waarden aan een range-voorwaarde moeten voldoen
-            spacer_value = values[1]
-            if 3 < spacer_value < 30:
-                if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
-                    return f"{spacer_value} - warm edge"
-                else:
-                    return f"{spacer_value} - alu"
-        except ValueError:
-            pass
-    elif composition_text and isinstance(composition_text, str) and composition_text.count("-") == 1:
-        # Handle the case where only two parts are given
-        try:
-            parts = composition_text.split("-")
-            spacer_value = int(parts[1])  # Use the second value as the spacer
-        except (IndexError, ValueError):
-            spacer_value = 15  # Default to 15 if there is an issue
-        if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
-            return f"{spacer_value} - warm edge"
-        else:
-            return f"{spacer_value} - alu"
+        if len(parts) == 3:
+            try:
+                values = [int(part) for part in parts]
+                spacer_value = values[1]
+                if 3 < spacer_value < 30:
+                    if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
+                        return f"{spacer_value} - warm edge"
+                    else:
+                        return f"{spacer_value} - alu"
+            except ValueError:
+                pass
+        elif len(parts) == 2:
+            try:
+                spacer_value = int(parts[1])
+                if 3 < spacer_value < 30:
+                    if any(term in composition_text.lower() for term in ["we", "warmedge", "warm edge"]):
+                        return f"{spacer_value} - warm edge"
+                    else:
+                        return f"{spacer_value} - alu"
+            except (IndexError, ValueError):
+                pass
     return "15 - alu"
-
 # Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
     for index, row in df.iterrows():
