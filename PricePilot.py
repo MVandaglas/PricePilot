@@ -433,8 +433,8 @@ def extract_all_details(line):
     article_number = article_number_match.group(0) if article_number_match else None
     return quantity, width, height, article_number
 
-# Functie om chatregels van klantinvoer te verwerken en wijzigingen correct toe te passen
-def handle_gpt_chat():
+# Functie om chatregels van klantinvoer te verwerken
+def handle_gpt_chat(customer_input, df):
     if customer_input:
         lines = customer_input.splitlines()
         new_rows = []  # Tijdelijke lijst om nieuwe regels op te slaan
@@ -485,22 +485,18 @@ def handle_gpt_chat():
                     description, min_price, max_price = find_article_details(article_number)
                     if description:
                         # Bepaal de spacer waarde en werk de data direct bij
-                        spacer_value = None
                         if len(new_rows) > 0:
                             determine_spacer(line, len(new_rows) - 1, new_rows)
-                            spacer_value = new_rows[-1]['spacer']
-
                         # Rest van de bestaande verwerking voor als er geen specifieke m2 is
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
                         m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
 
-                        # Voeg een nieuwe regel toe aan new_rows
                         new_rows.append([
                             None,  # Placeholder voor Offertenummer
                             description,
                             article_number,
-                            spacer_value if spacer_value else None,  # Spacer bepaald door determine_spacer
+                            new_rows[-1]['spacer'] if new_rows else None,  # Spacer bepaald door determine_spacer
                             width,
                             height,
                             quantity,
@@ -521,8 +517,8 @@ def handle_gpt_chat():
                 'Offertenummer', 'Beschrijving', 'Artikelnummer', 'Spacer', 'Breedte', 'Hoogte', 
                 'Aantal', 'RSP', 'M2 p/s', 'M2 totaal', 'Min_prijs', 'Max_prijs'
             ])
-            global df
             df = pd.concat([df, new_df], ignore_index=True)
+    return df
 
 
 
