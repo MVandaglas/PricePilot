@@ -263,8 +263,21 @@ def delete_selected_rows(df, selected):
 
 # Knoppen toevoegen aan de GUI
 col1, col2, col3, col4, col5, col6 = st.columns(6)
+
+# Rode knop voor "Voeg rij toe"
 with col1:
-    if st.button("Voeg rij toe", key='add_row_button', help="Rode knop om een rij toe te voegen", style="color: white; background-color: #ff0000;"):
+    st.markdown(
+        """
+        <style>
+        div.stButton > button:first-child {
+            background-color: #ff0000;
+            color: white;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    if st.button("Voeg rij toe"):
         # Voeg een lege rij toe aan het DataFrame
         new_row = pd.DataFrame({
             "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Breedte": [0], "Hoogte": [0],
@@ -276,8 +289,20 @@ with col1:
         # Vernieuw de AgGrid
         st.experimental_rerun()
 
+# Blauwe knop voor "Verwijder rijen"
 with col2:
-    if st.button("Verwijder rijen", key='delete_rows_button', help="Blauwe knop om rijen te verwijderen", style="color: white; background-color: #007bff;"):
+    st.markdown(
+        """
+        <style>
+        div.stButton > button:first-child {
+            background-color: #007bff;
+            color: white;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    if st.button("Verwijder rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
         # Verwijder rijen op basis van index
@@ -295,6 +320,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
