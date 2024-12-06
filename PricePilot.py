@@ -511,7 +511,7 @@ def handle_gpt_chat():
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
                         m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
 
-                        verkoopprijs = recommended_price
+                        verkoopprijs = None
                         prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
 
                         data.append([
