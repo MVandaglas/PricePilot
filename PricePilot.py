@@ -62,10 +62,9 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 
 # Toevoegen van de kolom "Prijs_backend" door de nieuwe functie toe te passen en te berekenen
-def bereken_prijs_backend(df):
-     df["Prijs_backend"] = df["Verkoopprijs"].where(df["Verkoopprijs"] > 0, df["RSP"])
-     return df
-st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+def bereken_prijs_backend():
+    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df.apply(lambda row: row["Verkoopprijs"] if row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+bereken_prijs_backend()
 
 # Berekeningen uitvoeren
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
