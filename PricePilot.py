@@ -225,7 +225,7 @@ def update_rsp_for_all_rows(df, prijsscherpte):
             min_price, max_price = row.get('Min_prijs', None), row.get('Max_prijs', None)
             if pd.notna(min_price) and pd.notna(max_price):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                update_prijs_backend()
+                bereken_prijs_backend()
     return df
 
 def reset_rijnummers(df):
