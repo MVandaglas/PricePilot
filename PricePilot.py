@@ -30,7 +30,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs p/m2", "SAP prijs"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs p_m2", "SAP prijs"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -60,12 +60,12 @@ selected_tab = st.radio(
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
 st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
-st.session_state.offer_df["Verkoopprijs p/m2"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs p/m2"], errors='coerce').fillna(0)
+st.session_state.offer_df["Verkoopprijs p_m2"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs p_m2"], errors='coerce').fillna(0)
 
 # Berekeningen uitvoeren
 def calculate_total_amount(row):
-    if pd.notna(row['Verkoopprijs p/m2']) and row['Verkoopprijs p/m2'] > 0:
-        return row['Verkoopprijs p/m2'] * row['M2 p/s'] * row['Aantal']
+    if pd.notna(row['Verkoopprijs p_m2']) and row['Verkoopprijs p_m2'] > 0:
+        return row['Verkoopprijs p_m2'] * row['M2 p/s'] * row['Aantal']
     else:
         return row['RSP'] * row['M2 p/s'] * row['Aantal']
 
