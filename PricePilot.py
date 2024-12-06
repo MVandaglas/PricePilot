@@ -293,7 +293,7 @@ edited_df_response = AgGrid(
 )
 
 # Update de DataFrame na elke wijziging
-updated_df = grid_response['data']
+updated_df = edited_df_response['data']
 save_changes(pd.DataFrame(updated_df))
 
 # Sla de geselecteerde rijen op in sessie status
