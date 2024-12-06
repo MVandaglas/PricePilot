@@ -472,7 +472,10 @@ def handle_gpt_chat():
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
 
-                    # Voeg een regel toe aan de data met alleen m² en artikelnummer
+                    # Voeg een regel toe aan de data met Verkoopprijs en Prijs_backend
+                    verkoopprijs = recommended_price  # Voor nu gebruiken we de aanbevolen prijs als verkoopprijs
+                    prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+
                     data.append([
                         None,  # Placeholder voor Offertenummer
                         description,
@@ -485,7 +488,9 @@ def handle_gpt_chat():
                         None,  # M2 p/s blijft leeg
                         f"{m2_total:.2f}",  # M2 totaal
                         min_price,
-                        max_price
+                        max_price,
+                        verkoopprijs,
+                        prijs_backend
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -504,6 +509,9 @@ def handle_gpt_chat():
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
                         m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
 
+                        verkoopprijs = recommended_price
+                        prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+
                         data.append([
                             None,  # Placeholder voor Offertenummer
                             description,
@@ -516,7 +524,9 @@ def handle_gpt_chat():
                             f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
                             f"{m2_total:.2f}" if m2_total is not None else None,
                             min_price,
-                            max_price
+                            max_price,
+                            verkoopprijs,
+                            prijs_backend
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -553,6 +563,7 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 
