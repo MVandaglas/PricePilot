@@ -62,9 +62,9 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
-# Toevoegen van de kolom "Prijs_backend" door de nieuwe functie toe te passen en te berekenen
-def bereken_prijs_backend():
-    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+#def bereken_prijs_backend(df):
+    df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+    return df
 
 
 # Berekeningen uitvoeren
@@ -321,6 +321,7 @@ with col1:
             "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
         })
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
         # Vernieuw de AgGrid
