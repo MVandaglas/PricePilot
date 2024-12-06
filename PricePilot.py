@@ -353,7 +353,7 @@ with col2:
             
             # Controleer of prijsscherpte beschikbaar is, en maak aan als deze ontbreekt
             if 'prijsscherpte' not in st.session_state:
-                st.session_state.prijsscherpte = None
+                st.session_state.prijsscherpte = 0
             
             # Vernieuw de AgGrid zonder st.rerun(), update visueel
             save_changes(st.session_state.offer_df)
