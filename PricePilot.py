@@ -242,7 +242,7 @@ gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', ce
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
 gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
 gb.configure_column("Offertenummer", hide=True)
-gb.configure_column("Prijs_backend", hide=True)
+gb.configure_column("Prijs_backend", hide=False)
 gb.configure_column("Min_prijs", hide=True)
 gb.configure_column("Artikelnummer", hide=True)
 gb.configure_column("Max_prijs", hide=True)
