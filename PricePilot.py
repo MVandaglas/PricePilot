@@ -64,7 +64,7 @@ st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"
 # Toevoegen van de kolom "Prijs_backend" door de nieuwe functie toe te passen en te berekenen
 def bereken_prijs_backend(df):
      df["Prijs_backend"] = df["Verkoopprijs"].where(df["Verkoopprijs"] > 0, df["RSP"])
-    return df
+     return df
 st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Berekeningen uitvoeren
