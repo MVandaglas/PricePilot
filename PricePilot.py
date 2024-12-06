@@ -296,6 +296,7 @@ edited_df_response = AgGrid(
 updated_df = edited_df_response['data']
 save_changes(pd.DataFrame(updated_df))
 
+
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
 
