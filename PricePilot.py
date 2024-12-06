@@ -62,6 +62,10 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 
 # Toevoegen van de kolom "Prijs_backend" door de nieuwe functie toe te passen
+# Functie om prijs_backend te berekenen
+def bereken_prijs_backend(df):
+    df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+    return df
 st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Berekeningen uitvoeren
@@ -168,10 +172,7 @@ def calculate_recommended_price(min_price, max_price, prijsscherpte):
         return min_price + ((max_price - min_price) * (100 - prijsscherpte) / 100)
     return None
 
-# Functie om prijs_backend te berekenen
-def bereken_prijs_backend(df):
-    df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
-    return df
+
 
 # Functie om m2 per stuk te berekenen
 def calculate_m2_per_piece(width, height):
