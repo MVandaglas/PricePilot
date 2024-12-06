@@ -199,9 +199,7 @@ def determine_spacer(term):
     return "15 - alu"
 
 
-
-
-# Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
+# Functie om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
     for index, row in df.iterrows():
         if pd.notna(row['Breedte']) and pd.notna(row['Hoogte']):
@@ -215,8 +213,12 @@ def update_offer_data(df):
                 df.at[index, 'Max_prijs'] = max_price
         if pd.notna(row['Artikelnummer']):
             df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
-            bereken_prijs_backend()
+    
+    # Update de prijs backend na alle wijzigingen in het dataframe
+    bereken_prijs_backend()
+    
     return df
+
 
 # Functie om de RSP voor alle regels te updaten
 def update_rsp_for_all_rows(df, prijsscherpte):
