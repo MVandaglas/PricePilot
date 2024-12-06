@@ -60,6 +60,7 @@ selected_tab = st.radio(
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
 st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
+st.session_state.offer_df["Verkoopprijs p/m2"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs p/m2"], errors='coerce').fillna(0)
 
 # Berekeningen uitvoeren
 def calculate_total_amount(row):
