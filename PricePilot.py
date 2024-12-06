@@ -62,10 +62,10 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
-#def bereken_prijs_backend(df):
+# Functie om Prijs_backend te berekenen
+def bereken_prijs_backend(df):
     df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
     return df
-
 
 # Berekeningen uitvoeren
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
