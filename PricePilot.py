@@ -30,11 +30,11 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
-    st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+    st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Verkoopprijs"])
 if "saved_offers" not in st.session_state:
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
 if "selected_rows" not in st.session_state:
@@ -61,9 +61,12 @@ selected_tab = st.radio(
 st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 
+# Toevoegen van de kolom "Prijs_backend" door de nieuwe functie toe te passen
+st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+
 # Berekeningen uitvoeren
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
-totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["RSP"]).sum()
+totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
 
 # Resultaten weergeven
 st.sidebar.title("PricePilot")
@@ -165,6 +168,11 @@ def calculate_recommended_price(min_price, max_price, prijsscherpte):
         return min_price + ((max_price - min_price) * (100 - prijsscherpte) / 100)
     return None
 
+# Functie om prijs_backend te berekenen
+def bereken_prijs_backend(df):
+    df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+    return df
+
 # Functie om m2 per stuk te berekenen
 def calculate_m2_per_piece(width, height):
     if width and height:
@@ -235,6 +243,7 @@ gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', ce
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
 gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
 gb.configure_column("Offertenummer", hide=True)
+gb.configure_column("Prijs_backend", hide=True)
 gb.configure_column("Min_prijs", hide=True)
 gb.configure_column("Artikelnummer", hide=True)
 gb.configure_column("Max_prijs", hide=True)
