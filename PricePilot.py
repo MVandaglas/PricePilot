@@ -60,11 +60,12 @@ selected_tab = st.radio(
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
 st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
+st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
 # Toevoegen van de kolom "Prijs_backend" door de nieuwe functie toe te passen en te berekenen
 def bereken_prijs_backend():
-    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df.apply(lambda row: row["Verkoopprijs"] if row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
-bereken_prijs_backend()
+    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+
 
 # Berekeningen uitvoeren
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
@@ -230,6 +231,11 @@ def update_rsp_for_all_rows(df, prijsscherpte):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
                 bereken_prijs_backend()
     return df
+
+# Functie om Prijs_backend te updaten na wijzigingen
+def update_prijs_backend():
+    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+
 
 def reset_rijnummers(df):
     # Maak alle rijnummers leeg door de kolom te resetten naar None of NaN
