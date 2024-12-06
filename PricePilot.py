@@ -351,8 +351,9 @@ with col2:
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
             
-            # Vernieuw de AgGrid
-            st.rerun()
+           
+            # Vernieuw de AgGrid zonder st.rerun(), update visueel
+            save_changes(st.session_state.offer_df)
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
