@@ -381,7 +381,7 @@ def update_dash_table(n_dlt, n_add, data):
             "M2 totaal": [0],
             "Min_prijs": [0],
             "Max_prijs": [0],
-            "Verkoop_prijs": [""]
+            "Verkoop_prijs": [""],
             "Prijs_backend": [""]
         }
         df_new_row = pd.DataFrame(new_row)
