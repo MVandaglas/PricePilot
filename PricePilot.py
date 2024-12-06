@@ -217,7 +217,7 @@ def update_offer_data(df):
             df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
     
     # Update de prijs backend na alle wijzigingen in het dataframe
-    bereken_prijs_backend()
+    df = bereken_prijs_backend(df)
     
     return df
 
@@ -230,12 +230,12 @@ def update_rsp_for_all_rows(df, prijsscherpte):
             min_price, max_price = row.get('Min_prijs', None), row.get('Max_prijs', None)
             if pd.notna(min_price) and pd.notna(max_price):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                bereken_prijs_backend()
+        df = bereken_prijs_backend(df)
     return df
 
 # Functie om Prijs_backend te updaten na wijzigingen
 def update_prijs_backend():
-    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 
 def reset_rijnummers(df):
@@ -312,7 +312,7 @@ def delete_selected_rows(df, selected):
 
 
 
-#Knoppen toevoegen aan de GUI
+# Knoppen toevoegen aan de GUI
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
     if st.button("Voeg rij toe"):
@@ -380,7 +380,7 @@ def update_dash_table(n_dlt, n_add, data):
         new_row = {
             "Artikelnaam": [""],
             "Artikelnummer": [""],
-            "Spacer": [15-alu],
+            "Spacer": ["15 - alu"],
             "Breedte": [0],
             "Hoogte": [0],
             "Aantal": [0],
@@ -389,8 +389,8 @@ def update_dash_table(n_dlt, n_add, data):
             "M2 totaal": [0],
             "Min_prijs": [0],
             "Max_prijs": [0],
-            "Verkoop_prijs": [""],
-            "Prijs_backend": [""]
+            "Verkoopprijs": [0],
+            "Prijs_backend": [0]
         }
         df_new_row = pd.DataFrame(new_row)
         updated_table = pd.concat([pd.DataFrame(data), df_new_row])
@@ -398,6 +398,7 @@ def update_dash_table(n_dlt, n_add, data):
 
     elif ctx.triggered_id == "delete-row-btn":
         return True, no_update
+
 
   
 # Functie om het aantal uit tekst te extraheren
@@ -448,7 +449,6 @@ def extract_all_details(line):
     article_number = article_number_match.group(0) if article_number_match else None
     return quantity, width, height, article_number
 
-# Functie om chatregels van klantinvoer te verwerken
 def handle_gpt_chat():
     if customer_input:
         lines = customer_input.splitlines()
