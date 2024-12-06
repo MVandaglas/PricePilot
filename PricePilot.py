@@ -233,6 +233,7 @@ def update_rsp_for_all_rows(df, prijsscherpte):
         df = bereken_prijs_backend(df)
     return df
 
+
 # Functie om Prijs_backend te updaten na wijzigingen
 def update_prijs_backend():
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
@@ -564,7 +565,6 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-
 
 
 
