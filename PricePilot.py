@@ -215,6 +215,7 @@ def update_offer_data(df):
                 df.at[index, 'Max_prijs'] = max_price
         if pd.notna(row['Artikelnummer']):
             df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
+            bereken_prijs_backend()
     return df
 
 # Functie om de RSP voor alle regels te updaten
@@ -309,7 +310,7 @@ with col1:
         # Voeg een lege rij toe aan het DataFrame
         new_row = pd.DataFrame({
             "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
-            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0]
+            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
         })
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
@@ -379,6 +380,7 @@ def update_dash_table(n_dlt, n_add, data):
             "Min_prijs": [0],
             "Max_prijs": [0],
             "Verkoop_prijs": [""]
+            "Prijs_backend": [""]
         }
         df_new_row = pd.DataFrame(new_row)
         updated_table = pd.concat([pd.DataFrame(data), df_new_row])
@@ -386,9 +388,6 @@ def update_dash_table(n_dlt, n_add, data):
 
     elif ctx.triggered_id == "delete-row-btn":
         return True, no_update
-
-
-# Rest van de bestaande code blijft intact...
 
   
 # Functie om het aantal uit tekst te extraheren
@@ -516,7 +515,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
@@ -617,10 +616,10 @@ def generate_pdf(df):
     row['Breedte'],
     row['Hoogte'],
     row['Aantal'],
-    row['RSP'],
+    row['Prijs_backend'],
     f"{float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()):.2f} m2" if pd.notna(row['M2 p/s']) else None,
     f"{float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()):.2f} m2" if pd.notna(row['M2 totaal']) else None,
-    f"{round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
+    f"{round(float(str(row['Prijs_backend']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['Prijs_backend']) and pd.notna(row['Aantal']) else None
 ])
 
 
@@ -641,7 +640,7 @@ def generate_pdf(df):
     elements.append(Spacer(1, 24))
 
     # Eindtotaal, BTW, Te betalen
-    total_price = df.apply(lambda row: round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()), 2) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    total_price = df.apply(lambda row: round(float(str(row['Prijs_backend']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()), 2) if pd.notna(row['Prijs_backend']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
     btw = total_price * 0.21
     te_betalen = total_price + btw
 
