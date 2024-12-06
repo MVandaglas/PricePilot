@@ -350,12 +350,13 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            
-           
-            # Vernieuw de AgGrid
-            st.rerun()
+
+            # Vernieuw de AgGrid door te forceren opnieuw laden
+            st.session_state['update_counter'] = st.session_state.get('update_counter', 0) + 1
+            st.rerun()  # Herlaad de Streamlit app na verwijderen van rijen
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
+
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
