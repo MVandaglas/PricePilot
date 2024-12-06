@@ -63,7 +63,7 @@ st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
 #def bereken_prijs_backend(df):
-df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+    df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
     return df
 
 
