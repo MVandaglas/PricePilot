@@ -201,7 +201,6 @@ def determine_spacer(term):
     return "15 - alu"
 
 
-# Functie om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
     for index, row in df.iterrows():
         if pd.notna(row['Breedte']) and pd.notna(row['Hoogte']):
@@ -246,6 +245,12 @@ def reset_rijnummers(df):
     df['Rijnummer'] = df.index + 1
     return df
 
+def save_changes(df):
+    st.session_state.offer_df = df
+    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
+    st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
@@ -286,6 +291,10 @@ edited_df_response = AgGrid(
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
+
+# Update de DataFrame na elke wijziging
+updated_df = grid_response['data']
+save_changes(pd.DataFrame(updated_df))
 
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
