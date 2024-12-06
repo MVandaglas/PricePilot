@@ -351,8 +351,12 @@ with col2:
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
             
-            # Vernieuw de AgGrid
-            st.rerun()
+            # Controleer of prijsscherpte beschikbaar is, en maak aan als deze ontbreekt
+            if 'prijsscherpte' not in st.session_state:
+                st.session_state.prijsscherpte = None
+            
+            # Vernieuw de AgGrid zonder st.rerun(), update visueel
+            save_changes(st.session_state.offer_df)
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
