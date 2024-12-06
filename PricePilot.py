@@ -475,7 +475,7 @@ def handle_gpt_chat():
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
 
                     # Voeg een regel toe aan de data met Verkoopprijs en Prijs_backend
-                    verkoopprijs = recommended_price  # Voor nu gebruiken we de aanbevolen prijs als verkoopprijs
+                    verkoopprijs = None  
                     prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
 
                     data.append([
