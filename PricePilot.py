@@ -248,8 +248,8 @@ def reset_rijnummers(df):
 def save_changes(df):
     st.session_state.offer_df = df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-    st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
-    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
+    st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
