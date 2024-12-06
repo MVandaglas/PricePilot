@@ -296,7 +296,6 @@ edited_df_response = AgGrid(
 updated_df = edited_df_response['data']
 save_changes(pd.DataFrame(updated_df))
 
-
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
 
@@ -351,12 +350,8 @@ with col2:
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
             
-            # Controleer of prijsscherpte beschikbaar is, en maak aan als deze ontbreekt
-            if 'prijsscherpte' not in st.session_state:
-                st.session_state.prijsscherpte = 0
-            
-            # Vernieuw de AgGrid zonder st.rerun(), update visueel
-            save_changes(st.session_state.offer_df)
+            # Vernieuw de AgGrid
+            st.rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
