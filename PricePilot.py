@@ -320,6 +320,7 @@ def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
         # Verwijder de geselecteerde rijen en reset de index
         new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
+        st.write("DataFrame na verwijdering in functie:", new_df)  # Debugging statement
         return new_df
     else:
         return df
@@ -364,7 +365,6 @@ with col2:
     # Toon het DataFrame na verwijdering voor debugging
     st.write("DataFrame na verwijdering:")
     st.dataframe(st.session_state.offer_df)
-
 
 
 
