@@ -352,7 +352,7 @@ with col1:
 
 with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
-    selected = st.session_state.selected_rows
+        selected = st.session_state.selected_rows
     if selected:
         st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
         st.session_state.selected_rows = []  # Reset geselecteerde rijen
