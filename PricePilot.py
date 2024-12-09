@@ -318,26 +318,11 @@ else:
 
 def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
-        try:
-            # Controleer of de indices in het DataFrame bestaan
-            valid_indices = [index for index in selected if index in df.index]
-            if len(valid_indices) > 0:
-                # Verwijder de rijen en reset de index
-                new_df = df.drop(index=valid_indices).reset_index(drop=True)
-                return new_df
-            else:
-                st.warning("Geen valide indices gevonden in DataFrame.")
-                return df
-        except Exception as e:
-            st.error(f"Fout bij verwijderen van rijen: {e}")
-            return df
+        # Verwijder de geselecteerde rijen en reset de index
+        new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
+        return new_df
     else:
         return df
-
-
-
-
-
 
 
 # Knoppen toevoegen aan de GUI
@@ -360,26 +345,19 @@ with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
-        st.write("Geselecteerde rijen vóór verwerking (ruwe data):", selected)
-
-        # Converteer indices naar integers als dat nodig is
-        try:
-            selected_indices = [int(index) for index in selected if str(index).isdigit()]
-            st.write("Geselecteerde indices (als integers):", selected_indices)
-        except Exception as e:
-            st.error(f"Fout bij het converteren van indices: {e}")
-            selected_indices = []
-
-        # Verwijder rijen alleen als er valide indices zijn
-        if len(selected_indices) > 0:
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
-            if not st.session_state.offer_df.empty:
-                st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            else:
-                st.warning("DataFrame is leeg na verwijdering.")
+        # Verwijder rijen op basis van index
+        if len(selected) > 0:
+            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+            # Reset de Rijnummer-kolom na verwijderen
+            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            
         else:
-            st.warning("Geen valide indices geselecteerd voor verwijdering.")
+            st.warning("Selecteer eerst rijen om te verwijderen.")
 
+    # Zorg dat de update wordt getriggerd na verwijdering
+    st.session_state['trigger_update'] = True
 
     # Toon het DataFrame na verwijdering voor debugging
     st.write("DataFrame na verwijdering:")
