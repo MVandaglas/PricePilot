@@ -317,13 +317,13 @@ else:
     st.session_state.selected_rows = []
 
 def delete_selected_rows(df, selected):
-    if selected is not None and len(selected) > 0:
+    if selected_rows is not None and len(selected_rows) > 0:
         # Zorg ervoor dat de indices integers zijn
-        selected = [int(i) for i in selected]
-        st.write("Geselecteerde indices na conversie:", selected)  # Debugging statement
+        selected_rows = [int(i) for i in selected_rows]
+        st.write("Geselecteerde indices na conversie:", selected_rows)  # Debugging statement
 
         # Verwijder de geselecteerde rijen en reset de index
-        new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
+        new_df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
         st.write("DataFrame na verwijdering in functie:", new_df)  # Debugging statement
         return new_df
     else:
