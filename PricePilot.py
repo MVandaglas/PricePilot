@@ -296,8 +296,13 @@ edited_df_response = AgGrid(
 updated_df = edited_df_response['data']
 save_changes(pd.DataFrame(updated_df))
 
+
+
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
+
+# Debug: Toon geselecteerde rijen
+st.write("Geselecteerde rijen (indices):", selected_rows)
 
 # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
 if selected_rows is None or not isinstance(selected_rows, list):
@@ -314,8 +319,12 @@ else:
 
 def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
-        # Verwijder de geselecteerde rijen en reset de index
-        new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
+        # Controleer of de geselecteerde indices geldig zijn
+        valid_indices = [i for i in selected if i in df.index]
+        # Verwijder de rijen
+        new_df = df.drop(index=valid_indices, errors='ignore').reset_index(drop=True)
+        # Reset rijnummers
+        new_df = reset_rijnummers(new_df)
         return new_df
     else:
         return df
