@@ -445,7 +445,7 @@ def extract_quantity(text):
 # Functie om afmetingen (breedte en hoogte) uit tekst te extraheren
 def extract_dimensions(text):
     # Zoek naar een patroon zoals '800 bij 900' of '800x900', waarbij we waarden > 99 voor breedte en hoogte willen
-    matches = re.findall(r'(\d+)\s*(bij|x)\s*(\d+)', text)
+    matches = re.findall(r'(\d+)\s*(bij|X|x)\s*(\d+)', text)
     dimensions = []
     for match in matches:
         width, _, height = match
