@@ -319,16 +319,17 @@ else:
 
 def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
-        # Controleer of de geselecteerde indices geldig zijn
+        # Controleer of geselecteerde indices valide zijn
         valid_indices = [i for i in selected if i in df.index]
-        # Verwijder de rijen
-        new_df = df.drop(index=valid_indices, errors='ignore').reset_index(drop=True)
-        # Reset rijnummers
-        new_df = reset_rijnummers(new_df)
-        return new_df
+        if valid_indices:
+            new_df = df.drop(index=valid_indices).reset_index(drop=True)
+            return new_df
+        else:
+            st.warning("Geen valide indices geselecteerd voor verwijdering.")
+            return df
     else:
+        st.warning("Geen rijen geselecteerd om te verwijderen.")
         return df
-
 
 
 
@@ -352,21 +353,25 @@ with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
+        
         # Verwijder rijen op basis van index
         if len(selected) > 0:
             # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
-            # Reset de Rijnummer-kolom na verwijderen
-            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
             
+            # Controleer of DataFrame niet leeg is en reset rijnummers
+            if not st.session_state.offer_df.empty:
+                st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            else:
+                st.write("DataFrame is nu leeg na verwijdering.")
+            
+            # Reset de geselecteerde rijen na verwijderen
+            st.session_state.selected_rows = []
+
             # Vernieuw de AgGrid
             st.rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
-
-    # Zorg dat de update wordt getriggerd na verwijdering
-    st.session_state['trigger_update'] = True
 
 
 
