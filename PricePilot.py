@@ -11,6 +11,7 @@ def delete_selected_rows(df, selected):
             st.write("Valide indices voor verwijdering:", valid_indices)
 
             if valid_indices:
+                st.write("DataFrame vóór verwijdering:", df)
                 new_df = df.drop(index=valid_indices, errors='ignore').reset_index(drop=True)
                 st.write("DataFrame na verwijdering:", new_df)
                 return new_df
@@ -24,14 +25,14 @@ def delete_selected_rows(df, selected):
         st.warning("Geen rijen geselecteerd om te verwijderen.")
         return df
 
-# Example DataFrame
+# Voorbeeld DataFrame
 df = pd.DataFrame({
     'A': [1, 2, 3, 4],
     'B': [5, 6, 7, 8]
 })
 
 st.session_state.offer_df = df
-st.session_state.selected_rows = ['0', '2']  # Example selected rows
+st.session_state.selected_rows = ['0', '2']  # Voorbeeld geselecteerde rijen
 
 if st.button("Verwijder rijen", key='delete_rows_button'):
     st.write("Geselecteerde rijen vóór verwerking (ruwe data):", st.session_state.selected_rows)
