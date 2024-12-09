@@ -351,7 +351,7 @@ with col2:
         if len(selected) > 0:
             # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
             st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-           
+            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
        
@@ -360,7 +360,7 @@ with col2:
 
     # Vernieuw de AgGrid
     st.rerun()
-    st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+    
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
 
