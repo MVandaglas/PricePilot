@@ -354,24 +354,39 @@ with col2:
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
         
+        # Debug: Toon de huidige DataFrame en geselecteerde rijen
+        st.write("Huidige DataFrame vóór verwijdering:")
+        st.write(st.session_state.offer_df)
+        st.write("Geselecteerde rijen (indices):", selected)
+        
         # Verwijder rijen op basis van index
         if len(selected) > 0:
-            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-            
-            # Controleer of DataFrame niet leeg is en reset rijnummers
-            if not st.session_state.offer_df.empty:
-                st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            else:
-                st.write("DataFrame is nu leeg na verwijdering.")
-            
-            # Reset de geselecteerde rijen na verwijderen
-            st.session_state.selected_rows = []
-
-            # Vernieuw de AgGrid
-            st.rerun()
+            try:
+                # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
+                st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+                
+                # Debug: Toon de DataFrame na verwijdering
+                st.write("DataFrame na verwijdering:")
+                st.write(st.session_state.offer_df)
+                
+                # Reset de geselecteerde rijen na verwijderen
+                st.session_state.selected_rows = []
+                
+                # Reset de Rijnummer-kolom na verwijderen
+                if not st.session_state.offer_df.empty:
+                    st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+                else:
+                    st.write("DataFrame is nu leeg na verwijdering.")
+                
+                # Vernieuw de AgGrid
+                st.rerun()
+            except Exception as e:
+                st.error(f"Er is een fout opgetreden bij het verwijderen: {e}")
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
+
+    # Zorg dat de update wordt getriggerd na verwijdering
+    st.session_state['trigger_update'] = True
 
 
 
