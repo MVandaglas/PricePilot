@@ -64,7 +64,11 @@ st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer
 
 # Functie om Prijs_backend te berekenen
 def bereken_prijs_backend(df):
-    df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+    df["Prijs_backend"] = df.apply(
+    lambda row: row["Verkoopprijs"] if pd.notna(row.get("Verkoopprijs")) and isinstance(row["Verkoopprijs"], (int, float)) and row["Verkoopprijs"] > 0
+    else row.get("RSP", 0),
+    axis=1
+)
     return df
 
 
@@ -233,7 +237,7 @@ def update_rsp_for_all_rows(df, prijsscherpte):
     return df
 
 
-# Functie om Prijs_backend te updaten na wijzigingen
+# Functie om  te updaten na wijzigingen
 def update_prijs_backend():
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
