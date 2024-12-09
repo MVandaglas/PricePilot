@@ -369,8 +369,8 @@ with col2:
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
-    # Zorg dat de update wordt getriggerd na verwijdering
-    st.session_state['trigger_update'] = True
+            # Zorg dat de update wordt getriggerd na verwijdering
+            st.session_state['trigger_update'] = True
 
 
 
