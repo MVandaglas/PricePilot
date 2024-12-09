@@ -298,7 +298,7 @@ save_changes(pd.DataFrame(updated_df))
 
 
 # Sla de geselecteerde rijen op in sessie status
-selected_rows = st.session_state.get('selected_rows', [])  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
+selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
 
 # Debug: Toon geselecteerde rijen
 st.write("Geselecteerde rijen (indices):", selected_rows)
