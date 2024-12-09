@@ -359,35 +359,35 @@ with col1:
 
 with col2:
     
-if st.button("Verwijder rijen", key='delete_rows_button'):
-    st.write("Geselecteerde rijen vóór verwerking (ruwe data):", st.session_state.selected_rows)
+    if st.button("Verwijder rijen", key='delete_rows_button'):
+        st.write("Geselecteerde rijen vóór verwerking (ruwe data):", st.session_state.selected_rows)
 
-    selected = st.session_state.selected_rows
-    if selected:
-        try:
-            selected_indices = [int(r) for r in selected if str(r).isdigit()]
-            st.write("Geselecteerde indices (als integers):", selected_indices)
-        except ValueError as ve:
-            st.error(f"Fout bij converteren van geselecteerde rijen: {ve}")
-            selected_indices = []
+        selected = st.session_state.selected_rows
+        if selected:
+            try:
+                selected_indices = [int(r) for r in selected if str(r).isdigit()]
+                st.write("Geselecteerde indices (als integers):", selected_indices)
+            except ValueError as ve:
+                st.error(f"Fout bij converteren van geselecteerde rijen: {ve}")
+                selected_indices = []
 
-        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
 
-        if not st.session_state.offer_df.empty:
-            st.session_state.offer_df = st.session_state.offer_df.reset_index(drop=True)
+            if not st.session_state.offer_df.empty:
+                st.session_state.offer_df = st.session_state.offer_df.reset_index(drop=True)
+            else:
+                st.write("DataFrame is nu leeg na verwijdering.")
+
+            st.write("DataFrame na verwerking:", st.session_state.offer_df)
         else:
-            st.write("DataFrame is nu leeg na verwijdering.")
+            st.warning("Geen rijen geselecteerd voor verwijdering.")
 
-        st.write("DataFrame na verwerking:", st.session_state.offer_df)
-    else:
-        st.warning("Geen rijen geselecteerd voor verwijdering.")
+        # Zorg dat de update wordt getriggerd na verwijdering
+        st.session_state['trigger_update'] = True
 
-    # Zorg dat de update wordt getriggerd na verwijdering
-    st.session_state['trigger_update'] = True
-
-    # Toon het DataFrame na verwijdering voor debugging
-    st.write("DataFrame na verwijdering:")
-    st.dataframe(st.session_state.offer_df)
+        # Toon het DataFrame na verwijdering voor debugging
+        st.write("DataFrame na verwijdering:")
+        st.dataframe(st.session_state.offer_df)
 
 
 
