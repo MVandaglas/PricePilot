@@ -324,7 +324,6 @@ def delete_selected_rows(df, selected):
     else:
         return df
 
-
 # Knoppen toevoegen aan de GUI
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
@@ -345,6 +344,8 @@ with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
+        st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
+
         # Verwijder rijen op basis van index
         if len(selected) > 0:
             # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
@@ -352,6 +353,8 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            # Vernieuw de AgGrid
+            st.experimental_rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
