@@ -319,7 +319,7 @@ else:
 def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
         try:
-            # Converteer geselecteerde rijen naar integers (indien nodig)
+            # Converteer geselecteerde rijen naar integers
             selected = [int(i) for i in selected]
             
             # Debugging: Toon geselecteerde rijen
@@ -340,6 +340,7 @@ def delete_selected_rows(df, selected):
     else:
         st.warning("Geen rijen geselecteerd om te verwijderen.")
         return df
+
 
 
 
