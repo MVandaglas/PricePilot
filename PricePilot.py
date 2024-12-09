@@ -318,11 +318,30 @@ else:
 
 def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
-        # Verwijder de geselecteerde rijen en reset de index
-        new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
-        return new_df
+        try:
+            # Controleer of geselecteerde indices strings zijn, en zet ze om naar integers
+            selected_indices = [int(i) for i in selected if str(i).isdigit()]
+            st.write("Geselecteerde indices (na conversie):", selected_indices)
+
+            # Filter alleen geldige indices
+            valid_indices = [i for i in selected_indices if i in df.index]
+            st.write("Valide indices voor verwijdering:", valid_indices)
+
+            if valid_indices:
+                # Verwijder rijen en reset de index
+                new_df = df.drop(index=valid_indices, errors='ignore').reset_index(drop=True)
+                st.write("DataFrame na verwijdering:", new_df)
+                return new_df
+            else:
+                st.warning("Geen valide indices gevonden in geselecteerde rijen.")
+                return df
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van geselecteerde indices: {e}")
+            return df
     else:
+        st.warning("Geen rijen geselecteerd om te verwijderen.")
         return df
+
 
 
 # Knoppen toevoegen aan de GUI
