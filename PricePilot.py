@@ -326,6 +326,7 @@ def delete_selected_rows(df, selected):
         new_df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
         st.write("DataFrame na verwijdering in functie:", new_df)  # Debugging statement
         return new_df
+        st.rerun
     else:
         return df
 
