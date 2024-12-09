@@ -30,11 +30,11 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
-    st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+    st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Verkoopprijs"])
 if "saved_offers" not in st.session_state:
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
 if "selected_rows" not in st.session_state:
@@ -60,10 +60,17 @@ selected_tab = st.radio(
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
 st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
+st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
+
+# Functie om Prijs_backend te berekenen
+def bereken_prijs_backend(df):
+    df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+    return df
+
 
 # Berekeningen uitvoeren
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
-totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["RSP"]).sum()
+totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
 
 # Resultaten weergeven
 st.sidebar.title("PricePilot")
@@ -165,6 +172,7 @@ def calculate_recommended_price(min_price, max_price, prijsscherpte):
         return min_price + ((max_price - min_price) * (100 - prijsscherpte) / 100)
     return None
 
+
 # Functie om m2 per stuk te berekenen
 def calculate_m2_per_piece(width, height):
     if width and height:
@@ -175,28 +183,24 @@ def calculate_m2_per_piece(width, height):
     return None
 
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
-def determine_spacer(input_text, row_index):
-    if input_text and isinstance(input_text, str):
-        parts = input_text.split("-")
-        if len(parts) >= 3:
+def determine_spacer(term):
+    if term and isinstance(term, str):
+        parts = term.split("-")
+        if len(parts) >= 2:
             try:
-                values = [int(part) for part in parts if part.isdigit() and 3 < int(part) < 30]
-                if len(values) >= 2:
+                values = [int(part) for part in parts if part.isdigit()]
+                if len(values) > 1:
                     spacer_value = values[1]
                     if 3 < spacer_value < 30:
-                        if any(keyword in input_text.lower() for keyword in ["we", "warmedge", "warm edge"]):
+                        if any(term in term.lower() for term in ["we", "warmedge", "warm edge"]):
                             return f"{spacer_value} - warm edge"
                         else:
                             return f"{spacer_value} - alu"
             except ValueError:
                 pass
-    return f"{values[0]} - alu (rij {row_index})" if values else "15 - alu (rij {row_index})"
+    return "15 - alu"
 
 
-
-
-
-# Voeg de functie toe om de offerte data te updaten op basis van gewijzigde waarden
 def update_offer_data(df):
     for index, row in df.iterrows():
         if pd.notna(row['Breedte']) and pd.notna(row['Hoogte']):
@@ -210,7 +214,12 @@ def update_offer_data(df):
                 df.at[index, 'Max_prijs'] = max_price
         if pd.notna(row['Artikelnummer']):
             df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
+    
+    # Update de prijs backend na alle wijzigingen in het dataframe
+    df = bereken_prijs_backend(df)
+    
     return df
+
 
 # Functie om de RSP voor alle regels te updaten
 def update_rsp_for_all_rows(df, prijsscherpte):
@@ -220,7 +229,14 @@ def update_rsp_for_all_rows(df, prijsscherpte):
             min_price, max_price = row.get('Min_prijs', None), row.get('Max_prijs', None)
             if pd.notna(min_price) and pd.notna(max_price):
                 df.at[index, 'RSP'] = calculate_recommended_price(min_price, max_price, prijsscherpte)
+        df = bereken_prijs_backend(df)
     return df
+
+
+# Functie om Prijs_backend te updaten na wijzigingen
+def update_prijs_backend():
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+
 
 def reset_rijnummers(df):
     # Maak alle rijnummers leeg door de kolom te resetten naar None of NaN
@@ -229,6 +245,12 @@ def reset_rijnummers(df):
     df['Rijnummer'] = df.index + 1
     return df
 
+def save_changes(df):
+    st.session_state.offer_df = df
+    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
+    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
+    st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
+
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
@@ -236,6 +258,7 @@ gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', ce
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#f5f5f5"})
 gb.configure_column("Artikelnaam", width=400)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
 gb.configure_column("Offertenummer", hide=True)
+gb.configure_column("Prijs_backend", hide=False)
 gb.configure_column("Min_prijs", hide=True)
 gb.configure_column("Artikelnummer", hide=True)
 gb.configure_column("Max_prijs", hide=True)
@@ -269,6 +292,10 @@ edited_df_response = AgGrid(
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
 
+# Update de DataFrame na elke wijziging
+updated_df = edited_df_response['data']
+save_changes(pd.DataFrame(updated_df))
+
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
 
@@ -295,16 +322,18 @@ def delete_selected_rows(df, selected):
 
 
 
-#Knoppen toevoegen aan de GUI
+
+# Knoppen toevoegen aan de GUI
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
     if st.button("Voeg rij toe"):
         # Voeg een lege rij toe aan het DataFrame
         new_row = pd.DataFrame({
             "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
-            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0]
+            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
         })
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
         # Vernieuw de AgGrid
@@ -329,6 +358,7 @@ with col2:
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
+
 
 
 
@@ -362,7 +392,7 @@ def update_dash_table(n_dlt, n_add, data):
         new_row = {
             "Artikelnaam": [""],
             "Artikelnummer": [""],
-            "Spacer": [15-alu],
+            "Spacer": ["15 - alu"],
             "Breedte": [0],
             "Hoogte": [0],
             "Aantal": [0],
@@ -370,7 +400,9 @@ def update_dash_table(n_dlt, n_add, data):
             "M2 p/s": [0],
             "M2 totaal": [0],
             "Min_prijs": [0],
-            "Max_prijs": [0]
+            "Max_prijs": [0],
+            "Verkoopprijs": [0],
+            "Prijs_backend": [0]
         }
         df_new_row = pd.DataFrame(new_row)
         updated_table = pd.concat([pd.DataFrame(data), df_new_row])
@@ -379,8 +411,6 @@ def update_dash_table(n_dlt, n_add, data):
     elif ctx.triggered_id == "delete-row-btn":
         return True, no_update
 
-
-# Rest van de bestaande code blijft intact...
 
   
 # Functie om het aantal uit tekst te extraheren
@@ -431,7 +461,6 @@ def extract_all_details(line):
     article_number = article_number_match.group(0) if article_number_match else None
     return quantity, width, height, article_number
 
-# Functie om chatregels van klantinvoer te verwerken
 def handle_gpt_chat():
     if customer_input:
         lines = customer_input.splitlines()
@@ -456,7 +485,10 @@ def handle_gpt_chat():
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
 
-                    # Voeg een regel toe aan de data met alleen m² en artikelnummer
+                    # Voeg een regel toe aan de data met Verkoopprijs en Prijs_backend
+                    verkoopprijs = None  
+                    prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+
                     data.append([
                         None,  # Placeholder voor Offertenummer
                         description,
@@ -469,7 +501,9 @@ def handle_gpt_chat():
                         None,  # M2 p/s blijft leeg
                         f"{m2_total:.2f}",  # M2 totaal
                         min_price,
-                        max_price
+                        max_price,
+                        verkoopprijs,
+                        prijs_backend
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -488,6 +522,9 @@ def handle_gpt_chat():
                         m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
                         m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
 
+                        verkoopprijs = None
+                        prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+
                         data.append([
                             None,  # Placeholder voor Offertenummer
                             description,
@@ -500,7 +537,9 @@ def handle_gpt_chat():
                             f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
                             f"{m2_total:.2f}" if m2_total is not None else None,
                             min_price,
-                            max_price
+                            max_price,
+                            verkoopprijs,
+                            prijs_backend
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -508,7 +547,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
@@ -609,10 +648,10 @@ def generate_pdf(df):
     row['Breedte'],
     row['Hoogte'],
     row['Aantal'],
-    row['RSP'],
+    row['Prijs_backend'],
     f"{float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()):.2f} m2" if pd.notna(row['M2 p/s']) else None,
     f"{float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()):.2f} m2" if pd.notna(row['M2 totaal']) else None,
-    f"{round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['RSP']) and pd.notna(row['Aantal']) else None
+    f"{round(float(str(row['Prijs_backend']).replace('€', '').replace(',', '.').strip()) * float(row['Aantal']) * float(str(row['M2 p/s']).replace('m²', '').replace(',', '.').strip()), 2):,.2f}" if pd.notna(row['Prijs_backend']) and pd.notna(row['Aantal']) else None
 ])
 
 
@@ -633,7 +672,7 @@ def generate_pdf(df):
     elements.append(Spacer(1, 24))
 
     # Eindtotaal, BTW, Te betalen
-    total_price = df.apply(lambda row: round(float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()), 2) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+    total_price = df.apply(lambda row: round(float(str(row['Prijs_backend']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).replace('m²', '').replace(',', '.').strip()), 2) if pd.notna(row['Prijs_backend']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
     btw = total_price * 0.21
     te_betalen = total_price + btw
 
