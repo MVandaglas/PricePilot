@@ -303,7 +303,9 @@ updated_df = edited_df_response['data']
 save_changes(pd.DataFrame(updated_df))
 
 # Sla de geselecteerde rijen op in sessie status
-selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))  # Haal geselecteerde rijen op als de eigenschap beschikbaar is
+selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', []))
+if not selected_rows:
+    selected_rows = []
 
 # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
 if selected_rows is None or not isinstance(selected_rows, list):
@@ -314,9 +316,10 @@ if isinstance(selected_rows, list) and len(selected_rows) > 0:
     try:
         st.session_state.selected_rows = [int(r) for r in selected_rows]
     except ValueError:
-        st.write("Waarschuwing: Fout bij het converteren van geselecteerde rijen naar indices.")
+        st.warning("Fout bij het converteren van geselecteerde rijen naar indices.")
 else:
     st.session_state.selected_rows = []
+
 
 st.write("Geselecteerde rijen:", st.session_state.selected_rows)
 
