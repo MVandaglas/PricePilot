@@ -296,6 +296,8 @@ edited_df_response = AgGrid(
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
 
+st.write("Geselecteerde rijen na AgGrid:", selected_rows)
+
 # Update de DataFrame na elke wijziging
 updated_df = edited_df_response['data']
 save_changes(pd.DataFrame(updated_df))
@@ -316,12 +318,17 @@ if isinstance(selected_rows, list) and len(selected_rows) > 0:
 else:
     st.session_state.selected_rows = []
 
+st.write("Geselecteerde rijen:", st.session_state.selected_rows)
+
 def delete_selected_rows(df, selected):
-    if selected is not None and len(selected) > 0:
+    # Controleer of de indices geldig zijn
+    valid_indices = [i for i in selected if i in df.index]
+    if valid_indices:
         # Verwijder de geselecteerde rijen en reset de index
-        new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
+        new_df = df.drop(index=valid_indices).reset_index(drop=True)
         return new_df
     else:
+        st.warning("Geen geldige rijen geselecteerd om te verwijderen.")
         return df
 
 
@@ -345,20 +352,15 @@ with col1:
 
 with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
-        # Haal de geselecteerde rijen op in de juiste vorm
-        selected = st.session_state.selected_rows
-        # Verwijder rijen op basis van index
-        if len(selected) > 0:
-            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
-            # Reset de Rijnummer-kolom na verwijderen
-            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            
-            # Vernieuw de AgGrid
-            st.rerun()
-        else:
-            st.warning("Selecteer eerst rijen om te verwijderen.")
+    selected = st.session_state.selected_rows
+    if selected:
+        st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+        st.session_state.selected_rows = []  # Reset geselecteerde rijen
+        st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+        st.experimental_rerun()  # Zorg ervoor dat wijzigingen direct worden weergegeven
+    else:
+        st.warning("Selecteer eerst rijen om te verwijderen.")
+
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
