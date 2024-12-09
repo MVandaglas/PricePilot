@@ -326,7 +326,7 @@ def delete_selected_rows(df, selected):
         new_df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
         st.write("DataFrame na verwijdering in functie:", new_df)  # Debugging statement
         return new_df
-        st.rerun
+       
     else:
         return df
 
@@ -359,6 +359,7 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            st.rerun
 
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
