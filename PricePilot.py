@@ -355,12 +355,10 @@ with col2:
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
             # Vernieuw de AgGrid
-            st.rerun()
+            st.experimental_rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
-
-    
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
 
