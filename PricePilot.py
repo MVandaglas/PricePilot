@@ -319,10 +319,11 @@ else:
 
 def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
-        # Controleer of geselecteerde indices valide zijn
+        # Controleer of de geselecteerde indices geldig zijn
         valid_indices = [i for i in selected if i in df.index]
         if valid_indices:
-            new_df = df.drop(index=valid_indices).reset_index(drop=True)
+            st.write("Valide indices voor verwijdering:", valid_indices)
+            new_df = df.drop(index=valid_indices, errors='ignore').reset_index(drop=True)
             return new_df
         else:
             st.warning("Geen valide indices geselecteerd voor verwijdering.")
