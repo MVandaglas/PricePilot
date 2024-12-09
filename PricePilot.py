@@ -296,7 +296,6 @@ edited_df_response = AgGrid(
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
 
-st.write("Geselecteerde rijen na AgGrid:", selected_rows)
 
 # Update de DataFrame na elke wijziging
 updated_df = edited_df_response['data']
