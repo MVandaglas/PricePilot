@@ -56,33 +56,21 @@ selected_tab = st.radio(
     horizontal=True,
 )
 
-# Controleer de kolommen van de DataFrame
-st.write("Kolommen in offer_df:", st.session_state.offer_df.columns)
-
-# Voeg ontbrekende kolommen toe met standaardwaarden
-required_columns = ["M2 totaal", "RSP", "Verkoopprijs"]
-for col in required_columns:
-    if col not in st.session_state.offer_df.columns:
-        st.session_state.offer_df[col] = 0
-        st.warning(f"Kolom '{col}' ontbrak en is toegevoegd met standaardwaarde 0.")
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
 st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
-st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce').fillna(0)
+st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
 # Functie om Prijs_backend te berekenen
 def bereken_prijs_backend(df):
     df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
     return df
 
+
 # Berekeningen uitvoeren
-st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
 totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
-
-st.write(f"Totaal M2: {totaal_m2}")
-st.write(f"Totaal Bedrag: {totaal_bedrag}")
 
 # Resultaten weergeven
 st.sidebar.title("PricePilot")
@@ -330,26 +318,10 @@ else:
 
 def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
-        try:
-            selected_indices = [int(i) for i in selected if str(i).isdigit()]
-            st.write("Geselecteerde indices (na conversie):", selected_indices)
-
-            valid_indices = [i for i in selected_indices if i in df.index]
-            st.write("Valide indices voor verwijdering:", valid_indices)
-
-            if valid_indices:
-                st.write("DataFrame vóór verwijdering:", df)
-                new_df = df.drop(index=valid_indices, errors='ignore').reset_index(drop=True)
-                st.write("DataFrame na verwijdering:", new_df)
-                return new_df
-            else:
-                st.warning("Geen valide indices gevonden in geselecteerde rijen.")
-                return df
-        except Exception as e:
-            st.error(f"Fout bij het verwerken van geselecteerde indices: {e}")
-            return df
+        # Verwijder de geselecteerde rijen en reset de index
+        new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
+        return new_df
     else:
-        st.warning("Geen rijen geselecteerd om te verwijderen.")
         return df
 
 
@@ -370,36 +342,26 @@ with col1:
         st.rerun()
 
 with col2:
-    
     if st.button("Verwijder rijen", key='delete_rows_button'):
-        st.write("Geselecteerde rijen vóór verwerking (ruwe data):", st.session_state.selected_rows)
-
+        # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
-        if selected:
-            try:
-                selected_indices = [int(r) for r in selected if str(r).isdigit()]
-                st.write("Geselecteerde indices (als integers):", selected_indices)
-            except ValueError as ve:
-                st.error(f"Fout bij converteren van geselecteerde rijen: {ve}")
-                selected_indices = []
-
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected_indices)
-
-            if not st.session_state.offer_df.empty:
-                st.session_state.offer_df = st.session_state.offer_df.reset_index(drop=True)
-            else:
-                st.write("DataFrame is nu leeg na verwijdering.")
-
-            st.write("DataFrame na verwerking:", st.session_state.offer_df)
+        # Verwijder rijen op basis van index
+        if len(selected) > 0:
+            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+            # Reset de Rijnummer-kolom na verwijderen
+            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            
         else:
-            st.warning("Geen rijen geselecteerd voor verwijdering.")
+            st.warning("Selecteer eerst rijen om te verwijderen.")
 
-        # Zorg dat de update wordt getriggerd na verwijdering
-        st.session_state['trigger_update'] = True
+    # Zorg dat de update wordt getriggerd na verwijdering
+    st.session_state['trigger_update'] = True
 
-        # Toon het DataFrame na verwijdering voor debugging
-        st.write("DataFrame na verwijdering:")
-        st.dataframe(st.session_state.offer_df)
+    # Toon het DataFrame na verwijdering voor debugging
+    st.write("DataFrame na verwijdering:")
+    st.dataframe(st.session_state.offer_df)
 
 
 
