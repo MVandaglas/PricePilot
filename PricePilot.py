@@ -318,6 +318,10 @@ else:
 
 def delete_selected_rows(df, selected):
     if selected is not None and len(selected) > 0:
+        # Zorg ervoor dat de indices integers zijn
+        selected = [int(i) for i in selected]
+        st.write("Geselecteerde indices na conversie:", selected)  # Debugging statement
+
         # Verwijder de geselecteerde rijen en reset de index
         new_df = df.drop(index=selected, errors='ignore').reset_index(drop=True)
         st.write("DataFrame na verwijdering in functie:", new_df)  # Debugging statement
@@ -354,7 +358,7 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-       
+
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
@@ -364,7 +368,6 @@ with col2:
     # Toon het DataFrame na verwijdering voor debugging
     st.write("DataFrame na verwijdering:")
     st.dataframe(st.session_state.offer_df)
-
 
 
 
