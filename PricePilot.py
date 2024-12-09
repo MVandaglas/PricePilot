@@ -56,21 +56,26 @@ selected_tab = st.radio(
     horizontal=True,
 )
 
-
-# Omzetting naar numerieke waarden en lege waarden vervangen door 0
-st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
-st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
-st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
+# Controleer of de kolommen bestaan voordat je ze omzet naar numerieke waarden
+required_columns = ["M2 totaal", "RSP", "Verkoopprijs"]
+for col in required_columns:
+    if col in st.session_state.offer_df.columns:
+        st.session_state.offer_df[col] = pd.to_numeric(st.session_state.offer_df[col], errors='coerce').fillna(0)
+    else:
+        st.error(f"Kolom '{col}' bestaat niet in het DataFrame.")
 
 # Functie om Prijs_backend te berekenen
 def bereken_prijs_backend(df):
     df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
     return df
 
-
 # Berekeningen uitvoeren
+st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
 totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
+
+st.write(f"Totaal M2: {totaal_m2}")
+st.write(f"Totaal Bedrag: {totaal_bedrag}")
 
 # Resultaten weergeven
 st.sidebar.title("PricePilot")
