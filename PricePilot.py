@@ -247,7 +247,7 @@ def reset_rijnummers(df):
     df['Rijnummer'] = None
     # Ken de nieuwe rijnummers toe door de indexwaarde + 1
     df['Rijnummer'] = df.index + 1
-    return df
+    return updated_df
 
 def save_changes(df):
     st.session_state.offer_df = df
