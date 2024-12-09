@@ -382,8 +382,7 @@ with col2:
             # Debugging: Toon DataFrame na verwijdering
             st.write("DataFrame na verwijdering:", st.session_state.offer_df)
             
-            # Vernieuw de AgGrid
-            st.rerun()
+
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
