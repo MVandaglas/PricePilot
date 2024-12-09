@@ -239,11 +239,10 @@ def update_prijs_backend():
 
 
 def reset_rijnummers(df):
-    # Maak alle rijnummers leeg door de kolom te resetten naar None of NaN
-    df['Rijnummer'] = None
-    # Ken de nieuwe rijnummers toe door de indexwaarde + 1
-    df['Rijnummer'] = df.index + 1
+    if not df.empty:
+        df['Rijnummer'] = range(1, len(df) + 1)
     return df
+
 
 def save_changes(df):
     st.session_state.offer_df = df
@@ -334,6 +333,8 @@ def delete_selected_rows(df, selected):
 
 
 
+
+
 # Knoppen toevoegen aan de GUI
 col1, col2, col3, col4, col5, col6 = st.columns(6)
 with col1:
@@ -352,39 +353,39 @@ with col1:
 
 with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
-        # Haal de geselecteerde rijen op in de juiste vorm
-        selected = st.session_state.selected_rows
+        # Debugging: Toon geselecteerde rijen vóór verwerking
+        st.write("Geselecteerde rijen (voor verwerking):", st.session_state.selected_rows)
         
-        # Debug: Toon de huidige DataFrame en geselecteerde rijen
-        st.write("Huidige DataFrame vóór verwijdering:")
-        st.write(st.session_state.offer_df)
-        st.write("Geselecteerde rijen (indices):", selected)
-        
+        # Converteer geselecteerde rijen naar integers
+        try:
+            selected = [int(i) for i in st.session_state.selected_rows]
+        except ValueError as e:
+            st.error(f"Fout bij conversie van geselecteerde rijen naar indices: {e}")
+            selected = []
+
+        # Debugging: Toon geselecteerde rijen na conversie
+        st.write("Geselecteerde rijen (indices na conversie):", selected)
+
         # Verwijder rijen op basis van index
         if len(selected) > 0:
-            try:
-                # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
-                st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-                
-                # Debug: Toon de DataFrame na verwijdering
-                st.write("DataFrame na verwijdering:")
-                st.write(st.session_state.offer_df)
-                
-                # Reset de geselecteerde rijen na verwijderen
-                st.session_state.selected_rows = []
-                
-                # Reset de Rijnummer-kolom na verwijderen
-                if not st.session_state.offer_df.empty:
-                    st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-                else:
-                    st.write("DataFrame is nu leeg na verwijdering.")
-                
-                # Vernieuw de AgGrid
-                st.rerun()
-            except Exception as e:
-                st.error(f"Er is een fout opgetreden bij het verwijderen: {e}")
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+
+            # Debugging: Toon DataFrame na verwijdering
+            st.write("DataFrame na verwijdering:", st.session_state.offer_df)
+
+            # Reset de Rijnummer-kolom na verwijderen
+            if not st.session_state.offer_df.empty:
+                st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            else:
+                st.write("DataFrame is leeg na verwijdering.")
+
+            # Reset geselecteerde rijen
+            st.session_state.selected_rows = []
+
+            # Vernieuw de interface
+            st.rerun()
         else:
-            st.warning("Selecteer eerst rijen om te verwijderen.")
+            st.warning("Geen rijen geselecteerd om te verwijderen.")
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
