@@ -56,13 +56,20 @@ selected_tab = st.radio(
     horizontal=True,
 )
 
-# Controleer of de kolommen bestaan voordat je ze omzet naar numerieke waarden
+# Controleer de kolommen van de DataFrame
+st.write("Kolommen in offer_df:", st.session_state.offer_df.columns)
+
+# Voeg ontbrekende kolommen toe met standaardwaarden
 required_columns = ["M2 totaal", "RSP", "Verkoopprijs"]
 for col in required_columns:
-    if col in st.session_state.offer_df.columns:
-        st.session_state.offer_df[col] = pd.to_numeric(st.session_state.offer_df[col], errors='coerce').fillna(0)
-    else:
-        st.error(f"Kolom '{col}' bestaat niet in het DataFrame.")
+    if col not in st.session_state.offer_df.columns:
+        st.session_state.offer_df[col] = 0
+        st.warning(f"Kolom '{col}' ontbrak en is toegevoegd met standaardwaarde 0.")
+
+# Omzetting naar numerieke waarden en lege waarden vervangen door 0
+st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
+st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
+st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce').fillna(0)
 
 # Functie om Prijs_backend te berekenen
 def bereken_prijs_backend(df):
