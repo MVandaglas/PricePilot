@@ -40,6 +40,7 @@ if "saved_offers" not in st.session_state:
 if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
 
+
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
 from Articles import article_table
@@ -233,10 +234,10 @@ def update_rsp_for_all_rows(df, prijsscherpte):
     return df
 
 
+
 # Functie om Prijs_backend te updaten na wijzigingen
 def update_prijs_backend():
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
-
 
 def reset_rijnummers(df):
     if not df.empty:
@@ -246,7 +247,6 @@ def reset_rijnummers(df):
 
 def save_changes(df):
     st.session_state.offer_df = df
-    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
@@ -352,7 +352,6 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
