@@ -369,10 +369,6 @@ with col2:
     # Toon het DataFrame na verwijdering voor debugging
     st.write("DataFrame na verwijdering:")
     st.dataframe(st.session_state.offer_df)
-    st.rerun
-    
-
-
 
 
 # Functie om getallen van 1 tot 100 te herkennen
