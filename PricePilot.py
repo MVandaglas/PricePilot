@@ -243,11 +243,20 @@ def update_prijs_backend():
 
 
 def reset_rijnummers(df):
-    # Maak alle rijnummers leeg door de kolom te resetten naar None of NaN
-    df['Rijnummer'] = None
-    # Ken de nieuwe rijnummers toe door de indexwaarde + 1
-    df['Rijnummer'] = df.index + 1
-    return updated_df
+    # Controleer of de DataFrame niet leeg is
+    if df.empty:
+        st.warning("DataFrame is leeg. Geen rijnummers om te resetten.")
+        return df
+    
+    try:
+        # Zorg ervoor dat de index numeriek is
+        df = df.reset_index(drop=True)
+        # Ken de nieuwe rijnummers toe op basis van de index
+        df['Rijnummer'] = df.index + 1
+    except Exception as e:
+        st.error(f"Fout bij het resetten van rijnummers: {e}")
+    
+
 
 def save_changes(df):
     st.session_state.offer_df = df
