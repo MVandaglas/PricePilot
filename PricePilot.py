@@ -185,7 +185,6 @@ def calculate_m2_per_piece(width, height):
 
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
 def determine_spacer(term, default_value="15 - alu"):
-    print(f"Determining spacer for term: {term}")
     if term and isinstance(term, str):
         parts = term.split("-")
         if len(parts) >= 2:
@@ -195,21 +194,26 @@ def determine_spacer(term, default_value="15 - alu"):
                     spacer_value = values[1]
                     if 3 < spacer_value < 30:
                         if any(keyword in term.lower() for keyword in ["we", "warmedge", "warm edge"]):
-                            result = f"{spacer_value} - warm edge"
+                            return f"{spacer_value} - warm edge"
                         else:
-                            result = f"{spacer_value} - alu"
-                        print(f"Determined spacer: {result}")
-                        return result
+                            return f"{spacer_value} - alu"
             except ValueError:
                 pass
-    print(f"Returning default spacer: {default_value}")
-    return default_value
+    return "15 - alu"
 
 # Voorbeeld van hoe de waarde wordt opgeslagen in de state
 def update_spacer_state(user_input, app_state):
     selected_spacer = determine_spacer(user_input)
-    print(f"Updating state with spacer: {selected_spacer}")
     app_state["spacer"] = selected_spacer
+
+
+# Functie om bestaande spacers niet te overschrijven bij updates
+def preserve_existing_spacers(df):
+    for index, row in df.iterrows():
+        if pd.notna(row.get("spacer")) and row["spacer"] != "15 - alu":
+            continue  # Behoud bestaande waarde
+        df.at[index, "spacer"] = determine_spacer(row.get("spacer", "15 - alu"))
+    return df
 
 
 def update_offer_data(df):
