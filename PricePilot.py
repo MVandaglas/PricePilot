@@ -1,4 +1,4 @@
-import streamlit as st
+    import streamlit as st
 st.set_page_config(layout="wide")
 from streamlit_option_menu import option_menu
 import os
@@ -407,10 +407,11 @@ def word_to_number(word):
 @st.cache_data
 def update_dash_table(n_dlt, n_add, data):
     if ctx.triggered_id == "add-row-btn":
-        new_row = {
+        new_row = pd.DataFrame({
+            "Offertenummer": [None],
             "Artikelnaam": [""],
             "Artikelnummer": [""],
-            "Spacer": ["15 - alu"],
+            "Spacer": [st.session_state.get("last_selected_spacer", "15 - alu")],  # Gebruik de laatst geselecteerde waarde
             "Breedte": [0],
             "Hoogte": [0],
             "Aantal": [0],
@@ -419,9 +420,8 @@ def update_dash_table(n_dlt, n_add, data):
             "M2 totaal": [0],
             "Min_prijs": [0],
             "Max_prijs": [0],
-            "Verkoopprijs": [0],
-            "Prijs_backend": [0]
-        }
+            "Verkoopprijs": [0]
+        })
         df_new_row = pd.DataFrame(new_row)
         updated_table = pd.concat([pd.DataFrame(data), df_new_row])
         return False, updated_table.to_dict("records")
