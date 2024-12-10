@@ -199,7 +199,7 @@ def determine_spacer(term, default_value="15 - alu"):
                             return f"{spacer_value} - alu"
             except ValueError:
                 pass
-    return "15 - alu"
+    return default_value
 
 # Voorbeeld van hoe de waarde wordt opgeslagen in de state
 def update_spacer_state(user_input, app_state):
@@ -210,9 +210,12 @@ def update_spacer_state(user_input, app_state):
 # Functie om bestaande spacers niet te overschrijven bij updates
 def preserve_existing_spacers(df):
     for index, row in df.iterrows():
-        if pd.notna(row.get("spacer")) and row["spacer"] != "15 - alu":
+        if pd.notna(row.get("Spacer")):
+            print(f"Spacer behouden op rij {index}: {row['Spacer']}")  # Debugging
             continue  # Behoud bestaande waarde
-        df.at[index, "spacer"] = determine_spacer(row.get("spacer", "15 - alu"))
+        # Alleen waarden aanpassen als deze niet bestaan of leeg zijn
+        df.at[index, "Spacer"] = determine_spacer(row.get("Spacer", "15 - alu"))
+        print(f"Spacer bijgewerkt op rij {index}: {df.at[index, 'Spacer']}")  # Debugging
     return df
 
 
