@@ -202,25 +202,6 @@ def determine_spacer(term):
     return "15 - alu"
 
 
-# Voorbeeld van hoe de waarde wordt opgeslagen in de state
-def update_spacer_state(user_input, app_state):
-    selected_spacer = determine_spacer(user_input)
-    app_state["spacer"] = selected_spacer
-
-# Voorbeeld van hoe een nieuwe regel wordt toegevoegd
-def add_new_row(data_table, current_spacer):
-    new_row = {"spacer": current_spacer}
-    data_table.append(new_row)
-    return data_table
-
-# Opslaan in de backend of database
-def save_spacer_to_db(spacer_value):
-    # Simuleer een database-updatefunctie
-    db = {"spacer": None}  # Dit is een simulatie, vervang met echte database-logica
-    db.update({"spacer": spacer_value})
-    return db
-
-
 def update_offer_data(df):
     for index, row in df.iterrows():
         if pd.notna(row['Breedte']) and pd.notna(row['Hoogte']):
