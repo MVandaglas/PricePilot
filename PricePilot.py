@@ -320,7 +320,10 @@ edited_df_response = AgGrid(
 if st.button("Update tabel"):
     # Zorg ervoor dat de wijzigingen correct worden opgehaald
     updated_df = pd.DataFrame(edited_df_response['data'])
-    
+    # Herbereken Prijs_backend
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+    # Zorg ervoor dat de wijzigingen correct worden opgehaald
+    updated_df = pd.DataFrame(edited_df_response['data'])
     
     # Werk de sessiestatus bij
     st.session_state.offer_df = updated_df
