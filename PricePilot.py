@@ -309,7 +309,7 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.MANUAL,
+    update_mode=GridUpdateMode.SELECTION_CHANGED,
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
@@ -317,10 +317,14 @@ edited_df_response = AgGrid(
 
 # Toon een knop om wijzigingen op te slaan
 if st.button("Wijzigingen Opslaan"):
-    # Update de sessiestatus met de gewijzigde data
+    # Zorg ervoor dat de wijzigingen correct worden opgehaald
     updated_df = pd.DataFrame(edited_df_response['data'])
+    
+    # Werk de sessiestatus bij
     st.session_state.offer_df = updated_df
+    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Verwerk berekeningen
     st.success("Wijzigingen succesvol opgeslagen!")
+
 
 # Update de DataFrame na elke wijziging
 # updated_df = edited_df_response['data']
