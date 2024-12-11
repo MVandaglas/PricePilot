@@ -297,9 +297,14 @@ gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor 
 # Voeg een JavaScript event listener toe voor directe updates
 js_update_code = JsCode('''
 function onCellValueChanged(params) {
+    let rowNode = params.node;
+    let data = rowNode.data;
+    // Zorg ervoor dat wijzigingen worden toegepast in de grid
+    params.api.applyTransaction({ update: [data] });
     params.api.refreshCells({ force: true });
 }
 ''')
+gb.configure_grid_options(onCellValueChanged=js_update_code)
 
 grid_options = gb.build()
 
@@ -310,11 +315,16 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.SELECTION_CHANGED | GridUpdateMode.VALUE_CHANGED | GridUpdateMode.MODEL_CHANGED,
+    update_mode=GridUpdateMode.VALUE_CHANGED | GridUpdateMode.SELECTION_CHANGED,
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
+
+# Update de DataFrame na elke wijziging
+if "data" in edited_df_response:
+    updated_df = pd.DataFrame(edited_df_response['data'])
+    save_changes(updated_df)
 
 def update_tabel():
     # Eerste update-routine
