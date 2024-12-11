@@ -380,7 +380,7 @@ with col1:
         # Sla wijzigingen op
         save_changes(pd.DataFrame(updated_df))
         # Vernieuw de AgGrid
-        st.rerun()
+        #st.rerun()
 
 with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
