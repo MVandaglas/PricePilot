@@ -374,9 +374,10 @@ with col1:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-        handle_changes()
+        
         # Vernieuw de AgGrid
         st.rerun()
+        handle_changes()
 
 with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
@@ -391,8 +392,8 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            handle_changes()
             st.rerun()
+            handle_changes()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
