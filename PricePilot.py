@@ -310,7 +310,7 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.SELECTION_CHANGED | GridUpdateMode.VALUE_CHANGED | GridUpdateMode.MODEL_CHANGED,
+    update_mode=GridUpdateMode.SELECTION_CHANGED | GridUpdateMode.VALUE_CHANGED,
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
@@ -324,7 +324,6 @@ def update_tabel():
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
     # Tweede update-routine: Herhaal om ervoor te zorgen dat alle afhankelijkheden correct zijn bijgewerkt
-    updated_df = st.session_state.offer_df.copy()
     st.session_state.offer_df = update_offer_data(updated_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
