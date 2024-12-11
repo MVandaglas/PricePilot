@@ -350,7 +350,7 @@ if isinstance(selected_rows, list) and len(selected_rows) > 0:
 else:
     st.session_state.selected_rows = []
 
-def delete_selected_rows(df, selected):
+def delete_selected_rows(df, selected_rows):
     if selected_rows is not None and len(selected_rows) > 0:
         # Zorg ervoor dat de indices integers zijn
         selected = [int(i) for i in selected]
