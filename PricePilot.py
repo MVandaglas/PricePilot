@@ -389,7 +389,7 @@ with col1:
         st.rerun()
 
 with col2:
-    if st.button("Verwijder rijen", key='delete_rows_button'):
+    if st.button("Verwijder rijen (2x klikken)", key='delete_rows_button'):
         # Haal de geselecteerde rijen op in de juiste vorm
         selected = st.session_state.selected_rows
         st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
