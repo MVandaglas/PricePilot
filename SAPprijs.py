@@ -1,8 +1,8 @@
 # SAPprijs.py
 
 sap_prices = {
-    "222222": {  # Klantnummer
-        "1006350": 15.50,  # Artikelnummer: SAPprijs
+    "222222": {  # Klantnummer 222222
+        "1006350": 15.50,  # Artikelnummer: SAP Prijs
         "1006349": 12.75,
         "1006353": 18.20,
         "1006394": 20.00,
@@ -37,8 +37,22 @@ sap_prices = {
         "1006374": 29.50,
         "1006431": 30.00,
         "1006368": 31.25,
-        "1006432": 32.50,
+        "1006432": 32.50
+    },
+    "111111": {  # Klantnummer 111111
+        "1006350": 13.00,
+        "1006349": 11.50,
+        "1006353": 17.00,
+        "1006394": 19.50,
+        "1006379": 14.00
+    },
+    "333333": {  # Klantnummer 333333
+        "1006350": 12.75,
+        "1006349": 12.00,
+        "1006353": 18.00,
+        "1006394": 21.00,
+        "1006379": 15.00
     }
 }
 
-# Dit script bevat een dictionary genaamd sap_prices waarin de SAP-prijzen staan vermeld per klantnummer en artikelnummer.
+# Opmerking: De SAP-prijzen kunnen worden uitgebreid voor meer klanten en artikelen.
