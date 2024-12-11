@@ -328,8 +328,8 @@ if st.button("Wijzigingen Opslaan"):
 
 
 # Update de DataFrame na elke wijziging
-# updated_df = edited_df_response['data']
-# save_changes(pd.DataFrame(updated_df))
+updated_df = edited_df_response['data']
+save_changes(pd.DataFrame(updated_df))
 
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
@@ -378,7 +378,7 @@ with col1:
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
         # Sla wijzigingen op
-        updated_df = pd.DataFrame(edited_df_response['data'])
+        save_changes(pd.DataFrame(updated_df))
         # Vernieuw de AgGrid
         st.rerun()
 
@@ -395,7 +395,7 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            updated_df = pd.DataFrame(edited_df_response['data'])
+            save_changes(pd.DataFrame(updated_df))
             st.rerun
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
@@ -613,7 +613,7 @@ def handle_gpt_chat():
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
 
             # Sla wijzigingen op
-            updated_df = pd.DataFrame(edited_df_response['data'])
+            save_changes(pd.DataFrame(updated_df))
             
             # Vernieuw de AgGrid
             st.rerun()
