@@ -379,21 +379,26 @@ with col1:
         st.rerun()
         handle_changes()
 
-with col2:
-    if st.button("Verwijder rijen", key='delete_rows_button'):
-        # Haal de geselecteerde rijen op in de juiste vorm
-        selected = st.session_state.selected_rows
-        st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
+with col1:
+    if st.button("Voeg rij toe"):
+        # Voeg een lege rij toe aan het DataFrame
+        new_row = pd.DataFrame({
+            "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
+            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
+        })
+        # Voeg de nieuwe rij toe aan het DataFrame
+        st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
 
-        # Verwijder rijen op basis van index
-        if len(selected) > 0:
-            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
-            # Reset de Rijnummer-kolom na verwijderen
-            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            st.rerun()
-            handle_changes()
+        # Werk berekeningen en rijnummers bij
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+        st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+        
+        # Sla wijzigingen op
+        save_changes(st.session_state.offer_df)
+
+        # Herstart de app
+        st.rerun()
+
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
