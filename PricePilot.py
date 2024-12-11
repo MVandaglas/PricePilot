@@ -67,8 +67,16 @@ st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer
 
 # Functie om Prijs_backend te berekenen
 def bereken_prijs_backend(df):
-    df["Prijs_backend"] = df.apply(lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"], axis=1)
+    if df is None or df.empty:
+        st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
+        return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
+    
+    df["Prijs_backend"] = df.apply(
+        lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"],
+        axis=1
+    )
     return df
+
 
 
 # Berekeningen uitvoeren
