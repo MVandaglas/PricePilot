@@ -290,6 +290,8 @@ gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle={"backgroundColor": "#f5f5f5"})
 gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], valueFormatter="x.toFixed(2)")
+gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"}, valueFormatter="x.toFixed(2)")
+gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"}, valueFormatter="x.toFixed(2)")
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
 gb.configure_selection(
