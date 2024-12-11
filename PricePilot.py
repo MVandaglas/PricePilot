@@ -332,7 +332,7 @@ def update_tabel():
 # Toon een knop om wijzigingen op te slaan
 if st.button("Update tabel"):
     update_tabel()
-
+    update_tabel()
 
 # Update de DataFrame na elke wijziging
 # updated_df = edited_df_response['data']
