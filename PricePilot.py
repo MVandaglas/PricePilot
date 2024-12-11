@@ -250,7 +250,7 @@ def update_rsp_for_all_rows(df, prijsscherpte):
             if pd.notna(min_price) and pd.notna(max_price):
                 rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
                 # Rond RSP af naar de dichtstbijzijnde 5 cent
-                df.at[index, 'RSP'] = round(rsp_value * 20) / 20
+                df.at[index, 'RSP'] = f"{round(rsp_value * 20) / 20:.2f}"
         df = bereken_prijs_backend(df)
     return df
 
