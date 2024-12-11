@@ -309,7 +309,7 @@ edited_df_response = AgGrid(
     theme='material',
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.SELECTION_CHANGED | GridUpdateMode.VALUE_CHANGED | GridUpdateMode.MODEL_CHANGED,
+    update_mode=GridUpdateMode.VALUE_CHANGED,
     columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
     allow_unsafe_jscode=True,  # Voor volledige functionaliteit
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
@@ -376,6 +376,8 @@ with col1:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+        # Sla wijzigingen op
+        updated_df = pd.DataFrame(edited_df_response['data'])
         # Vernieuw de AgGrid
         st.rerun()
 
@@ -392,6 +394,7 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            updated_df = pd.DataFrame(edited_df_response['data'])
             st.rerun
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
@@ -608,6 +611,9 @@ def handle_gpt_chat():
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
 
+            # Sla wijzigingen op
+            updated_df = pd.DataFrame(edited_df_response['data'])
+            
             # Vernieuw de AgGrid
             st.rerun()
 
