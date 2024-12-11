@@ -39,6 +39,8 @@ if "saved_offers" not in st.session_state:
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
 if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
+if "SAP Prijs" not in st.session_state.offer_df.columns:
+    st.session_state.offer_df["SAP Prijs"] = "Geen prijs"
 
 
 # Laad synoniemen en artikelentabel
@@ -236,7 +238,8 @@ def update_offer_data(df):
     
     # Update de prijs backend na alle wijzigingen in het dataframe
     df = bereken_prijs_backend(df)
-    
+    st.session_state.offer_df = update_sap_prijzen(st.session_state.offer_df, st.session_state.customer_number)
+
     return df
 
 
@@ -292,6 +295,8 @@ gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatte
 gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
+gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle={"backgroundColor": "#e0e0e0"})
+
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
 gb.configure_selection(
