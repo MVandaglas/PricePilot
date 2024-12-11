@@ -235,6 +235,21 @@ def update_offer_data(df):
         if pd.notna(row['Artikelnummer']):
             df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
 
+
+def update_sap_prijzen(df, klantnummer):
+    """
+    Update de SAP-prijzen in het DataFrame op basis van de klant- en artikelnummers.
+    """
+    if klantnummer in sap_prices:
+        klant_artikelen = sap_prices[klantnummer]
+        for index, row in df.iterrows():
+            artikelnummer = str(row.get("Artikelnummer", ""))
+            sap_prijs = klant_artikelen.get(artikelnummer, None)
+            df.at[index, "SAP Prijs"] = sap_prijs if sap_prijs else "Geen prijs"
+    else:
+        df["SAP Prijs"] = "Geen prijs"
+    return df
+
     
     # Update de prijs backend na alle wijzigingen in het dataframe
     df = bereken_prijs_backend(df)
