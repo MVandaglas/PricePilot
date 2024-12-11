@@ -348,10 +348,18 @@ def update_tabel():
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 if st.button("Update tabel"):
-    # Trigger de update-tabel functie twee keer
+    # Fake een selectie als er geen geselecteerde rijen zijn
+    if not st.session_state.selected_rows:
+        st.session_state.selected_rows = [0]  # Simuleer selectie van de eerste rij (index 0)
+
+    # Debugging: Toon de huidige geselecteerde rijen
+    st.write("Geselecteerde rijen (indices):", st.session_state.selected_rows)
+
+    # Trigger de update-tabel functie twee keer om afhankelijkheden af te dwingen
     update_tabel()
-    update_tabel()  # Tweede keer om afhankelijkheden af te dwingen
+    update_tabel()  # Tweede keer uitvoeren
     st.success("Tabel succesvol bijgewerkt!")
+
 
 
 # Update de DataFrame na elke wijziging
