@@ -396,7 +396,7 @@ with col2:
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
             save_changes(pd.DataFrame(updated_df))
-            st.rerun
+            #st.rerun
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
