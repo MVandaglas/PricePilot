@@ -146,6 +146,11 @@ if customer_number in customer_data:
             prijsscherpte = 10
     st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
+def handle_changes():
+    updated_df = pd.DataFrame(edited_df_response['data'])
+    st.session_state.offer_df = updated_df
+    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
+    st.success("Wijzigingen succesvol opgeslagen!")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
@@ -293,13 +298,6 @@ gb.configure_selection(
 # Overige configuratie van de grid
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
-# Voeg een JavaScript event listener toe voor directe updates
-js_update_code = JsCode('''
-function onCellValueChanged(params) {
-    params.api.refreshCells({ force: true });
-}
-''')
-
 grid_options = gb.build()
 
 # Toon de AG Grid met het material-thema
@@ -376,6 +374,7 @@ with col1:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+        handle_changes()
         # Vernieuw de AgGrid
         st.rerun()
 
@@ -392,6 +391,7 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            handle_changes()
             st.rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
@@ -582,6 +582,7 @@ def handle_gpt_chat():
                             verkoopprijs,
                             prijs_backend
                         ])
+                        handle_changes()
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
                 else:
