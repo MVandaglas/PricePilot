@@ -11,6 +11,8 @@ from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
 import dash_bootstrap_components as dbc
+from SAPprijs import sap_prices
+
 
 
 # OpenAI API-sleutel instellen
@@ -30,7 +32,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs","M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -39,8 +41,6 @@ if "saved_offers" not in st.session_state:
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
 if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
-if "SAP Prijs" not in st.session_state.offer_df.columns:
-    st.session_state.offer_df["SAP Prijs"] = "Geen prijs"
 
 
 # Laad synoniemen en artikelentabel
@@ -240,31 +240,15 @@ def update_offer_data(df):
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
-        if pd.notna(row['Artikelnummer']):
-            df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
-
-
-def update_sap_prijzen(df, klantnummer):
-    """
-    Update de SAP-prijzen in het DataFrame op basis van de klant- en artikelnummers.
-    """
-    if klantnummer in sap_prices:
-        klant_artikelen = sap_prices[klantnummer]
-        for index, row in df.iterrows():
-            artikelnummer = str(row.get("Artikelnummer", ""))
-            sap_prijs = klant_artikelen.get(artikelnummer, None)
-            df.at[index, "SAP Prijs"] = sap_prijs if sap_prijs else "Geen prijs"
-    else:
-        df["SAP Prijs"] = "Geen prijs"
-    return df
-
-    
-    # Update de prijs backend na alle wijzigingen in het dataframe
+            
+            # Update SAP Prijs
+            if st.session_state.customer_number in sap_prices:
+                sap_prijs = sap_prices[st.session_state.customer_number].get(row['Artikelnummer'], None)
+                df.at[index, 'SAP Prijs'] = sap_prijs if sap_prijs else "Geen prijs"
+            else:
+                df.at[index, 'SAP Prijs'] = "Geen prijs"
     df = bereken_prijs_backend(df)
-    st.session_state.offer_df = update_sap_prijzen(st.session_state.offer_df, st.session_state.customer_number)
-
     return df
-
 
 
 # Functie om de RSP voor alle regels te updaten
