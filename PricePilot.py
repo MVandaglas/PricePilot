@@ -218,6 +218,9 @@ def preserve_existing_spacers(df):
         print(f"Spacer bijgewerkt op rij {index}: {df.at[index, 'Spacer']}")  # Debugging
     return df
 
+def round_to_nearest_5_cents(value):
+    """Rondt een waarde af naar de dichtstbijzijnde 5 cent."""
+    return round(value * 20) / 20  # 1/0.05 = 20
 
 def update_offer_data(df):
     for index, row in df.iterrows():
@@ -232,11 +235,15 @@ def update_offer_data(df):
                 df.at[index, 'Max_prijs'] = max_price
         if pd.notna(row['Artikelnummer']):
             df.at[index, 'Spacer'] = determine_spacer(row['Spacer'])
+
+    # Update de RSP-waarden en rond af naar de dichtstbijzijnde 5 cent
+    df['RSP'] = df['RSP'].apply(round_to_nearest_5_cents)
     
     # Update de prijs backend na alle wijzigingen in het dataframe
     df = bereken_prijs_backend(df)
     
     return df
+
 
 
 # Functie om de RSP voor alle regels te updaten
