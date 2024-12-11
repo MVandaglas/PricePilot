@@ -146,11 +146,6 @@ if customer_number in customer_data:
             prijsscherpte = 10
     st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
-def handle_changes():
-    updated_df = pd.DataFrame(edited_df_response['data'])
-    st.session_state.offer_df = updated_df
-    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-    st.success("Wijzigingen succesvol opgeslagen!")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
@@ -298,6 +293,13 @@ gb.configure_selection(
 # Overige configuratie van de grid
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
+# Voeg een JavaScript event listener toe voor directe updates
+js_update_code = JsCode('''
+function onCellValueChanged(params) {
+    params.api.refreshCells({ force: true });
+}
+''')
+
 grid_options = gb.build()
 
 # Toon de AG Grid met het material-thema
@@ -370,21 +372,12 @@ with col1:
             "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
             "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
         })
-        # Voeg de nieuwe rij toe aan het DataFrame
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
-
-        # Werk berekeningen en rijnummers bij
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+        # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-        
-        # Sla wijzigingen op
-        save_changes(st.session_state.offer_df)
-
-        # Herstart de app
+        # Vernieuw de AgGrid
         st.rerun()
-
-    else:
-        st.warning("Selecteer eerst rijen om te verwijderen.")
 
 with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
@@ -399,16 +392,16 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            st.rerun
+            st.rerun()
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
-# Zorg dat de update wordt getriggerd na verwijdering
-st.session_state['trigger_update'] = True
+    # Zorg dat de update wordt getriggerd na verwijdering
+    st.session_state['trigger_update'] = True
 
-# Toon het DataFrame na verwijdering voor debugging
-st.write("DataFrame na verwijdering:")
-st.dataframe(st.session_state.offer_df)
+    # Toon het DataFrame na verwijdering voor debugging
+    st.write("DataFrame na verwijdering:")
+    st.dataframe(st.session_state.offer_df)
 
 
 # Functie om getallen van 1 tot 100 te herkennen
@@ -589,7 +582,6 @@ def handle_gpt_chat():
                             verkoopprijs,
                             prijs_backend
                         ])
-                        handle_changes()
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
                 else:
