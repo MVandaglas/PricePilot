@@ -288,7 +288,8 @@ gb.configure_column("Max_prijs", hide=True)
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
-gb.configure_column("RSP", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#f5f5f5"})
+gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle={"backgroundColor": "#f5f5f5"})
+gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], valueFormatter="x.toFixed(2)")
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
 gb.configure_selection(
