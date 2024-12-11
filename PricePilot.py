@@ -221,8 +221,8 @@ def preserve_existing_spacers(df):
 def round_to_nearest_5_cents(value):
     """Rondt een waarde af naar de dichtstbijzijnde 5 cent."""
     return round(value * 20) / 20  # 1/0.05 = 20
-    except ValueError:
-        return value  # Of een andere fallbackwaarde
+        except ValueError:
+            return value  # Of een andere fallbackwaarde
 
 def update_offer_data(df):
     for index, row in df.iterrows():
