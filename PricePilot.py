@@ -43,6 +43,7 @@ if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
 
 
+
 # Laad synoniemen en artikelentabel
 from Synonyms import synonym_dict
 from Articles import article_table
@@ -79,9 +80,16 @@ def bereken_prijs_backend(df):
 
 
 
+# Controleer en zet kolommen om
+for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
+    if col not in st.session_state.offer_df.columns:
+        st.session_state.offer_df[col] = 0
+    st.session_state.offer_df[col] = pd.to_numeric(st.session_state.offer_df[col], errors='coerce').fillna(0)
+
 # Berekeningen uitvoeren
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
 totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
+
 
 # Resultaten weergeven
 st.sidebar.title("PricePilot")
