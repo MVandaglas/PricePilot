@@ -386,6 +386,23 @@ with col1:
     else:
         st.warning("Selecteer eerst rijen om te verwijderen.")
 
+with col2:
+    if st.button("Verwijder rijen", key='delete_rows_button'):
+        # Haal de geselecteerde rijen op in de juiste vorm
+        selected = st.session_state.selected_rows
+        st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
+
+        # Verwijder rijen op basis van index
+        if len(selected) > 0:
+            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+            # Reset de Rijnummer-kolom na verwijderen
+            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            st.rerun
+        else:
+            st.warning("Selecteer eerst rijen om te verwijderen.")
+
 # Zorg dat de update wordt getriggerd na verwijdering
 st.session_state['trigger_update'] = True
 
