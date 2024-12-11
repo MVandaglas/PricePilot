@@ -293,6 +293,13 @@ gb.configure_selection(
 # Overige configuratie van de grid
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
+# Voeg een JavaScript event listener toe voor directe updates
+js_update_code = JsCode('''
+function onCellValueChanged(params) {
+    params.api.refreshCells({ force: true });
+}
+''')
+
 grid_options = gb.build()
 
 # Toon de AG Grid met het material-thema
