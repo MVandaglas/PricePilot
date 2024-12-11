@@ -317,22 +317,23 @@ edited_df_response = AgGrid(
 )
 
 def update_tabel():
-    # Eerste update-routine: Sla de wijzigingen op en voer berekeningen uit
+    # Eerste update-routine
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-    # Tweede update-routine: Herhaal om ervoor te zorgen dat alle afhankelijkheden correct zijn bijgewerkt
+    # Tweede update-routine om afhankelijkheden af te dwingen
+    updated_df = st.session_state.offer_df.copy()
     st.session_state.offer_df = update_offer_data(updated_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-    st.success("Tabel is succesvol bijgewerkt!")
-
-# Toon een knop om wijzigingen op te slaan
 if st.button("Update tabel"):
+    # Trigger de update-tabel functie twee keer
     update_tabel()
-    update_tabel()
+    update_tabel()  # Tweede keer om afhankelijkheden af te dwingen
+    st.success("Tabel succesvol bijgewerkt!")
+
 
 # Update de DataFrame na elke wijziging
 # updated_df = edited_df_response['data']
