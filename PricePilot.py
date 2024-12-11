@@ -304,7 +304,8 @@ function onCellValueChanged(params) {
     params.api.applyTransaction({ update: [data] });
 
     // Forceer visuele update
-    params.api.refreshCells({ force: false });
+    params.api.refreshCells({ force: true
+});
 }
 ''')
 gb.configure_grid_options(onCellValueChanged=js_update_code)
