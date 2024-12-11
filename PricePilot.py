@@ -315,11 +315,16 @@ edited_df_response = AgGrid(
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
 
+# Toon een knop om wijzigingen op te slaan
+if st.button("Wijzigingen Opslaan"):
+    # Update de sessiestatus met de gewijzigde data
+    updated_df = pd.DataFrame(edited_df_response['data'])
+    st.session_state.offer_df = updated_df
+    st.success("Wijzigingen succesvol opgeslagen!")
+
 # Update de DataFrame na elke wijziging
-updated_df = edited_df_response['data']
-save_changes(pd.DataFrame(updated_df))
-
-
+# updated_df = edited_df_response['data']
+# save_changes(pd.DataFrame(updated_df))
 
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
