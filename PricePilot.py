@@ -319,7 +319,7 @@ edited_df_response = AgGrid(
 if st.button("Wijzigingen Opslaan"):
     # Zorg ervoor dat de wijzigingen correct worden opgehaald
     updated_df = pd.DataFrame(edited_df_response['data'])
-    st.rerun
+    
     
     # Werk de sessiestatus bij
     st.session_state.offer_df = updated_df
