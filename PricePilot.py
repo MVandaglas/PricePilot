@@ -60,6 +60,9 @@ selected_tab = st.radio(
     horizontal=True,
 )
 
+if st.session_state.offer_df is None or st.session_state.offer_df.empty:
+    st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP prijs" "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
+
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
 st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df["M2 totaal"], errors='coerce').fillna(0)
