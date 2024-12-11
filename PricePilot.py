@@ -316,20 +316,23 @@ edited_df_response = AgGrid(
     enable_selection=True  # Zorg ervoor dat selectie goed wordt doorgegeven
 )
 
-# Toon een knop om wijzigingen op te slaan
-if st.button("Update tabel"):
-    # Zorg ervoor dat de wijzigingen correct worden opgehaald
+def update_tabel():
+    # Eerste update-routine: Sla de wijzigingen op en voer berekeningen uit
     updated_df = pd.DataFrame(edited_df_response['data'])
-    
-    # Werk de sessiestatus bij met de nieuwste wijzigingen
     st.session_state.offer_df = updated_df
-
-    # Voer alle benodigde berekeningen uit op de bijgewerkte DataFrame
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
-    
-    # Geef een bevestiging dat de wijzigingen succesvol zijn opgeslagen
-    st.success("Wijzigingen succesvol opgeslagen!")
+
+    # Tweede update-routine: Herhaal om ervoor te zorgen dat alle afhankelijkheden correct zijn bijgewerkt
+    updated_df = st.session_state.offer_df.copy()
+    st.session_state.offer_df = update_offer_data(updated_df)
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+
+    st.success("Tabel is succesvol bijgewerkt!")
+
+# Toon een knop om wijzigingen op te slaan
+if st.button("Update tabel"):
+    update_tabel()
 
 
 # Update de DataFrame na elke wijziging
