@@ -328,8 +328,8 @@ if st.button("Wijzigingen Opslaan"):
 
 
 # Update de DataFrame na elke wijziging
-updated_df = edited_df_response['data']
-save_changes(pd.DataFrame(updated_df))
+# updated_df = edited_df_response['data']
+# save_changes(pd.DataFrame(updated_df))
 
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
@@ -350,7 +350,7 @@ if isinstance(selected_rows, list) and len(selected_rows) > 0:
 else:
     st.session_state.selected_rows = []
 
-def delete_selected_rows(df, selected_rows):
+def delete_selected_rows(df, selected):
     if selected_rows is not None and len(selected_rows) > 0:
         # Zorg ervoor dat de indices integers zijn
         selected = [int(i) for i in selected]
@@ -378,9 +378,9 @@ with col1:
         # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
         # Sla wijzigingen op
-        save_changes(pd.DataFrame(updated_df))
+        updated_df = pd.DataFrame(edited_df_response['data'])
         # Vernieuw de AgGrid
-        #st.rerun()
+        st.rerun()
 
 with col2:
     if st.button("Verwijder rijen", key='delete_rows_button'):
@@ -395,8 +395,8 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            save_changes(pd.DataFrame(updated_df))
-            #st.rerun
+            updated_df = pd.DataFrame(edited_df_response['data'])
+            st.rerun
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
@@ -613,7 +613,7 @@ def handle_gpt_chat():
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
 
             # Sla wijzigingen op
-            save_changes(pd.DataFrame(updated_df))
+            updated_df = pd.DataFrame(edited_df_response['data'])
             
             # Vernieuw de AgGrid
             st.rerun()
