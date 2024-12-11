@@ -399,8 +399,8 @@ with col1:
         # Herstart de app
         st.rerun()
 
-        else:
-            st.warning("Selecteer eerst rijen om te verwijderen.")
+    else:
+        st.warning("Selecteer eerst rijen om te verwijderen.")
 
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
