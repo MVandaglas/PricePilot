@@ -392,7 +392,7 @@ with col2:
             st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
             # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            st.rerun
+           
         else:
             st.warning("Selecteer eerst rijen om te verwijderen.")
 
