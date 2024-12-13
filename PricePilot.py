@@ -306,6 +306,21 @@ def reset_rijnummers(df):
         df['Rijnummer'] = range(1, len(df) + 1)
     return df
 
+# JavaScript-code voor conditionele opmaak
+cell_style_js = JsCode("""
+function(params) {
+    if (params.data.Prijs_backend === params.data.RSP) {
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+    } else if (params.data.Prijs_backend === params.data["SAP Prijs"]) {
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+    } else if (params.data.Verkoopprijs !== 0 && params.data.Verkoopprijs !== null) {
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+    } else {
+        return {'backgroundColor': '#e0e0e0'};  // Grijs als geen opmaak van toepassing is
+    }
+}
+""")
+
 
 def save_changes(df):
     st.session_state.offer_df = df
@@ -327,11 +342,11 @@ gb.configure_column("Max_prijs", hide=True)
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
-gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle={"backgroundColor": "#e0e0e0"})
-gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], valueFormatter="x.toFixed(2)")
+gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
+gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellStyle=cell_style_js, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
-gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle={"backgroundColor": "#e0e0e0"})
+gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
 
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
