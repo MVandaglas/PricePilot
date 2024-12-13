@@ -309,12 +309,12 @@ def reset_rijnummers(df):
 # JavaScript-code voor conditionele opmaak
 cell_style_js = JsCode("""
 function(params) {
-    if (params.data.Prijs_backend === params.data.RSP) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-    } else if (params.data.Prijs_backend === params.data["SAP Prijs"]) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-    } else if (params.data.Verkoopprijs !== 0 && params.data.Verkoopprijs !== null) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+    if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen
+    } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen
+    } else if (params.colDef.field === "Verkoopprijs" && params.data.Verkoopprijs !== 0) {
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen
     } else {
         return {'backgroundColor': '#e0e0e0'};  // Grijs als geen opmaak van toepassing is
     }
