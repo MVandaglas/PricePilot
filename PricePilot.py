@@ -349,6 +349,7 @@ gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellS
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
+gb.configure_grid_options(onFirstDataRendered=select_all_js)
 
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
@@ -401,10 +402,21 @@ if "data" in edited_df_response:
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
+# JavaScript-functie om alle rijen te selecteren
+select_all_js = JsCode("""
+function(params) {
+    params.api.selectAll(); // Selecteer alle rijen
+    return params.api.getSelectedRows(); // Retourneer geselecteerde rijen
+}
+""")
 
 def update_tabel():
+    # Selecteer alle rijen
+    all_rows = edited_df_response['data']
+    st.session_state.selected_rows = list(range(len(all_rows)))  # Simuleer selectie van alle rijen
+    
     # Eerste update-routine
-    updated_df = pd.DataFrame(edited_df_response['data'])
+    updated_df = pd.DataFrame(all_rows)
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
@@ -416,7 +428,7 @@ def update_tabel():
 
 if st.button("Update tabel"):
     update_tabel()
-    update_tabel()  # Tweede keer uitvoeren
+    update_tabel() # tweede keer uitvoeren
     st.success("Tabel succesvol bijgewerkt!")
 
 
