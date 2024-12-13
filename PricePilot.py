@@ -313,7 +313,7 @@ function(params) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
     } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-    } else if (params.colDef.field === "Verkoopprijs" && params.data.Verkoopprijs !== 0) {
+    } else if (params.colDef.field === "Verkoopprijs" && params.data.Prijs_backend === params.data.Verkoopprijs) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
     } else if (params.colDef.field !== "Verkoopprijs") {
         return {'backgroundColor': '#e0e0e0'};  // Grijs voor alle andere cellen
