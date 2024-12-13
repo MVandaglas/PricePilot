@@ -68,13 +68,15 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
-# Functie om Prijs_backend te berekenen
 def bereken_prijs_backend(df):
     if df is None:
         st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
         return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
 
-    totaal_bedrag = df["M2 totaal"].sum() * df["Prijs_backend"].sum()
+    # Controleer en zet totaal bedrag om naar float
+    totaal_bedrag = float(
+        (df["M2 totaal"] * df["Prijs_backend"]).sum() if not df.empty else 0
+    )
 
     def bepaal_prijs_backend(row):
         if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0:
@@ -86,6 +88,7 @@ def bereken_prijs_backend(df):
 
     df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
     return df
+
 
 st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
