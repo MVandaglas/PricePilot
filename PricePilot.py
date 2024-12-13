@@ -322,20 +322,20 @@ function(params) {
 }
 """)
 
-# JavaScript-functie om alle rijen te selecteren
+# JavaScript-code om alle rijen te selecteren
 select_all_js = JsCode("""
 function(params) {
     params.api.selectAll(); // Selecteer alle rijen
-    return params.api.getSelectedRows(); // Retourneer geselecteerde rijen
 }
 """)
 
-# JavaScript voor het deselecteren van alle rijen
+# JavaScript-code om alle rijen te deselecteren
 deselect_all_js = JsCode("""
 function(params) {
     params.api.deselectAll(); // Deselecteer alle rijen
 }
 """)
+
 
 
 def save_changes(df):
