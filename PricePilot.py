@@ -73,14 +73,21 @@ def bereken_prijs_backend(df):
     if df is None:
         st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
         return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
-    
-    df["Prijs_backend"] = df.apply(
-        lambda row: row["Verkoopprijs"] if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0 else row["RSP"],
-        axis=1
-    )
+
+    totaal_bedrag = df["M2 totaal"].sum() * df["Prijs_backend"].sum()
+
+    def bepaal_prijs_backend(row):
+        if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0:
+            return row["Verkoopprijs"]
+        elif totaal_bedrag < 2000:
+            return row["SAP Prijs"]
+        else:
+            return min(row["SAP Prijs"], row["RSP"])
+
+    df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
     return df
 
-
+st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Controleer en zet kolommen om
 for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
