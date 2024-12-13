@@ -69,25 +69,34 @@ st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
 def bereken_prijs_backend(df):
-    if df is None:
+    if df is None or df.empty:
         st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
         return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
 
-    # Controleer en zet totaal bedrag om naar float
-    totaal_bedrag = float(
-        (df["M2 totaal"] * df["Prijs_backend"]).sum() if not df.empty else 0
-    )
+    try:
+        # Zorg ervoor dat kolommen numeriek zijn
+        df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
+        df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
+        df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
 
-    def bepaal_prijs_backend(row):
-        if pd.notna(row["Verkoopprijs"]) and row["Verkoopprijs"] > 0:
-            return row["Verkoopprijs"]
-        elif totaal_bedrag < 2000:
-            return row["SAP Prijs"]
-        else:
-            return min(row["SAP Prijs"], row["RSP"])
+        # Bereken totaal bedrag
+        totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
 
-    df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+        # Toepassen van de logica voor Prijs_backend
+        def bepaal_prijs_backend(row):
+            if row["Verkoopprijs"] > 0:
+                return row["Verkoopprijs"]
+            elif totaal_bedrag < 2000:
+                return row["SAP Prijs"]
+            else:
+                return min(row["SAP Prijs"], row["RSP"])
+
+        df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+    except Exception as e:
+        st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
+
     return df
+
 
 
 st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
