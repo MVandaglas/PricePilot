@@ -310,16 +310,18 @@ def reset_rijnummers(df):
 cell_style_js = JsCode("""
 function(params) {
     if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
     } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
     } else if (params.colDef.field === "Verkoopprijs" && params.data.Verkoopprijs !== 0) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen
-    } else {
-        return {'backgroundColor': '#e0e0e0'};  // Grijs als geen opmaak van toepassing is
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+    } else if (params.colDef.field !== "Verkoopprijs") {
+        return {'backgroundColor': '#e0e0e0'};  // Grijs voor alle andere cellen
     }
+    return null;
 }
 """)
+
 
 
 def save_changes(df):
