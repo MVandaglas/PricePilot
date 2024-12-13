@@ -330,6 +330,14 @@ function(params) {
 }
 """)
 
+# JavaScript voor het deselecteren van alle rijen
+deselect_all_js = JsCode("""
+function(params) {
+    params.api.deselectAll(); // Deselecteer alle rijen
+}
+""")
+
+
 def save_changes(df):
     st.session_state.offer_df = df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
@@ -411,24 +419,23 @@ if "data" in edited_df_response:
 
 
 def update_tabel():
-    # Selecteer alle rijen
-    all_rows = edited_df_response['data']
-    st.session_state.selected_rows = list(range(len(all_rows)))  # Simuleer selectie van alle rijen
-    
-    # Eerste update-routine
-    updated_df = pd.DataFrame(all_rows)
+    # Selecteer alle rijen via JavaScript
+    grid_response = edited_df_response['api']
+    grid_response.execute(select_all_js)
+
+    # Update de tabel
+    updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-    # Tweede update-routine om afhankelijkheden af te dwingen
-    updated_df = st.session_state.offer_df.copy()
-    st.session_state.offer_df = update_offer_data(updated_df)
-    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+    # Deselecteer alle rijen via JavaScript
+    grid_response.execute(deselect_all_js)
 
+# Knop om de tabel bij te werken
 if st.button("Update tabel"):
     update_tabel()
-    update_tabel() # tweede keer uitvoeren
+    update_tabel() # tweede keer
     st.success("Tabel succesvol bijgewerkt!")
 
 
