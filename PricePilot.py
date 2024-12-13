@@ -14,7 +14,6 @@ import dash_bootstrap_components as dbc
 from SAPprijs import sap_prices
 
 
-
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
@@ -32,7 +31,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs","M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -61,7 +60,7 @@ selected_tab = st.radio(
 )
 
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
 
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
