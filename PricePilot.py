@@ -420,17 +420,16 @@ if "data" in edited_df_response:
 
 def update_tabel():
     # Selecteer alle rijen via JavaScript
-    grid_response = edited_df_response['api']
-    grid_response.execute(select_all_js)
+    edited_df_response['api'].execute(select_all_js)
 
-    # Update de tabel
+    # Verwerk de update
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
     # Deselecteer alle rijen via JavaScript
-    grid_response.execute(deselect_all_js)
+    edited_df_response['api'].execute(deselect_all_js)
 
 # Knop om de tabel bij te werken
 if st.button("Update tabel"):
