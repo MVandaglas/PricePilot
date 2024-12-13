@@ -322,7 +322,13 @@ function(params) {
 }
 """)
 
-
+# JavaScript-functie om alle rijen te selecteren
+select_all_js = JsCode("""
+function(params) {
+    params.api.selectAll(); // Selecteer alle rijen
+    return params.api.getSelectedRows(); // Retourneer geselecteerde rijen
+}
+""")
 
 def save_changes(df):
     st.session_state.offer_df = df
@@ -402,13 +408,7 @@ if "data" in edited_df_response:
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-# JavaScript-functie om alle rijen te selecteren
-select_all_js = JsCode("""
-function(params) {
-    params.api.selectAll(); // Selecteer alle rijen
-    return params.api.getSelectedRows(); // Retourneer geselecteerde rijen
-}
-""")
+
 
 def update_tabel():
     # Selecteer alle rijen
