@@ -69,7 +69,7 @@ st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
 def bereken_prijs_backend(df):
-    if df is None or df.empty:
+    if df is None:
         st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
         return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
 
