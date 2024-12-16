@@ -24,8 +24,8 @@ else:
 
 # GPT interpretatie
 def interpret_article_number_with_context(article_number, article_list):
-    # Genereer een lijst van artikelen als een string
-    article_list_str = "\n".join(article_list)
+    # Converteer alle waarden naar strings
+    article_list_str = "\n".join(map(str, article_list))
     prompt = f"""
     Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare artikelen:
     {article_list_str}
@@ -43,6 +43,7 @@ def interpret_article_number_with_context(article_number, article_list):
     except Exception as e:
         st.error(f"Fout bij het raadplegen van OpenAI API: {e}")
         return []
+
 
 
 
