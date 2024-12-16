@@ -85,8 +85,7 @@ def bereken_prijs_backend(df):
         df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
         df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
 
-        # Bereken totaal bedrag
-        totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
+     
 
         # Toepassen van de logica voor Prijs_backend
         def bepaal_prijs_backend(row):
@@ -99,6 +98,9 @@ def bereken_prijs_backend(df):
 
         df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
 
+        # Bereken totaal bedrag
+        totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
+        
         # Aanpassen van Verkoopprijs als RSP is gekozen
         if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
             df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
