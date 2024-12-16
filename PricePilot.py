@@ -113,9 +113,6 @@ def bereken_prijs_backend(df):
     return df
 
 
- # Bereken totaal bedrag
-totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
-
 st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Controleer en zet kolommen om
