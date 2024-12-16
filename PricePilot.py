@@ -342,7 +342,7 @@ def save_changes(df):
 if prijsbepaling_optie == "RSP":
     col1, _ = st.columns([1, 10])
     with col1:
-        prijskwaliteit = st.slider("Prijskwaliteit (%)", min_value=0, max_value=200, value=100, key="prijskwaliteit")
+        prijskwaliteit = st.number_input("Prijskwaliteit (%)", min_value=0, max_value=200, value=100, key="prijskwaliteit")
     st.session_state.offer_df["Prijskwaliteit"] = prijskwaliteit
 
 # Pas de logica voor prijs_backend aan op basis van de gekozen optie
