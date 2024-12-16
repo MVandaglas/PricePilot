@@ -86,6 +86,8 @@ def bereken_prijs_backend(df):
         def bepaal_prijs_backend(row):
             if row["Verkoopprijs"] > 0:
                 return row["Verkoopprijs"]
+            elif prijsbepaling_optie == "RSP" and "Prijskwaliteit" in row and row["Prijskwaliteit"] > 0:
+                return row["RSP"] * (row["Prijskwaliteit"] / 100)
             elif totaal_bedrag < 2000:
                 return row["SAP Prijs"]
             else:
@@ -332,11 +334,16 @@ def save_changes(df):
 # Voeg een dropdown toe voor prijsbepaling
 prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"])
 
+# Voeg een veld toe voor prijskwaliteit als RSP wordt gekozen
+if prijsbepaling_optie == "RSP":
+    prijskwaliteit = st.slider("Prijskwaliteit (%)", min_value=0, max_value=200, value=100)
+    st.session_state.offer_df["Prijskwaliteit"] = prijskwaliteit
+
 # Pas de logica voor prijs_backend aan op basis van de gekozen optie
 if prijsbepaling_optie == "SAP prijs":
     st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
 elif prijsbepaling_optie == "RSP":
-    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["RSP"]
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 else:
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
