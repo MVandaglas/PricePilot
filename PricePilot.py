@@ -68,8 +68,11 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
-# Voeg een dropdown toe voor prijsbepaling
-prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"])
+# Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
+col1, _ = st.columns([1, 10])  # Maak kolommen om breedte te beperken
+with col1:
+    prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
+
 
 def bereken_prijs_backend(df):
     if df is None:
@@ -335,9 +338,11 @@ def save_changes(df):
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
 
-# Voeg een veld toe voor prijskwaliteit als RSP wordt gekozen
+# Voeg een veld toe voor prijskwaliteit als RSP wordt gekozen met beperkte breedte
 if prijsbepaling_optie == "RSP":
-    prijskwaliteit = st.slider("Prijskwaliteit (%)", min_value=0, max_value=200, value=100)
+    col1, _ = st.columns([1, 10])
+    with col1:
+        prijskwaliteit = st.slider("Prijskwaliteit (%)", min_value=0, max_value=200, value=100, key="prijskwaliteit")
     st.session_state.offer_df["Prijskwaliteit"] = prijskwaliteit
 
 # Pas de logica voor prijs_backend aan op basis van de gekozen optie
@@ -360,6 +365,7 @@ gb.configure_column("Offertenummer", hide=True)
 gb.configure_column("Prijs_backend", hide=False)
 gb.configure_column("Min_prijs", hide=True)
 gb.configure_column("Artikelnummer", hide=True)
+gb.configure_column("Prijskwaliteit", hide=True)
 gb.configure_column("Max_prijs", hide=True)
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
