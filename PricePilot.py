@@ -32,8 +32,8 @@ def interpret_article_number_with_context(article_number, article_list):
     Kun je een of meerdere alternatieven voorstellen uit deze lijst die mogelijk overeenkomen met '{article_number}'?
     """
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",
+        response = openai.chat.completions.create(
+            engine="gpt-4o",
             prompt=prompt,
             max_tokens=100,
             temperature=0.3,
