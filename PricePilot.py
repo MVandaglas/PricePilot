@@ -33,7 +33,7 @@ def interpret_article_number_with_context(article_number, article_list):
     """
     try:
         # Correcte aanroep voor ChatCompletion
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
@@ -43,16 +43,16 @@ def interpret_article_number_with_context(article_number, article_list):
             temperature=0.3,
         )
         # Verwerk het antwoord correct
-        suggestions = response.choices[0].message.content.strip().split("\n")
+        suggestions = response.choices[0].message['content'].strip().split("\n")
         return [s.strip() for s in suggestions if s.strip()]
     except openai.error.InvalidRequestError as e:
-        st.error(f"Ongeldige verzoekfout bij het raadplegen van OpenAI API: {e}")
+        print(f"Ongeldige verzoekfout bij het raadplegen van OpenAI API: {e}")
         return []
     except openai.error.OpenAIError as e:
-        st.error(f"OpenAI API-fout: {e}")
+        print(f"OpenAI API-fout: {e}")
         return []
     except Exception as e:
-        st.error(f"Onverwachte fout bij het raadplegen van OpenAI API: {e}")
+        print(f"Onverwachte fout bij het raadplegen van OpenAI API: {e}")
         return []
 
 
@@ -250,7 +250,7 @@ def replace_synonyms(input_text, synonyms):
     return input_text
 
 # Functie om artikelgegevens te vinden
-def find_article_details(article_number):
+def find_article_details(article_number, article_table):
     # Zoek naar een exacte match
     filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
     if not filtered_articles.empty:
