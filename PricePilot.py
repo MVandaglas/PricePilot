@@ -418,6 +418,7 @@ if "data" in edited_df_response:
 
 
 
+# Verbeterde update_tabel functie
 def update_tabel():
     # Selecteer alle rijen via JavaScript
     edited_df_response['api'].execute(select_all_js)
@@ -428,13 +429,19 @@ def update_tabel():
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-    # Deselecteer alle rijen via JavaScript
+    # Wacht op het voltooien van de rendering en deselecteer
+    st.rerun()  # Herlaad de app om de grid volledig opnieuw te laden
+
+# Callback om alle rijen te deselecteren na rendering
+def deselect_rows():
     edited_df_response['api'].execute(deselect_all_js)
 
 # Knop om de tabel bij te werken
 if st.button("Update tabel"):
     update_tabel()
-    update_tabel() # tweede keer
+    update_tabel()
+    # Pas deselecteeractie toe na herladen
+    st.session_state.grid_options['onFirstDataRendered'] = deselect_rows
     st.success("Tabel succesvol bijgewerkt!")
 
 
