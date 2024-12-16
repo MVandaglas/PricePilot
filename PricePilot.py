@@ -85,14 +85,12 @@ def bereken_prijs_backend(df):
         df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
         df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
 
-        # Bereken totaal bedrag
-        totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
-
+       
         # Toepassen van de logica voor Prijs_backend
         def bepaal_prijs_backend(row):
             if row["Verkoopprijs"] > 0:
                 return row["Verkoopprijs"]
-            elif totaal_bedrag < 2000:
+            elif totaal_bedrag < 1500:
                 return row["SAP Prijs"]
             else:
                 return min(row["SAP Prijs"], row["RSP"])
@@ -112,7 +110,8 @@ def bereken_prijs_backend(df):
 
     return df
 
-
+ # Bereken totaal bedrag
+totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
 
 st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
