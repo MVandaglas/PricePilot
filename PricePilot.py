@@ -68,6 +68,9 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
+# Voeg een dropdown toe voor prijsbepaling
+prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"])
+
 def bereken_prijs_backend(df):
     if df is None:
         st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
@@ -331,8 +334,6 @@ def save_changes(df):
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
-# Voeg een dropdown toe voor prijsbepaling
-prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"])
 
 # Voeg een veld toe voor prijskwaliteit als RSP wordt gekozen
 if prijsbepaling_optie == "RSP":
