@@ -69,7 +69,7 @@ st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
 # Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
-col1, _ = st.columns([1, 10])  # Maak kolommen om breedte te beperken
+col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
 with col1:
     prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
 
