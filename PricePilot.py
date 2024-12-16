@@ -326,16 +326,9 @@ function(params) {
 select_all_js = JsCode("""
 function(params) {
     params.api.selectAll(); // Selecteer alle rijen
-}
-""")
-
-# JavaScript-code om alle rijen te deselecteren
-deselect_all_js = JsCode("""
-function(params) {
     params.api.deselectAll(); // Deselecteer alle rijen
 }
 """)
-
 
 
 def save_changes(df):
