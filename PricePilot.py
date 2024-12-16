@@ -322,14 +322,6 @@ function(params) {
 }
 """)
 
-# JavaScript-code om alle rijen te selecteren
-select_all_js = JsCode("""
-function(params) {
-    params.api.selectAll(); // Selecteer alle rijen
-    params.api.deselectAll(); // Deselecteer alle rijen
-}
-""")
-
 
 def save_changes(df):
     st.session_state.offer_df = df
@@ -356,7 +348,6 @@ gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellS
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
-gb.configure_grid_options(onFirstDataRendered=select_all_js)
 
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
@@ -413,32 +404,17 @@ if "data" in edited_df_response:
 
 # Verbeterde update_tabel functie
 def update_tabel():
-    # Selecteer alle rijen via JavaScript
-    edited_df_response['api'].execute(select_all_js)
-
-    # Verwerk de update
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-    # Wacht op het voltooien van de rendering en deselecteer
-    st.rerun()  # Herlaad de app om de grid volledig opnieuw te laden
-
-# Callback om alle rijen te deselecteren na rendering
-def deselect_rows():
-    edited_df_response['api'].execute(deselect_all_js)
 
 # Knop om de tabel bij te werken
 if st.button("Update tabel"):
     update_tabel()
     update_tabel()
-    # Pas deselecteeractie toe na herladen
-    st.session_state.grid_options['onFirstDataRendered'] = deselect_rows
-    st.success("Tabel succesvol bijgewerkt!")
-
-
-
+ 
 # Update de DataFrame na elke wijziging
 updated_df = edited_df_response['data']
 save_changes(pd.DataFrame(updated_df))
