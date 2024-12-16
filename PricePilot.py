@@ -33,7 +33,7 @@ def interpret_article_number_with_context(article_number, article_list):
     """
     try:
         # Correcte aanroep voor ChatCompletion
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
