@@ -85,30 +85,33 @@ def bereken_prijs_backend(df):
         df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
         df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
 
-       
         # Toepassen van de logica voor Prijs_backend
         def bepaal_prijs_backend(row):
             if row["Verkoopprijs"] > 0:
                 return row["Verkoopprijs"]
-            elif totaal_bedrag < 1500:
+            elif totaal_bedrag < 1500:  # Deze variabele moet later berekend worden
                 return row["SAP Prijs"]
             else:
                 return min(row["SAP Prijs"], row["RSP"])
 
+        # Update Prijs_backend eerst
         df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+
+        # **Nu** bereken je het totaal_bedrag na het bijwerken van Prijs_backend
+        totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
 
         # Aanpassen van Verkoopprijs als RSP is gekozen
         if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
             df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
-            
+
             # Afronden naar boven op de dichtstbijzijnde 5 cent
             df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
-        
-       
+
     except Exception as e:
         st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
     return df
+
 
  # Bereken totaal bedrag
 totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
