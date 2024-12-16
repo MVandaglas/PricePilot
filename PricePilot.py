@@ -33,7 +33,7 @@ def interpret_article_number_with_context(article_number, article_list):
     """
     try:
         # Correcte aanroep voor ChatCompletion
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
@@ -45,11 +45,17 @@ def interpret_article_number_with_context(article_number, article_list):
         # Verwerk het antwoord correct
         suggestions = response.choices[0].message['content'].strip().split("\n")
         return [s.strip() for s in suggestions if s.strip()]
-    except openai.error.InvalidRequestError as e:
+    except openai.InvalidRequestError as e:
         print(f"Ongeldige verzoekfout bij het raadplegen van OpenAI API: {e}")
         return []
-    except openai.error.OpenAIError as e:
+    except openai.APIError as e:
         print(f"OpenAI API-fout: {e}")
+        return []
+    except openai.APIConnectionError as e:
+        print(f"OpenAI API-verbinding fout: {e}")
+        return []
+    except openai.RateLimitError as e:
+        print(f"OpenAI API rate limit overschreden: {e}")
         return []
     except Exception as e:
         print(f"Onverwachte fout bij het raadplegen van OpenAI API: {e}")
