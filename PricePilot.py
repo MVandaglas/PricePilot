@@ -24,29 +24,35 @@ else:
 
 # GPT interpretatie
 def interpret_article_number_with_context(article_number, article_list):
-    # Converteer alle waarden naar strings
-    article_list_str = "\n".join(map(str, article_list))
+    # Maak een lijst van maximaal 50 artikelen om overbelasting te voorkomen
+    article_list_str = "\n".join(map(str, article_list[:50]))
     prompt = f"""
     Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare artikelen:
     {article_list_str}
     Kun je een of meerdere alternatieven voorstellen uit deze lijst die mogelijk overeenkomen met '{article_number}'?
     """
     try:
-        # Correcte aanroep voor chat.completions
-        response = openai.chat.completions.create(
+        # Correcte aanroep voor ChatCompletion
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "Je bent een assistent die helpt bij het interpreteren van artikelinformatie."},
+                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=100,
+            max_tokens=150,
             temperature=0.3,
         )
         # Verwerk het antwoord correct
-        suggestions = response.choices[0].message['content'].strip().split("\n")
+        suggestions = response.choices[0].message.content.strip().split("\n")
         return [s.strip() for s in suggestions if s.strip()]
+    except openai.error.InvalidRequestError as e:
+        st.error(f"Ongeldige verzoekfout bij het raadplegen van OpenAI API: {e}")
+        return []
+    except openai.error.OpenAIError as e:
+        st.error(f"OpenAI API-fout: {e}")
+        return []
     except Exception as e:
-        st.error(f"Fout bij het raadplegen van OpenAI API: {e}")
+        st.error(f"Onverwachte fout bij het raadplegen van OpenAI API: {e}")
         return []
 
 
