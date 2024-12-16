@@ -92,14 +92,21 @@ def bereken_prijs_backend(df):
         def bepaal_prijs_backend(row):
             if row["Verkoopprijs"] > 0:
                 return row["Verkoopprijs"]
-            elif prijsbepaling_optie == "RSP" and "Prijskwaliteit" in row and row["Prijskwaliteit"] > 0:
-                return row["RSP"] * (row["Prijskwaliteit"] / 100)
             elif totaal_bedrag < 2000:
                 return row["SAP Prijs"]
             else:
                 return min(row["SAP Prijs"], row["RSP"])
 
         df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+
+        # Aanpassen van Verkoopprijs als RSP is gekozen
+        if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
+            df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
+            
+            # Afronden naar boven op de dichtstbijzijnde 5 cent
+            df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
+        
+       
     except Exception as e:
         st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
@@ -348,8 +355,6 @@ if prijsbepaling_optie == "RSP":
 # Pas de logica voor prijs_backend aan op basis van de gekozen optie
 if prijsbepaling_optie == "SAP prijs":
     st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
-elif prijsbepaling_optie == "RSP":
-    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 else:
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
