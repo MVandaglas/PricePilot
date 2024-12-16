@@ -250,7 +250,7 @@ def replace_synonyms(input_text, synonyms):
     return input_text
 
 # Functie om artikelgegevens te vinden
-def find_article_details(article_number, article_table):
+def find_article_details(article_number):
     # Zoek naar een exacte match
     filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
     if not filtered_articles.empty:
