@@ -22,16 +22,28 @@ else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
-def interpret_article_number(input_number):
-    prompt = f"Het artikelnummer '{input_number}' komt niet overeen. Welke alternatieven zou je voorstellen op basis van een lijst met bekende patronen zoals 33/1-33/1?"
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=prompt,
-        max_tokens=50,
-        temperature=0.3,
-    )
-    suggestions = response['choices'][0]['text'].strip().split("\n")
-    return [s.strip() for s in suggestions if s.strip()]
+# GPT interpretatie
+def interpret_article_number_with_context(article_number, article_list):
+    # Genereer een lijst van artikelen als een string
+    article_list_str = "\n".join(article_list)
+    prompt = f"""
+    Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare artikelen:
+    {article_list_str}
+    Kun je een of meerdere alternatieven voorstellen uit deze lijst die mogelijk overeenkomen met '{article_number}'?
+    """
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=100,
+            temperature=0.3,
+        )
+        suggestions = response['choices'][0]['text'].strip().split("\n")
+        return [s.strip() for s in suggestions if s.strip()]
+    except Exception as e:
+        st.error(f"Fout bij het raadplegen van OpenAI API: {e}")
+        return []
+
 
 
 # Hard gecodeerde klantgegevens
@@ -227,20 +239,32 @@ def replace_synonyms(input_text, synonyms):
     return input_text
 
 # Functie om artikelgegevens te vinden
-def find_article_with_alternatives(article_number):
-    # Zoek eerst direct naar een match
-    matched_article = article_table[article_table['Material'] == article_number]
-    if not matched_article.empty:
-        return matched_article.iloc[0]
+def find_article_details(article_number):
+    # Zoek naar een exacte match
+    filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+    if not filtered_articles.empty:
+        return (
+            filtered_articles.iloc[0]['Description'],
+            filtered_articles.iloc[0]['Min_prijs'],
+            filtered_articles.iloc[0]['Max_prijs']
+        )
 
-    # Gebruik OpenAI om alternatieven te genereren
-    alternatives = interpret_article_number(article_number)
-    for alt in alternatives:
-        matched_article = article_table[article_table['Material'] == alt]
-        if not matched_article.empty:
-            return matched_article.iloc[0]
+    # Gebruik OpenAI API om alternatieven te vinden
+    article_list = article_table['Material'].tolist()
+    alternatives = interpret_article_number_with_context(article_number, article_list)
 
-    return None  # Geen match gevonden
+    # Probeer alternatieven te matchen
+    for alternative in alternatives:
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(alternative)]
+        if not filtered_articles.empty:
+            return (
+                filtered_articles.iloc[0]['Description'],
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs']
+            )
+
+    return None, None, None
+
 
 
 # Functie om synoniemen te matchen in invoertekst
