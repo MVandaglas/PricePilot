@@ -329,6 +329,19 @@ def save_changes(df):
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
+# Voeg een dropdown toe voor prijsbepaling
+prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"])
+
+# Pas de logica voor prijs_backend aan op basis van de gekozen optie
+if prijsbepaling_optie == "SAP prijs":
+    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
+elif prijsbepaling_optie == "RSP":
+    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["RSP"]
+else:
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+
+
+
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=100, editable=True)
