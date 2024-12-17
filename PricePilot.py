@@ -12,7 +12,8 @@ from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, G
 import openai
 import dash_bootstrap_components as dbc
 from SAPprijs import sap_prices
-
+from Synonyms import synonym_dict
+from Articles import article_table
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -73,8 +74,7 @@ if "selected_rows" not in st.session_state:
 
 
 # Laad synoniemen en artikelentabel
-from Synonyms import synonym_dict
-from Articles import article_table
+
 
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
@@ -253,22 +253,36 @@ def find_article_details(article_number):
             filtered_articles.iloc[0]['Min_prijs'],
             filtered_articles.iloc[0]['Max_prijs']
         )
+    
+    # Zoek naar een match in synonym_dict
+    for key, value in synonym_dict.items():
+        if article_number.replace(" ", "").replace(".", "").lower() == key.replace(" ", "").replace(".", "").lower():
+            return f"Bedoel je '{key}' met artikelnummer {value}?"
 
-    # Gebruik OpenAI API om alternatieven te vinden
-    article_list = article_table['Material'].tolist()
-    alternatives = interpret_article_number_with_context(article_number, article_list)
-
-    # Probeer alternatieven te matchen
-    for alternative in alternatives:
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(alternative)]
-        if not filtered_articles.empty:
-            return (
-                filtered_articles.iloc[0]['Description'],
-                filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs']
-            )
-
-    return None, None, None
+    # Als er geen match is, zoek alternatieven met GPT
+    synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
+    prompt = f"""
+    Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
+    {synonym_list_str}
+    Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{article_number}'?
+    """
+    try:
+        # Correcte aanroep voor ChatCompletion
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=150,
+            temperature=0.3,
+        )
+        # Verwerk het antwoord correct
+        suggestions = response.choices[0].message['content'].strip().split("\n")
+        return [s.strip() for s in suggestions if s.strip()]
+    except Exception as e:
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
+        return []
 
 
 
