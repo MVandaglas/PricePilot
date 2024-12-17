@@ -227,15 +227,6 @@ def find_article_details(article_number):
             filtered_articles.iloc[0]['Max_prijs']
         )
     
-    # Zoek naar een 1-op-1 match in synonym_dict
-    for key, value in synonym_dict.items():
-        if article_number.replace(" ", "").replace(".", "").lower() == key.replace(" ", "").replace(".", "").lower():
-            return (
-                filtered_articles.iloc[0]['Description'],
-                filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs']
-            )
-    
     # Zoek naar bijna matches met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
     if closest_matches:
