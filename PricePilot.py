@@ -255,7 +255,7 @@ def find_article_details(article_number):
     prompt = f"""
     Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
     {synonym_list_str}
-    Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{article_number}'?
+    Kun je een alternatief voorstellen die mogelijk overeenkomen met '{article_number}'?
     """
     try:
         # Correcte aanroep voor ChatCompletion
