@@ -751,8 +751,7 @@ def handle_gpt_chat():
                         min_price,
                         max_price,
                         verkoopprijs,
-                        prijs_backend,
-                        source
+                        prijs_backend
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -788,8 +787,7 @@ def handle_gpt_chat():
                             min_price,
                             max_price,
                             verkoopprijs,
-                            prijs_backend,
-                            source
+                            prijs_backend
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
