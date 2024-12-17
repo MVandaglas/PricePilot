@@ -226,7 +226,7 @@ def find_article_details(article_number):
             filtered_articles.iloc[0]['Min_prijs'],
             filtered_articles.iloc[0]['Max_prijs'],
             article_number,  # Retourneer het originele artikelnummer als match
-            source = "synoniem"  # Bron: exacte match
+            "synoniem"  # Bron: exacte match
         )
     
     # Zoek naar bijna matches met difflib
@@ -246,7 +246,7 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 article_number,  # Retourneer het gematchte artikelnummer uit synonym_dict
-                source = "interpretatie"  # Bron: difflib match
+                "interpretatie"  # Bron: difflib match
             )
     
     # Als er geen bijna matches zijn, zoek alternatieven met GPT
@@ -723,7 +723,8 @@ def handle_gpt_chat():
                         min_price,
                         max_price,
                         verkoopprijs,
-                        prijs_backend
+                        prijs_backend,
+                        source
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -759,7 +760,8 @@ def handle_gpt_chat():
                             min_price,
                             max_price,
                             verkoopprijs,
-                            prijs_backend
+                            prijs_backend,
+                            source
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
