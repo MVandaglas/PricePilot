@@ -348,14 +348,16 @@ def update_offer_data(df):
         if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
-            description, min_price, max_price, article_number, source = find_article_details(row['Artikelnummer'])
-            if description:
-                df.at[index, 'Artikelnaam'] = description
-            if min_price is not None and max_price is not None:
-                df.at[index, 'Min_prijs'] = min_price
-                df.at[index, 'Max_prijs'] = max_price
-            if source:  # Zorg dat de bron wordt toegevoegd
-                df.at[index, 'Source'] = source
+            # Controleer of Source al is gevuld
+            if pd.isna(row.get('Source')) or row['Source'] in ['niet gevonden', 'GPT']:
+                description, min_price, max_price, article_number, source = find_article_details(row['Artikelnummer'])
+                if description:
+                    df.at[index, 'Artikelnaam'] = description
+                if min_price is not None and max_price is not None:
+                    df.at[index, 'Min_prijs'] = min_price
+                    df.at[index, 'Max_prijs'] = max_price
+                if source:  # Alleen Source bijwerken als deze leeg is
+                    df.at[index, 'Source'] = source
             
             # Update SAP Prijs
             if st.session_state.customer_number in sap_prices:
@@ -365,6 +367,7 @@ def update_offer_data(df):
                 df.at[index, 'SAP Prijs'] = "Geen prijs"
     df = bereken_prijs_backend(df)
     return df
+
 
 
 # Functie om de RSP voor alle regels te updaten
