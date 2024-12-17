@@ -226,7 +226,7 @@ def find_article_details(article_number):
             filtered_articles.iloc[0]['Min_prijs'],
             filtered_articles.iloc[0]['Max_prijs'],
             article_number,  # Retourneer het originele artikelnummer als match
-            "synoniem"  # Bron: exacte match
+            source = "synoniem"  # Bron: exacte match
         )
     
     # Zoek naar bijna matches met difflib
@@ -246,7 +246,7 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 article_number,  # Retourneer het gematchte artikelnummer uit synonym_dict
-                "interpretatie"  # Bron: difflib match
+                source = "interpretatie"  # Bron: difflib match
             )
     
     # Als er geen bijna matches zijn, zoek alternatieven met GPT
