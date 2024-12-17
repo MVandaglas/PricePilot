@@ -286,9 +286,11 @@ def find_article_details(article_number):
 
 
 # Vul de kolommen Description, Min_prijs, Max_prijs en Source in
-st.session_state.offer_df[["Description", "Min_prijs", "Max_prijs", "Source"]] = st.session_state.offer_df["Artikelnummer"].apply(
-    lambda artikelnummer: pd.Series(find_article_details(str(artikelnummer)) if pd.notnull(artikelnummer) else (None, None, None, "Onbekend"))
-)
+if not st.session_state.offer_df.empty:
+    st.session_state.offer_df[["Description", "Min_prijs", "Max_prijs", "Source"]] = st.session_state.offer_df["Artikelnummer"].apply(
+        lambda artikelnummer: pd.Series(find_article_details(str(artikelnummer)))
+    )
+
 
 
 
