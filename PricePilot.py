@@ -62,7 +62,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -365,7 +365,7 @@ def update_offer_data(df):
         if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
-            description, min_price, max_price, article_number = find_article_details(row['Artikelnummer'])
+            description, min_price, max_price, article_number, source = find_article_details(row['Artikelnummer'])
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
@@ -727,7 +727,7 @@ def handle_gpt_chat():
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
-                description, min_price, max_price, article_number = find_article_details(article_number)
+                description, min_price, max_price, article_number, source = find_article_details(article_number)
                 if description:
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -750,7 +750,8 @@ def handle_gpt_chat():
                         min_price,
                         max_price,
                         verkoopprijs,
-                        prijs_backend
+                        prijs_backend,
+                        source
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -760,7 +761,7 @@ def handle_gpt_chat():
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
                     article_number = synonym_dict.get(article_number, article_number)
-                    description, min_price, max_price, article_number = find_article_details(article_number)
+                    description, min_price, max_price, article_number, source = find_article_details(article_number)
                     if description:
                         # Bepaal de spacer waarde
                         spacer = determine_spacer(line)
@@ -786,7 +787,8 @@ def handle_gpt_chat():
                             min_price,
                             max_price,
                             verkoopprijs,
-                            prijs_backend
+                            prijs_backend,
+                            source
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -834,7 +836,7 @@ def handle_text_input(input_text):
     if matched_articles:
         response_text = "Bedoelt u de volgende samenstellingen:"
         for term, article_number in matched_articles:
-            description, _, _, _ = find_article_details(article_number)
+            description, _, _, _, _ = find_article_details(article_number)
             if description:
                 response_text += f"- {description} met artikelnummer {article_number}\n"
 
