@@ -43,13 +43,6 @@ if "saved_offers" not in st.session_state:
 if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
 
-# Voeg kolom 'Bron' toe aan de DataFrame
-st.session_state.offer_df['Bron'] = st.session_state.offer_df['Artikelnummer'].apply(
-    lambda x: find_article_details(x)[3]  # Haal alleen de 'source' waarde op
-)
-
-# Laad synoniemen en artikelentabel
-
 
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
