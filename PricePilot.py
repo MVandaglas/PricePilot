@@ -92,11 +92,7 @@ def bereken_prijs_backend(df):
                 return row["Verkoopprijs"]
             return min(row["SAP Prijs"], row["RSP"])
 
-        try:
-            df["Prijs_backend"] = df.apply(lambda row: bepaal_prijs_backend(row), axis=1)
-        except Exception as e:
-            st.error(f"Fout bij het toepassen van bepaal_prijs_backend: {e}")
-            return df
+        df["Prijs_backend"] = df.apply(lambda row: bepaal_prijs_backend(row), axis=1)
 
         # Voeg debug informatie toe
         st.write("Na het berekenen van Prijs_backend:")
@@ -116,11 +112,7 @@ def bereken_prijs_backend(df):
                 return row["SAP Prijs"]
             return min(row["SAP Prijs"], row["RSP"])
 
-        try:
-            df["Prijs_backend"] = df.apply(lambda row: update_prijs_backend(row), axis=1)
-        except Exception as e:
-            st.error(f"Fout bij het toepassen van update_prijs_backend: {e}")
-            return df
+        df["Prijs_backend"] = df.apply(lambda row: update_prijs_backend(row), axis=1)
 
         # Voeg debug informatie toe
         st.write("Na het updaten van Prijs_backend:")
