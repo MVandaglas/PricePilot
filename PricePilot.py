@@ -218,37 +218,42 @@ def replace_synonyms(input_text, synonyms):
 
 # Functie om artikelgegevens te vinden
 def find_article_details(article_number):
-    # Zoek naar een exacte match
-    filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
-    if not filtered_articles.empty:
-        return (
-            filtered_articles.iloc[0]['Description'],
-            filtered_articles.iloc[0]['Min_prijs'],
-            filtered_articles.iloc[0]['Max_prijs'],
-            article_number,  # Retourneer het originele artikelnummer als match
-            "synoniem"  # Bron: exacte match
-        )
+    # Controleer eerst of het artikelnummer een exacte match in synonym_dict is
+    if article_number in synonym_dict:
+        matched_article_number = synonym_dict[article_number]
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+        if not filtered_articles.empty:
+            return (
+                filtered_articles.iloc[0]['Description'],
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs'],
+                matched_article_number,
+                "synoniem"  # Bron: exacte match via synonym_dict
+            )
     
     # Zoek naar bijna matches met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
     if closest_matches:
         best_match = closest_matches[0]  # Haal de beste match op
         matched_article_number = synonym_dict[best_match]  # Haal het juiste artikelnummer op uit synonym_dict
-    
-        # Oversla het originele artikelnummer en gebruik de matched versie
-        article_number = matched_article_number
-    
+        
+        # Controleer of de originele invoer hetzelfde is als de matched invoer
+        if article_number == best_match:
+            source = "synoniem"  # Exacte match via synonym_dict
+        else:
+            source = "interpretatie"  # Bijna match via difflib
+        
         # Zoek in article_table naar dit correcte artikelnummer
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
         if not filtered_articles.empty:
             return (
                 filtered_articles.iloc[0]['Description'],
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
-                article_number,  # Retourneer het gematchte artikelnummer uit synonym_dict
-                "interpretatie"  # Bron: difflib match
+                matched_article_number,  # Retourneer het gematchte artikelnummer uit synonym_dict
+                source  # Bron: synoniem of interpretatie
             )
-    
+
     # Als er geen bijna matches zijn, zoek alternatieven met GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
@@ -258,7 +263,7 @@ def find_article_details(article_number):
     """
     try:
         # Correcte aanroep voor ChatCompletion
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
@@ -275,7 +280,6 @@ def find_article_details(article_number):
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
     
     return (None, None, None, article_number, "niet gevonden")
-
 
 
 # Functie om aanbevolen prijs te berekenen
