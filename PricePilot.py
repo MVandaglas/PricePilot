@@ -313,10 +313,10 @@ def find_article_details(article_number):
         return (None, None, None, None)
 
 
-# Vul 'Source' kolom in
+# Vul de kolommen Description, Min_prijs, Max_prijs en Source in
 if not st.session_state.offer_df.empty:
-    st.session_state.offer_df["Source"] = st.session_state.offer_df["Artikelnummer"].apply(
-        lambda artikelnummer: find_article_details(artikelnummer)[3]
+    st.session_state.offer_df[["Description", "Min_prijs", "Max_prijs", "Source"]] = st.session_state.offer_df["Artikelnummer"].apply(
+        lambda artikelnummer: pd.Series(find_article_details(artikelnummer))
     )
 
 
