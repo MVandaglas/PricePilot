@@ -220,7 +220,7 @@ def find_article_details(article_number):
     # Zoek naar een exacte match
     filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
     if not filtered_articles.empty:
-        st.write("Exacte match gevonden")
+        st.write(f"Exacte match gevonden voor artikelnummer: {article_number}")
         return (
             filtered_articles.iloc[0]['Description'],
             filtered_articles.iloc[0]['Min_prijs'],
@@ -241,7 +241,7 @@ def find_article_details(article_number):
         # Zoek in article_table naar dit correcte artikelnummer
         filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
         if not filtered_articles.empty:
-            st.write("Bijna match gevonden")
+            st.write(f"Bijna match gevonden voor artikelnummer: {article_number} (origineel: {best_match})")
             return (
                 filtered_articles.iloc[0]['Description'],
                 filtered_articles.iloc[0]['Min_prijs'],
@@ -259,7 +259,7 @@ def find_article_details(article_number):
     """
     try:
         # Correcte aanroep voor ChatCompletion
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
@@ -271,12 +271,12 @@ def find_article_details(article_number):
         # Verwerk het antwoord correct
         suggestions = response.choices[0].message['content'].strip().split("\n")
         if suggestions:
-            st.write("GPT suggestie gevonden")
+            st.write(f"GPT suggestie gevonden voor artikelnummer: {article_number}")
             return (suggestions[0], None, None, article_number, "GPT")  # Bron: GPT suggestie
     except Exception as e:
         st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
     
-    st.write("Geen match gevonden")
+    st.write(f"Geen match gevonden voor artikelnummer: {article_number}")
     return (None, None, None, article_number, "niet gevonden")
 
 
