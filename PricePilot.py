@@ -126,7 +126,7 @@ def bereken_prijs_backend(df):
         st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
     return df
-
+    
 st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Controleer en zet kolommen om
