@@ -481,7 +481,7 @@ edited_df_response = AgGrid(
     fit_columns_on_grid_load=True,
     enable_enterprise_modules=True,
     update_mode=GridUpdateMode.SELECTION_CHANGED,
-    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+    columns_auto_size_mode=ColumnsAutoSizeMode.NO_AUTOSIZE,
     allow_unsafe_jscode=True
 )
 
