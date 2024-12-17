@@ -715,7 +715,7 @@ def handle_gpt_chat():
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
-                description, min_price, max_price, source = find_article_details(row['Artikelnummer'])
+                description, min_price, max_price, source = find_article_details(article_number)
                 if description:
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
