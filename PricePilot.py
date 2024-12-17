@@ -239,17 +239,22 @@ def find_article_details(article_number):
     # Zoek naar bijna matches met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
     if closest_matches:
-        best_match = closest_matches[0]  # Neem de beste match
-        matched_article_number = synonym_dict[best_match]  # Haal het correcte artikelnummer op uit synonym_dict
-
-        # Zoek nu het artikel op in de article_table
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+        best_match = closest_matches[0]  # Haal de beste match op
+        matched_article_number = synonym_dict[best_match]  # Haal het juiste artikelnummer op uit synonym_dict
+    
+        # Oversla het originele artikelnummer en gebruik de matched versie
+        article_number = matched_article_number
+    
+        # Zoek in article_table naar dit correcte artikelnummer
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
         if not filtered_articles.empty:
             return (
                 filtered_articles.iloc[0]['Description'],
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs']
             )
+
+    
     # Als er geen bijna matches zijn, zoek alternatieven met GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
