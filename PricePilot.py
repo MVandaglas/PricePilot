@@ -24,34 +24,6 @@ else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
-# GPT interpretatie
-def interpret_article_number_with_context(article_number, article_list):
-    # Maak een lijst van maximaal 150 artikelen om overbelasting te voorkomen
-    article_list_str = "\n".join(map(str, article_list[:150]))
-    prompt = f"""
-    Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare artikelen:
-    {article_list_str}
-    Kun je een of meerdere alternatieven voorstellen uit deze lijst die mogelijk overeenkomen met '{article_number}'?
-    """
-    try:
-        # Correcte aanroep voor ChatCompletion
-        response = openai.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt. De invoer moet getoetst worden aan artikelnamen die erg dicht in de buurt komen en stel die voor."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=150,
-            temperature=0.3,
-        )
-        # Verwerk het antwoord correct
-        suggestions = response.choices[0].message['content'].strip().split("\n")
-        return [s.strip() for s in suggestions if s.strip()]
-    except Exception as e:
-        print(f"Fout bij het raadplegen van OpenAI API: {e}")
-        return []
-
-
 
 # Hard gecodeerde klantgegevens
 customer_data = {
@@ -286,7 +258,7 @@ def find_article_details(article_number):
     """
     try:
         # Correcte aanroep voor ChatCompletion
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
