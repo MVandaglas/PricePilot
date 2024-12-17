@@ -257,7 +257,7 @@ def find_article_details(article_number):
     # Zoek naar een match in synonym_dict
     for key, value in synonym_dict.items():
         if article_number.replace(" ", "").replace(".", "").lower() == key.replace(" ", "").replace(".", "").lower():
-            return f"Bedoel je '{key}' met artikelnummer {value}?"
+            return (f"Bedoel je '{key}'?", value, None)
 
     # Als er geen match is, zoek alternatieven met GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
@@ -279,10 +279,12 @@ def find_article_details(article_number):
         )
         # Verwerk het antwoord correct
         suggestions = response.choices[0].message['content'].strip().split("\n")
-        return [s.strip() for s in suggestions if s.strip()]
+        if suggestions:
+            return (suggestions[0], None, None)  # Retourneer eerste suggestie
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
-        return []
+    
+    return (None, None, None)
 
 
 
