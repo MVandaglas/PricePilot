@@ -293,6 +293,12 @@ def find_article_details(article_number):
     
     return (None, None, None, source)
 
+# Vul 'Source' kolom in
+if not st.session_state.offer_df.empty:
+    st.session_state.offer_df["Source"] = st.session_state.offer_df["Artikelnummer"].apply(
+        lambda artikelnummer: find_article_details(artikelnummer)[3]
+    )
+
 # Functie om aanbevolen prijs te berekenen
 def calculate_recommended_price(min_price, max_price, prijsscherpte):
     if min_price is not None and max_price is not None and prijsscherpte != "":
