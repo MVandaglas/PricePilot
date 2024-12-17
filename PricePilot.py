@@ -295,9 +295,7 @@ def find_article_details(article_number):
 
 # Vul 'Source' kolom in
 if not st.session_state.offer_df.empty:
-    st.session_state.offer_df["Source"] = st.session_state.offer_df["Artikelnummer"].apply(
-        lambda artikelnummer: find_article_details(artikelnummer)[3]
-    )
+    st.session_state.offer_df["Description"], st.session_state.offer_df["Min_prijs"], st.session_state.offer_df["Max_prijs"], st.session_state.offer_df["Source"] = zip(*st.session_state.offer_df["Artikelnummer"].apply(find_article_details))
 
 # Functie om aanbevolen prijs te berekenen
 def calculate_recommended_price(min_price, max_price, prijsscherpte):
