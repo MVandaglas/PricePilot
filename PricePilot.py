@@ -12,7 +12,6 @@ from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, G
 import openai
 import dash_bootstrap_components as dbc
 from SAPprijs import sap_prices
-from openai.error import InvalidRequestError, APIError, APIConnectionError, RateLimitError
 
 
 # OpenAI API-sleutel instellen
@@ -23,6 +22,7 @@ else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
+# GPT interpretatie
 # GPT interpretatie
 def interpret_article_number_with_context(article_number, article_list):
     # Maak een lijst van maximaal 50 artikelen om overbelasting te voorkomen
@@ -46,20 +46,8 @@ def interpret_article_number_with_context(article_number, article_list):
         # Verwerk het antwoord correct
         suggestions = response.choices[0].message['content'].strip().split("\n")
         return [s.strip() for s in suggestions if s.strip()]
-    except openai.InvalidRequestError as e:
-        print(f"Ongeldige verzoekfout bij het raadplegen van OpenAI API: {e}")
-        return []
-    except openai.APIError as e:
-        print(f"OpenAI API-fout: {e}")
-        return []
-    except openai.APIConnectionError as e:
-        print(f"OpenAI API-verbinding fout: {e}")
-        return []
-    except openai.RateLimitError as e:
-        print(f"OpenAI API rate limit overschreden: {e}")
-        return []
     except Exception as e:
-        print(f"Onverwachte fout bij het raadplegen van OpenAI API: {e}")
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
         return []
 
 
