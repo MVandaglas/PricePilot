@@ -338,9 +338,13 @@ def update_offer_data(df):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
             description, min_price, max_price, article_number, source = find_article_details(row['Artikelnummer'])
+            if description:
+                df.at[index, 'Artikelnaam'] = description
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
+            if source:  # Zorg dat de bron wordt toegevoegd
+                df.at[index, 'Source'] = source
             
             # Update SAP Prijs
             if st.session_state.customer_number in sap_prices:
