@@ -459,7 +459,7 @@ gb.configure_column("Artikelnaam", width=600)  # Stel de kolombreedte van Artike
 gb.configure_column("Offertenummer", hide=True)
 gb.configure_column("Prijs_backend", hide=False)
 gb.configure_column("Min_prijs", hide=True)
-gb.configure_column("Artikelnummer", hide=True)
+gb.configure_column("Artikelnummer", hide=False)
 gb.configure_column("Prijskwaliteit", hide=True)
 gb.configure_column("Max_prijs", hide=True)
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
