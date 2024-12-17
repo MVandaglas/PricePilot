@@ -773,7 +773,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
