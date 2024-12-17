@@ -227,7 +227,7 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Description'],
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
-                matched_article_number,
+                article_number,
                 "synoniem"  # Bron: exacte match
             )
     
