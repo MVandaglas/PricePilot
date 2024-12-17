@@ -224,7 +224,8 @@ def find_article_details(article_number):
         return (
             filtered_articles.iloc[0]['Description'],
             filtered_articles.iloc[0]['Min_prijs'],
-            filtered_articles.iloc[0]['Max_prijs']
+            filtered_articles.iloc[0]['Max_prijs'],
+            article_number  # Retourneer het originele artikelnummer als match
         )
     
     # Zoek naar bijna matches met difflib
@@ -242,7 +243,8 @@ def find_article_details(article_number):
             return (
                 filtered_articles.iloc[0]['Description'],
                 filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs']
+                filtered_articles.iloc[0]['Max_prijs'],
+                article_number  # Retourneer het gematchte artikelnummer uit synonym_dict
             )
 
     
@@ -271,7 +273,8 @@ def find_article_details(article_number):
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
     
-    return (None, None, None)
+    # Geen matches gevonden -> Retourneer standaardwaarden
+    return (None, None, None, article_number)
 
 # Functie om synoniemen te matchen in invoertekst
 def match_synonyms(input_text, synonyms):
