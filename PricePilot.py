@@ -267,8 +267,8 @@ def find_article_details(article_number):
     Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{article_number}'?
     """
     try:
-        # Correcte aanroep voor ChatCompletion
-        response = openai.ChatCompletion.create(
+        # Correcte aanroep voor completion
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
