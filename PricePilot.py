@@ -15,7 +15,6 @@ from SAPprijs import sap_prices
 from Synonyms import synonym_dict
 from Articles import article_table
 import difflib
-import logging
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -217,15 +216,11 @@ def replace_synonyms(input_text, synonyms):
         input_text = input_text.replace(term, synonym)
     return input_text
 
-# Functie om artikelgegevens te vinden
-# Stel de logging configuratie in
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-
 def find_article_details(article_number):
     # Zoek naar een exacte match
     filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
     if not filtered_articles.empty:
-        logging.debug("Exacte match gevonden")
+        st.write("Exacte match gevonden")
         return (
             filtered_articles.iloc[0]['Description'],
             filtered_articles.iloc[0]['Min_prijs'],
@@ -246,7 +241,7 @@ def find_article_details(article_number):
         # Zoek in article_table naar dit correcte artikelnummer
         filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
         if not filtered_articles.empty:
-            logging.debug("Bijna match gevonden")
+            st.write("Bijna match gevonden")
             return (
                 filtered_articles.iloc[0]['Description'],
                 filtered_articles.iloc[0]['Min_prijs'],
@@ -276,14 +271,13 @@ def find_article_details(article_number):
         # Verwerk het antwoord correct
         suggestions = response.choices[0].message['content'].strip().split("\n")
         if suggestions:
-            logging.debug("GPT suggestie gevonden")
+            st.write("GPT suggestie gevonden")
             return (suggestions[0], None, None, article_number, "GPT")  # Bron: GPT suggestie
     except Exception as e:
-        logging.error(f"Fout bij het raadplegen van OpenAI API: {e}")
+        st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
     
-    logging.debug("Geen match gevonden")
+    st.write("Geen match gevonden")
     return (None, None, None, article_number, "niet gevonden")
-
 
 
 # Functie om aanbevolen prijs te berekenen
