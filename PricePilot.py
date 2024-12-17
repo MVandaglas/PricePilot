@@ -218,7 +218,8 @@ def replace_synonyms(input_text, synonyms):
 
 # Functie om artikelgegevens te vinden
 def find_article_details(article_number):
-    original_article_number = article_number  # Bewaar het originele artikelnummer
+    # Sla het originele artikelnummer op
+    original_article_number = article_number  
 
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
@@ -231,13 +232,10 @@ def find_article_details(article_number):
                 article_number,
                 "synoniem"  # Bron: exacte match in synonym_dict.values()
             )
-    
-    # 2. Zoek naar een bijna-match met difflib
-    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
-    if closest_matches:
-        best_match = closest_matches[0]
-        matched_article_number = synonym_dict[best_match]  # Haal gematcht artikelnummer op uit synonym_dict
 
+    # 2. Controleer of artikelnummer een exacte match is in synonym_dict.keys()
+    if article_number in synonym_dict.keys():
+        matched_article_number = synonym_dict[article_number]  # Haal het bijbehorende artikelnummer op
         filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
         if not filtered_articles.empty:
             return (
@@ -245,10 +243,25 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                "interpretatie"  # Bron: bijna-match met difflib
+                "synoniem"  # Bron: exacte match in synonym_dict.keys()
             )
 
-    # 3. Zoek alternatieven via GPT
+    # 3. Zoek naar een bijna-match met difflib
+    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
+    if closest_matches:
+        best_match = closest_matches[0]
+        matched_article_number = synonym_dict[best_match]
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+        if not filtered_articles.empty:
+            return (
+                filtered_articles.iloc[0]['Description'],
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs'],
+                matched_article_number,
+                "interpretatie"  # Bron: difflib match
+            )
+
+    # 4. Zoek alternatieven via GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
     Het artikelnummer '{original_article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
@@ -270,8 +283,8 @@ def find_article_details(article_number):
             return (suggestions[0], None, None, original_article_number, "GPT")  # Bron: GPT suggestie
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
-    
-    # 4. Als niets gevonden wordt
+
+    # 5. Als alles mislukt
     return (None, None, None, original_article_number, "niet gevonden")
 
 
