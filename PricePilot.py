@@ -24,35 +24,6 @@ else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
-# GPT interpretatie
-def interpret_article_number_with_context(article_number, article_list):
-    # Maak een lijst van maximaal 150 artikelen om overbelasting te voorkomen
-    article_list_str = "\n".join(map(str, article_list[:150]))
-    prompt = f"""
-    Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare artikelen:
-    {article_list_str}
-    Kun je een of meerdere alternatieven voorstellen uit deze lijst die mogelijk overeenkomen met '{article_number}'?
-    """
-    try:
-        # Correcte aanroep voor ChatCompletion
-        response = openai.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt. De invoer moet getoetst worden aan artikelnamen die erg dicht in de buurt komen en stel die voor."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=150,
-            temperature=0.3,
-        )
-        # Verwerk het antwoord correct
-        suggestions = response.choices[0].message['content'].strip().split("\n")
-        return [s.strip() for s in suggestions if s.strip()]
-    except Exception as e:
-        print(f"Fout bij het raadplegen van OpenAI API: {e}")
-        return []
-
-
-
 # Hard gecodeerde klantgegevens
 customer_data = {
     "111111": {"revenue": "50.000 euro", "size": "D"},
@@ -150,9 +121,6 @@ def bereken_prijs_backend(df):
         st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
     return df
-
-
-
 
 st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
@@ -255,6 +223,82 @@ def match_synonyms(input_text, synonyms):
         if term in input_text:
             return synonyms.get(term)
     return None
+
+def find_article_details(article_number):
+    source = None  # Variabele om de bron te bepalen
+
+    # Zoek naar een exacte match
+    filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+    if not filtered_articles.empty:
+        source = "synoniem"
+        return (
+            filtered_articles.iloc[0]['Description'],
+            filtered_articles.iloc[0]['Min_prijs'],
+            filtered_articles.iloc[0]['Max_prijs'],
+            source
+        )
+    
+    # Zoek naar een 1-op-1 match in synonym_dict
+    for key, value in synonym_dict.items():
+        if article_number.replace(" ", "").replace(".", "").lower() == key.replace(" ", "").replace(".", "").lower():
+            source = "synoniem"
+            article_number = value
+            filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+            if not filtered_articles.empty:
+                return (
+                    filtered_articles.iloc[0]['Description'],
+                    filtered_articles.iloc[0]['Min_prijs'],
+                    filtered_articles.iloc[0]['Max_prijs'],
+                    source
+                )
+    
+    # Zoek naar bijna matches met difflib
+    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
+    if closest_matches:
+        source = "interpretatie"
+        match = closest_matches[0]  # Alleen de beste match direct doorvoeren
+        article_number = synonym_dict[match]
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+        if not filtered_articles.empty:
+            return (
+                filtered_articles.iloc[0]['Description'],
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs'],
+                source
+            )
+
+    # Als er geen bijna matches zijn, zoek alternatieven met GPT
+    source = "GPT"
+    synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
+    prompt = f"""
+    Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
+    {synonym_list_str}
+    Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{article_number}'?
+    """
+    try:
+        # Correcte aanroep voor ChatCompletion
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=150,
+            temperature=0.3,
+        )
+        # Verwerk het antwoord correct
+        suggestions = response.choices[0].message['content'].strip().split("\n")
+        if suggestions:
+            return (
+                suggestions[0],
+                None,
+                None,
+                source
+            )  # Retourneer eerste suggestie met bron
+    except Exception as e:
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
+    
+    return (None, None, None, source)
 
 # Functie om aanbevolen prijs te berekenen
 def calculate_recommended_price(min_price, max_price, prijsscherpte):
