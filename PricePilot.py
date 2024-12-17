@@ -88,7 +88,15 @@ def bereken_prijs_backend(df):
                 return row["Verkoopprijs"]
             return min(row["SAP Prijs"], row["RSP"])
 
+        # Voeg debug informatie toe
+        st.write("Voordat Prijs_backend wordt berekend:")
+        st.write(df.head())
+
         df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+
+        # Voeg debug informatie toe
+        st.write("Na het berekenen van Prijs_backend:")
+        st.write(df.head())
 
         # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
         totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
@@ -102,6 +110,10 @@ def bereken_prijs_backend(df):
             return min(row["SAP Prijs"], row["RSP"])
 
         df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
+
+        # Voeg debug informatie toe
+        st.write("Na het updaten van Prijs_backend:")
+        st.write(df.head())
 
         # Aanpassen van Verkoopprijs als RSP is gekozen
         if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
