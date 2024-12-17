@@ -219,8 +219,8 @@ def replace_synonyms(input_text, synonyms):
 # Functie om artikelgegevens te vinden
 def find_article_details(article_number):
     original_article_number = article_number  # Bewaar het originele artikelnummer
-    
-    # Zoek naar een exacte match in synoniemen
+
+    # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
         filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
         if not filtered_articles.empty:
@@ -229,14 +229,14 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 article_number,
-                "synoniem"  # Bron: exacte match
+                "synoniem"  # Bron: exacte match in synonym_dict.values()
             )
     
-    # Zoek naar bijna matches met difflib
+    # 2. Zoek naar een bijna-match met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
     if closest_matches:
         best_match = closest_matches[0]
-        matched_article_number = synonym_dict[best_match]  # Haal het gematchte artikelnummer op
+        matched_article_number = synonym_dict[best_match]  # Haal gematcht artikelnummer op uit synonym_dict
 
         filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
         if not filtered_articles.empty:
@@ -245,10 +245,10 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                "interpretatie"  # Bron: bijna-match
+                "interpretatie"  # Bron: bijna-match met difflib
             )
-    
-    # Als er geen matches zijn, raadpleeg GPT
+
+    # 3. Zoek alternatieven via GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
     Het artikelnummer '{original_article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
@@ -271,7 +271,7 @@ def find_article_details(article_number):
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
     
-    # Retourneer "niet gevonden" als alles mislukt
+    # 4. Als niets gevonden wordt
     return (None, None, None, original_article_number, "niet gevonden")
 
 
