@@ -216,36 +216,40 @@ def replace_synonyms(input_text, synonyms):
         input_text = input_text.replace(term, synonym)
     return input_text
 
+# Functie om artikelgegevens te vinden
 def find_article_details(article_number):
-    # 1. Zoek naar een exacte match in synonym_dict
-    if article_number in synonym_dict:
-        matched_article_number = synonym_dict[article_number]
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
-        if not filtered_articles.empty:
-            return (
-                filtered_articles.iloc[0]['Description'],
-                filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs'],
-                matched_article_number,  # Het juiste artikelnummer uit synonym_dict
-                "synoniem"  # Bron: exacte match
-            )
+    # Zoek naar een exacte match
+    filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+    if not filtered_articles.empty:
+        return (
+            filtered_articles.iloc[0]['Description'],
+            filtered_articles.iloc[0]['Min_prijs'],
+            filtered_articles.iloc[0]['Max_prijs'],
+            article_number,  # Retourneer het originele artikelnummer als match
+            "synoniem"  # Bron: exacte match
+        )
     
-    # 2. Zoek naar bijna matches met difflib
+    # Zoek naar bijna matches met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
     if closest_matches:
-        best_match = closest_matches[0]  # Beste bijna match
-        matched_article_number = synonym_dict[best_match]
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+        best_match = closest_matches[0]  # Haal de beste match op
+        matched_article_number = synonym_dict[best_match]  # Haal het juiste artikelnummer op uit synonym_dict
+    
+        # Oversla het originele artikelnummer en gebruik de matched versie
+        article_number = matched_article_number
+    
+        # Zoek in article_table naar dit correcte artikelnummer
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
         if not filtered_articles.empty:
             return (
                 filtered_articles.iloc[0]['Description'],
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
-                matched_article_number,  # Het matched artikelnummer
+                article_number,  # Retourneer het gematchte artikelnummer uit synonym_dict
                 "interpretatie"  # Bron: difflib match
             )
     
-    # 3. Raadpleeg GPT voor alternatieven
+    # Als er geen bijna matches zijn, zoek alternatieven met GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
     Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
@@ -253,8 +257,8 @@ def find_article_details(article_number):
     Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{article_number}'?
     """
     try:
-        # Correcte GPT-aanroep
-        response = openai.ChatCompletion.create(
+        # Correcte aanroep voor ChatCompletion
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
@@ -263,20 +267,13 @@ def find_article_details(article_number):
             max_tokens=150,
             temperature=0.3,
         )
-        # Verwerk het GPT-resultaat
-        suggestions = response['choices'][0]['message']['content'].strip().split("\n")
+        # Verwerk het antwoord correct
+        suggestions = response.choices[0].message['content'].strip().split("\n")
         if suggestions:
-            return (
-                suggestions[0],  # Eerste GPT-suggestie
-                None,
-                None,
-                article_number,
-                "GPT"
-            )
+            return (suggestions[0], None, None, article_number, "GPT")  # Bron: GPT suggestie
     except Exception as e:
-        print(f"Fout bij het raadplegen van GPT API: {e}")
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
     
-    # 4. Retourneer 'niet gevonden' als alle methoden falen
     return (None, None, None, article_number, "niet gevonden")
 
 
