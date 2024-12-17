@@ -25,8 +25,8 @@ else:
 # GPT interpretatie
 # GPT interpretatie
 def interpret_article_number_with_context(article_number, article_list):
-    # Maak een lijst van maximaal 50 artikelen om overbelasting te voorkomen
-    article_list_str = "\n".join(map(str, article_list[:50]))
+    # Maak een lijst van maximaal 150 artikelen om overbelasting te voorkomen
+    article_list_str = "\n".join(map(str, article_list[:150]))
     prompt = f"""
     Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare artikelen:
     {article_list_str}
@@ -37,7 +37,7 @@ def interpret_article_number_with_context(article_number, article_list):
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
+                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt. De invoer moet getoetst worden aan artikelnamen die erg dicht in de buurt komen en stel die voor."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=150,
