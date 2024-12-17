@@ -258,13 +258,24 @@ def find_article_details(article_number):
     # Zoek naar een 1-op-1 match in synonym_dict
     for key, value in synonym_dict.items():
         if article_number.replace(" ", "").replace(".", "").lower() == key.replace(" ", "").replace(".", "").lower():
-            return (f"Bedoel je '{key}'?", value, None)
+            return (
+                filtered_articles.iloc[0]['Description'],
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs']
+            )
     
     # Zoek naar bijna matches met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
     if closest_matches:
-        suggestions = [f"Bedoel je '{match}' met artikelnummer {synonym_dict[match]}?" for match in closest_matches]
-        return (suggestions[0], synonym_dict[closest_matches[0]], None)  # Retourneer de beste suggestie
+        match = closest_matches[0]  # Alleen de beste match direct doorvoeren
+        article_number = synonym_dict[match]
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+        if not filtered_articles.empty:
+            return (
+                filtered_articles.iloc[0]['Description'],
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs']
+            )
 
     # Als er geen bijna matches zijn, zoek alternatieven met GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
@@ -292,7 +303,6 @@ def find_article_details(article_number):
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
     
     return (None, None, None)
-
 
 # Functie om synoniemen te matchen in invoertekst
 def match_synonyms(input_text, synonyms):
