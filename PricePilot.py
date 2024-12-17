@@ -252,21 +252,24 @@ def find_article_details(article_number):
         return (
             filtered_articles.iloc[0]['Description'],
             filtered_articles.iloc[0]['Min_prijs'],
-            filtered_articles.iloc[0]['Max_prijs']
+            filtered_articles.iloc[0]['Max_prijs'],
+            article_number  # Retourneer het originele artikelnummer als match
         )
     
-     
     # Zoek naar bijna matches met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
     if closest_matches:
-        match = closest_matches[0]  # Alleen de beste match direct doorvoeren
-        article_number = synonym_dict[match]
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+        best_match = closest_matches[0]  # Haal de beste match op
+        matched_article_number = synonym_dict[best_match]  # Haal het juiste artikelnummer op uit synonym_dict
+
+        # Zoek in article_table naar het correcte artikelnummer
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
         if not filtered_articles.empty:
             return (
                 filtered_articles.iloc[0]['Description'],
                 filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs']
+                filtered_articles.iloc[0]['Max_prijs'],
+                matched_article_number  # Retourneer het gematchte artikelnummer
             )
 
     # Als er geen bijna matches zijn, zoek alternatieven met GPT
@@ -278,23 +281,23 @@ def find_article_details(article_number):
     """
     try:
         # Correcte aanroep voor ChatCompletion
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=150,
+            max_tokens=50,
             temperature=0.3,
         )
         # Verwerk het antwoord correct
         suggestions = response.choices[0].message['content'].strip().split("\n")
         if suggestions:
-            return (suggestions[0], None, None)  # Retourneer eerste suggestie
+            return (suggestions[0], None, None, None)  # Retourneer eerste suggestie
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
     
-    return (None, None, None)
+    return (None, None, None, None)
 
 
 # Functie om aanbevolen prijs te berekenen
@@ -356,7 +359,7 @@ def update_offer_data(df):
         if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
-            description, min_price, max_price = find_article_details(row['Artikelnummer'])
+            description, min_price, max_price, article_number = find_article_details(row['Artikelnummer'])
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
@@ -718,7 +721,7 @@ def handle_gpt_chat():
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
-                description, min_price, max_price = find_article_details(article_number)
+                description, min_price, max_price, article_number = find_article_details(article_number)
                 if description:
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -751,7 +754,7 @@ def handle_gpt_chat():
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
                     article_number = synonym_dict.get(article_number, article_number)
-                    description, min_price, max_price = find_article_details(article_number)
+                    description, min_price, max_price, article_number = find_article_details(article_number)
                     if description:
                         # Bepaal de spacer waarde
                         spacer = determine_spacer(line)
@@ -825,7 +828,7 @@ def handle_text_input(input_text):
     if matched_articles:
         response_text = "Bedoelt u de volgende samenstellingen:"
         for term, article_number in matched_articles:
-            description, _, _ = find_article_details(article_number)
+            description, _, _, _ = find_article_details(article_number)
             if description:
                 response_text += f"- {description} met artikelnummer {article_number}\n"
 
