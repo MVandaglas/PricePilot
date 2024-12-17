@@ -15,4 +15,3 @@ dash-ag-grid
 dash-bootstrap-components
 pandas
 plotly
-difflib
