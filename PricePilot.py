@@ -24,6 +24,34 @@ else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
+# GPT interpretatie
+def interpret_article_number_with_context(article_number, article_list):
+    # Maak een lijst van maximaal 150 artikelen om overbelasting te voorkomen
+    article_list_str = "\n".join(map(str, article_list[:150]))
+    prompt = f"""
+    Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare artikelen:
+    {article_list_str}
+    Kun je een of meerdere alternatieven voorstellen uit deze lijst die mogelijk overeenkomen met '{article_number}'?
+    """
+    try:
+        # Correcte aanroep voor ChatCompletion
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt. De invoer moet getoetst worden aan artikelnamen die erg dicht in de buurt komen en stel die voor."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=150,
+            temperature=0.3,
+        )
+        # Verwerk het antwoord correct
+        suggestions = response.choices[0].message['content'].strip().split("\n")
+        return [s.strip() for s in suggestions if s.strip()]
+    except Exception as e:
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
+        return []
+
+
 
 # Hard gecodeerde klantgegevens
 customer_data = {
@@ -224,30 +252,31 @@ def find_article_details(article_number):
         return (
             filtered_articles.iloc[0]['Description'],
             filtered_articles.iloc[0]['Min_prijs'],
-            filtered_articles.iloc[0]['Max_prijs'],
-            article_number  # Retourneer het originele artikelnummer als match
+            filtered_articles.iloc[0]['Max_prijs']
         )
+    
+    # Zoek naar een 1-op-1 match in synonym_dict
+    for key, value in synonym_dict.items():
+        if article_number.replace(" ", "").replace(".", "").lower() == key.replace(" ", "").replace(".", "").lower():
+            return (
+                filtered_articles.iloc[0]['Description'],
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs']
+            )
     
     # Zoek naar bijna matches met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
     if closest_matches:
-        best_match = closest_matches[0]  # Haal de beste match op
-        matched_article_number = synonym_dict[best_match]  # Haal het juiste artikelnummer op uit synonym_dict
-    
-        # Oversla het originele artikelnummer en gebruik de matched versie
-        article_number = matched_article_number
-    
-        # Zoek in article_table naar dit correcte artikelnummer
+        match = closest_matches[0]  # Alleen de beste match direct doorvoeren
+        article_number = synonym_dict[match]
         filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
         if not filtered_articles.empty:
             return (
                 filtered_articles.iloc[0]['Description'],
                 filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs'],
-                article_number  # Retourneer het gematchte artikelnummer uit synonym_dict
+                filtered_articles.iloc[0]['Max_prijs']
             )
 
-    
     # Als er geen bijna matches zijn, zoek alternatieven met GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
@@ -257,7 +286,7 @@ def find_article_details(article_number):
     """
     try:
         # Correcte aanroep voor ChatCompletion
-        response = openai.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
@@ -273,8 +302,7 @@ def find_article_details(article_number):
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
     
-    # Geen matches gevonden -> Retourneer standaardwaarden
-    return (None, None, None, article_number)
+    return (None, None, None)
 
 # Functie om synoniemen te matchen in invoertekst
 def match_synonyms(input_text, synonyms):
@@ -342,7 +370,7 @@ def update_offer_data(df):
         if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
-            description, min_price, max_price, article_number = find_article_details(row['Artikelnummer'])
+            description, min_price, max_price = find_article_details(row['Artikelnummer'])
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
@@ -431,7 +459,7 @@ gb.configure_column("Artikelnaam", width=600)  # Stel de kolombreedte van Artike
 gb.configure_column("Offertenummer", hide=True)
 gb.configure_column("Prijs_backend", hide=False)
 gb.configure_column("Min_prijs", hide=True)
-gb.configure_column("Artikelnummer", hide=False)
+gb.configure_column("Artikelnummer", hide=True)
 gb.configure_column("Prijskwaliteit", hide=True)
 gb.configure_column("Max_prijs", hide=True)
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
