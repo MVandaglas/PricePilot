@@ -72,7 +72,10 @@ if "saved_offers" not in st.session_state:
 if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
 
-
+# Voeg kolom 'Bron' toe aan de DataFrame
+st.session_state.offer_df['Bron'] = st.session_state.offer_df['Artikelnummer'].apply(
+    lambda x: find_article_details(x)[3]  # Haal alleen de 'source' waarde op
+)
 
 # Laad synoniemen en artikelentabel
 
@@ -387,7 +390,7 @@ def update_offer_data(df):
         if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
-            description, min_price, max_price = find_article_details(row['Artikelnummer'])
+            description, min_price, max_price, source = find_article_details(row['Artikelnummer'])
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
@@ -749,7 +752,7 @@ def handle_gpt_chat():
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
-                description, min_price, max_price = find_article_details(article_number)
+                description, min_price, max_price, source = find_article_details(row['Artikelnummer'])
                 if description:
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -782,7 +785,7 @@ def handle_gpt_chat():
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
                     article_number = synonym_dict.get(article_number, article_number)
-                    description, min_price, max_price = find_article_details(article_number)
+                    description, min_price, max_price, source = find_article_details(row['Artikelnummer'])
                     if description:
                         # Bepaal de spacer waarde
                         spacer = determine_spacer(line)
@@ -856,7 +859,7 @@ def handle_text_input(input_text):
     if matched_articles:
         response_text = "Bedoelt u de volgende samenstellingen:"
         for term, article_number in matched_articles:
-            description, _, _ = find_article_details(article_number)
+            description, _, _, _ = find_article_details(article_number)
             if description:
                 response_text += f"- {description} met artikelnummer {article_number}\n"
 
