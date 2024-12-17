@@ -14,6 +14,7 @@ import dash_bootstrap_components as dbc
 from SAPprijs import sap_prices
 from Synonyms import synonym_dict
 from Articles import article_table
+import difflib
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -254,12 +255,18 @@ def find_article_details(article_number):
             filtered_articles.iloc[0]['Max_prijs']
         )
     
-    # Zoek naar een match in synonym_dict
+    # Zoek naar een 1-op-1 match in synonym_dict
     for key, value in synonym_dict.items():
         if article_number.replace(" ", "").replace(".", "").lower() == key.replace(" ", "").replace(".", "").lower():
             return (f"Bedoel je '{key}'?", value, None)
+    
+    # Zoek naar bijna matches met difflib
+    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
+    if closest_matches:
+        suggestions = [f"Bedoel je '{match}' met artikelnummer {synonym_dict[match]}?" for match in closest_matches]
+        return (suggestions[0], synonym_dict[closest_matches[0]], None)  # Retourneer de beste suggestie
 
-    # Als er geen match is, zoek alternatieven met GPT
+    # Als er geen bijna matches zijn, zoek alternatieven met GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
     Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
@@ -267,8 +274,8 @@ def find_article_details(article_number):
     Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{article_number}'?
     """
     try:
-        # Correcte aanroep voor completion
-        response = openai.chat.completions.create(
+        # Correcte aanroep voor ChatCompletion
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
@@ -285,7 +292,6 @@ def find_article_details(article_number):
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
     
     return (None, None, None)
-
 
 
 # Functie om synoniemen te matchen in invoertekst
