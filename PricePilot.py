@@ -276,41 +276,13 @@ def find_article_details(article_number):
                     source
                 )
 
-        # Als er geen bijna matches zijn, zoek alternatieven met GPT
-        source = "GPT"
-        synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
-        prompt = f"""
-        Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
-        {synonym_list_str}
-        Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{article_number}'?
-        """
-        try:
-            # Correcte aanroep voor ChatCompletion
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=150,
-                temperature=0.3,
-            )
-            # Verwerk het antwoord correct
-            suggestions = response.choices[0].message['content'].strip().split("\n")
-            if suggestions:
-                return (
-                    suggestions[0],
-                    None,
-                    None,
-                    source
-                )  # Retourneer eerste suggestie met bron
-        except Exception as e:
-            print(f"Fout bij het raadplegen van OpenAI API: {e}")
-        
-        return (None, None, None, source)
+        # Geen matches gevonden -> Retourneer standaardwaarde
+        return (None, None, None, "Niet gevonden")
+    
     except Exception as e:
         print(f"Fout in find_article_details: {e}")
-        return (None, None, None, None)
+        return (None, None, None, "Fout")
+
 
 
 # Vul de kolommen Description, Min_prijs, Max_prijs en Source in
