@@ -82,17 +82,17 @@ def bereken_prijs_backend(df):
         df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
         df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
 
+        # Voeg debug informatie toe
+        st.write("Voordat Prijs_backend wordt berekend:")
+        st.write(df.head())
+
         # Eerst Prijs_backend bepalen zonder totaal_bedrag
         def bepaal_prijs_backend(row):
             if row["Verkoopprijs"] > 0:
                 return row["Verkoopprijs"]
             return min(row["SAP Prijs"], row["RSP"])
 
-        # Voeg debug informatie toe
-        st.write("Voordat Prijs_backend wordt berekend:")
-        st.write(df.head())
-
-        df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+        df["Prijs_backend"] = df.apply(lambda row: bepaal_prijs_backend(row), axis=1)
 
         # Voeg debug informatie toe
         st.write("Na het berekenen van Prijs_backend:")
@@ -100,6 +100,9 @@ def bereken_prijs_backend(df):
 
         # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
         totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
+
+        # Voeg debug informatie toe
+        st.write(f"Totaal bedrag: {totaal_bedrag}")
 
         # Update Prijs_backend afhankelijk van totaal_bedrag
         def update_prijs_backend(row):
@@ -109,7 +112,7 @@ def bereken_prijs_backend(df):
                 return row["SAP Prijs"]
             return min(row["SAP Prijs"], row["RSP"])
 
-        df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
+        df["Prijs_backend"] = df.apply(lambda row: update_prijs_backend(row), axis=1)
 
         # Voeg debug informatie toe
         st.write("Na het updaten van Prijs_backend:")
