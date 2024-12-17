@@ -257,7 +257,7 @@ def find_article_details(article_number):
         )
     
     # Zoek naar bijna matches met difflib
-    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.8)
+    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.7)
     if closest_matches:
         best_match = closest_matches[0]  # Haal de beste match op
         matched_article_number = synonym_dict[best_match]  # Haal het juiste artikelnummer op uit synonym_dict
