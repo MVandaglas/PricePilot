@@ -12,6 +12,7 @@ from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, G
 import openai
 import dash_bootstrap_components as dbc
 from SAPprijs import sap_prices
+from openai.error import InvalidRequestError, APIError, APIConnectionError, RateLimitError
 
 
 # OpenAI API-sleutel instellen
