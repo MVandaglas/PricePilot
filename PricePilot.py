@@ -23,7 +23,6 @@ else:
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
 # GPT interpretatie
-# GPT interpretatie
 def interpret_article_number_with_context(article_number, article_list):
     # Maak een lijst van maximaal 150 artikelen om overbelasting te voorkomen
     article_list_str = "\n".join(map(str, article_list[:150]))
@@ -34,7 +33,7 @@ def interpret_article_number_with_context(article_number, article_list):
     """
     try:
         # Correcte aanroep voor ChatCompletion
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt. De invoer moet getoetst worden aan artikelnamen die erg dicht in de buurt komen en stel die voor."},
