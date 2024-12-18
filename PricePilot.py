@@ -1222,8 +1222,8 @@ def fetch_pdf_content(url):
 
 # Bronnen ophalen (websites + PDF)
 sources = [
-    fetch_website_and_subpages("https://www.onderhoudnl.nl/glasvraagbaak", max_depth=1),
-    fetch_website_and_subpages("https://www.glasdiscount.nl/kennisbank/begrippen", max_depth=1),
+    fetch_website_and_subpages("https://www.onderhoudnl.nl/glasvraagbaak", max_depth=0),
+    fetch_website_and_subpages("https://www.glasdiscount.nl/kennisbank/begrippen", max_depth=0),
     fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
     fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
 ]
