@@ -1208,30 +1208,33 @@ with tab4:
         fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
         fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
     ]
+    source_titles = [
+        "OnderhoudNL Glasvraagbaak",
+        "Infosheet NEN 2608-1",
+        "Infosheet Letselveiligheid Glas NEN 3569-1",
+    ]
 
-    # 3. Indexeren van data met SentenceTransformers
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    embeddings = model.encode(sources)
-
-    # 4. Vraag van de gebruiker
+    # 3. Vraag van de gebruiker
     user_query = st.text_input("Stel je vraag hier:")
     if user_query:
-        query_embedding = model.encode(user_query)
-        scores = util.cos_sim(query_embedding, embeddings)
-        best_match_idx = scores.argmax().item()
-        best_match = sources[best_match_idx]
+        # Gebruik difflib om de beste match te vinden
+        matches = difflib.get_close_matches(user_query, sources, n=1, cutoff=0.5)
+        if matches:
+            best_match = matches[0]
+            match_index = sources.index(best_match)
+            st.write(f"**Advies uit bron ({source_titles[match_index]}):**")
+            st.write(best_match)
+        else:
+            st.warning("Geen overeenkomend advies gevonden.")
 
-        # Toon gevonden advies
-        st.write(f"**Advies:** {best_match}")
-
-        # Optioneel: AI toelichting via GPT
+        # Optioneel: Vraag om extra uitleg met AI
         if st.button("Vraag AI om meer uitleg"):
-            openai.api_key = api_key
+            openai.api_key = api_key  # Vervang met je eigen API-sleutel
             response = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "Je bent een glasadvies assistent."},
-                    {"role": "user", "content": f"Gebaseerd op dit advies: '{best_match}', geef meer details over {user_query}."}
+                    {"role": "user", "content": f"Gebaseerd op dit advies: '{best_match}', geef meer details over '{user_query}'."}
                 ]
             )
             ai_response = response['choices'][0]['message']['content']
