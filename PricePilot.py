@@ -260,7 +260,6 @@ def find_article_details(article_number):
                     source,
                     fuzzy_match,
                     original_article_number,
-                    None
                 )
 
         # Zoek naar fuzzy matches
@@ -278,7 +277,6 @@ def find_article_details(article_number):
                     source,
                     fuzzy_match,
                     original_article_number,
-                    None
                 )
 
         # Alternatief via GPT
@@ -302,17 +300,16 @@ def find_article_details(article_number):
                     source,
                     fuzzy_match,
                     original_article_number,
-                    None
                 )
         except Exception as e:
             print(f"Fout bij GPT: {e}")
 
         # Fallback als geen matches
-        return (None, None, None, "niet gevonden", None, original_article_number, None)
+        return (None, None, None, "niet gevonden", None, original_article_number)
 
     except Exception as e:
         print(f"Fout in find_article_details: {e}")
-        return (None, None, None, "Fout", None, article_number, None)
+        return (None, None, None, "Fout", None, article_number)
 
 
 
@@ -877,7 +874,7 @@ def handle_text_input(input_text):
     if matched_articles:
         response_text = "Bedoelt u de volgende samenstellingen:"
         for term, article_number in matched_articles:
-            description, _, _, _, _, _, _ = find_article_details(article_number)
+            description, _, _, _, _, _ = find_article_details(article_number)
             if description:
                 response_text += f"- {description} met artikelnummer {article_number}\n"
 
