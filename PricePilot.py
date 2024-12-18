@@ -226,81 +226,98 @@ if customer_number in customer_data:
 
 
 # Functie om synoniemen te vervangen in invoertekst
-def replace_synonyms(input_text, synonyms):
-    for term, synonym in synonyms.items():
-        input_text = input_text.replace(term, synonym)
-    return input_text
-
-# Functie om artikelgegevens te vinden
 def find_article_details(article_number):
-    # Sla het originele artikelnummer op
-    original_article_number = article_number  
-
-    # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
-    if article_number in synonym_dict.values():
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
-        if not filtered_articles.empty:
-            return (
-                filtered_articles.iloc[0]['Description'],
-                filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs'],
-                article_number,
-                "synoniem"  # Bron: exacte match in synonym_dict.values()
-            )
-
-    # 2. Controleer of artikelnummer een exacte match is in synonym_dict.keys()
-    if article_number in synonym_dict.keys():
-        matched_article_number = synonym_dict[article_number]  # Haal het bijbehorende artikelnummer op
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
-        if not filtered_articles.empty:
-            return (
-                filtered_articles.iloc[0]['Description'],
-                filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs'],
-                matched_article_number,
-                "synoniem"  # Bron: exacte match in synonym_dict.keys()
-            )
-
-    # 3. Zoek naar een bijna-match met difflib
-    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
-    if closest_matches:
-        best_match = closest_matches[0]
-        matched_article_number = synonym_dict[best_match]
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
-        if not filtered_articles.empty:
-            return (
-                filtered_articles.iloc[0]['Description'],
-                filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs'],
-                matched_article_number,
-                "interpretatie"  # Bron: difflib match
-            )
-
-    # 4. Zoek alternatieven via GPT
-    synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
-    prompt = f"""
-    Het artikelnummer '{original_article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
-    {synonym_list_str}
-    Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{original_article_number}'?
-    """
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=150,
-            temperature=0.3,
-        )
-        suggestions = response.choices[0].message['content'].strip().split("\n")
-        if suggestions:
-            return (suggestions[0], None, None, original_article_number, "GPT")  # Bron: GPT suggestie
-    except Exception as e:
-        print(f"Fout bij het raadplegen van OpenAI API: {e}")
+        # Sla originele input op
+        original_article_number = article_number  
+        source = None
+        fuzzy_match = None  # Houdt de fuzzy match bij
 
-    # 5. Als alles mislukt
-    return (None, None, None, original_article_number, "niet gevonden")
+        # 1. Exacte match in synonym_dict.values()
+        if article_number in synonym_dict.values():
+            filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+            if not filtered_articles.empty:
+                source = "synoniem"
+                return (
+                    filtered_articles.iloc[0]['Description'],
+                    filtered_articles.iloc[0]['Min_prijs'],
+                    filtered_articles.iloc[0]['Max_prijs'],
+                    source,
+                    fuzzy_match,
+                    original_article_number
+                )
+
+        # 2. Exacte match in synonym_dict.keys()
+        if article_number in synonym_dict.keys():
+            matched_article_number = synonym_dict[article_number]
+            filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+            if not filtered_articles.empty:
+                source = "synoniem"
+                return (
+                    filtered_articles.iloc[0][''],
+                    filtered_articles.iloc[0]['Min_prijs'],
+                    filtered_articles.iloc[0]['Max_prijs'],
+                    source,
+                    fuzzy_match,
+                    original_article_number
+                )
+
+        # 3. Zoek naar fuzzy matches met difflib
+        closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
+        if closest_matches:
+            fuzzy_match = closest_matches[0]
+            matched_article_number = synonym_dict[fuzzy_match]
+            filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+            if not filtered_articles.empty:
+                source = "interpretatie"
+                return (
+                    filtered_articles.iloc[0][''],
+                    filtered_articles.iloc[0]['Min_prijs'],
+                    filtered_articles.iloc[0]['Max_prijs'],
+                    source,
+                    fuzzy_match,
+                    original_article_number
+                )
+
+        # 4. Zoek alternatieven via GPT
+        source = "GPT"
+        synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
+        prompt = f"""
+        Het artikelnummer '{original_article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
+        {synonym_list_str}
+        Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{original_article_number}'?
+        """
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=150,
+                temperature=0.3,
+            )
+            suggestions = response.choices[0].message['content'].strip().split("\n")
+            if suggestions:
+                return (
+                    suggestions[0],
+                    None,
+                    None,
+                    source,
+                    fuzzy_match,
+                    original_article_number
+                )
+        except Exception as e:
+            print(f"Fout bij het raadplegen van OpenAI API: {e}")
+
+        # 5. Als alles mislukt
+        source = "niet gevonden"
+        return (None, None, None, source, fuzzy_match, original_article_number)
+    
+    except Exception as e:
+        print(f"Fout in find_article_details: {e}")
+        return (None, None, None, "Fout", None, article_number)
+
 
 
 
@@ -365,7 +382,7 @@ def update_offer_data(df):
         if pd.notna(row['Artikelnummer']):
             # Controleer of Source al is gevuld
             if pd.isna(row.get('Source')) or row['Source'] in ['niet gevonden', 'GPT']:
-                description, min_price, max_price, article_number, source = find_article_details(row['Artikelnummer'])
+                description, min_price, max_price, source, fuzzy_match, original_article_number = find_article_details(row['Artikelnummer'])
                 if description:
                     df.at[index, 'Artikelnaam'] = description
                 if min_price is not None and max_price is not None:
@@ -373,6 +390,10 @@ def update_offer_data(df):
                     df.at[index, 'Max_prijs'] = max_price
                 if source:  # Alleen Source bijwerken als deze leeg is
                     df.at[index, 'Source'] = source
+                if fuzzy_match:  # Voeg fuzzy_match toe aan het DataFrame
+                    df.at[index, 'Fuzzy_Match'] = fuzzy_match
+                if original_input:  # Voeg original_input toe aan het DataFrame
+                    df.at[index, 'Original_Input'] = original_input
             
             # Update SAP Prijs
             if st.session_state.customer_number in sap_prices:
@@ -743,7 +764,7 @@ def handle_gpt_chat():
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
-                description, min_price, max_price, article_number, source = find_article_details(article_number)
+                description, min_price, max_price, article_number, source, fuzzy_match, original_article_number = find_article_details(article_number)
                 if description:
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -767,7 +788,9 @@ def handle_gpt_chat():
                         max_price,
                         verkoopprijs,
                         prijs_backend,
-                        source
+                        source,
+                        fuzzy_match,
+                        original_input
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -777,7 +800,7 @@ def handle_gpt_chat():
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
                     article_number = synonym_dict.get(article_number, article_number)
-                    description, min_price, max_price, article_number, source = find_article_details(article_number)
+                    description, min_price, max_price, article_number, source, fuzzy_match, original_article_number = find_article_details(article_number)
                     if description:
                         # Bepaal de spacer waarde
                         spacer = determine_spacer(line)
@@ -804,7 +827,9 @@ def handle_gpt_chat():
                             max_price,
                             verkoopprijs,
                             prijs_backend,
-                            source
+                            source,
+                            fuzzy_match,
+                            original_input
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -852,7 +877,7 @@ def handle_text_input(input_text):
     if matched_articles:
         response_text = "Bedoelt u de volgende samenstellingen:"
         for term, article_number in matched_articles:
-            description, _, _, _, _ = find_article_details(article_number)
+            description, _, _, _, _, _, _ = find_article_details(article_number)
             if description:
                 response_text += f"- {description} met artikelnummer {article_number}\n"
 
