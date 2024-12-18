@@ -614,11 +614,7 @@ with col2:
     # Zorg dat de update wordt getriggerd na verwijdering
     st.session_state['trigger_update'] = True
 
-    # Toon het DataFrame na verwijdering voor debugging
-    st.write("DataFrame na verwijdering:")
-    st.dataframe(st.session_state.offer_df)
-
-
+  
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
     pattern = r'\b(1|[1-9]|[1-9][0-9]|100)\b'
