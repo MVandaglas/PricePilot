@@ -260,6 +260,7 @@ def find_article_details(article_number):
                     source,
                     fuzzy_match,
                     original_article_number,
+                    None,
                 )
 
         # Zoek naar fuzzy matches
@@ -277,6 +278,7 @@ def find_article_details(article_number):
                     source,
                     fuzzy_match,
                     original_article_number,
+                    None,
                 )
 
         # Alternatief via GPT
@@ -300,6 +302,7 @@ def find_article_details(article_number):
                     source,
                     fuzzy_match,
                     original_article_number,
+                    None,
                 )
         except Exception as e:
             print(f"Fout bij GPT: {e}")
