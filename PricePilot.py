@@ -282,9 +282,9 @@ def find_article_details(article_number):
     # 4. Zoek alternatieven via GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
-    Het artikelnummer '{original_article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
+    Het artikelnummer '{original_article_number}' is niet gevonden met behulp van voorgaande regex. Hier is een lijst van beschikbare synoniemen:
     {synonym_list_str}
-    Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{original_article_number}'?
+    Kun je 1 alternatief voorstellen die het dichtst in de buurt komt bij '{original_article_number}'?
     """
     try:
         response = openai.chat.completions.create(
