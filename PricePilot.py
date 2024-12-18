@@ -1239,7 +1239,7 @@ with tab4:
             )
 
             # Toon het antwoord van OpenAI
-            ai_response = response['choices'][0]['message']['content']
+            ai_response = response.choices[0].message.content
             st.chat_message("assistant").write(ai_response)
             st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
 
