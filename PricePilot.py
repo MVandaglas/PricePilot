@@ -1098,8 +1098,9 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
 if selected_tab == "Beoordeel Input AI":
     st.title("Beoordeel Input AI")
     
-    # Filter regels met "Source" = "interpretatie"
-    if "offer_df" in st.session_state:
+    # Controleer of offer_df beschikbaar is in sessiestatus
+    if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
+        # Filter regels met "Source" = "interpretatie"
         interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"] == "interpretatie"]
     else:
         interpretatie_rows = pd.DataFrame()  # Lege DataFrame als fallback
@@ -1109,13 +1110,13 @@ if selected_tab == "Beoordeel Input AI":
     else:
         # Maak een tabel met de correcte input en gematchte waarden
         beoordeling_tabel = pd.DataFrame({
-            "Artikelnaam": interpretatie_rows["Artikelnaam"],
-            "Artikelnummer": interpretatie_rows["Artikelnummer"],
+            "Artikelnaam": interpretatie_rows["Artikelnaam"].fillna("Geen artikelnaam"),
+            "Artikelnummer": interpretatie_rows["Artikelnummer"].fillna("Geen artikelnummer"),
             "Gematcht op": interpretatie_rows["fuzzy_match"].fillna("Geen synoniem"),
             "Input": interpretatie_rows["original_article_number"].fillna("Geen input")
         })
 
-        # Toon de tabel met accordeeropties
+        # Toon de tabel in AgGrid voor interactieve accordering
         st.subheader("Regels met AI interpretatie")
         for index, row in beoordeling_tabel.iterrows():
             st.write(f"**Rij {index + 1}:**")
@@ -1129,3 +1130,4 @@ if selected_tab == "Beoordeel Input AI":
                 # Voeg het nieuwe synoniem toe aan de lijst na accordering
                 synonym_dict[row["Input"]] = row["Artikelnummer"]
                 st.success(f"Synoniem '{row['Input']}' -> '{row['Artikelnummer']}' is opgeslagen!")
+
