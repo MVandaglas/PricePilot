@@ -15,6 +15,7 @@ from SAPprijs import sap_prices
 from Synonyms import synonym_dict
 from Articles import article_table
 import difflib
+from rapidfuzz import process, fuzz
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -262,7 +263,24 @@ def find_article_details(article_number):
                 None  # Fuzzy match remains empty
             )
 
-    # 3. Zoek naar een bijna-match met difflib
+    # 3. Zoek naar een bijna-match met RapidFuzz
+    closest_match = process.extractOne(article_number, synonym_dict.keys(), scorer=fuzz.ratio, score_cutoff=cutoff_value * 100)
+    if closest_match:
+        best_match = closest_match[0]
+        matched_article_number = synonym_dict[best_match]
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+        if not filtered_articles.empty:
+            return (
+                filtered_articles.iloc[0]['Description'],
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs'],
+                matched_article_number,
+                "interpretatie",  # Bron: RapidFuzz match
+                article_number,  # Original article number
+                best_match  # Fuzzy match found
+            )
+    
+    # 4. Zoek naar een bijna-match met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
     if closest_matches:
         best_match = closest_matches[0]
@@ -279,7 +297,7 @@ def find_article_details(article_number):
                 best_match  # Fuzzy match found
             )
 
-    # 4. Zoek alternatieven via GPT
+    # 5. Zoek alternatieven via GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
     Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoneim. Hier is een lijst van beschikbare synoniemen:
@@ -302,7 +320,7 @@ def find_article_details(article_number):
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
 
-    # 5. Als alles mislukt
+    # 6. Als alles mislukt
     return (None, None, None, original_article_number, "niet gevonden", original_article_number, None)
 
 
