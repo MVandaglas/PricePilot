@@ -238,9 +238,9 @@ def find_article_details(article_number):
             if not filtered_articles.empty:
                 source = "synoniem"
                 return (
-                    filtered_articles.iloc[0]['Description'],
-                    filtered_articles.iloc[0]['Min_prijs'],
-                    filtered_articles.iloc[0]['Max_prijs'],
+                    filtered_articles.iloc[0]['Description'] if not filtered_articles.empty else None,
+                    filtered_articles.iloc[0]['Min_prijs'] if not filtered_articles.empty else None,
+                    filtered_articles.iloc[0]['Max_prijs'] if not filtered_articles.empty else None,
                     source,
                     fuzzy_match,
                     original_article_number,
@@ -254,9 +254,9 @@ def find_article_details(article_number):
             if not filtered_articles.empty:
                 source = "synoniem"
                 return (
-                    filtered_articles.iloc[0]['Description'],
-                    filtered_articles.iloc[0]['Min_prijs'],
-                    filtered_articles.iloc[0]['Max_prijs'],
+                    filtered_articles.iloc[0]['Description'] if not filtered_articles.empty else None,
+                    filtered_articles.iloc[0]['Min_prijs'] if not filtered_articles.empty else None,
+                    filtered_articles.iloc[0]['Max_prijs'] if not filtered_articles.empty else None,
                     source,
                     fuzzy_match,
                     original_article_number,
@@ -272,9 +272,9 @@ def find_article_details(article_number):
             if not filtered_articles.empty:
                 source = "interpretatie"
                 return (
-                    filtered_articles.iloc[0]['Description'],
-                    filtered_articles.iloc[0]['Min_prijs'],
-                    filtered_articles.iloc[0]['Max_prijs'],
+                    filtered_articles.iloc[0]['Description'] if not filtered_articles.empty else None,
+                    filtered_articles.iloc[0]['Min_prijs'] if not filtered_articles.empty else None,
+                    filtered_articles.iloc[0]['Max_prijs'] if not filtered_articles.empty else None,
                     source,
                     fuzzy_match,
                     original_article_number,
@@ -377,20 +377,22 @@ def update_offer_data(df):
         if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
-            # Controleer of Source al is gevuld
-            if pd.isna(row.get('Source')) or row['Source'] in ['niet gevonden', 'GPT']:
-                description, min_price, max_price, source, fuzzy_match, original_article_number, _ = find_article_details(row['Artikelnummer'])
-                if description:
-                    df.at[index, 'Artikelnaam'] = description
-                if min_price is not None and max_price is not None:
-                    df.at[index, 'Min_prijs'] = min_price
-                    df.at[index, 'Max_prijs'] = max_price
-                if source:  # Alleen Source bijwerken als deze leeg is
-                    df.at[index, 'Source'] = source
-                if fuzzy_match:  # Voeg fuzzy_match toe aan het DataFrame
-                    df.at[index, 'fuzzy_match'] = fuzzy_match
-                if original_article_number:  # Voeg de input van de gebruiker toe aan het DataFrame
-                    df.at[index, 'original_article_number'] = original_article_number
+            # Haal artikelgegevens op
+            description, min_price, max_price, source, fuzzy_match, original_article_number = find_article_details(row['Artikelnummer'])
+            
+            # Update kolommen met opgehaalde waarden
+            if description:
+                df.at[index, 'Artikelnaam'] = description
+            if min_price is not None and max_price is not None:
+                df.at[index, 'Min_prijs'] = min_price
+                df.at[index, 'Max_prijs'] = max_price
+            if source:  
+                df.at[index, 'Source'] = source  # Zet 'source' in de Source-kolom
+            if fuzzy_match:
+                df.at[index, 'fuzzy_match'] = fuzzy_match  # Zet fuzzy_match in de juiste kolom
+            if original_article_number:
+                df.at[index, 'Artikelnummer'] = original_article_number  # Correcte input terugzetten
+
             
             # Update SAP Prijs
             if st.session_state.customer_number in sap_prices:
