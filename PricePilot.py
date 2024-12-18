@@ -320,7 +320,7 @@ def find_article_details(article_number):
             max_tokens=10,
             temperature=0.3,
         )
-        suggestions = response.choices[0].message['content'].strip().split("\n")
+        suggestions = response.choices[0].message.content.strip().split("\n")
         if suggestions:
             return (suggestions[0], None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
     except Exception as e:
