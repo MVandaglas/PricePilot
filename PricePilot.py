@@ -45,10 +45,6 @@ if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
 
 
-
-# Laad synoniemen en artikelentabel
-
-
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
 
@@ -61,6 +57,12 @@ selected_tab = st.radio(
     horizontal=True,
 )
 
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+    if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
+        st.title("Offerteoverzicht")
+
+
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
     st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
 
@@ -70,10 +72,13 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
-# Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
-col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
-with col1:
-    prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+    
+    # Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
+    col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
+    with col1:
+        prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
 
 
 def bereken_prijs_backend(df):
@@ -536,11 +541,13 @@ def update_tabel():
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-
-# Knop om de tabel bij te werken
-if st.button("Update tabel"):
-    update_tabel()
-    update_tabel()
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+    
+    # Knop om de tabel bij te werken
+    if st.button("Update tabel"):
+        update_tabel()
+        update_tabel()
  
 # Update de DataFrame na elke wijziging
 updated_df = edited_df_response['data']
@@ -549,8 +556,6 @@ save_changes(pd.DataFrame(updated_df))
 # Sla de geselecteerde rijen op in sessie status
 selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
 
-# Debug: Toon geselecteerde rijen
-st.write("Geselecteerde rijen (indices):", selected_rows)
 
 # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
 if selected_rows is None or not isinstance(selected_rows, list):
@@ -578,41 +583,44 @@ def delete_selected_rows(df, selected):
     else:
         return df
 
-# Knoppen toevoegen aan de GUI
-col1, col2, col3, col4, col5, col6 = st.columns(6)
-with col1:
-    if st.button("Voeg rij toe"):
-        # Voeg een lege rij toe aan het DataFrame
-        new_row = pd.DataFrame({
-            "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
-            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
-        })
-        st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
-        # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
-        st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-        # Vernieuw de AgGrid
-        st.rerun()
-
-with col2:
-    if st.button("Verwijder rijen (2x klikken)", key='delete_rows_button'):
-        # Haal de geselecteerde rijen op in de juiste vorm
-        selected = st.session_state.selected_rows
-        st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
-
-        # Verwijder rijen op basis van index
-        if len(selected) > 0:
-            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
-            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
-            # Reset de Rijnummer-kolom na verwijderen
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+    
+    # Knoppen toevoegen aan de GUI
+    col1, col2, col3, col4, col5, col6 = st.columns(6)
+    with col1:
+        if st.button("Voeg rij toe"):
+            # Voeg een lege rij toe aan het DataFrame
+            new_row = pd.DataFrame({
+                "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
+                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
+            })
+            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
+            st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+            # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            st.rerun
-        else:
-            st.warning("Selecteer eerst rijen om te verwijderen.")
-
-    # Zorg dat de update wordt getriggerd na verwijdering
-    st.session_state['trigger_update'] = True
+            # Vernieuw de AgGrid
+            st.rerun()
+    
+    with col2:
+        if st.button("Verwijder rijen (2x klikken)", key='delete_rows_button'):
+            # Haal de geselecteerde rijen op in de juiste vorm
+            selected = st.session_state.selected_rows
+            st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
+    
+            # Verwijder rijen op basis van index
+            if len(selected) > 0:
+                # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
+                st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+                st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+                # Reset de Rijnummer-kolom na verwijderen
+                st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+                st.rerun
+            else:
+                st.warning("Selecteer eerst rijen om te verwijderen.")
+    
+        # Zorg dat de update wordt getriggerd na verwijdering
+        st.session_state['trigger_update'] = True
 
   
 # Functie om getallen van 1 tot 100 te herkennen
@@ -979,9 +987,7 @@ if selected_tab == "Offerte Genereren":
 
 
 
-# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
-if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
-    st.title("Offerteoverzicht")
+
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
@@ -989,47 +995,49 @@ if 'Rijnummer' not in st.session_state.offer_df.columns:
     
 
 
-      
-with col6:
-    # Voeg een knop toe om de offerte als PDF te downloaden
-    if totaal_bedrag > 25000:
-        st.button("Download offerte als PDF", key='download_pdf_button', disabled=True)
-        st.button("Autoriseer offerte", key='authorize_offer_button')
-    else:
-        if st.button("Download offerte als PDF", key='download_pdf_button'):
-            pdf_buffer = generate_pdf(st.session_state.offer_df)
-            st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":     
 
-    if st.button("Sla offerte op", key='save_offerte_button'):
-        # Zoek het hoogste offertenummer
-        if not st.session_state.saved_offers.empty:
-            max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
-            offer_number = max_offer_number + 1
+    with col6:
+        # Voeg een knop toe om de offerte als PDF te downloaden
+        if totaal_bedrag > 25000:
+            st.button("Download offerte als PDF", key='download_pdf_button', disabled=True)
+            st.button("Autoriseer offerte", key='authorize_offer_button')
         else:
-            offer_number = 1
-
-        # Bereken eindtotaal
-        if all(col in edited_df_response.data.columns for col in ['RSP', 'M2 totaal']):
-            eindtotaal = edited_df_response.data.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
-        else:
-            eindtotaal = 0
-
-        # Voeg offerte-informatie toe aan een nieuwe DataFrame
-        offer_summary = pd.DataFrame({
-            'Offertenummer': [offer_number],
-            'Klantnummer': [str(st.session_state.customer_number)],
-            'Eindbedrag': [eindtotaal],
-            'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-        })
-
-        # Voeg offerte-informatie toe aan opgeslagen offertes
-        st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
-
-        # Voeg offertenummer toe aan elke regel in de offerte
-        st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
-
-        # Toon succesbericht
-        st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
+            if st.button("Download offerte als PDF", key='download_pdf_button'):
+                pdf_buffer = generate_pdf(st.session_state.offer_df)
+                st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
+    
+        if st.button("Sla offerte op", key='save_offerte_button'):
+            # Zoek het hoogste offertenummer
+            if not st.session_state.saved_offers.empty:
+                max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
+                offer_number = max_offer_number + 1
+            else:
+                offer_number = 1
+    
+            # Bereken eindtotaal
+            if all(col in edited_df_response.data.columns for col in ['RSP', 'M2 totaal']):
+                eindtotaal = edited_df_response.data.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+            else:
+                eindtotaal = 0
+    
+            # Voeg offerte-informatie toe aan een nieuwe DataFrame
+            offer_summary = pd.DataFrame({
+                'Offertenummer': [offer_number],
+                'Klantnummer': [str(st.session_state.customer_number)],
+                'Eindbedrag': [eindtotaal],
+                'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            })
+    
+            # Voeg offerte-informatie toe aan opgeslagen offertes
+            st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
+    
+            # Voeg offertenummer toe aan elke regel in de offerte
+            st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
+    
+            # Toon succesbericht
+            st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
 
 
 if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
