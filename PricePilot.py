@@ -24,6 +24,34 @@ else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
+# GPT interpretatie
+def interpret_article_number_with_context(article_number, article_list):
+    # Maak een lijst van maximaal 150 artikelen om overbelasting te voorkomen
+    article_list_str = "\n".join(map(str, article_list[:150]))
+    prompt = f"""
+    Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare artikelen:
+    {article_list_str}
+    Kun je een of meerdere alternatieven voorstellen uit deze lijst die mogelijk overeenkomen met '{article_number}'?
+    """
+    try:
+        # Correcte aanroep voor ChatCompletion
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt. De invoer moet getoetst worden aan artikelnamen die erg dicht in de buurt komen en stel die voor."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=150,
+            temperature=0.3,
+        )
+        # Verwerk het antwoord correct
+        suggestions = response.choices[0].message['content'].strip().split("\n")
+        return [s.strip() for s in suggestions if s.strip()]
+    except Exception as e:
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
+        return []
+
+
 
 # Hard gecodeerde klantgegevens
 customer_data = {
@@ -34,7 +62,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -45,6 +73,10 @@ if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
 
 
+
+# Laad synoniemen en artikelentabel
+
+
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
 
@@ -52,19 +84,13 @@ article_table = pd.DataFrame(article_table)
 # Meerdere tabbladen maken in Streamlit
 selected_tab = st.radio(
     "Selecteer een optie:",
-    ["Offerte Genereren", "Opgeslagen Offertes", "Beoordeel AI"],
+    ["Offerte Genereren", "Opgeslagen Offertes"],
     index=0,
     horizontal=True,
 )
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
-    if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
-        st.title("Offerteoverzicht")
-
-
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
 
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
@@ -72,64 +98,60 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
-    
-    # Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
-    col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
-    with col1:
-        prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
+# Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
+col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
+with col1:
+    prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
-    def bereken_prijs_backend(df):
-        if df is None:
-            st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
-            return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
-    
-        try:
-            # Zorg ervoor dat kolommen numeriek zijn
-            df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
-            df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
-            df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
-    
-            # Eerst Prijs_backend bepalen zonder totaal_bedrag
-            def bepaal_prijs_backend(row):
-                if row["Verkoopprijs"] > 0:
-                    return row["Verkoopprijs"]
-                return min(row["SAP Prijs"], row["RSP"])
-    
-            df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
-    
-            # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
-            totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
-    
-            # Update Prijs_backend afhankelijk van totaal_bedrag
-            def update_prijs_backend(row):
-                if row["Verkoopprijs"] > 0:
-                    return row["Verkoopprijs"]
-                elif totaal_bedrag < 2000:
-                    return row["SAP Prijs"]
-                return min(row["SAP Prijs"], row["RSP"])
-    
-            df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
-    
-            # Aanpassen van Verkoopprijs als RSP is gekozen
-            if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
-                df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
-    
-                # Afronden naar boven op de dichtstbijzijnde 5 cent
-                df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
-    
-        except Exception as e:
-            st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
-    
-        return df
+
+def bereken_prijs_backend(df):
+    if df is None:
+        st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
+        return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
+
+    try:
+        # Zorg ervoor dat kolommen numeriek zijn
+        df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
+        df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
+        df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
+
+        # Eerst Prijs_backend bepalen zonder totaal_bedrag
+        def bepaal_prijs_backend(row):
+            if row["Verkoopprijs"] > 0:
+                return row["Verkoopprijs"]
+            return min(row["SAP Prijs"], row["RSP"])
+
+        df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+
+        # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
+        totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
+
+        # Update Prijs_backend afhankelijk van totaal_bedrag
+        def update_prijs_backend(row):
+            if row["Verkoopprijs"] > 0:
+                return row["Verkoopprijs"]
+            elif totaal_bedrag < 2000:
+                return row["SAP Prijs"]
+            return min(row["SAP Prijs"], row["RSP"])
+
+        df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
+
+        # Aanpassen van Verkoopprijs als RSP is gekozen
+        if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
+            df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
+
+            # Afronden naar boven op de dichtstbijzijnde 5 cent
+            df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
+
+    except Exception as e:
+        st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
+
+    return df
 
 
 
 
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Controleer en zet kolommen om
 for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
@@ -150,15 +172,6 @@ st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
 
 # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-
-cutoff_value = st.sidebar.slider(
-    "Matchwaarde AI",
-    min_value=0.1,
-    max_value=1.0,
-    value=0.6,  # Standaardwaarde
-    step=0.1,  # Stappen in float
-    help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
-)
 
 # Gebruikersinvoer
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
@@ -226,96 +239,65 @@ if customer_number in customer_data:
 
 
 # Functie om synoniemen te vervangen in invoertekst
+def replace_synonyms(input_text, synonyms):
+    for term, synonym in synonyms.items():
+        input_text = input_text.replace(term, synonym)
+    return input_text
+
+# Functie om artikelgegevens te vinden
 def find_article_details(article_number):
-    try:
-        original_article_number = article_number
-        source = None
-        fuzzy_match = None
+    # Zoek naar een exacte match
+    filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
+    if not filtered_articles.empty:
+        return (
+            filtered_articles.iloc[0]['Description'],
+            filtered_articles.iloc[0]['Min_prijs'],
+            filtered_articles.iloc[0]['Max_prijs'],
+            article_number  # Retourneer het originele artikelnummer als match
+        )
+    
+    # Zoek naar bijna matches met difflib
+    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.7)
+    if closest_matches:
+        best_match = closest_matches[0]  # Haal de beste match op
+        matched_article_number = synonym_dict[best_match]  # Haal het juiste artikelnummer op uit synonym_dict
 
-        # Exact match in synonym_dict.values()
-        if article_number in synonym_dict.values():
-            filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
-            if not filtered_articles.empty:
-                source = "synoniem"
-                return (
-                    filtered_articles.iloc[0]['Description'] if not filtered_articles.empty else None,
-                    filtered_articles.iloc[0]['Min_prijs'] if not filtered_articles.empty else None,
-                    filtered_articles.iloc[0]['Max_prijs'] if not filtered_articles.empty else None,
-                    source,
-                    fuzzy_match,
-                    original_article_number,
-                    None  # Extra veld voor consistentie
-                )
-
-        # Exact match in synonym_dict.keys()
-        if article_number in synonym_dict.keys():
-            matched_article_number = synonym_dict[article_number]
-            filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
-            if not filtered_articles.empty:
-                source = "synoniem"
-                return (
-                    filtered_articles.iloc[0]['Description'] if not filtered_articles.empty else None,
-                    filtered_articles.iloc[0]['Min_prijs'] if not filtered_articles.empty else None,
-                    filtered_articles.iloc[0]['Max_prijs'] if not filtered_articles.empty else None,
-                    source,
-                    fuzzy_match,
-                    original_article_number,
-                    None,
-                )
-
-        # Zoek naar fuzzy matches
-        closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
-        if closest_matches:
-            fuzzy_match = closest_matches[0]
-            matched_article_number = synonym_dict[fuzzy_match]
-            filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
-            if not filtered_articles.empty:
-                source = "interpretatie"
-                return (
-                    filtered_articles.iloc[0]['Description'] if not filtered_articles.empty else None,
-                    filtered_articles.iloc[0]['Min_prijs'] if not filtered_articles.empty else None,
-                    filtered_articles.iloc[0]['Max_prijs'] if not filtered_articles.empty else None,
-                    source,
-                    fuzzy_match,
-                    original_article_number,
-                    None,
-                )
-
-        # Alternatief via GPT
-        source = "GPT"
-        try:
-            response = openai.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
-                    {"role": "user", "content": f"Artikelnummer '{article_number}' niet gevonden. Kun je alternatieven voorstellen?"}
-                ],
-                max_tokens=150,
-                temperature=0.3,
+        # Zoek in article_table naar het correcte artikelnummer
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+        if not filtered_articles.empty:
+            return (
+                filtered_articles.iloc[0]['Description'],
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs'],
+                matched_article_number  # Retourneer het gematchte artikelnummer
             )
-            suggestions = response.choices[0].message['content'].strip().split("\n")
-            if suggestions:
-                return (
-                    suggestions[0],
-                    None,
-                    None,
-                    source,
-                    fuzzy_match,
-                    original_article_number,
-                    None,
-                )
-        except Exception as e:
-            print(f"Fout bij GPT: {e}")
 
-        # Fallback als geen matches
-        return (None, None, None, "niet gevonden", None, original_article_number)
-
+    # Als er geen bijna matches zijn, zoek alternatieven met GPT
+    synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
+    prompt = f"""
+    Het artikelnummer '{article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
+    {synonym_list_str}
+    Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{article_number}'?
+    """
+    try:
+        # Correcte aanroep voor ChatCompletion
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=50,
+            temperature=0.3,
+        )
+        # Verwerk het antwoord correct
+        suggestions = response.choices[0].message['content'].strip().split("\n")
+        if suggestions:
+            return (suggestions[0], None, None, None)  # Retourneer eerste suggestie
     except Exception as e:
-        print(f"Fout in find_article_details: {e}")
-        return (None, None, None, "Fout", None, article_number)
-
-
-
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
+    
+    return (None, None, None, None)
 
 
 # Functie om aanbevolen prijs te berekenen
@@ -377,22 +359,10 @@ def update_offer_data(df):
         if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
-            # Haal artikelgegevens op
-            description, min_price, max_price, source, fuzzy_match, original_article_number = find_article_details(row['Artikelnummer'])
-            
-            # Update kolommen met opgehaalde waarden
-            if description:
-                df.at[index, 'Artikelnaam'] = description
+            description, min_price, max_price, article_number = find_article_details(row['Artikelnummer'])
             if min_price is not None and max_price is not None:
                 df.at[index, 'Min_prijs'] = min_price
                 df.at[index, 'Max_prijs'] = max_price
-            if source:  
-                df.at[index, 'Source'] = source  # Zet 'source' in de Source-kolom
-            if fuzzy_match:
-                df.at[index, 'fuzzy_match'] = fuzzy_match  # Zet fuzzy_match in de juiste kolom
-            if original_article_number:
-                df.at[index, 'Artikelnummer'] = original_article_number  # Correcte input terugzetten
-
             
             # Update SAP Prijs
             if st.session_state.customer_number in sap_prices:
@@ -402,7 +372,6 @@ def update_offer_data(df):
                 df.at[index, 'SAP Prijs'] = "Geen prijs"
     df = bereken_prijs_backend(df)
     return df
-
 
 
 # Functie om de RSP voor alle regels te updaten
@@ -447,16 +416,6 @@ function(params) {
 }
 """)
 
-# Voeg een cell renderer toe om de stericoon weer te geven
-cell_renderer_js = JsCode("""
-function(params) {
-    if (params.data.Source === "interpretatie" || params.data.Source === "GPT") {
-        return `✨ ${params.value}`;  // Voeg stericoon toe vóór de waarde
-    }
-    return params.value;  // Toon de originele waarde
-}
-""")
-
 
 def save_changes(df):
     st.session_state.offer_df = df
@@ -464,29 +423,28 @@ def save_changes(df):
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
-    # Voeg een veld toe voor prijskwaliteit als RSP wordt gekozen met beperkte breedte
-    if prijsbepaling_optie == "RSP":
-        col1, _ = st.columns([1, 10])
-        with col1:
-            prijskwaliteit = st.number_input("Prijskwaliteit (%)", min_value=0, max_value=200, value=100, key="prijskwaliteit")
-        st.session_state.offer_df["Prijskwaliteit"] = prijskwaliteit
-    
-    # Pas de logica voor prijs_backend aan op basis van de gekozen optie
-    if prijsbepaling_optie == "SAP prijs":
-        st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
-    else:
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+
+# Voeg een veld toe voor prijskwaliteit als RSP wordt gekozen met beperkte breedte
+if prijsbepaling_optie == "RSP":
+    col1, _ = st.columns([1, 10])
+    with col1:
+        prijskwaliteit = st.number_input("Prijskwaliteit (%)", min_value=0, max_value=200, value=100, key="prijskwaliteit")
+    st.session_state.offer_df["Prijskwaliteit"] = prijskwaliteit
+
+# Pas de logica voor prijs_backend aan op basis van de gekozen optie
+if prijsbepaling_optie == "SAP prijs":
+    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
+else:
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
-gb.configure_default_column(flex=1, min_width=80, editable=True)
+gb.configure_default_column(flex=1, min_width=100, editable=True)
 gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', cellEditorParams={"values": ["4 - alu", "6 - alu", "7 - alu", "8 - alu", "9 - alu", "10 - alu", "12 - alu", "13 - alu", "14 - alu", "15 - alu", "16 - alu", "18 - alu", "20 - alu", "24 - alu", "10 - warm edge", "12 - warm edge", "14 - warm edge", "15 - warm edge", "16 - warm edge", "18 - warm edge", "20 - warm edge", "24 - warm edge"]})
-gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"}, cellRenderer=cell_renderer_js)
-gb.configure_column("Artikelnaam", width=600)
+gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"})
+gb.configure_column("Artikelnaam", width=600)  # Stel de kolombreedte van Artikelnaam in op 400 pixels
 gb.configure_column("Offertenummer", hide=True)
 gb.configure_column("Prijs_backend", hide=False)
 gb.configure_column("Min_prijs", hide=True)
@@ -501,9 +459,7 @@ gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellS
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
-gb.configure_column("Source", hide=True)
-gb.configure_column("fuzzy_match", hide=False)
-gb.configure_column("original_article_number", hide=False)
+
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
 gb.configure_selection(
@@ -534,29 +490,26 @@ gb.configure_grid_options(onCellValueChanged=js_update_code)
 # Bouw grid-opties
 grid_options = gb.build()
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
+# Toon de AG Grid met het material-thema
+edited_df_response = AgGrid(
+    st.session_state.offer_df,
+    gridOptions=grid_options,
+    theme='material',
+    fit_columns_on_grid_load=True,
+    enable_enterprise_modules=True,
+    update_mode=GridUpdateMode.SELECTION_CHANGED,
+    columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+    allow_unsafe_jscode=True
+)
 
-    # Toon de AG Grid met het material-thema
-    edited_df_response = AgGrid(
-        st.session_state.offer_df,
-        gridOptions=grid_options,
-        theme='material',
-        fit_columns_on_grid_load=True,
-        enable_enterprise_modules=True,
-        update_mode=GridUpdateMode.SELECTION_CHANGED,
-        columns_auto_size_mode=ColumnsAutoSizeMode.NO_AUTOSIZE,
-        allow_unsafe_jscode=True
-    )
-
-    # Update de DataFrame na elke wijziging
-    if "data" in edited_df_response:
-        updated_df = pd.DataFrame(edited_df_response['data'])
-        # Werk de sessiestatus bij met de nieuwe data
-        st.session_state.offer_df = updated_df
-        # Voer alle benodigde berekeningen uit
-        st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+# Update de DataFrame na elke wijziging
+if "data" in edited_df_response:
+    updated_df = pd.DataFrame(edited_df_response['data'])
+    # Werk de sessiestatus bij met de nieuwe data
+    st.session_state.offer_df = updated_df
+    # Voer alle benodigde berekeningen uit
+    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 
 
@@ -567,86 +520,90 @@ def update_tabel():
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
-    
-    # Knop om de tabel bij te werken
-    if st.button("Update tabel"):
-        update_tabel()
-        update_tabel()
+
+# Knop om de tabel bij te werken
+if st.button("Update tabel"):
+    update_tabel()
+    update_tabel()
  
-    # Update de DataFrame na elke wijziging
-    updated_df = edited_df_response['data']
-    save_changes(pd.DataFrame(updated_df))
-    
-    # Sla de geselecteerde rijen op in sessie status
-    selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
+# Update de DataFrame na elke wijziging
+updated_df = edited_df_response['data']
+save_changes(pd.DataFrame(updated_df))
 
+# Sla de geselecteerde rijen op in sessie status
+selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
 
-    # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
-    if selected_rows is None or not isinstance(selected_rows, list):
-        selected_rows = []
-    
-    # Als er rijen zijn geselecteerd, zet deze in de sessie state
-    if isinstance(selected_rows, list) and len(selected_rows) > 0:
-        try:
-            st.session_state.selected_rows = [int(r) for r in selected_rows]
-        except ValueError:
-            st.write("Waarschuwing: Fout bij het converteren van geselecteerde rijen naar indices.")
+# Debug: Toon geselecteerde rijen
+st.write("Geselecteerde rijen (indices):", selected_rows)
+
+# Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
+if selected_rows is None or not isinstance(selected_rows, list):
+    selected_rows = []
+
+# Als er rijen zijn geselecteerd, zet deze in de sessie state
+if isinstance(selected_rows, list) and len(selected_rows) > 0:
+    try:
+        st.session_state.selected_rows = [int(r) for r in selected_rows]
+    except ValueError:
+        st.write("Waarschuwing: Fout bij het converteren van geselecteerde rijen naar indices.")
+else:
+    st.session_state.selected_rows = []
+
+def delete_selected_rows(df, selected):
+    if selected_rows is not None and len(selected_rows) > 0:
+        # Zorg ervoor dat de indices integers zijn
+        selected = [int(i) for i in selected]
+        st.write("Geselecteerde indices na conversie:", selected)  # Debugging statement
+
+        # Verwijder de geselecteerde rijen en reset de index
+        new_df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
+        st.write("DataFrame na verwijdering in functie:", new_df)  # Debugging statement
+        return new_df
+       
     else:
-        st.session_state.selected_rows = []
-    
-    def delete_selected_rows(df, selected):
-        if selected_rows is not None and len(selected_rows) > 0:
-            # Zorg ervoor dat de indices integers zijn
-            selected = [int(i) for i in selected]
-            st.write("Geselecteerde indices na conversie:", selected)  # Debugging statement
-    
-            # Verwijder de geselecteerde rijen en reset de index
-            new_df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
-            return new_df
-           
-        else:
-            return df
+        return df
 
-   
-    # Knoppen toevoegen aan de GUI
-    col1, col2, col3, col4, col5, col6 = st.columns(6)
-    with col1:
-        if st.button("Voeg rij toe"):
-            # Voeg een lege rij toe aan het DataFrame
-            new_row = pd.DataFrame({
-                "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
-                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
-            })
-            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
-            st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
-            # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
+# Knoppen toevoegen aan de GUI
+col1, col2, col3, col4, col5, col6 = st.columns(6)
+with col1:
+    if st.button("Voeg rij toe"):
+        # Voeg een lege rij toe aan het DataFrame
+        new_row = pd.DataFrame({
+            "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
+            "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
+        })
+        st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+        # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
+        st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+        # Vernieuw de AgGrid
+        st.rerun()
+
+with col2:
+    if st.button("Verwijder rijen (2x klikken)", key='delete_rows_button'):
+        # Haal de geselecteerde rijen op in de juiste vorm
+        selected = st.session_state.selected_rows
+        st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
+
+        # Verwijder rijen op basis van index
+        if len(selected) > 0:
+            # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
+            st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
+            st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
+            # Reset de Rijnummer-kolom na verwijderen
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            # Vernieuw de AgGrid
-            st.rerun()
-    
-    with col2:
-        if st.button("Verwijder rijen (2x klikken)", key='delete_rows_button'):
-            # Haal de geselecteerde rijen op in de juiste vorm
-            selected = st.session_state.selected_rows
-            st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
-    
-            # Verwijder rijen op basis van index
-            if len(selected) > 0:
-                # Verwijder de rijen uit de DataFrame op basis van de geselecteerde indices
-                st.session_state.offer_df = delete_selected_rows(st.session_state.offer_df, selected)
-                st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
-                # Reset de Rijnummer-kolom na verwijderen
-                st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-                st.rerun
-            else:
-                st.warning("Selecteer eerst rijen om te verwijderen.")
-    
-        # Zorg dat de update wordt getriggerd na verwijdering
-        st.session_state['trigger_update'] = True
+            st.rerun
+        else:
+            st.warning("Selecteer eerst rijen om te verwijderen.")
 
-  
+    # Zorg dat de update wordt getriggerd na verwijdering
+    st.session_state['trigger_update'] = True
+
+    # Toon het DataFrame na verwijdering voor debugging
+    st.write("DataFrame na verwijdering:")
+    st.dataframe(st.session_state.offer_df)
+
+
 # Functie om getallen van 1 tot 100 te herkennen
 def extract_numbers(text):
     pattern = r'\b(1|[1-9]|[1-9][0-9]|100)\b'
@@ -764,7 +721,7 @@ def handle_gpt_chat():
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
-                description, min_price, max_price, article_number, source, fuzzy_match, original_article_number = find_article_details(article_number)
+                description, min_price, max_price, article_number = find_article_details(article_number)
                 if description:
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -787,10 +744,7 @@ def handle_gpt_chat():
                         min_price,
                         max_price,
                         verkoopprijs,
-                        prijs_backend,
-                        source,
-                        fuzzy_match,
-                        original_article_number
+                        prijs_backend
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -800,7 +754,7 @@ def handle_gpt_chat():
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
                     article_number = synonym_dict.get(article_number, article_number)
-                    description, min_price, max_price, article_number, source, fuzzy_match, original_article_number = find_article_details(article_number)
+                    description, min_price, max_price, article_number = find_article_details(article_number)
                     if description:
                         # Bepaal de spacer waarde
                         spacer = determine_spacer(line)
@@ -826,10 +780,7 @@ def handle_gpt_chat():
                             min_price,
                             max_price,
                             verkoopprijs,
-                            prijs_backend,
-                            source,
-                            fuzzy_match,
-                            original_article_number
+                            prijs_backend
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -837,7 +788,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
@@ -877,7 +828,7 @@ def handle_text_input(input_text):
     if matched_articles:
         response_text = "Bedoelt u de volgende samenstellingen:"
         for term, article_number in matched_articles:
-            description, _, _, _, _, _ = find_article_details(article_number)
+            description, _, _, _ = find_article_details(article_number)
             if description:
                 response_text += f"- {description} met artikelnummer {article_number}\n"
 
@@ -1015,7 +966,9 @@ if selected_tab == "Offerte Genereren":
 
 
 
-
+# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
+if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
+    st.title("Offerteoverzicht")
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
@@ -1023,49 +976,47 @@ if 'Rijnummer' not in st.session_state.offer_df.columns:
     
 
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":     
+      
+with col6:
+    # Voeg een knop toe om de offerte als PDF te downloaden
+    if totaal_bedrag > 25000:
+        st.button("Download offerte als PDF", key='download_pdf_button', disabled=True)
+        st.button("Autoriseer offerte", key='authorize_offer_button')
+    else:
+        if st.button("Download offerte als PDF", key='download_pdf_button'):
+            pdf_buffer = generate_pdf(st.session_state.offer_df)
+            st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
 
-    with col6:
-        # Voeg een knop toe om de offerte als PDF te downloaden
-        if totaal_bedrag > 25000:
-            st.button("Download offerte als PDF", key='download_pdf_button', disabled=True)
-            st.button("Autoriseer offerte", key='authorize_offer_button')
+    if st.button("Sla offerte op", key='save_offerte_button'):
+        # Zoek het hoogste offertenummer
+        if not st.session_state.saved_offers.empty:
+            max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
+            offer_number = max_offer_number + 1
         else:
-            if st.button("Download offerte als PDF", key='download_pdf_button'):
-                pdf_buffer = generate_pdf(st.session_state.offer_df)
-                st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
-    
-        if st.button("Sla offerte op", key='save_offerte_button'):
-            # Zoek het hoogste offertenummer
-            if not st.session_state.saved_offers.empty:
-                max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
-                offer_number = max_offer_number + 1
-            else:
-                offer_number = 1
-    
-            # Bereken eindtotaal
-            if all(col in edited_df_response.data.columns for col in ['RSP', 'M2 totaal']):
-                eindtotaal = edited_df_response.data.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
-            else:
-                eindtotaal = 0
-    
-            # Voeg offerte-informatie toe aan een nieuwe DataFrame
-            offer_summary = pd.DataFrame({
-                'Offertenummer': [offer_number],
-                'Klantnummer': [str(st.session_state.customer_number)],
-                'Eindbedrag': [eindtotaal],
-                'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-            })
-    
-            # Voeg offerte-informatie toe aan opgeslagen offertes
-            st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
-    
-            # Voeg offertenummer toe aan elke regel in de offerte
-            st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
-    
-            # Toon succesbericht
-            st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
+            offer_number = 1
+
+        # Bereken eindtotaal
+        if all(col in edited_df_response.data.columns for col in ['RSP', 'M2 totaal']):
+            eindtotaal = edited_df_response.data.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+        else:
+            eindtotaal = 0
+
+        # Voeg offerte-informatie toe aan een nieuwe DataFrame
+        offer_summary = pd.DataFrame({
+            'Offertenummer': [offer_number],
+            'Klantnummer': [str(st.session_state.customer_number)],
+            'Eindbedrag': [eindtotaal],
+            'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+        })
+
+        # Voeg offerte-informatie toe aan opgeslagen offertes
+        st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
+
+        # Voeg offertenummer toe aan elke regel in de offerte
+        st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
+
+        # Toon succesbericht
+        st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
 
 
 if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
@@ -1106,40 +1057,3 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.dataframe(st.session_state.loaded_offer_df[required_columns])
     else:
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
-
-
-if selected_tab == "Beoordeel Input AI":
-    st.title("Beoordeel Input AI")
-    
-    # Filter regels met "Source" = "interpretatie"
-    interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"] == "interpretatie"]
-
-    if interpretatie_rows.empty:
-        st.info("Er zijn geen regels met 'interpretatie' om te beoordelen.")
-    else:
-        # Maak een tabel met de correcte input en gematchte waarden
-        beoordeling_tabel = pd.DataFrame({
-            "Artikelnaam": interpretatie_rows["Description"],
-            "Artikelnummer": interpretatie_rows["Artikelnummer"],
-            "Gematcht op": interpretatie_rows.index.map(
-                lambda idx: synonym_dict.get(st.session_state.offer_df.loc[idx, "Artikelnummer"], "Geen synoniem")
-            ),
-            "Input": interpretatie_rows.index.map(
-                lambda idx: st.session_state.offer_df.loc[idx, "Artikelnummer"]
-            )
-        })
-
-        # Toon de tabel met accordeeropties
-        st.subheader("Regels met AI interpretatie")
-        for index, row in beoordeling_tabel.iterrows():
-            st.write(f"**Rij {index + 1}:**")
-            st.write(f"- Artikelnaam: {row['Artikelnaam']}")
-            st.write(f"- Artikelnummer: {row['Artikelnummer']}")
-            st.write(f"- Gematcht op: {row['Gematcht op']}")
-            st.write(f"- Input: {row['Input']}")
-
-            # Voeg een checkbox toe voor accordering
-            if st.checkbox(f"Accordeer rij {index + 1}", key=f"approve_{index}"):
-                # Voeg het nieuwe synoniem toe aan de lijst na accordering
-                synonym_dict[row["Input"]] = row["Artikelnummer"]
-                st.success(f"Synoniem '{row['Input']}' -> '{row['Artikelnummer']}' is opgeslagen!")
