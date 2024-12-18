@@ -16,3 +16,7 @@ dash-bootstrap-components
 pandas
 plotly
 rapidfuzz
+requests
+beautifulsoup4
+sentence-transformers
+PyPDF2
