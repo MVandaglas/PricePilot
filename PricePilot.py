@@ -49,16 +49,14 @@ if "selected_rows" not in st.session_state:
 article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
-# Meerdere tabbladen maken in Streamlit
-selected_tab = st.radio(
-    "Selecteer een optie:",
-    ["Offerte Genereren", "Opgeslagen Offertes", "Beoordeel AI"],
-    index=0,
-    horizontal=True,
-)
+# Maak de tabs aan
+tab1, tab2, tab3 = st.tabs(["📝 Offerte Genereren", "📂 Opgeslagen Offertes", "🔍 Beoordeel AI"])
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
+# Tab 1: Offerte Genereren
+with tab1:
+    st.subheader("Offerte Genereren")
+    st.info("Functies voor het genereren van offertes komen hier.")
+    
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
         st.title("Offerteoverzicht")
 
@@ -73,7 +71,7 @@ st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
 # Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
+with tab1:
     
     # Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
     col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
@@ -81,7 +79,7 @@ if selected_tab == "Offerte Genereren":
         prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
 
 # Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
+with tab1:
     def bereken_prijs_backend(df):
         if df is None:
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
@@ -453,7 +451,7 @@ def save_changes(df):
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
 # Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
+with tab1:
     # Voeg een veld toe voor prijskwaliteit als RSP wordt gekozen met beperkte breedte
     if prijsbepaling_optie == "RSP":
         col1, _ = st.columns([1, 10])
@@ -522,7 +520,7 @@ gb.configure_grid_options(onCellValueChanged=js_update_code)
 grid_options = gb.build()
 
 # Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
+with tab1:
 
     # Toon de AG Grid met het material-thema
     edited_df_response = AgGrid(
@@ -555,7 +553,7 @@ def update_tabel():
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
+with tab1:
     
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
@@ -992,7 +990,7 @@ def generate_pdf(df):
     return buffer
 
 # Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
+with tab1:
     
   if st.sidebar.button("Verstuur chat met GPT"):
     try:
@@ -1011,7 +1009,7 @@ if 'Rijnummer' not in st.session_state.offer_df.columns:
 
 
 # Offerte Genereren tab
-if selected_tab == "Offerte Genereren":     
+with tab1:    
 
     with col6:
         # Voeg een knop toe om de offerte als PDF te downloaden
@@ -1061,7 +1059,7 @@ if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
     st.session_state.offer_df = edited_df
 
 # Opgeslagen Offertes tab
-elif selected_tab == "Opgeslagen Offertes":
+with tab2:
     st.title("Opgeslagen Offertes")
     if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
         offers_summary = st.session_state.saved_offers
@@ -1086,7 +1084,8 @@ elif selected_tab == "Opgeslagen Offertes":
 
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
-if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
+with tab2:
+    and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
     st.title("Geladen Offerte")
     required_columns = ["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"]
     if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
@@ -1095,7 +1094,7 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
 
 
-if selected_tab == "Beoordeel AI":
+with tab3:
     st.markdown("### Beoordeel output AI ✨")
 
     # Controleer of offer_df beschikbaar is in sessiestatus
