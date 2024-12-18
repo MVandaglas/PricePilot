@@ -1179,92 +1179,93 @@ with tab4:
     st.subheader("💬 Glasadvies Chatbot")
     st.info("Stel je vraag over glas en krijg advies van AI op basis van beschikbare bronnen.")
 
-    # Functie om website content op te halen
-    def fetch_website_and_subpages(base_url, max_depth=1):
-        visited_urls = set()
-        content_list = []
+    # # Functie om website content en subpagina's op te halen
+    # def fetch_website_and_subpages(base_url, max_depth=0):
+    #     visited_urls = set()
+    #     content_list = []
 
-        def crawl(url, depth):
-            if url in visited_urls or depth > max_depth:
-                return
-            try:
-                visited_urls.add(url)
-                response = requests.get(url)
-                if response.status_code == 200:
-                    soup = BeautifulSoup(response.text, "html.parser")
-                    content_list.append(soup.get_text())  # Voeg de tekst van de pagina toe
+    #     def crawl(url, depth):
+    #         if url in visited_urls or depth > max_depth:
+    #             return
+    #         try:
+    #             visited_urls.add(url)
+    #             response = requests.get(url)
+    #             if response.status_code == 200:
+    #                 soup = BeautifulSoup(response.text, "html.parser")
+    #                 content_list.append(soup.get_text())  # Voeg de tekst van de pagina toe
                     
-                    # Zoek naar onderliggende links
-                    for link in soup.find_all("a", href=True):
-                        next_url = link["href"]
-                        if next_url.startswith("/") or next_url.startswith(base_url):
-                            full_url = next_url if next_url.startswith("http") else f"{base_url.rstrip('/')}/{next_url.lstrip('/')}"
-                            crawl(full_url, depth + 1)
-            except Exception as e:
-                st.error(f"Fout bij ophalen van {url}: {e}")
+    #                 # Zoek naar onderliggende links
+    #                 for link in soup.find_all("a", href=True):
+    #                     next_url = link["href"]
+    #                     if next_url.startswith("/") or next_url.startswith(base_url):
+    #                         full_url = next_url if next_url.startswith("http") else f"{base_url.rstrip('/')}/{next_url.lstrip('/')}"
+    #                         crawl(full_url, depth + 1)
+    #         except Exception as e:
+    #             st.error(f"Fout bij ophalen van {url}: {e}")
     
-        crawl(base_url, 0)
-        return "\n".join(content_list)
+    #     crawl(base_url, 0)
+    #     return "\n".join(content_list)
 
-# Functie om PDF-inhoud op te halen
-def fetch_pdf_content(url):
-    try:
-        response = requests.get(url)
-        pdf_file = io.BytesIO(response.content)
-        pdf_reader = PdfReader(pdf_file)
-        text = ""
-        for page in pdf_reader.pages:
-            text += page.extract_text()
-        return text
-    except Exception as e:
-        st.error(f"Kon de PDF {url} niet verwerken: {e}")
-        return ""
+    # # Functie om PDF-inhoud op te halen
+    # def fetch_pdf_content(url):
+    #     try:
+    #         response = requests.get(url)
+    #         pdf_file = io.BytesIO(response.content)
+    #         pdf_reader = PdfReader(pdf_file)
+    #         text = ""
+    #         for page in pdf_reader.pages:
+    #             text += page.extract_text()
+    #         return text
+    #     except Exception as e:
+    #         st.error(f"Kon de PDF {url} niet verwerken: {e}")
+    #         return ""
+    
+    # # Bronnen ophalen (websites + PDF)
+    # sources = [
+    #     fetch_website_and_subpages("https://www.onderhoudnl.nl/glasvraagbaak", max_depth=0),
+    #     fetch_website_and_subpages("https://www.glasdiscount.nl/kennisbank/begrippen", max_depth=0),
+    #     fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
+    #     fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
+    # ]
+    # combined_source_text = "\n".join(sources)
+    
+    # Initialiseer chatgeschiedenis in sessiestatus
+    if "chat_history" not in st.session_state:
+        st.session_state["chat_history"] = [{"role": "assistant", "content": "Hoe kan ik je helpen met glasadvies?"}]
+    
+    st.title("💬 Glasadvies Chatbot")
+    
+    # Toon chatgeschiedenis
+    for msg in st.session_state["chat_history"]:
+        st.chat_message(msg["role"]).write(msg["content"])
+    
+    # Inputveld voor gebruikersvraag
+    user_query = st.chat_input("Stel je vraag hier:")
+    
+    if user_query:
+        st.chat_message("user").write(user_query)  # Toon de gebruikersvraag
+        st.session_state["chat_history"].append({"role": "user", "content": user_query})
+    
+        try:
+            # # Verstuur de vraag naar OpenAI met de opgehaalde documentatie
+            # response = openai.chat.completions.create(
+            #     model="gpt-4",
+            #     messages=[
+            #         {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie. Geef kort en helder advies."},
+            #         {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
+            #     ],
+            #     max_tokens=300,
+            #     temperature=0.7
+            # )
 
-# Bronnen ophalen (websites + PDF)
-sources = [
-    fetch_website_and_subpages("https://www.onderhoudnl.nl/glasvraagbaak", max_depth=0),
-    fetch_website_and_subpages("https://www.glasdiscount.nl/kennisbank/begrippen", max_depth=0),
-    fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
-    fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
-]
-combined_source_text = "\n".join(sources)
+            # # Toon het antwoord van OpenAI
+            # ai_response = response.choices[0].message.content
+            # st.chat_message("assistant").write(ai_response)
+            # st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
+            pass  # Deze logica wordt niet uitgevoerd
+        except Exception as e:
+            st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
 
-# Initialiseer chatgeschiedenis in sessiestatus
-if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = [{"role": "assistant", "content": "Hoe kan ik je helpen met glasadvies?"}]
-
-st.title("💬 Glasadvies Chatbot")
-
-# Toon chatgeschiedenis
-for msg in st.session_state["chat_history"]:
-    st.chat_message(msg["role"]).write(msg["content"])
-
-# Inputveld voor gebruikersvraag
-user_query = st.chat_input("Stel je vraag hier:")
-
-if user_query:
-    st.chat_message("user").write(user_query)  # Toon de gebruikersvraag
-    st.session_state["chat_history"].append({"role": "user", "content": user_query})
-
-    try:
-        # Verstuur de vraag naar OpenAI met de opgehaalde documentatie
-        response = openai.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie. Geef kort en helder advies."},
-                {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
-            ],
-            max_tokens=300,
-            temperature=0.7
-        )
-
-        # Toon het antwoord van OpenAI
-        ai_response = response.choices[0].message.content
-        st.chat_message("assistant").write(ai_response)
-        st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
-
-    except Exception as e:
-        st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
             
 with tab5:
     st.subheader("Jouw instellingen")
