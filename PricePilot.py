@@ -76,10 +76,13 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
-# Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
-col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
-with col1:
-    prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+
+    # Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
+    col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
+    with col1:
+        prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
 
 
 def bereken_prijs_backend(df):
