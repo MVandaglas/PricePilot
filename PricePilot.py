@@ -80,50 +80,51 @@ if selected_tab == "Offerte Genereren":
     with col1:
         prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
 
-
-def bereken_prijs_backend(df):
-    if df is None:
-        st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
-        return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
-
-    try:
-        # Zorg ervoor dat kolommen numeriek zijn
-        df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
-        df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
-        df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
-
-        # Eerst Prijs_backend bepalen zonder totaal_bedrag
-        def bepaal_prijs_backend(row):
-            if row["Verkoopprijs"] > 0:
-                return row["Verkoopprijs"]
-            return min(row["SAP Prijs"], row["RSP"])
-
-        df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
-
-        # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
-        totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
-
-        # Update Prijs_backend afhankelijk van totaal_bedrag
-        def update_prijs_backend(row):
-            if row["Verkoopprijs"] > 0:
-                return row["Verkoopprijs"]
-            elif totaal_bedrag < 2000:
-                return row["SAP Prijs"]
-            return min(row["SAP Prijs"], row["RSP"])
-
-        df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
-
-        # Aanpassen van Verkoopprijs als RSP is gekozen
-        if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
-            df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
-
-            # Afronden naar boven op de dichtstbijzijnde 5 cent
-            df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
-
-    except Exception as e:
-        st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
-
-    return df
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+    def bereken_prijs_backend(df):
+        if df is None:
+            st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
+            return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
+    
+        try:
+            # Zorg ervoor dat kolommen numeriek zijn
+            df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
+            df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
+            df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
+    
+            # Eerst Prijs_backend bepalen zonder totaal_bedrag
+            def bepaal_prijs_backend(row):
+                if row["Verkoopprijs"] > 0:
+                    return row["Verkoopprijs"]
+                return min(row["SAP Prijs"], row["RSP"])
+    
+            df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+    
+            # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
+            totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
+    
+            # Update Prijs_backend afhankelijk van totaal_bedrag
+            def update_prijs_backend(row):
+                if row["Verkoopprijs"] > 0:
+                    return row["Verkoopprijs"]
+                elif totaal_bedrag < 2000:
+                    return row["SAP Prijs"]
+                return min(row["SAP Prijs"], row["RSP"])
+    
+            df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
+    
+            # Aanpassen van Verkoopprijs als RSP is gekozen
+            if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
+                df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
+    
+                # Afronden naar boven op de dichtstbijzijnde 5 cent
+                df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
+    
+        except Exception as e:
+            st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
+    
+        return df
 
 
 
@@ -512,26 +513,29 @@ gb.configure_grid_options(onCellValueChanged=js_update_code)
 # Bouw grid-opties
 grid_options = gb.build()
 
-# Toon de AG Grid met het material-thema
-edited_df_response = AgGrid(
-    st.session_state.offer_df,
-    gridOptions=grid_options,
-    theme='material',
-    fit_columns_on_grid_load=True,
-    enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.SELECTION_CHANGED,
-    columns_auto_size_mode=ColumnsAutoSizeMode.NO_AUTOSIZE,
-    allow_unsafe_jscode=True
-)
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
 
-# Update de DataFrame na elke wijziging
-if "data" in edited_df_response:
-    updated_df = pd.DataFrame(edited_df_response['data'])
-    # Werk de sessiestatus bij met de nieuwe data
-    st.session_state.offer_df = updated_df
-    # Voer alle benodigde berekeningen uit
-    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+    # Toon de AG Grid met het material-thema
+    edited_df_response = AgGrid(
+        st.session_state.offer_df,
+        gridOptions=grid_options,
+        theme='material',
+        fit_columns_on_grid_load=True,
+        enable_enterprise_modules=True,
+        update_mode=GridUpdateMode.SELECTION_CHANGED,
+        columns_auto_size_mode=ColumnsAutoSizeMode.NO_AUTOSIZE,
+        allow_unsafe_jscode=True
+    )
+
+    # Update de DataFrame na elke wijziging
+    if "data" in edited_df_response:
+        updated_df = pd.DataFrame(edited_df_response['data'])
+        # Werk de sessiestatus bij met de nieuwe data
+        st.session_state.offer_df = updated_df
+        # Voer alle benodigde berekeningen uit
+        st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 
 
