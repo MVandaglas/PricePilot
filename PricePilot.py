@@ -554,43 +554,41 @@ if selected_tab == "Offerte Genereren":
         update_tabel()
         update_tabel()
  
-# Update de DataFrame na elke wijziging
-updated_df = edited_df_response['data']
-save_changes(pd.DataFrame(updated_df))
-
-# Sla de geselecteerde rijen op in sessie status
-selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
-
-
-# Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
-if selected_rows is None or not isinstance(selected_rows, list):
-    selected_rows = []
-
-# Als er rijen zijn geselecteerd, zet deze in de sessie state
-if isinstance(selected_rows, list) and len(selected_rows) > 0:
-    try:
-        st.session_state.selected_rows = [int(r) for r in selected_rows]
-    except ValueError:
-        st.write("Waarschuwing: Fout bij het converteren van geselecteerde rijen naar indices.")
-else:
-    st.session_state.selected_rows = []
-
-def delete_selected_rows(df, selected):
-    if selected_rows is not None and len(selected_rows) > 0:
-        # Zorg ervoor dat de indices integers zijn
-        selected = [int(i) for i in selected]
-        st.write("Geselecteerde indices na conversie:", selected)  # Debugging statement
-
-        # Verwijder de geselecteerde rijen en reset de index
-        new_df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
-        return new_df
-       
-    else:
-        return df
-
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
+    # Update de DataFrame na elke wijziging
+    updated_df = edited_df_response['data']
+    save_changes(pd.DataFrame(updated_df))
     
+    # Sla de geselecteerde rijen op in sessie status
+    selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
+
+
+    # Zorg dat selected_rows geen None of DataFrame is, maar altijd een lijst
+    if selected_rows is None or not isinstance(selected_rows, list):
+        selected_rows = []
+    
+    # Als er rijen zijn geselecteerd, zet deze in de sessie state
+    if isinstance(selected_rows, list) and len(selected_rows) > 0:
+        try:
+            st.session_state.selected_rows = [int(r) for r in selected_rows]
+        except ValueError:
+            st.write("Waarschuwing: Fout bij het converteren van geselecteerde rijen naar indices.")
+    else:
+        st.session_state.selected_rows = []
+    
+    def delete_selected_rows(df, selected):
+        if selected_rows is not None and len(selected_rows) > 0:
+            # Zorg ervoor dat de indices integers zijn
+            selected = [int(i) for i in selected]
+            st.write("Geselecteerde indices na conversie:", selected)  # Debugging statement
+    
+            # Verwijder de geselecteerde rijen en reset de index
+            new_df = df.drop(index=selected_rows, errors='ignore').reset_index(drop=True)
+            return new_df
+           
+        else:
+            return df
+
+   
     # Knoppen toevoegen aan de GUI
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     with col1:
