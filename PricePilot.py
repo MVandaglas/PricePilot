@@ -1211,44 +1211,37 @@ with tab4:
     ]
     combined_source_text = "\n".join(sources)
 
-    # Initialiseer chatgeschiedenis
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = [{"role": "assistant", "content": "Hoe kan ik je helpen met glasadvies?"}]
+    # Initialiseer chatgeschiedenis in sessiestatus
+    if "chat_history" not in st.session_state:
+        st.session_state["chat_history"] = [{"role": "assistant", "content": "Hoe kan ik je helpen met glasadvies?"}]
 
     # Toon chatgeschiedenis
-    for msg in st.session_state["messages"]:
+    for msg in st.session_state["chat_history"]:
         st.chat_message(msg["role"]).write(msg["content"])
 
-    # Input veld voor de gebruiker
+    # Inputveld voor gebruikersvraag
     user_query = st.chat_input("Stel je vraag hier:")
 
-    # Verwerk de gebruikersinput en stuur naar OpenAI
     if user_query:
-        if not openai_api_key:
-            st.info("Voer eerst je OpenAI API Key in om verder te gaan.")
-            st.stop()
+        st.chat_message("user").write(user_query)  # Toon de gebruikersvraag
+        st.session_state["chat_history"].append({"role": "user", "content": user_query})
 
-        # Voeg de vraag van de gebruiker toe aan de chatgeschiedenis
-        st.session_state["messages"].append({"role": "user", "content": user_query})
-        st.chat_message("user").write(user_query)
-
-        # Stuur de prompt naar OpenAI
         try:
-            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            response = client.chat.completions.create(
+            # Verstuur de vraag naar OpenAI met de opgehaalde documentatie
+            response = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie."},
                     {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
                 ],
-                max_tokens=300,
+                max_tokens=100,
                 temperature=0.7
             )
 
-            # Ontvang en toon het antwoord van OpenAI
-            ai_response = response.choices[0].message.content
-            st.session_state["messages"].append({"role": "assistant", "content": ai_response})
+            # Toon het antwoord van OpenAI
+            ai_response = response['choices'][0]['message']['content']
             st.chat_message("assistant").write(ai_response)
+            st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
 
         except Exception as e:
             st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
