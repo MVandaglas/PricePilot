@@ -50,7 +50,7 @@ article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
 # Maak de tabs aan
-tab1, tab2, tab3 = st.tabs(["📝 Offerte Genereren", "📂 Opgeslagen Offertes", "🔍 Beoordeel AI"])
+tab1, tab2, tab3, tab4 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "⚙️ Instellingen"])
 
 # Tab 1: Offerte Genereren
 with tab1:
