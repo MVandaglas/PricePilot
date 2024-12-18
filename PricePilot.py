@@ -129,7 +129,7 @@ if selected_tab == "Offerte Genereren":
 
 
 
-st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Controleer en zet kolommen om
 for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
