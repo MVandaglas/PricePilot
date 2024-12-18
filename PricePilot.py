@@ -245,7 +245,9 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 article_number,
-                "synoniem"  # Bron: exacte match in synonym_dict.values()
+                "synoniem",  # Bron: exacte match in synonym_dict.values()
+                article_number,  # Original article number
+                None  # Fuzzy match remains empty
             )
 
     # 2. Controleer of artikelnummer een exacte match is in synonym_dict.keys()
@@ -258,7 +260,9 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                "synoniem"  # Bron: exacte match in synonym_dict.keys()
+                "synoniem",  # Bron: exacte match in synonym_dict.keys()
+                article_number,  # Original article number
+                None  # Fuzzy match remains empty
             )
 
     # 3. Zoek naar een bijna-match met difflib
@@ -273,7 +277,9 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                "interpretatie"  # Bron: difflib match
+                "interpretatie",  # Bron: difflib match
+                article_number,  # Original article number
+                best_match  # Fuzzy match found
             )
 
     # 4. Zoek alternatieven via GPT
@@ -295,13 +301,12 @@ def find_article_details(article_number):
         )
         suggestions = response.choices[0].message['content'].strip().split("\n")
         if suggestions:
-            return (suggestions[0], None, None, original_article_number, "GPT")  # Bron: GPT suggestie
+            return (suggestions[0], None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
 
     # 5. Als alles mislukt
-    return (None, None, None, original_article_number, "niet gevonden")
-
+    return (None, None, None, original_article_number, "niet gevonden", original_article_number, None)
 
 
 # Functie om aanbevolen prijs te berekenen
@@ -365,7 +370,7 @@ def update_offer_data(df):
         if pd.notna(row['Artikelnummer']):
             # Controleer of Source al is gevuld
             if pd.isna(row.get('Source')) or row['Source'] in ['niet gevonden', 'GPT']:
-                description, min_price, max_price, article_number, source = find_article_details(row['Artikelnummer'])
+                description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(row['Artikelnummer'])
                 if description:
                     df.at[index, 'Artikelnaam'] = description
                 if min_price is not None and max_price is not None:
@@ -373,6 +378,10 @@ def update_offer_data(df):
                     df.at[index, 'Max_prijs'] = max_price
                 if source:  # Alleen Source bijwerken als deze leeg is
                     df.at[index, 'Source'] = source
+                if original_article_number:
+                    df.at[index, 'original_article_number'] = original_article_number
+                if fuzzy_match:
+                    df.at[index, 'fuzzy_match'] = fuzzy_match
             
             # Update SAP Prijs
             if st.session_state.customer_number in sap_prices:
@@ -382,7 +391,6 @@ def update_offer_data(df):
                 df.at[index, 'SAP Prijs'] = "Geen prijs"
     df = bereken_prijs_backend(df)
     return df
-
 
 
 # Functie om de RSP voor alle regels te updaten
@@ -743,7 +751,7 @@ def handle_gpt_chat():
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
-                description, min_price, max_price, article_number, source = find_article_details(article_number)
+                description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
                 if description:
                     # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -767,7 +775,9 @@ def handle_gpt_chat():
                         max_price,
                         verkoopprijs,
                         prijs_backend,
-                        source
+                        source,
+                        fuzzy_match,  # Vul fuzzy_match kolom
+                        original_article_number  # Vul original_article_number kolom
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -777,7 +787,7 @@ def handle_gpt_chat():
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
                     article_number = synonym_dict.get(article_number, article_number)
-                    description, min_price, max_price, article_number, source = find_article_details(article_number)
+                    description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
                     if description:
                         # Bepaal de spacer waarde
                         spacer = determine_spacer(line)
@@ -804,7 +814,9 @@ def handle_gpt_chat():
                             max_price,
                             verkoopprijs,
                             prijs_backend,
-                            source
+                            source,
+                            fuzzy_match,  # Vul fuzzy_match kolom
+                            original_article_number  # Vul original_article_number kolom
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -812,7 +824,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
