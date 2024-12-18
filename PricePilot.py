@@ -415,31 +415,31 @@ def reset_rijnummers(df):
 if selected_tab == "Offerte Genereren":
 
 
-# JavaScript-code voor conditionele opmaak
-cell_style_js = JsCode("""
-function(params) {
-    if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-    } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-    } else if (params.colDef.field === "Verkoopprijs" && params.data.Prijs_backend === params.data.Verkoopprijs) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-    } else if (params.colDef.field !== "Verkoopprijs") {
-        return {'backgroundColor': '#e0e0e0'};  // Grijs voor alle andere cellen
+    # JavaScript-code voor conditionele opmaak
+    cell_style_js = JsCode("""
+    function(params) {
+        if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
+            return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+        } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
+            return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+        } else if (params.colDef.field === "Verkoopprijs" && params.data.Prijs_backend === params.data.Verkoopprijs) {
+            return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+        } else if (params.colDef.field !== "Verkoopprijs") {
+            return {'backgroundColor': '#e0e0e0'};  // Grijs voor alle andere cellen
+        }
+        return null;
     }
-    return null;
-}
-""")
-
-# Voeg een cell renderer toe om de stericoon weer te geven
-cell_renderer_js = JsCode("""
-function(params) {
-    if (params.data.Source === "interpretatie" || params.data.Source === "GPT") {
-        return `✨ ${params.value}`;  // Voeg stericoon toe vóór de waarde
+    """)
+    
+    # Voeg een cell renderer toe om de stericoon weer te geven
+    cell_renderer_js = JsCode("""
+    function(params) {
+        if (params.data.Source === "interpretatie" || params.data.Source === "GPT") {
+            return `✨ ${params.value}`;  // Voeg stericoon toe vóór de waarde
+        }
+        return params.value;  // Toon de originele waarde
     }
-    return params.value;  // Toon de originele waarde
-}
-""")
+    """)
 
 
 def save_changes(df):
