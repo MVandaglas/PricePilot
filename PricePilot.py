@@ -557,11 +557,12 @@ def update_tabel():
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
 # Knop om de tabel bij te werken
-if st.button("Update tabel"):
-    update_tabel()
-    update_tabel()
+    if st.button("Update tabel"):
+        update_tabel()
+        update_tabel()
 
 # Offerte Genereren tab
 if selected_tab == "Offerte Genereren":
