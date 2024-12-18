@@ -62,10 +62,11 @@ selected_tab = st.radio(
 )
 
 
-
-# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
-if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
-    st.title("Offerteoverzicht")
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+    # Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
+    if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
+        st.title("Offerteoverzicht")
 
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
     st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
