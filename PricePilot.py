@@ -450,19 +450,21 @@ def save_changes(df):
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
-
-# Voeg een veld toe voor prijskwaliteit als RSP wordt gekozen met beperkte breedte
-if prijsbepaling_optie == "RSP":
-    col1, _ = st.columns([1, 10])
-    with col1:
-        prijskwaliteit = st.number_input("Prijskwaliteit (%)", min_value=0, max_value=200, value=100, key="prijskwaliteit")
-    st.session_state.offer_df["Prijskwaliteit"] = prijskwaliteit
-
-# Pas de logica voor prijs_backend aan op basis van de gekozen optie
-if prijsbepaling_optie == "SAP prijs":
-    st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
-else:
-    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+    
+    # Voeg een veld toe voor prijskwaliteit als RSP wordt gekozen met beperkte breedte
+    if prijsbepaling_optie == "RSP":
+        col1, _ = st.columns([1, 10])
+        with col1:
+            prijskwaliteit = st.number_input("Prijskwaliteit (%)", min_value=0, max_value=200, value=100, key="prijskwaliteit")
+        st.session_state.offer_df["Prijskwaliteit"] = prijskwaliteit
+    
+    # Pas de logica voor prijs_backend aan op basis van de gekozen optie
+    if prijsbepaling_optie == "SAP prijs":
+        st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
+    else:
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 
 
