@@ -1231,10 +1231,10 @@ with tab4:
             response = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie."},
+                    {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie. Geef beknopt en punctueel antwoord"},
                     {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
                 ],
-                max_tokens=100,
+                max_tokens=300,
                 temperature=0.7
             )
 
