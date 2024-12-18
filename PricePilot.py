@@ -146,7 +146,7 @@ st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 
 cutoff_value = st.sidebar.slider(
-    "Cutoff waarde voor fuzzy matching",
+    "Matchwaarde AI",
     min_value=0.1,
     max_value=1.0,
     value=0.6,  # Standaardwaarde
