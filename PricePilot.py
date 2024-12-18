@@ -16,6 +16,9 @@ from Synonyms import synonym_dict
 from Articles import article_table
 import difflib
 from rapidfuzz import process, fuzz
+import requests
+from bs4 import BeautifulSoup
+from sentence_transformers import SentenceTransformer, util
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -51,7 +54,7 @@ article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
 # Maak de tabs aan
-tab1, tab2, tab3, tab4 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "⚙️ Instellingen"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "🤖 Glasbot" "⚙️ Instellingen"])
 
 # Tab 1: Offerte Genereren
 with tab1:
@@ -1169,6 +1172,69 @@ with tab3:
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen.")
 
-
 with tab4:
+    st.subheader("💬 Glasadvies Chatbot")
+    st.info("Stel je vraag over glas en krijg advies op basis van beschikbare bronnen.")
+
+    # 1. Ophalen van data (websites)
+    def fetch_website_content(url):
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            return soup.get_text()
+        except Exception as e:
+            st.error(f"Kon de website {url} niet verwerken: {e}")
+            return ""
+
+    # 2. Ophalen van data (PDF's)
+    def fetch_pdf_content(url):
+        import io
+        from PyPDF2 import PdfReader
+        try:
+            response = requests.get(url)
+            pdf_file = io.BytesIO(response.content)
+            pdf_reader = PdfReader(pdf_file)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+            return text
+        except Exception as e:
+            st.error(f"Kon de PDF {url} niet verwerken: {e}")
+            return ""
+
+    # Bronnen
+    sources = [
+        fetch_website_content("https://www.onderhoudnl.nl/glasvraagbaak"),
+        fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
+        fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
+    ]
+
+    # 3. Indexeren van data met SentenceTransformers
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    embeddings = model.encode(sources)
+
+    # 4. Vraag van de gebruiker
+    user_query = st.text_input("Stel je vraag hier:")
+    if user_query:
+        query_embedding = model.encode(user_query)
+        scores = util.cos_sim(query_embedding, embeddings)
+        best_match_idx = scores.argmax().item()
+        best_match = sources[best_match_idx]
+
+        # Toon gevonden advies
+        st.write(f"**Advies:** {best_match}")
+
+        # Optioneel: AI toelichting via GPT
+        if st.button("Vraag AI om meer uitleg"):
+            openai.api_key = api_key
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "Je bent een glasadvies assistent."},
+                    {"role": "user", "content": f"Gebaseerd op dit advies: '{best_match}', geef meer details over {user_query}."}
+                ]
+            )
+            ai_response = response['choices'][0]['message']['content']
+            st.write(f"**AI Antwoord:** {ai_response}")
+with tab5:
     st.subheader("Jouw instellingen")
