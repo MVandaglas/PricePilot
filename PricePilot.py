@@ -61,6 +61,12 @@ selected_tab = st.radio(
     horizontal=True,
 )
 
+
+
+# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
+if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
+    st.title("Offerteoverzicht")
+
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
     st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
 
@@ -404,6 +410,10 @@ def reset_rijnummers(df):
     if not df.empty:
         df['Rijnummer'] = range(1, len(df) + 1)
     return df
+
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+
 
 # JavaScript-code voor conditionele opmaak
 cell_style_js = JsCode("""
@@ -979,9 +989,7 @@ if selected_tab == "Offerte Genereren":
 
 
 
-# Toon bewaarde offerte DataFrame in het middenscherm en maak het aanpasbaar
-if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
-    st.title("Offerteoverzicht")
+
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
