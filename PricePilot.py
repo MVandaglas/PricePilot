@@ -317,8 +317,8 @@ def find_article_details(article_number):
                 {"role": "system", "content": "Je bent een behulpzame assistent die het bijhorende artikelnummer zoekt van het gegeven synoniem. Je zoekt welk reeds bekende synoniem het dichtst in de buurt komt van de gegeven synoniem"},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=10,
-            temperature=0.3,
+            max_tokens=50,
+            temperature=0.5,
         )
         suggestions = response.choices[0].message.content.strip().split("\n")
         if suggestions:
