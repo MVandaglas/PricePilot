@@ -1099,21 +1099,20 @@ if selected_tab == "Beoordeel Input AI":
     st.title("Beoordeel Input AI")
     
     # Filter regels met "Source" = "interpretatie"
-    interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"] == "interpretatie"]
+    if "offer_df" in st.session_state:
+        interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"] == "interpretatie"]
+    else:
+        interpretatie_rows = pd.DataFrame()  # Lege DataFrame als fallback
 
     if interpretatie_rows.empty:
         st.info("Er zijn geen regels met 'interpretatie' om te beoordelen.")
     else:
         # Maak een tabel met de correcte input en gematchte waarden
         beoordeling_tabel = pd.DataFrame({
-            "Artikelnaam": interpretatie_rows["Description"],
+            "Artikelnaam": interpretatie_rows["Artikelnaam"],
             "Artikelnummer": interpretatie_rows["Artikelnummer"],
-            "Gematcht op": interpretatie_rows.index.map(
-                lambda idx: synonym_dict.get(st.session_state.offer_df.loc[idx, "Artikelnummer"], "Geen synoniem")
-            ),
-            "Input": interpretatie_rows.index.map(
-                lambda idx: st.session_state.offer_df.loc[idx, "Artikelnummer"]
-            )
+            "Gematcht op": interpretatie_rows["fuzzy_match"].fillna("Geen synoniem"),
+            "Input": interpretatie_rows["original_article_number"].fillna("Geen input")
         })
 
         # Toon de tabel met accordeeropties
