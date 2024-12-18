@@ -148,10 +148,10 @@ st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 cutoff_value = st.sidebar.slider(
     "Cutoff waarde voor fuzzy matching",
     min_value=0.1,
-    max_value=1,
+    max_value=1.0,
     value=0.6,  # Standaardwaarde
-    step=0.05,
-    help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 wordt aanbevolen."
+    step=0.1,  # Stappen in float
+    help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
 )
 
 # Gebruikersinvoer
