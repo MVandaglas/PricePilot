@@ -228,12 +228,11 @@ if customer_number in customer_data:
 # Functie om synoniemen te vervangen in invoertekst
 def find_article_details(article_number):
     try:
-        # Sla originele input op
-        original_article_number = article_number  
+        original_article_number = article_number
         source = None
-        fuzzy_match = None  # Houdt de fuzzy match bij
+        fuzzy_match = None
 
-        # 1. Exacte match in synonym_dict.values()
+        # Exact match in synonym_dict.values()
         if article_number in synonym_dict.values():
             filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
             if not filtered_articles.empty:
@@ -244,10 +243,11 @@ def find_article_details(article_number):
                     filtered_articles.iloc[0]['Max_prijs'],
                     source,
                     fuzzy_match,
-                    original_article_number
+                    original_article_number,
+                    None  # Extra veld voor consistentie
                 )
 
-        # 2. Exacte match in synonym_dict.keys()
+        # Exact match in synonym_dict.keys()
         if article_number in synonym_dict.keys():
             matched_article_number = synonym_dict[article_number]
             filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
@@ -259,10 +259,11 @@ def find_article_details(article_number):
                     filtered_articles.iloc[0]['Max_prijs'],
                     source,
                     fuzzy_match,
-                    original_article_number
+                    original_article_number,
+                    None
                 )
 
-        # 3. Zoek naar fuzzy matches met difflib
+        # Zoek naar fuzzy matches
         closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
         if closest_matches:
             fuzzy_match = closest_matches[0]
@@ -276,23 +277,18 @@ def find_article_details(article_number):
                     filtered_articles.iloc[0]['Max_prijs'],
                     source,
                     fuzzy_match,
-                    original_article_number
+                    original_article_number,
+                    None
                 )
 
-        # 4. Zoek alternatieven via GPT
+        # Alternatief via GPT
         source = "GPT"
-        synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
-        prompt = f"""
-        Het artikelnummer '{original_article_number}' is niet gevonden. Hier is een lijst van beschikbare synoniemen:
-        {synonym_list_str}
-        Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{original_article_number}'?
-        """
         try:
             response = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
-                    {"role": "user", "content": prompt}
+                    {"role": "user", "content": f"Artikelnummer '{article_number}' niet gevonden. Kun je alternatieven voorstellen?"}
                 ],
                 max_tokens=150,
                 temperature=0.3,
@@ -305,18 +301,19 @@ def find_article_details(article_number):
                     None,
                     source,
                     fuzzy_match,
-                    original_article_number
+                    original_article_number,
+                    None
                 )
         except Exception as e:
-            print(f"Fout bij het raadplegen van OpenAI API: {e}")
+            print(f"Fout bij GPT: {e}")
 
-        # 5. Als alles mislukt
-        source = "niet gevonden"
-        return (None, None, None, source, fuzzy_match, original_article_number)
-    
+        # Fallback als geen matches
+        return (None, None, None, "niet gevonden", None, original_article_number, None)
+
     except Exception as e:
         print(f"Fout in find_article_details: {e}")
-        return (None, None, None, "Fout", None, article_number)
+        return (None, None, None, "Fout", None, article_number, None)
+
 
 
 
@@ -382,7 +379,7 @@ def update_offer_data(df):
         if pd.notna(row['Artikelnummer']):
             # Controleer of Source al is gevuld
             if pd.isna(row.get('Source')) or row['Source'] in ['niet gevonden', 'GPT']:
-                description, min_price, max_price, source, fuzzy_match, original_article_number = find_article_details(row['Artikelnummer'])
+                description, min_price, max_price, source, fuzzy_match, original_article_number, _ = find_article_details(row['Artikelnummer'])
                 if description:
                     df.at[index, 'Artikelnaam'] = description
                 if min_price is not None and max_price is not None:
