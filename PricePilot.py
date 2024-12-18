@@ -1215,8 +1215,6 @@ with tab4:
     user_query = st.text_input("Stel je vraag hier:")
 
     if user_query:
-        # Stuur direct een prompt naar OpenAI
-        openai.api_key = api_key  # Vervang met jouw OpenAI API-sleutel
         try:
             response = openai.chat.completions.create(
                 model="gpt-4",
