@@ -1180,7 +1180,7 @@ with tab4:
     st.info("Stel je vraag over glas en krijg advies van AI op basis van beschikbare bronnen.")
 
     # Functie om website content op te halen
-    def fetch_website_and_subpages(base_url, max_depth=1):
+    def fetch_website_and_subpages(base_url, max_depth=0):
         visited_urls = set()
         content_list = []
 
