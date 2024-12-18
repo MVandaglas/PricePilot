@@ -1085,13 +1085,19 @@ with tab2:
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
-    and st.session_state.loaded_offer_df is not None and not st.session_state.loaded_offer_df.empty:
-    st.title("Geladen Offerte")
-    required_columns = ["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"]
-    if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
-        st.dataframe(st.session_state.loaded_offer_df[required_columns])
+    if "loaded_offer_df" in st.session_state and not st.session_state.loaded_offer_df.empty:
+        st.title("Geladen Offerte")
+        required_columns = [
+            "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", 
+            "Aantal", "RSP", "M2 p/s", "M2 totaal"
+        ]
+        # Controleer of alle vereiste kolommen aanwezig zijn
+        if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
+            st.dataframe(st.session_state.loaded_offer_df[required_columns])
+        else:
+            st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
     else:
-        st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
+        st.info("Er is nog geen offerte geladen om weer te geven.")
 
 
 with tab3:
