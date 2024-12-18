@@ -391,9 +391,9 @@ def update_offer_data(df):
                 if source:  # Alleen Source bijwerken als deze leeg is
                     df.at[index, 'Source'] = source
                 if fuzzy_match:  # Voeg fuzzy_match toe aan het DataFrame
-                    df.at[index, 'Fuzzy_Match'] = fuzzy_match
+                    df.at[index, 'fuzzy_match'] = fuzzy_match
                 if original_input:  # Voeg original_input toe aan het DataFrame
-                    df.at[index, 'Original_Input'] = original_input
+                    df.at[index, 'original_article_number'] = original_article_number
             
             # Update SAP Prijs
             if st.session_state.customer_number in sap_prices:
