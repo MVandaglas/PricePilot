@@ -487,7 +487,7 @@ gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellS
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
-gb.configure_column("Source", hide=True)
+gb.configure_column("Source", hide=False)
 
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
