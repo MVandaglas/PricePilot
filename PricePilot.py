@@ -411,25 +411,24 @@ def reset_rijnummers(df):
         df['Rijnummer'] = range(1, len(df) + 1)
     return df
 
-# Offerte Genereren tab
-if selected_tab == "Offerte Genereren":
 
 
-    # JavaScript-code voor conditionele opmaak
-    cell_style_js = JsCode("""
-    function(params) {
-        if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
-            return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-        } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
-            return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-        } else if (params.colDef.field === "Verkoopprijs" && params.data.Prijs_backend === params.data.Verkoopprijs) {
-            return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-        } else if (params.colDef.field !== "Verkoopprijs") {
-            return {'backgroundColor': '#e0e0e0'};  // Grijs voor alle andere cellen
-        }
-        return null;
-    }
-    """)
+
+# JavaScript-code voor conditionele opmaak
+cell_style_js = JsCode("""
+function(params) {
+    if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+     } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
+         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+     } else if (params.colDef.field === "Verkoopprijs" && params.data.Prijs_backend === params.data.Verkoopprijs) {
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+    } else if (params.colDef.field !== "Verkoopprijs") {
+        return {'backgroundColor': '#e0e0e0'};  // Grijs voor alle andere cellen
+     }
+     return null;
+}
+""")
     
     # Voeg een cell renderer toe om de stericoon weer te geven
     cell_renderer_js = JsCode("""
@@ -516,17 +515,21 @@ gb.configure_grid_options(onCellValueChanged=js_update_code)
 # Bouw grid-opties
 grid_options = gb.build()
 
-# Toon de AG Grid met het material-thema
-edited_df_response = AgGrid(
-    st.session_state.offer_df,
-    gridOptions=grid_options,
-    theme='material',
-    fit_columns_on_grid_load=True,
-    enable_enterprise_modules=True,
-    update_mode=GridUpdateMode.SELECTION_CHANGED,
-    columns_auto_size_mode=ColumnsAutoSizeMode.NO_AUTOSIZE,
-    allow_unsafe_jscode=True
-)
+
+# Offerte Genereren tab
+if selected_tab == "Offerte Genereren":
+    
+    # Toon de AG Grid met het material-thema
+    edited_df_response = AgGrid(
+        st.session_state.offer_df,
+        gridOptions=grid_options,
+        theme='material',
+        fit_columns_on_grid_load=True,
+        enable_enterprise_modules=True,
+        update_mode=GridUpdateMode.SELECTION_CHANGED,
+        columns_auto_size_mode=ColumnsAutoSizeMode.NO_AUTOSIZE,
+        allow_unsafe_jscode=True
+    )
 
 # Update de DataFrame na elke wijziging
 if "data" in edited_df_response:
