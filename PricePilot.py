@@ -431,14 +431,14 @@ function(params) {
 """)
     
     # Voeg een cell renderer toe om de stericoon weer te geven
-    cell_renderer_js = JsCode("""
-    function(params) {
-        if (params.data.Source === "interpretatie" || params.data.Source === "GPT") {
-            return `✨ ${params.value}`;  // Voeg stericoon toe vóór de waarde
-        }
-        return params.value;  // Toon de originele waarde
-    }
-    """)
+cell_renderer_js = JsCode("""
+function(params) {
+     if (params.data.Source === "interpretatie" || params.data.Source === "GPT") {
+         return `✨ ${params.value}`;  // Voeg stericoon toe vóór de waarde
+     }
+     return params.value;  // Toon de originele waarde
+}
+""")
 
 
 def save_changes(df):
