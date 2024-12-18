@@ -1206,6 +1206,7 @@ with tab4:
     # Bronnen ophalen (websites + PDF)
     sources = [
         fetch_website_content("https://www.onderhoudnl.nl/glasvraagbaak"),
+        fetch_website_and_subpages("https://www.glasdiscount.nl/kennisbank/begrippen", max_depth=2),
         fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
         fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
     ]
