@@ -1004,74 +1004,74 @@ if 'Rijnummer' not in st.session_state.offer_df.columns:
 
 
       
-with col6:
-    # Voeg een knop toe om de offerte als PDF te downloaden
-    if totaal_bedrag > 25000:
-        st.button("Download offerte als PDF", key='download_pdf_button', disabled=True)
-        st.button("Autoriseer offerte", key='authorize_offer_button')
-    else:
-        if st.button("Download offerte als PDF", key='download_pdf_button'):
-            pdf_buffer = generate_pdf(st.session_state.offer_df)
-            st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
-
-    if st.button("Sla offerte op", key='save_offerte_button'):
-        # Zoek het hoogste offertenummer
-        if not st.session_state.saved_offers.empty:
-            max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
-            offer_number = max_offer_number + 1
+    with col6:
+        # Voeg een knop toe om de offerte als PDF te downloaden
+        if totaal_bedrag > 25000:
+            st.button("Download offerte als PDF", key='download_pdf_button', disabled=True)
+            st.button("Autoriseer offerte", key='authorize_offer_button')
         else:
-            offer_number = 1
-
-        # Bereken eindtotaal
-        if all(col in edited_df_response.data.columns for col in ['RSP', 'M2 totaal']):
-            eindtotaal = edited_df_response.data.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
-        else:
-            eindtotaal = 0
-
-        # Voeg offerte-informatie toe aan een nieuwe DataFrame
-        offer_summary = pd.DataFrame({
-            'Offertenummer': [offer_number],
-            'Klantnummer': [str(st.session_state.customer_number)],
-            'Eindbedrag': [eindtotaal],
-            'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-        })
-
-        # Voeg offerte-informatie toe aan opgeslagen offertes
-        st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
-
-        # Voeg offertenummer toe aan elke regel in de offerte
-        st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
-
-        # Toon succesbericht
-        st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
-
-
-if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
-    edited_df = edited_df.copy()
-    edited_df = update_offer_data(edited_df)
-    st.session_state.offer_df = edited_df
-
-# Opgeslagen Offertes tab
-elif selected_tab == "Opgeslagen Offertes":
-    st.title("Opgeslagen Offertes")
-    if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
-        offers_summary = st.session_state.saved_offers
-        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
-        selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
-        if st.button("Laad offerte", key='load_offerte_button'):
-            selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
-            offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
-            if not offer_rows.empty:
-                st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
-                st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
+            if st.button("Download offerte als PDF", key='download_pdf_button'):
+                pdf_buffer = generate_pdf(st.session_state.offer_df)
+                st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
+    
+        if st.button("Sla offerte op", key='save_offerte_button'):
+            # Zoek het hoogste offertenummer
+            if not st.session_state.saved_offers.empty:
+                max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
+                offer_number = max_offer_number + 1
             else:
-                st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
-        if st.button("Vergeet alle offertes", key='forget_offers_button'):
-            st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
-            st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
-            st.success("Alle opgeslagen offertes zijn vergeten.")
-    else:
-        st.warning("Er zijn nog geen offertes opgeslagen.")
+                offer_number = 1
+    
+            # Bereken eindtotaal
+            if all(col in edited_df_response.data.columns for col in ['RSP', 'M2 totaal']):
+                eindtotaal = edited_df_response.data.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+            else:
+                eindtotaal = 0
+    
+            # Voeg offerte-informatie toe aan een nieuwe DataFrame
+            offer_summary = pd.DataFrame({
+                'Offertenummer': [offer_number],
+                'Klantnummer': [str(st.session_state.customer_number)],
+                'Eindbedrag': [eindtotaal],
+                'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            })
+    
+            # Voeg offerte-informatie toe aan opgeslagen offertes
+            st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
+    
+            # Voeg offertenummer toe aan elke regel in de offerte
+            st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
+    
+            # Toon succesbericht
+            st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
+    
+    
+    if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
+        edited_df = edited_df.copy()
+        edited_df = update_offer_data(edited_df)
+        st.session_state.offer_df = edited_df
+    
+    # Opgeslagen Offertes tab
+    elif selected_tab == "Opgeslagen Offertes":
+        st.title("Opgeslagen Offertes")
+        if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
+            offers_summary = st.session_state.saved_offers
+            offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
+            selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
+            if st.button("Laad offerte", key='load_offerte_button'):
+                selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
+                offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
+                if not offer_rows.empty:
+                    st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
+                    st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
+                else:
+                    st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
+            if st.button("Vergeet alle offertes", key='forget_offers_button'):
+                st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
+                st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
+                st.success("Alle opgeslagen offertes zijn vergeten.")
+        else:
+            st.warning("Er zijn nog geen offertes opgeslagen.")
 
 
 
