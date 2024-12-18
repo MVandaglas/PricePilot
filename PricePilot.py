@@ -1220,11 +1220,6 @@ def fetch_pdf_content(url):
         st.error(f"Kon de PDF {url} niet verwerken: {e}")
         return ""
 
-# Tab 4: Glasadvies Chatbot
-with st.sidebar:
-    st.subheader("💬 Glasadvies Chatbot")
-    st.info("Stel je vraag over glas en krijg advies van AI op basis van beschikbare bronnen.")
-
 # Bronnen ophalen (websites + PDF)
 sources = [
     fetch_website_and_subpages("https://www.onderhoudnl.nl/glasvraagbaak", max_depth=1),
