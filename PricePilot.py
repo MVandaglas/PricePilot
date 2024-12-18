@@ -317,12 +317,12 @@ def find_article_details(article_number):
                 {"role": "system", "content": "Je bent een behulpzame assistent die het bijhorende artikelnummer zoekt van het gegeven synoniem. Je zoekt welk reeds bekende synoniem het dichtst in de buurt komt van de gegeven synoniem. Het is belangrijk dat je slechts het synoniem retourneert, niet het begeleidend schrijven."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=10,
-            temperature=0.3,
+            max_tokens=50,
+            temperature=0.5,
         )
         suggestions = response.choices[0].message.content.strip().split("\n")
         if suggestions:
-            return (suggestions[0], None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
+            return (None, None, None, original_article_number, "GPT", original_article_number, suggestions[0])  # Bron: GPT suggestie
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
 
