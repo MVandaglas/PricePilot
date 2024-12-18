@@ -1121,12 +1121,6 @@ if selected_tab == "Beoordeel AI":
             "original_article_number": "Input"
         }, inplace=True)
 
-        # Voeg een kolom toe voor selectie
-        beoordeling_tabel["Selecteer"] = False
-
-        # Gebruik AgGrid voor een interactieve tabel
-        from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
-
         gb = GridOptionsBuilder.from_dataframe(beoordeling_tabel)
         gb.configure_selection(selection_mode="multiple", use_checkbox=True)
         gb.configure_default_column(editable=True)
@@ -1148,7 +1142,7 @@ if selected_tab == "Beoordeel AI":
                     input_waarde = rij["Input"]
                     artikelnummer = rij["Artikelnummer"]
                     if input_waarde and artikelnummer:
-                        synonym_dict[input_waarde] = artikelnummer
+                        Suggested_synonyms_dict[input_waarde] = artikelnummer
                         st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen.")
