@@ -254,7 +254,7 @@ def find_article_details(article_number):
             if not filtered_articles.empty:
                 source = "synoniem"
                 return (
-                    filtered_articles.iloc[0][''],
+                    filtered_articles.iloc[0]['Description'],
                     filtered_articles.iloc[0]['Min_prijs'],
                     filtered_articles.iloc[0]['Max_prijs'],
                     source,
@@ -271,7 +271,7 @@ def find_article_details(article_number):
             if not filtered_articles.empty:
                 source = "interpretatie"
                 return (
-                    filtered_articles.iloc[0][''],
+                    filtered_articles.iloc[0]['Description'],
                     filtered_articles.iloc[0]['Min_prijs'],
                     filtered_articles.iloc[0]['Max_prijs'],
                     source,
