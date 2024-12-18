@@ -1174,9 +1174,9 @@ with tab3:
 
 with tab4:
     st.subheader("💬 Glasadvies Chatbot")
-    st.info("Stel je vraag over glas en krijg advies op basis van beschikbare bronnen.")
+    st.info("Stel je vraag over glas en krijg advies van AI op basis van beschikbare bronnen.")
 
-    # 1. Ophalen van data (websites)
+    # Functie om website content op te halen
     def fetch_website_content(url):
         try:
             response = requests.get(url)
@@ -1186,7 +1186,7 @@ with tab4:
             st.error(f"Kon de website {url} niet verwerken: {e}")
             return ""
 
-    # 2. Ophalen van data (PDF's)
+    # Functie om PDF-inhoud op te halen
     def fetch_pdf_content(url):
         import io
         from PyPDF2 import PdfReader
@@ -1202,42 +1202,36 @@ with tab4:
             st.error(f"Kon de PDF {url} niet verwerken: {e}")
             return ""
 
-    # Bronnen
+    # Bronnen ophalen (websites + PDF)
     sources = [
         fetch_website_content("https://www.onderhoudnl.nl/glasvraagbaak"),
         fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
         fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
     ]
-    source_titles = [
-        "OnderhoudNL Glasvraagbaak",
-        "Infosheet NEN 2608-1",
-        "Infosheet Letselveiligheid Glas NEN 3569-1",
-    ]
 
-    # 3. Vraag van de gebruiker
+    combined_source_text = "\n".join(sources)
+
+    # Vraag van de gebruiker
     user_query = st.text_input("Stel je vraag hier:")
-    if user_query:
-        # Gebruik difflib om de beste match te vinden
-        matches = difflib.get_close_matches(user_query, sources, n=1, cutoff=0.5)
-        if matches:
-            best_match = matches[0]
-            match_index = sources.index(best_match)
-            st.write(f"**Advies uit bron ({source_titles[match_index]}):**")
-            st.write(best_match)
-        else:
-            st.warning("Geen overeenkomend advies gevonden.")
 
-        # Optioneel: Vraag om extra uitleg met AI
-        if st.button("Vraag AI om meer uitleg"):
-            openai.api_key = api_key  # Vervang met je eigen API-sleutel
-            response = openai.chat.completions.create(
+    if user_query:
+        # Stuur direct een prompt naar OpenAI
+        openai.api_key = "YOUR_OPENAI_API_KEY"  # Vervang met jouw OpenAI API-sleutel
+        try:
+            response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "Je bent een glasadvies assistent."},
-                    {"role": "user", "content": f"Gebaseerd op dit advies: '{best_match}', geef meer details over '{user_query}'."}
-                ]
+                    {"role": "system", "content": "Je bent een behulpzame assistent die advies geeft over glas op basis van technische documentatie."},
+                    {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
+                ],
+                max_tokens=300,
+                temperature=0.7
             )
             ai_response = response['choices'][0]['message']['content']
-            st.write(f"**AI Antwoord:** {ai_response}")
+            st.write("**AI Advies:**")
+            st.write(ai_response)
+        except Exception as e:
+            st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
+            
 with tab5:
     st.subheader("Jouw instellingen")
