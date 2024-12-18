@@ -306,10 +306,11 @@ def find_article_details(article_number):
     # 5. Zoek alternatieven via GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
-    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoneim. Hier is een lijst van beschikbare synoniemen:
+    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
     {synonym_list_str}
     Kun je 1 synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je ALLEEN de synoniem retourneert, zonder begeleidend schrijven.
     """
+    
     try:
         response = openai.chat.completions.create(
             model="gpt-4",
@@ -320,11 +321,21 @@ def find_article_details(article_number):
             max_tokens=50,
             temperature=0.5,
         )
-        suggestions = response.choices[0].message.content.strip().split("\n")
-        if suggestions:
-            return (suggestions[0], None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
+        
+        # Zorg dat de juiste content wordt opgehaald
+        if response.choices and response.choices[0].message:
+            gpt_output = response.choices[0].message.content.strip()
+            suggested_synonym = gpt_output.split("\n")[0]  # Neem alleen de eerste regel
+            if suggested_synonym:
+                return (
+                    suggested_synonym, None, None, original_article_number, 
+                    "GPT", original_article_number, None
+                )  # Bron: GPT suggestie
+        else:
+            st.warning("Geen geldig antwoord ontvangen van GPT.")
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
+
 
 
     # 6. Als alles mislukt
