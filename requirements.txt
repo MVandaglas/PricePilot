@@ -18,5 +18,4 @@ plotly
 rapidfuzz
 requests
 beautifulsoup4
-sentence-transformers
 PyPDF2
