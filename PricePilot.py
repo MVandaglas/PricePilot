@@ -392,7 +392,7 @@ def update_offer_data(df):
                     df.at[index, 'Source'] = source
                 if fuzzy_match:  # Voeg fuzzy_match toe aan het DataFrame
                     df.at[index, 'fuzzy_match'] = fuzzy_match
-                if original_input:  # Voeg original_input toe aan het DataFrame
+                if original_article_number:  # Voeg de input van de gebruiker toe aan het DataFrame
                     df.at[index, 'original_article_number'] = original_article_number
             
             # Update SAP Prijs
@@ -791,7 +791,7 @@ def handle_gpt_chat():
                         prijs_backend,
                         source,
                         fuzzy_match,
-                        original_input
+                        original_article_number
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -830,7 +830,7 @@ def handle_gpt_chat():
                             prijs_backend,
                             source,
                             fuzzy_match,
-                            original_input
+                            original_article_number
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
