@@ -1234,7 +1234,7 @@ with tab4:
 
         # Stuur de prompt naar OpenAI
         try:
-            client = OpenAI(api_key=openai_api_key)
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
