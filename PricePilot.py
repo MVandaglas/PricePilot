@@ -1216,15 +1216,15 @@ with tab4:
 
     if user_query:
         # Stuur direct een prompt naar OpenAI
-        openai.api_key = "YOUR_OPENAI_API_KEY"  # Vervang met jouw OpenAI API-sleutel
+        openai.api_key = api_key  # Vervang met jouw OpenAI API-sleutel
         try:
-            response = openai.ChatCompletion.create(
+            response = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "Je bent een behulpzame assistent die advies geeft over glas op basis van technische documentatie."},
                     {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
                 ],
-                max_tokens=300,
+                max_tokens=100,
                 temperature=0.7
             )
             ai_response = response['choices'][0]['message']['content']
