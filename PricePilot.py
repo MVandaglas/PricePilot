@@ -1096,8 +1096,8 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
 
 
 if selected_tab == "Beoordeel AI":
-    st.title("Beoordeel en accordeer output AI")
-    
+    st.markdown("### Beoordeel output AI ✨")
+
     # Controleer of offer_df beschikbaar is in sessiestatus
     if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
         # Filter regels met "Source" = "interpretatie"
@@ -1109,25 +1109,43 @@ if selected_tab == "Beoordeel AI":
         st.info("Er zijn geen regels met 'interpretatie' om te beoordelen.")
     else:
         # Maak een tabel met de correcte input en gematchte waarden
-        beoordeling_tabel = pd.DataFrame({
-            "Artikelnaam": interpretatie_rows["Artikelnaam"].fillna("Geen artikelnaam"),
-            "Artikelnummer": interpretatie_rows["Artikelnummer"].fillna("Geen artikelnummer"),
-            "Gematcht op": interpretatie_rows["fuzzy_match"].fillna("Geen synoniem"),
-            "Input": interpretatie_rows["original_article_number"].fillna("Geen input")
-        })
+        beoordeling_tabel = interpretatie_rows.copy()
+        beoordeling_tabel = beoordeling_tabel[["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"]].fillna("")
+        beoordeling_tabel.rename(columns={
+            "Artikelnaam": "Artikelnaam",
+            "Artikelnummer": "Artikelnummer",
+            "fuzzy_match": "Gematcht op",
+            "original_article_number": "Input"
+        }, inplace=True)
 
-        # Toon de tabel in AgGrid voor interactieve accordering
-        st.subheader("Regels met AI interpretatie")
-        for index, row in beoordeling_tabel.iterrows():
-            st.write(f"**Rij {index + 1}:**")
-            st.write(f"- Artikelnaam: {row['Artikelnaam']}")
-            st.write(f"- Artikelnummer: {row['Artikelnummer']}")
-            st.write(f"- Gematcht op: {row['Gematcht op']}")
-            st.write(f"- Input: {row['Input']}")
+        # Voeg een kolom toe voor selectie
+        beoordeling_tabel["Selecteer"] = False
 
-            # Voeg een checkbox toe voor accordering
-            if st.checkbox(f"Accordeer rij {index + 1}", key=f"approve_{index}"):
-                # Voeg het nieuwe synoniem toe aan de lijst na accordering
-                synonym_dict[row["Input"]] = row["Artikelnummer"]
-                st.success(f"Synoniem '{row['Input']}' -> '{row['Artikelnummer']}' is opgeslagen!")
+        # Gebruik AgGrid voor een interactieve tabel
+        from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
 
+        gb = GridOptionsBuilder.from_dataframe(beoordeling_tabel)
+        gb.configure_selection(selection_mode="multiple", use_checkbox=True)
+        gb.configure_default_column(editable=True)
+        grid_options = gb.build()
+
+        response = AgGrid(
+            beoordeling_tabel,
+            gridOptions=grid_options,
+            update_mode=GridUpdateMode.SELECTION_CHANGED,
+            fit_columns_on_grid_load=True,
+            theme="material"
+        )
+
+        # Knop voor accordering
+        if st.button("Accordeer synoniem"):
+            geselecteerde_rijen = response["selected_rows"]
+            if geselecteerde_rijen:
+                for rij in geselecteerde_rijen:
+                    input_waarde = rij["Input"]
+                    artikelnummer = rij["Artikelnummer"]
+                    if input_waarde and artikelnummer:
+                        synonym_dict[input_waarde] = artikelnummer
+                        st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
+            else:
+                st.warning("Selecteer minimaal één rij om te accorderen.")
