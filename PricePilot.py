@@ -1209,27 +1209,47 @@ with tab4:
         fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
         fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
     ]
-
     combined_source_text = "\n".join(sources)
 
-    # Vraag van de gebruiker
-    user_query = st.text_input("Stel je vraag hier:")
+    # Initialiseer chatgeschiedenis
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = [{"role": "assistant", "content": "Hoe kan ik je helpen met glasadvies?"}]
 
+    # Toon chatgeschiedenis
+    for msg in st.session_state["messages"]:
+        st.chat_message(msg["role"]).write(msg["content"])
+
+    # Input veld voor de gebruiker
+    user_query = st.chat_input("Stel je vraag hier:")
+
+    # Verwerk de gebruikersinput en stuur naar OpenAI
     if user_query:
-        # Stuur direct een prompt naar OpenAI
+        if not openai_api_key:
+            st.info("Voer eerst je OpenAI API Key in om verder te gaan.")
+            st.stop()
+
+        # Voeg de vraag van de gebruiker toe aan de chatgeschiedenis
+        st.session_state["messages"].append({"role": "user", "content": user_query})
+        st.chat_message("user").write(user_query)
+
+        # Stuur de prompt naar OpenAI
         try:
-            response = openai.chat.completions.create(
+            client = OpenAI(api_key=openai_api_key)
+            response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie."},
                     {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
                 ],
-                max_tokens=100,
+                max_tokens=300,
                 temperature=0.7
             )
-            ai_response = response['choices'][0]['message']['content']
-            st.write("**AI Advies:**")
-            st.write(ai_response)
+
+            # Ontvang en toon het antwoord van OpenAI
+            ai_response = response.choices[0].message.content
+            st.session_state["messages"].append({"role": "assistant", "content": ai_response})
+            st.chat_message("assistant").write(ai_response)
+
         except Exception as e:
             st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
             
