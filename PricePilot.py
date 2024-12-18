@@ -52,7 +52,7 @@ article_table = pd.DataFrame(article_table)
 # Meerdere tabbladen maken in Streamlit
 selected_tab = st.radio(
     "Selecteer een optie:",
-    ["Offerte Genereren", "Opgeslagen Offertes"],
+    ["Offerte Genereren", "Opgeslagen Offertes", "Beoordeel AI"],
     index=0,
     horizontal=True,
 )
@@ -1081,3 +1081,36 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.dataframe(st.session_state.loaded_offer_df[required_columns])
     else:
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
+
+
+if selected_tab == "Beoordeel AI":
+    st.title("Beoordeel Input AI")
+    
+    # Filter regels met "Source" = "interpretatie"
+    interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"] == "interpretatie"]
+
+    if interpretatie_rows.empty:
+        st.info("Er zijn geen regels met 'interpretatie' om te beoordelen.")
+    else:
+        # Maak een tabel met de kolommen
+        beoordeling_tabel = interpretatie_rows[["Artikelnaam", "Artikelnummer"]].copy()
+        beoordeling_tabel["Gematcht op"] = interpretatie_rows.index.map(
+            lambda idx: synonym_dict.get(st.session_state.offer_df.loc[idx, "Artikelnummer"], "Geen synoniem")
+        )
+        beoordeling_tabel["Input"] = interpretatie_rows["Artikelnummer"]
+
+        # Toon de tabel
+        st.subheader("Regels met AI interpretatie")
+        for index, row in beoordeling_tabel.iterrows():
+            st.write(f"**Rij {index + 1}:**")
+            st.write(f"- Artikelnaam: {row['Artikelnaam']}")
+            st.write(f"- Artikelnummer: {row['Artikelnummer']}")
+            st.write(f"- Gematcht op: {row['Gematcht op']}")
+            st.write(f"- Input: {row['Input']}")
+
+            # Voeg een checkbox toe voor accordering
+            if st.checkbox(f"Accordeer rij {index + 1}", key=f"approve_{index}"):
+                # Voeg het nieuwe synoniem toe aan de lijst na accordering
+                Suggested_synonyms_dict[row["Input"]] = row["Artikelnummer"]
+                st.success(f"Synoniem '{row['Input']}' -> '{row['Artikelnummer']}' is opgeslagen!")
+
