@@ -1095,6 +1095,7 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
 
 
+
 if selected_tab == "Beoordeel AI":
     st.markdown("### Beoordeel output AI ✨")
 
@@ -1102,6 +1103,8 @@ if selected_tab == "Beoordeel AI":
     if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
         # Filter regels met "Source" = "interpretatie"
         interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"] == "interpretatie"]
+        # Houd alleen unieke rijen op basis van alle kolommen
+        interpretatie_rows = interpretatie_rows.drop_duplicates()
     else:
         interpretatie_rows = pd.DataFrame()  # Lege DataFrame als fallback
 
