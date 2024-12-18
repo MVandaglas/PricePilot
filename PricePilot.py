@@ -145,6 +145,15 @@ st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
 # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 
+cutoff_value = st.sidebar.slider(
+    "Cutoff waarde voor fuzzy matching",
+    min_value=0.1,
+    max_value=1,
+    value=0.6,  # Standaardwaarde
+    step=0.05,
+    help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 wordt aanbevolen."
+)
+
 # Gebruikersinvoer
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
@@ -247,7 +256,7 @@ def find_article_details(article_number):
             )
 
     # 3. Zoek naar een bijna-match met difflib
-    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=3, cutoff=0.6)
+    closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
     if closest_matches:
         best_match = closest_matches[0]
         matched_article_number = synonym_dict[best_match]
