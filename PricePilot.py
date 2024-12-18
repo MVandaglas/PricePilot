@@ -275,7 +275,7 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                "interpretatie",  # Bron: RapidFuzz match
+                "interpretatieR",  # Bron: RapidFuzz match
                 article_number,  # Original article number
                 best_match  # Fuzzy match found
             )
@@ -292,7 +292,7 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                "interpretatie",  # Bron: difflib match
+                "interpretatieD",  # Bron: difflib match
                 article_number,  # Original article number
                 best_match  # Fuzzy match found
             )
