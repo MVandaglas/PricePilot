@@ -1181,30 +1181,30 @@ with tab4:
 
     # Functie om website content op te halen
     def fetch_website_and_subpages(base_url, max_depth=1):
-    visited_urls = set()
-    content_list = []
+        visited_urls = set()
+        content_list = []
 
-    def crawl(url, depth):
-        if url in visited_urls or depth > max_depth:
-            return
-        try:
-            visited_urls.add(url)
-            response = requests.get(url)
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, "html.parser")
-                content_list.append(soup.get_text())  # Voeg de tekst van de pagina toe
-                
-                # Zoek naar onderliggende links
-                for link in soup.find_all("a", href=True):
-                    next_url = link["href"]
-                    if next_url.startswith("/") or next_url.startswith(base_url):
-                        full_url = next_url if next_url.startswith("http") else f"{base_url.rstrip('/')}/{next_url.lstrip('/')}"
-                        crawl(full_url, depth + 1)
-        except Exception as e:
-            st.error(f"Fout bij ophalen van {url}: {e}")
-
-    crawl(base_url, 0)
-    return "\n".join(content_list)
+        def crawl(url, depth):
+            if url in visited_urls or depth > max_depth:
+                return
+            try:
+                visited_urls.add(url)
+                response = requests.get(url)
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.text, "html.parser")
+                    content_list.append(soup.get_text())  # Voeg de tekst van de pagina toe
+                    
+                    # Zoek naar onderliggende links
+                    for link in soup.find_all("a", href=True):
+                        next_url = link["href"]
+                        if next_url.startswith("/") or next_url.startswith(base_url):
+                            full_url = next_url if next_url.startswith("http") else f"{base_url.rstrip('/')}/{next_url.lstrip('/')}"
+                            crawl(full_url, depth + 1)
+            except Exception as e:
+                st.error(f"Fout bij ophalen van {url}: {e}")
+    
+        crawl(base_url, 0)
+        return "\n".join(content_list)
 
 # Functie om PDF-inhoud op te halen
 def fetch_pdf_content(url):
