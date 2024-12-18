@@ -55,7 +55,6 @@ tab1, tab2, tab3, tab4 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Off
 # Tab 1: Offerte Genereren
 with tab1:
     st.subheader("Offerte Genereren")
-    st.info("Functies voor het genereren van offertes komen hier.")
     
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
         st.title("Offerteoverzicht")
@@ -1060,7 +1059,7 @@ if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
 
 # Opgeslagen Offertes tab
 with tab2:
-    st.title("Opgeslagen Offertes")
+    st.subheader("Opgeslagen Offertes")
     if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
         offers_summary = st.session_state.saved_offers
         offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
@@ -1151,3 +1150,7 @@ with tab3:
                         st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen.")
+
+
+with tab4:
+    st.subheader("Jouw instellingen")
