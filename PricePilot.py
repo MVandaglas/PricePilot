@@ -1095,8 +1095,8 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
 
 
-if selected_tab == "Beoordeel Input AI":
-    st.title("Beoordeel Input AI")
+if selected_tab == "Beoordeel AI":
+    st.title("Beoordeel en accordeer output AI")
     
     # Controleer of offer_df beschikbaar is in sessiestatus
     if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
