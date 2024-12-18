@@ -1083,7 +1083,7 @@ if selected_tab == "Opgeslagen Offertes" and st.session_state.loaded_offer_df is
         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
 
 
-if selected_tab == "Beoordeel AI":
+if selected_tab == "Beoordeel Input AI":
     st.title("Beoordeel Input AI")
     
     # Filter regels met "Source" = "interpretatie"
@@ -1092,14 +1092,19 @@ if selected_tab == "Beoordeel AI":
     if interpretatie_rows.empty:
         st.info("Er zijn geen regels met 'interpretatie' om te beoordelen.")
     else:
-        # Maak een tabel met de kolommen
-        beoordeling_tabel = interpretatie_rows[["Artikelnaam", "Artikelnummer"]].copy()
-        beoordeling_tabel["Gematcht op"] = interpretatie_rows.index.map(
-            lambda idx: synonym_dict.get(st.session_state.offer_df.loc[idx, "Artikelnummer"], "Geen synoniem")
-        )
-        beoordeling_tabel["Input"] = interpretatie_rows["Artikelnummer"]
+        # Maak een tabel met de correcte input en gematchte waarden
+        beoordeling_tabel = pd.DataFrame({
+            "Artikelnaam": interpretatie_rows["Description"],
+            "Artikelnummer": interpretatie_rows["Artikelnummer"],
+            "Gematcht op": interpretatie_rows.index.map(
+                lambda idx: synonym_dict.get(st.session_state.offer_df.loc[idx, "Artikelnummer"], "Geen synoniem")
+            ),
+            "Input": interpretatie_rows.index.map(
+                lambda idx: st.session_state.offer_df.loc[idx, "Artikelnummer"]
+            )
+        })
 
-        # Toon de tabel
+        # Toon de tabel met accordeeropties
         st.subheader("Regels met AI interpretatie")
         for index, row in beoordeling_tabel.iterrows():
             st.write(f"**Rij {index + 1}:**")
@@ -1111,6 +1116,5 @@ if selected_tab == "Beoordeel AI":
             # Voeg een checkbox toe voor accordering
             if st.checkbox(f"Accordeer rij {index + 1}", key=f"approve_{index}"):
                 # Voeg het nieuwe synoniem toe aan de lijst na accordering
-                Suggested_synonyms_dict[row["Input"]] = row["Artikelnummer"]
+                synonym_dict[row["Input"]] = row["Artikelnummer"]
                 st.success(f"Synoniem '{row['Input']}' -> '{row['Artikelnummer']}' is opgeslagen!")
-
