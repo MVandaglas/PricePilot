@@ -1178,61 +1178,60 @@ with tab3:
 with tab4:
     st.subheader("💬 Glasadvies Chatbot")
     st.info("Stel je vraag over glas en krijg advies van AI op basis van beschikbare bronnen.")
-    
-        # Functie om website content op te halen
-        def fetch_website_content(url):
-            try:
-                response = requests.get(url)
-                soup = BeautifulSoup(response.text, "html.parser")
-                return soup.get_text()
-            except Exception as e:
-                st.error(f"Kon de website {url} niet verwerken: {e}")
-                return ""
 
-        # Functie om PDF-inhoud op te halen
-        def fetch_pdf_content(url):
-            try:
-                response = requests.get(url)
-                pdf_file = io.BytesIO(response.content)
-                pdf_reader = PdfReader(pdf_file)
-                text = ""
-                for page in pdf_reader.pages:
-                    text += page.extract_text()
-                return text
-            except Exception as e:
-                st.error(f"Kon de PDF {url} niet verwerken: {e}")
-                return ""
+    # Functie om website content op te halen
+    def fetch_website_content(url):
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            return soup.get_text()
+        except Exception as e:
+            st.error(f"Kon de website {url} niet verwerken: {e}")
+            return ""
 
-        # Bronnen ophalen (websites + PDF)
-        sources = [
-            fetch_website_content("https://www.onderhoudnl.nl/glasvraagbaak"),
-            fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
-            fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
-        ]
+    # Functie om PDF-inhoud op te halen
+    def fetch_pdf_content(url):
+        try:
+            response = requests.get(url)
+            pdf_file = io.BytesIO(response.content)
+            pdf_reader = PdfReader(pdf_file)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+            return text
+        except Exception as e:
+            st.error(f"Kon de PDF {url} niet verwerken: {e}")
+            return ""
 
-        combined_source_text = "\n".join(sources)
+    # Bronnen ophalen (websites + PDF)
+    sources = [
+        fetch_website_content("https://www.onderhoudnl.nl/glasvraagbaak"),
+        fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/Infosheet-NEN-2608-1.pdf"),
+        fetch_pdf_content("https://www.kenniscentrumglas.nl/wp-content/uploads/KCG-infosheet-Letselveiligheid-glas-NEN-3569-1.pdf"),
+    ]
 
-        # Vraag van de gebruiker
-        user_query = st.text_input("Stel je vraag hier:")
+    combined_source_text = "\n".join(sources)
 
-        if user_query:
-            # Stuur direct een prompt naar OpenAI
-            try:
-                response = openai.chat.completions.create(
-                    model="gpt-4",
-                    messages=[
-                        {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie."},
-                        {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
-                    ],
-                    max_tokens=100,
-                    temperature=0.7
-                )
-                ai_response = response['choices'][0]['message']['content']
-                st.write("**AI Advies:**")
-                st.write(ai_response)
-            except Exception as e:
-                st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
+    # Vraag van de gebruiker
+    user_query = st.text_input("Stel je vraag hier:")
 
+    if user_query:
+        # Stuur direct een prompt naar OpenAI
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie."},
+                    {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
+                ],
+                max_tokens=100,
+                temperature=0.7
+            )
+            ai_response = response['choices'][0]['message']['content']
+            st.write("**AI Advies:**")
+            st.write(ai_response)
+        except Exception as e:
+            st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
             
 with tab5:
     st.subheader("Jouw instellingen")
