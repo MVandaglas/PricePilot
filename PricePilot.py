@@ -288,10 +288,10 @@ def find_article_details(article_number):
     Kun je een of meerdere alternatieven voorstellen die mogelijk overeenkomen met '{original_article_number}'?
     """
     try:
-        response = openai.ChatCompletion.create(
+        response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die alternatieve artikelnummers zoekt."},
+                {"role": "system", "content": "Je bent een behulpzame assistent die het bijhorende artikelnummer zoekt van het gegeven synoniem. Je zoekt welk bekende synoniem het dichtst in de buurt komt van de gegeven synoniem"},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=150,
