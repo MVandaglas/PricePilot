@@ -308,13 +308,13 @@ def find_article_details(article_number):
     prompt = f"""
     Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoneim. Hier is een lijst van beschikbare synoniemen:
     {synonym_list_str}
-    Kun je 1 synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? En onthoud, het is belangrijk dat je slechts het synoniem retourneert, niet het begeleidend schrijven.
+    Kun je 1 synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je ALLEEN de synoniem retourneert, zonder begeleidend schrijven.
     """
     try:
         response = openai.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die het bijhorende artikelnummer zoekt van het gegeven synoniem. Je zoekt welk reeds bekende synoniem het dichtst in de buurt komt van de gegeven synoniem. Het is belangrijk dat je slechts het synoniem retourneert, niet het begeleidend schrijven."},
+                {"role": "system", "content": "Je bent een behulpzame assistent die het bijhorende artikelnummer zoekt van het gegeven synoniem. Je zoekt welk reeds bekende synoniem het dichtst in de buurt komt van de gegeven synoniem. Het is enorm belangrijk dat je ALLEEN de synoniem retourneert, zonder begeleidend schrijven."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=50,
@@ -322,9 +322,10 @@ def find_article_details(article_number):
         )
         suggestions = response.choices[0].message.content.strip().split("\n")
         if suggestions:
-            return (None, None, None, original_article_number, "GPT", original_article_number, suggestions[0])  # Bron: GPT suggestie
+            return (suggestions[0], None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
+
 
     # 6. Als alles mislukt
     return (None, None, None, original_article_number, "niet gevonden", original_article_number, None)
