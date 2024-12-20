@@ -318,7 +318,7 @@ def find_article_details(article_number):
                 {"role": "user", "content": prompt}
             ],
             max_tokens=50,
-            temperature=0.5,
+            temperature=0.1,
         )
         
         # Zorg dat de juiste content wordt opgehaald
@@ -327,7 +327,7 @@ def find_article_details(article_number):
             suggested_synonym = gpt_output.split("\n")[0]  # Neem alleen de eerste regel
             if suggested_synonym:
                 return (
-                    suggested_synonym, None, None, original_article_number, 
+                    None, suggested_synonym, None, original_article_number, 
                     "GPT", original_article_number, None
                 )  # Bron: GPT suggestie
         else:
@@ -337,7 +337,7 @@ def find_article_details(article_number):
 
 
 
-    # 6. Als alles mislukt
+    # 6. Als alles niet matcht
     return (None, None, None, original_article_number, "niet gevonden", original_article_number, None)
 
 
