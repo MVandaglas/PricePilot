@@ -317,7 +317,7 @@ def find_article_details(article_number):
                 {"role": "user", "content": prompt}
             ],
             max_tokens=10,
-            temperature=0.3,
+            temperature=0.8,
         )
         suggestions = response.choices[0].message['content'].strip().split("\n")
         if suggestions:
