@@ -234,17 +234,12 @@ def replace_synonyms(input_text, synonyms):
         input_text = input_text.replace(term, synonym)
     return input_text
 
-# Functie om artikelgegevens te vinden
-def find_article_details(article_number):
-    # Sla het originele artikelnummer op
-    original_article_number = article_number  
-
     # 5. Zoek alternatieven via GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
-    Hier is een lijst van beschikbare synoniemen:
+    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
     {synonym_list_str}
-    Stel één synoniem voor, zonder begeleidend schrijven die het dichtst in de buurt komt bij '{original_article_number}'?
+    Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
     """
     try:
         # Debug: Toon de gegenereerde prompt
@@ -253,7 +248,7 @@ def find_article_details(article_number):
     
         # Correcte API-aanroep
         response = openai.chat.completions.create(
-            model="GPT-4",
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
                 {"role": "user", "content": prompt}
@@ -291,6 +286,7 @@ def find_article_details(article_number):
         # Debug: Toon foutmelding
         st.write("### Debug: Foutmelding")
         st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
+
     
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
