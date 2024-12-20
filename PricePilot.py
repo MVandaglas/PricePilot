@@ -258,7 +258,7 @@ def find_article_details(article_number):
                 {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=20, 
+            max_tokens=10, 
             temperature=0.5,
         )
     
@@ -285,7 +285,7 @@ def find_article_details(article_number):
         st.write(first_suggestion)
     
         # Resultaat retourneren
-        return (first_suggestion, None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
+        return (None, None, None, first_suggestion, "GPT", original_article_number, None)  # Bron: GPT suggestie
 
     except Exception as e:
         # Debug: Toon foutmelding
