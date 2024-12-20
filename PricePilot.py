@@ -18,7 +18,6 @@ import difflib
 from rapidfuzz import process, fuzz
 import requests
 from bs4 import BeautifulSoup
-from sentence_transformers import SentenceTransformer, util
 import io
 from PyPDF2 import PdfReader
 
