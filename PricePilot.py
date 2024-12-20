@@ -234,6 +234,11 @@ def replace_synonyms(input_text, synonyms):
         input_text = input_text.replace(term, synonym)
     return input_text
 
+# Functie om artikelgegevens te vinden
+def find_article_details(article_number):
+    # Sla het originele artikelnummer op
+    original_article_number = article_number  
+
     # 5. Zoek alternatieven via GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
@@ -286,7 +291,6 @@ def replace_synonyms(input_text, synonyms):
         # Debug: Toon foutmelding
         st.write("### Debug: Foutmelding")
         st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
-
     
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
