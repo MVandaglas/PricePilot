@@ -253,7 +253,7 @@ def find_article_details(article_number):
     
         # Correcte API-aanroep
         response = openai.chat.completions.create(
-            model="gpt-3.6-turbo",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
                 {"role": "user", "content": prompt}
