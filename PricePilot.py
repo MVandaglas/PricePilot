@@ -272,12 +272,7 @@ def find_article_details(article_number):
         # Resultaat retourneren
         return (None, None, None, None, "GPT", first_suggestion, original_article_number)  # Bron: GPT suggestie
 
-        # Debug: Toon alle variabelen in één st.write
-        st.write("### Debug: Variabelen overzicht", {
-            "response_text": response_text,
-            "first_suggestion": first_suggestion,
-            "original_article_number": original_article_number,
-        })
+
 
 
     except Exception as e:
@@ -351,6 +346,13 @@ def find_article_details(article_number):
     # 6. Als alles niet matcht
     return (None, None, None, original_article_number, "niet gevonden", original_article_number, None)
 
+
+# Debug: Toon alle variabelen in één st.write
+st.write("### Debug: Variabelen overzicht", {
+    "response_text": response_text,
+    "first_suggestion": first_suggestion,
+    "original_article_number": original_article_number,
+ })
 
 # Functie om aanbevolen prijs te berekenen
 def calculate_recommended_price(min_price, max_price, prijsscherpte):
