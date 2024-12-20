@@ -239,60 +239,7 @@ def find_article_details(article_number):
     # Sla het originele artikelnummer op
     original_article_number = article_number  
 
-    # Functie om artikelgegevens te vinden
-def find_article_details(article_number):
-    # Sla het originele artikelnummer op
-    original_article_number = article_number  
 
-    # Filter de lijst om alleen synoniemen te behouden (artikelnummers beginnen met '1')
-    synonym_filtered_dict = {k: v for k, v in synonym_dict.items() if not v.startswith("1")}
-    synonym_list_str = "\n".join([f"{k}" for k in synonym_filtered_dict.keys()])  # Alleen synoniemen
-
-    # Genereer de prompt
-    prompt = f"""
-    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
-    {synonym_list_str}
-    Stel één synoniem voor die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
-    """
-    try:
-        # Correcte API-aanroep
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem (niet het artikelnummer, die herken je aan dat het begint met een '1') zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=20, 
-            temperature=0.5,
-        )
-  
-        # Verwerk de response
-        response_text = response.choices[0].message.content.strip()
-    
-        # Controleer op meerdere regels
-        if "\n" in response_text:
-            suggestions = response_text.split("\n")
-            first_suggestion = suggestions[0]
-        else:
-            first_suggestion = response_text  # Hele respons gebruiken als suggestie
-       
-        # Zoek het corresponderende artikelnummer
-        article_number = synonym_dict.get(first_suggestion, None)
-
-        # Debug: Toon de geselecteerde suggestie en artikelnummer
-        st.write("### Debug: Resultaat", {
-            "Geselecteerd synoniem": first_suggestion,
-            "Bijbehorend artikelnummer": article_number,
-        })
-
-        # Resultaat retourneren
-        return (None, None, first_suggestion, article_number, "GPT", first_suggestion, original_article_number)
-
-    except Exception as e:
-        # Fout afhandelen
-        st.write("### Foutmelding")
-        st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
-        return None
 
         
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
@@ -358,7 +305,60 @@ def find_article_details(article_number):
                 best_match  # Fuzzy match found
             )
 
+        5 # Functie om artikelgegevens te vinden
+def find_article_details(article_number):
+    # Sla het originele artikelnummer op
+    original_article_number = article_number  
+
+    # Filter de lijst om alleen synoniemen te behouden (artikelnummers beginnen met '1')
+    synonym_filtered_dict = {k: v for k, v in synonym_dict.items() if not v.startswith("1")}
+    synonym_list_str = "\n".join([f"{k}" for k in synonym_filtered_dict.keys()])  # Alleen synoniemen
+
+    # Genereer de prompt
+    prompt = f"""
+    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
+    {synonym_list_str}
+    Stel één synoniem voor die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
+    """
+    try:
+        # Correcte API-aanroep
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem (niet het artikelnummer, die herken je aan dat het begint met een '1') zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=20, 
+            temperature=0.5,
+        )
+  
+        # Verwerk de response
+        response_text = response.choices[0].message.content.strip()
     
+        # Controleer op meerdere regels
+        if "\n" in response_text:
+            suggestions = response_text.split("\n")
+            first_suggestion = suggestions[0]
+        else:
+            first_suggestion = response_text  # Hele respons gebruiken als suggestie
+       
+        # Zoek het corresponderende artikelnummer
+        article_number = synonym_dict.get(first_suggestion, None)
+
+        # Debug: Toon de geselecteerde suggestie en artikelnummer
+        st.write("### Debug: Resultaat", {
+            "Geselecteerd synoniem": first_suggestion,
+            "Bijbehorend artikelnummer": article_number,
+        })
+
+        # Resultaat retourneren
+        return (None, None, first_suggestion, article_number, "GPT", first_suggestion, original_article_number)
+
+    except Exception as e:
+        # Fout afhandelen
+        st.write("### Foutmelding")
+        st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
+        return None
 
     # 6. Als alles niet matcht
     return (None, None, None, original_article_number, "niet gevonden", original_article_number, None)
