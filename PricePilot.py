@@ -239,6 +239,29 @@ def find_article_details(article_number):
     # Sla het originele artikelnummer op
     original_article_number = article_number  
 
+    # 5. Zoek alternatieven via GPT
+    synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
+    prompt = f"""
+    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoneim. Hier is een lijst van beschikbare synoniemen:
+    {synonym_list_str}
+    Kun je 1 synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'?
+    """
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Je bent een behulpzame assistent die het bijhorende artikelnummer zoekt van het gegeven synoniem. Je zoekt welk reeds bekende synoniem het dichtst in de buurt komt van de gegeven synoniem"},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=10,
+            temperature=0.8,
+        )
+        suggestions = response.choices[0].message['content'].strip().split("\n")
+        if suggestions:
+            return (suggestions[0], None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
+    except Exception as e:
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
+    
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
         filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
