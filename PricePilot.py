@@ -260,7 +260,7 @@ def find_article_details(article_number):
                 {"role": "user", "content": prompt}
             ],
             max_tokens=20, 
-            temperature=0.8,
+            temperature=0.2,
         )
   
         # Verwerk de response
