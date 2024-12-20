@@ -240,27 +240,57 @@ def find_article_details(article_number):
     original_article_number = article_number  
 
     # 5. Zoek alternatieven via GPT
-    synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
-    prompt = f"""
-    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoneim. Hier is een lijst van beschikbare synoniemen:
-    {synonym_list_str}
-    Kun je 1 synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'?
-    """
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die het bijhorende artikelnummer zoekt van het gegeven synoniem. Je zoekt welk reeds bekende synoniem het dichtst in de buurt komt van de gegeven synoniem"},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=10,
-            temperature=0.8,
-        )
-        suggestions = response.choices[0].message.content.strip()
-        if suggestions:
-            return (suggestions[0], None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
-    except Exception as e:
-        print(f"Fout bij het raadplegen van OpenAI API: {e}")
+synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
+prompt = f"""
+Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
+{synonym_list_str}
+Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'?
+"""
+try:
+    # Debug: Toon de gegenereerde prompt
+    st.write("### Debug: Prompt naar GPT")
+    st.write(prompt)
+
+    # Correcte API-aanroep
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=50,  # Meer ruimte voor antwoord
+        temperature=0.8,
+    )
+
+    # Debug: Toon de volledige API-response
+    st.write("### Debug: API Response")
+    st.write(response)
+
+    # Verwerk de response
+    response_text = response.choices[0].message.content.strip()
+
+    # Debug: Toon de verwerkte respons
+    st.write("### Debug: Verwerkte Respons")
+    st.write(response_text)
+
+    # Controleer op meerdere regels
+    if "\n" in response_text:
+        suggestions = response_text.split("\n")
+        first_suggestion = suggestions[0]
+    else:
+        first_suggestion = response_text  # Hele respons gebruiken als suggestie
+
+    # Debug: Toon de geselecteerde suggestie
+    st.write("### Debug: Geselecteerde Suggestie")
+    st.write(first_suggestion)
+
+    # Resultaat retourneren
+    return (first_suggestion, None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
+
+except Exception as e:
+    # Debug: Toon foutmelding
+    st.write("### Debug: Foutmelding")
+    st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
     
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
