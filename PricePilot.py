@@ -276,7 +276,8 @@ def find_article_details(article_number):
         return (first_suggestion, None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
 
     except Exception as e:
-    
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
+        
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
         filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
