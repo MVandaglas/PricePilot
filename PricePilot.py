@@ -270,7 +270,15 @@ def find_article_details(article_number):
             first_suggestion = response_text  # Hele respons gebruiken als suggestie
        
         # Resultaat retourneren
-        return (None, None, None, first_suggestion, original_article_number, "GPT", original_article_number)  # Bron: GPT suggestie
+        return (None, None, None, None, "GPT", first_suggestion, original_article_number)  # Bron: GPT suggestie
+
+        # Debug: Toon alle variabelen in één st.write
+        st.write("### Debug: Variabelen overzicht", {
+            "response_text": response_text,
+            "first_suggestion": first_suggestion,
+            "original_article_number": original_article_number,
+        })
+
 
     except Exception as e:
         print(f"Fout bij het raadplegen van OpenAI API: {e}")
