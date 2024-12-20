@@ -261,17 +261,9 @@ def find_article_details(article_number):
             max_tokens=20, 
             temperature=0.5,
         )
-    
-        # Debug: Toon de volledige API-response
-        st.write("### Debug: API Response")
-        st.write(response)
-    
+  
         # Verwerk de response
         response_text = response.choices[0].message.content.strip()
-    
-        # Debug: Toon de verwerkte respons
-        st.write("### Debug: Verwerkte Respons")
-        st.write(response_text)
     
         # Controleer op meerdere regels
         if "\n" in response_text:
@@ -279,18 +271,11 @@ def find_article_details(article_number):
             first_suggestion = suggestions[0]
         else:
             first_suggestion = response_text  # Hele respons gebruiken als suggestie
-    
-        # Debug: Toon de geselecteerde suggestie
-        st.write("### Debug: Geselecteerde Suggestie")
-        st.write(first_suggestion)
-    
+       
         # Resultaat retourneren
         return (first_suggestion, None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
 
     except Exception as e:
-        # Debug: Toon foutmelding
-        st.write("### Debug: Foutmelding")
-        st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
     
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
