@@ -240,7 +240,11 @@ def find_article_details(article_number):
     original_article_number = article_number  
 
     # 5. Zoek alternatieven via GPT
-    synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
+   
+    # Bouw de lijst met alleen synoniemen (zonder artikelnummers)
+    synonym_only_list = [k for k in synonym_dict.keys()]
+    synonym_list_str = "\n".join(synonym_only_list)  # Alleen synoniemen
+    
     prompt = f"""
     Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
     {synonym_list_str}
