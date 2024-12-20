@@ -291,20 +291,20 @@ def find_article_details(article_number):
                 None  # Fuzzy match remains empty
             )
 
-    # 2. Controleer of artikelnummer een exacte match is in synonym_dict.keys()
-    if article_number in synonym_dict.keys():
-        matched_article_number = synonym_dict[article_number]  # Haal het bijbehorende artikelnummer op
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
-        if not filtered_articles.empty:
-            return (
-                filtered_articles.iloc[0]['Description'],
-                filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs'],
-                matched_article_number,
-                "synoniem",  # Bron: exacte match in synonym_dict.keys()
-                article_number,  # Original article number
-                None  # Fuzzy match remains empty
-            )
+        # 2. Controleer of artikelnummer een exacte match is in synonym_dict.keys()
+        if article_number in synonym_dict.keys():
+            matched_article_number = synonym_dict[article_number]  # Haal het bijbehorende artikelnummer op
+            filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+            if not filtered_articles.empty:
+                return (
+                    filtered_articles.iloc[0]['Description'],
+                    filtered_articles.iloc[0]['Min_prijs'],
+                    filtered_articles.iloc[0]['Max_prijs'],
+                    matched_article_number,
+                    "synoniem",  # Bron: exacte match in synonym_dict.keys()
+                    article_number,  # Original article number
+                    None  # Fuzzy match remains empty
+                )
 
     # 3. Zoek naar een bijna-match met RapidFuzz
     closest_match = process.extractOne(article_number, synonym_dict.keys(), scorer=fuzz.ratio, score_cutoff=cutoff_value * 100)
