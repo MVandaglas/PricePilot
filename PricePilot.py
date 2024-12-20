@@ -239,48 +239,7 @@ def find_article_details(article_number):
     # Sla het originele artikelnummer op
     original_article_number = article_number  
 
-    # 5. Zoek alternatieven via GPT
-   
-    # Bouw de lijst met alleen synoniemen (zonder artikelnummers)
-    synonym_only_list = [k for k in synonym_dict.keys()]
-    synonym_list_str = "\n".join(synonym_only_list)  # Alleen synoniemen
     
-    prompt = f"""
-    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
-    {synonym_list_str}
-    Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
-    """
-    try:
-   
-        # Correcte API-aanroep
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=20, 
-            temperature=0.2,
-        )
-  
-        # Verwerk de response
-        response_text = response.choices[0].message.content.strip()
-    
-        # Controleer op meerdere regels
-        if "\n" in response_text:
-            suggestions = response_text.split("\n")
-            first_suggestion = suggestions[0]
-        else:
-            first_suggestion = response_text  # Hele respons gebruiken als suggestie
-       
-        # Resultaat retourneren
-        return (None, None, first_suggestion, first_suggestion, "GPT", first_suggestion, original_article_number)  # Bron: GPT suggestie
-
-
-
-
-    except Exception as e:
-        print(f"Fout bij het raadplegen van OpenAI API: {e}")
         
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
@@ -345,7 +304,48 @@ def find_article_details(article_number):
                 best_match  # Fuzzy match found
             )
 
+    # 5. Zoek alternatieven via GPT
+   
+    # Bouw de lijst met alleen synoniemen (zonder artikelnummers)
+    synonym_only_list = [k for k in synonym_dict.keys()]
+    synonym_list_str = "\n".join(synonym_only_list)  # Alleen synoniemen
+    
+    prompt = f"""
+    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
+    {synonym_list_str}
+    Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
+    """
+    try:
+   
+        # Correcte API-aanroep
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=20, 
+            temperature=0.3,
+        )
+  
+        # Verwerk de response
+        response_text = response.choices[0].message.content.strip()
+    
+        # Controleer op meerdere regels
+        if "\n" in response_text:
+            suggestions = response_text.split("\n")
+            first_suggestion = suggestions[0]
+        else:
+            first_suggestion = response_text  # Hele respons gebruiken als suggestie
+       
+        # Resultaat retourneren
+        return (None, None, first_suggestion, first_suggestion, "GPT", first_suggestion, original_article_number)  # Bron: GPT suggestie
 
+
+
+
+    except Exception as e:
+        print(f"Fout bij het raadplegen van OpenAI API: {e}")
 
     # 6. Als alles niet matcht
     return (None, None, None, original_article_number, "niet gevonden", original_article_number, None)
