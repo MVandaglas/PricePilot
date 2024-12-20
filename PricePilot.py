@@ -242,9 +242,9 @@ def find_article_details(article_number):
     # 5. Zoek alternatieven via GPT
     synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
     prompt = f"""
-    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
+    Hier is een lijst van beschikbare synoniemen:
     {synonym_list_str}
-    Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
+    Stel één synoniem voor, zonder begeleidend schrijven die het dichtst in de buurt komt bij '{original_article_number}'?
     """
     try:
         # Debug: Toon de gegenereerde prompt
@@ -253,7 +253,7 @@ def find_article_details(article_number):
     
         # Correcte API-aanroep
         response = openai.chat.completions.create(
-            model="gpt-4",
+            model="GPT-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
                 {"role": "user", "content": prompt}
