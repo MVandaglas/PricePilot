@@ -610,8 +610,6 @@ def update_tabel():
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-    # Deselecteer de selectie na de update
-    st.session_state['selected_rows'] = []
 
 # Offerte Genereren tab
 with tab1:
