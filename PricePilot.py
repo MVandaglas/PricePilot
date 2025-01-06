@@ -602,8 +602,8 @@ with tab1:
 # Verbeterde update_tabel functie
 def update_tabel():
     # Zorg dat de eerste regel automatisch wordt geselecteerd
-    if 'selected_rows' not in st.session_state:
-        st.session_state['selected_rows'] = [0]  # Selecteer de eerste regel
+    if 'selected_rows' not in st.session_state or not st.session_state['selected_rows']:
+        st.session_state['selected_rows'] = [{"rowIndex": 0}]  # Selecteer de eerste regel met rowIndex
 
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
