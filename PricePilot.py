@@ -601,10 +601,17 @@ with tab1:
 
 # Verbeterde update_tabel functie
 def update_tabel():
+    # Zorg dat de eerste regel automatisch wordt geselecteerd
+    if 'selected_rows' not in st.session_state:
+        st.session_state['selected_rows'] = [0]  # Selecteer de eerste regel
+
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+
+    # Deselecteer de selectie na de update
+    st.session_state['selected_rows'] = []
 
 # Offerte Genereren tab
 with tab1:
