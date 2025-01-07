@@ -872,7 +872,7 @@ def handle_gpt_chat():
                         prijs_backend,
                         source,
                         fuzzy_match,  # Vul fuzzy_match kolom
-                        original_article_number  # Vul original_article_number kolom
+                        original_article_number,  # Vul original_article_number kolom
                         None, #Prijsbepaling
                     ])
                 else:
@@ -912,7 +912,7 @@ def handle_gpt_chat():
                             prijs_backend,
                             source,
                             fuzzy_match,  # Vul fuzzy_match kolom
-                            original_article_number  # Vul original_article_number kolom
+                            original_article_number,  # Vul original_article_number kolom
                             None, #Prijsbepaling
                         ])
                     else:
