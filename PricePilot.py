@@ -78,10 +78,48 @@ st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer
 # Offerte Genereren tab
 with tab1:
     
-    # Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
-    col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
+    # Functie om de oorspronkelijke waarde terug te zetten
+    def reset_prijsbepaling():
+        st.session_state["prijsbepaling"] = st.session_state["huidige_prijsbepaling"]
+    
+    # Zet een standaardwaarde voor "huidige" prijsbepaling
+    if "huidige_prijsbepaling" not in st.session_state:
+        st.session_state["huidige_prijsbepaling"] = "PricePilot logica"
+    
+    # Toon de selectbox
+    col1, _ = st.columns([1, 7])  # Kolommen om breedte te beperken
     with col1:
-        prijsbepaling_optie = st.selectbox("Prijsbepaling", ["PricePilot logica", "SAP prijs", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
+        prijsbepaling_optie = st.selectbox(
+            "Prijsbepaling",
+            ["PricePilot logica", "SAP prijs", "RSP"],
+            key="prijsbepaling",
+            help="Selecteer een methode voor prijsbepaling.",
+        )
+    
+    # Controleer of de waarde is gewijzigd
+    if prijsbepaling_optie != st.session_state["huidige_prijsbepaling"]:
+        # Toon een waarschuwing met een checkbox
+        aanpassen = st.checkbox(
+            "Wil je de prijslogica aanpassen? Hierbij kunnen prijzen overschreven worden.",
+            key="prijslogica_aanpassen",
+        )
+    
+        # Opties voor Ja/Nee
+        if aanpassen:
+            bevestigen = st.radio(
+                "Wil je doorgaan met de nieuwe selectie?",
+                ["Ja", "Nee"],
+                key="prijsbevestiging",
+            )
+    
+            if bevestigen == "Ja":
+                # Bevestig nieuwe keuze
+                st.session_state["huidige_prijsbepaling"] = prijsbepaling_optie
+                st.success(f"Nieuwe prijslogica toegepast: {prijsbepaling_optie}")
+            elif bevestigen == "Nee":
+                # Reset naar de oorspronkelijke waarde
+                reset_prijsbepaling()
+                st.warning("De oorspronkelijke prijslogica is hersteld.")    
 
 # Offerte Genereren tab
 with tab1:
