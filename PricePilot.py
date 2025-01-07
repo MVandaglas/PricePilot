@@ -99,7 +99,7 @@ with tab1:
             # Eerst Prijs_backend bepalen zonder totaal_bedrag
             def bepaal_prijs_backend(row):
                 if row["Prijsoorsprong"] == "Handmatig":
-                    return row["Prijs_backend"]  # Laat Prijs_backend ongewijzigd
+                    return row["Verkoopprijs"]  # Prijs_backend wordt Verkoopprijs
                 if row["Verkoopprijs"] > 0:
                     return row["Verkoopprijs"]
                 return min(row["SAP Prijs"], row["RSP"])
@@ -112,7 +112,7 @@ with tab1:
             # Update Prijs_backend afhankelijk van totaal_bedrag
             def update_prijs_backend(row):
                 if row["Prijsoorsprong"] == "Handmatig":
-                    return row["Prijs_backend"]  # Laat Prijs_backend ongewijzigd
+                    return row["Verkoopprijs"]  # Prijs_backend wordt Verkoopprijs
                 if row["Verkoopprijs"] > 0:
                     return row["Verkoopprijs"]
                 elif totaal_bedrag < 2000:
