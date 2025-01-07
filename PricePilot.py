@@ -138,7 +138,9 @@ with tab1:
                     return row["Verkoopprijs"]  # Laat de Verkoopprijs ongewijzigd
                 elif prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
                     nieuwe_prijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
-                    return (nieuwe_prijs * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
+                    # Afronden naar boven op de dichtstbijzijnde 5 cent
+                    nieuwe_prijs = (nieuwe_prijs * 20 // 1 + (1 if (nieuwe_prijs * 20) % 1 > 0 else 0)) / 20
+                    return nieuwe_prijs
                 else:
                     return row["Verkoopprijs"]
 
