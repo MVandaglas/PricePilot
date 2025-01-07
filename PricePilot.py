@@ -110,12 +110,16 @@ with tab1:
 
             # Functie: bepaal Prijsoorsprong
             def bepaal_prijsoorsprong(row):
-                if row["Verkoopprijs"] == row["SAP Prijs"]:
+                # Tolerantie voor afwijkingen (5 cent)
+                tolerantie = 0.05
+                berekende_prijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
+                
+                if abs(row["Verkoopprijs"] - berekende_prijs) <= tolerantie:
+                    return "Prijskwaliteit"  # Correcte toewijzing bij nauwe match
+                elif row["Verkoopprijs"] == row["SAP Prijs"]:
                     return "SAP Prijs"
                 elif row["Verkoopprijs"] == row["RSP"]:
                     return "RSP"
-                elif abs(row["Verkoopprijs"] - (row["RSP"] * row["Prijskwaliteit"] / 100)) <= 0.05:
-                    return "Prijskwaliteit"
                 elif row["Verkoopprijs"] == 0 or pd.isnull(row["Verkoopprijs"]):
                     return "Leeg"
                 else:
@@ -169,6 +173,7 @@ with tab1:
             return df
 
         return df
+
 
 
 
