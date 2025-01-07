@@ -86,8 +86,8 @@ with tab1:
 # Offerte Genereren tab
 with tab1:
     def bereken_prijs_backend(df):
-        # Controleer direct op een lege of ongeldig dataframe
         if df is None or df.empty:
+            st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
 
         try:
@@ -95,6 +95,7 @@ with tab1:
             vereiste_kolommen = ["SAP Prijs", "RSP", "Verkoopprijs", "M2 totaal", "Prijs_backend", "Prijskwaliteit"]
             for kolom in vereiste_kolommen:
                 if kolom not in df.columns:
+                    st.error(f"Kolom '{kolom}' ontbreekt in de data.")
                     return df
 
             # Zorg ervoor dat kolommen numeriek zijn
@@ -159,8 +160,8 @@ with tab1:
 
             df["Verkoopprijs"] = df.apply(update_verkoopprijs, axis=1)
 
-        except:
-            return df
+        except Exception as e:
+            st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
 
