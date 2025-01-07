@@ -595,11 +595,6 @@ gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor 
 # Bouw grid-opties
 grid_options = gb.build()
 
-# Voeg een verborgen knop toe voor de update
-html_button = """
-<button id="update_button" style="display:none;">Update</button>
-"""
-st.markdown(html_button, unsafe_allow_html=True)
 
 # Offerte Genereren tab
 with tab1:
