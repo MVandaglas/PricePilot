@@ -124,6 +124,7 @@ with tab1:
                 # Afronden naar boven op de dichtstbijzijnde 5 cent
                 df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
 
+
             # Toevoegen van Prijsoorsprong-kolom
             def bepaal_prijsoorsprong(row):
                 if row["Verkoopprijs"] == row["SAP Prijs"]:
@@ -132,6 +133,8 @@ with tab1:
                     return "RSP"
                 elif abs(row["Verkoopprijs"] - (row["RSP"] * row["Prijskwaliteit"]/100)) <= 0.05:
                     return "Prijskwaliteit"
+                elif row["Verkoopprijs"] == 0 or pd.isnull(row["Verkoopprijs"]):
+                    return "Leeg"
                 else:
                     return "Handmatig"
 
