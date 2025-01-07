@@ -581,10 +581,10 @@ with tab1:
         st.session_state.offer_df,
         gridOptions=grid_options,
         theme='material',
-        fit_columns_on_grid_load=True,
+        fit_columns_on_grid_load=False,
         enable_enterprise_modules=True,
         update_mode=GridUpdateMode.MANUAL,
-        columns_auto_size_mode=ColumnsAutoSizeMode.NO_AUTOSIZE,
+        columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         allow_unsafe_jscode=True
     )
 
@@ -1194,7 +1194,7 @@ with tab3:
             beoordeling_tabel,
             gridOptions=grid_options,
             update_mode=GridUpdateMode.SELECTION_CHANGED,
-            fit_columns_on_grid_load=True,
+            fit_columns_on_grid_load=False,
             theme="material"
         )
 
