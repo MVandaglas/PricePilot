@@ -1068,6 +1068,9 @@ if 'Rijnummer' not in st.session_state.offer_df.columns:
 # Offerte Genereren tab
 with tab1:    
 
+    # Definieer kolommen op een hoger niveau
+col1, col2, col3, col4, col5, col6 = st.columns(6)
+
     with col6:
         # Voeg een knop toe om de offerte als PDF te downloaden
         if totaal_bedrag > 25000:
