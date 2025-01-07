@@ -86,17 +86,25 @@ with tab1:
 # Offerte Genereren tab
 with tab1:
     def bereken_prijs_backend(df):
-        if df is None:
+        if df is None or df.empty:
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
 
         try:
+            # Controleer of alle benodigde kolommen aanwezig zijn
+            vereiste_kolommen = ["SAP Prijs", "RSP", "Verkoopprijs", "M2 totaal", "Prijs_backend", "Prijskwaliteit"]
+            for kolom in vereiste_kolommen:
+                if kolom not in df.columns:
+                    st.error(f"Kolom '{kolom}' ontbreekt in de data.")
+                    return df
+
             # Zorg ervoor dat kolommen numeriek zijn
             df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
             df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
             df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
+            df["M2 totaal"] = pd.to_numeric(df["M2 totaal"], errors="coerce").fillna(0)
 
-            # Eerst Prijs_backend bepalen zonder totaal_bedrag
+            # Functie: bepaal Prijs_backend
             def bepaal_prijs_backend(row):
                 if row["Prijsoorsprong"] == "Handmatig":
                     return row["Verkoopprijs"]  # Prijs_backend wordt Verkoopprijs
@@ -106,13 +114,13 @@ with tab1:
 
             df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
 
-            # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
+            # Bereken totaal_bedrag
             totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
 
-            # Update Prijs_backend afhankelijk van totaal_bedrag
+            # Functie: update Prijs_backend
             def update_prijs_backend(row):
                 if row["Prijsoorsprong"] == "Handmatig":
-                    return row["Verkoopprijs"]  # Prijs_backend wordt Verkoopprijs
+                    return row["Verkoopprijs"]
                 if row["Verkoopprijs"] > 0:
                     return row["Verkoopprijs"]
                 elif totaal_bedrag < 2000:
@@ -121,7 +129,7 @@ with tab1:
 
             df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
 
-            # Toevoegen van Prijsoorsprong-kolom
+            # Functie: bepaal Prijsoorsprong
             def bepaal_prijsoorsprong(row):
                 if row["Verkoopprijs"] == row["SAP Prijs"]:
                     return "SAP Prijs"
@@ -136,21 +144,19 @@ with tab1:
 
             df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
 
-            # Aanpassen van Verkoopprijs op basis van prijsbepaling-optie
+            # Functie: update Verkoopprijs
             def update_verkoopprijs(row):
                 if row["Prijsoorsprong"] == "Handmatig":
                     return row["Verkoopprijs"]  # Laat de Verkoopprijs ongewijzigd
                 elif prijsbepaling_optie == "SAP prijs":
-                    return row["SAP Prijs"]  # Verkoopprijs krijgt SAP Prijs
+                    return row["SAP Prijs"]
                 elif prijsbepaling_optie == "PricePilot logica":
-                    return min(row["RSP"], row["SAP Prijs"])  # Min van RSP en SAP Prijs
+                    return min(row["RSP"], row["SAP Prijs"])
                 elif prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
                     nieuwe_prijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
-                    # Afronden naar boven op de dichtstbijzijnde 5 cent
                     nieuwe_prijs = (nieuwe_prijs * 20 // 1 + (1 if (nieuwe_prijs * 20) % 1 > 0 else 0)) / 20
                     return nieuwe_prijs
-                else:
-                    return row["Verkoopprijs"]
+                return row["Verkoopprijs"]
 
             df["Verkoopprijs"] = df.apply(update_verkoopprijs, axis=1)
 
@@ -158,6 +164,7 @@ with tab1:
             st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
+
 
 
 
