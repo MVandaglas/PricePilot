@@ -194,7 +194,7 @@ offer_amount = totaal_bedrag
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
-    customer_file = st.file_uploader("Upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
+    customer_file = st.file_uploader("Upload een bestand (bijv. screenshot of document)", type = None)
 
 
 if customer_number in customer_data:
