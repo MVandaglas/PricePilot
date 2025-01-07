@@ -117,21 +117,13 @@ with tab1:
 
             df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
 
-            # Aanpassen van Verkoopprijs als RSP is gekozen
-            if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
-                df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
-
-                # Afronden naar boven op de dichtstbijzijnde 5 cent
-                df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
-
-
             # Toevoegen van Prijsoorsprong-kolom
             def bepaal_prijsoorsprong(row):
                 if row["Verkoopprijs"] == row["SAP Prijs"]:
                     return "SAP Prijs"
                 elif row["Verkoopprijs"] == row["RSP"]:
                     return "RSP"
-                elif abs(row["Verkoopprijs"] - (row["RSP"] * row["Prijskwaliteit"]/100)) <= 0.05:
+                elif abs(row["Verkoopprijs"] - (row["RSP"] * row["Prijskwaliteit"] / 100)) <= 0.05:
                     return "Prijskwaliteit"
                 elif row["Verkoopprijs"] == 0 or pd.isnull(row["Verkoopprijs"]):
                     return "Leeg"
@@ -140,10 +132,23 @@ with tab1:
 
             df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
 
+            # Aanpassen van Verkoopprijs alleen als Prijsoorsprong niet "Handmatig" is
+            def update_verkoopprijs(row):
+                if row["Prijsoorsprong"] == "Handmatig":
+                    return row["Verkoopprijs"]  # Laat de Verkoopprijs ongewijzigd
+                elif prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
+                    nieuwe_prijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
+                    return (nieuwe_prijs * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
+                else:
+                    return row["Verkoopprijs"]
+
+            df["Verkoopprijs"] = df.apply(update_verkoopprijs, axis=1)
+
         except Exception as e:
             st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
+
 
 
 
