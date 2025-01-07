@@ -548,11 +548,12 @@ with tab1:
     else:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-# JavaScript-code voor Enter-to-Commit
+# JavaScript-code om Enter-toets in de grid te detecteren
 enter_to_commit_js = JsCode("""
 function(params) {
     if (params.event.key === 'Enter') {
         params.api.stopEditing();  // Stop de bewerking bij Enter
+        params.api.applyTransaction({});  // Forceer een update in de grid
     }
 }
 """)
@@ -560,8 +561,8 @@ function(params) {
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=80, editable=True)
-gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)  # Voeg Enter-to-Commit toe
-gb.configure_grid_options(enterMovesDownAfterEdit=True)  # Enter gaat naar de volgende cel
+gb.configure_grid_options(onCellValueChanged="(event) => { document.getElementById('Update tabel').click(); }")  # Trigger de update knop
+gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)  # Activeer Enter om wijzigingen door te voeren
 gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', cellEditorParams={"values": ["4 - alu", "6 - alu", "7 - alu", "8 - alu", "9 - alu", "10 - alu", "12 - alu", "13 - alu", "14 - alu", "15 - alu", "16 - alu", "18 - alu", "20 - alu", "24 - alu", "10 - warm edge", "12 - warm edge", "14 - warm edge", "15 - warm edge", "16 - warm edge", "18 - warm edge", "20 - warm edge", "24 - warm edge"]})
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"}, cellRenderer=cell_renderer_js)
 gb.configure_column("Artikelnaam", width=600)
