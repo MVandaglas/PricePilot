@@ -164,6 +164,7 @@ with tab1:
 
 
 
+
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Controleer en zet kolommen om
