@@ -44,7 +44,7 @@ if "offer_df" not in st.session_state:
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
-    st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Verkoopprijs"])
+    st.session_state.loaded_offer_df = pd.DataFrame(columns=["Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Verkoopprijs"])
 if "saved_offers" not in st.session_state:
     st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
 if "selected_rows" not in st.session_state:
