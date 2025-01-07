@@ -78,46 +78,44 @@ st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer
 # Offerte Genereren tab
 with tab1:
     
-        # Functie om de prijsbepaling te herstellen naar de huidige waarde
-    def reset_prijsbepaling():
-        st.session_state["prijsbepaling_temp"] = st.session_state["prijsbepaling_huidig"]
-    
-    # Initialiseer session state voor prijsbepaling
+    # Initialiseer session state
+    if "prijsbepaling_toestaan" not in st.session_state:
+        st.session_state["prijsbepaling_toestaan"] = False
     if "prijsbepaling_huidig" not in st.session_state:
         st.session_state["prijsbepaling_huidig"] = "PricePilot logica"
-    if "prijsbepaling_temp" not in st.session_state:
-        st.session_state["prijsbepaling_temp"] = st.session_state["prijsbepaling_huidig"]
     
-    # Toon een dropdown met de tijdelijke keuze
-    col1, _ = st.columns([1, 7])  # Kolommen om breedte te beperken
-    with col1:
-        prijsbepaling_optie = st.selectbox(
-            "Prijsbepaling",
-            ["PricePilot logica", "SAP prijs", "RSP"],
-            key="prijsbepaling_temp",
-            help="Selecteer een methode voor prijsbepaling.",
-        )
+    # Vraag eerst of de gebruiker de prijsbepaling wil aanpassen
+    st.warning("Wil je de prijslogica aanpassen? Hierbij kunnen prijzen overschreven worden.")
+    prijsbepaling_aanpassen = st.checkbox("Prijsbepaling aanpassen", value=False)
     
-    # Controleer of de tijdelijke keuze afwijkt van de huidige
-    if st.session_state["prijsbepaling_temp"] != st.session_state["prijsbepaling_huidig"]:
-        # Vraag om bevestiging voordat de wijziging wordt toegepast
-        st.warning(
-            "Wil je de prijslogica aanpassen? Hierbij kunnen prijzen overschreven worden."
-        )
-        bevestiging = st.radio(
-            "Wil je doorgaan met de nieuwe selectie?",
-            ["Nee", "Ja"],
-            key="prijsbevestiging",
-        )
+    # Als de gebruiker bevestigt, toon de selectie-opties
+    if prijsbepaling_aanpassen:
+        # Toon een selectbox voor prijsbepaling
+        col1, _ = st.columns([1, 7])  # Kolommen om breedte te beperken
+        with col1:
+            prijsbepaling_optie = st.selectbox(
+                "Prijsbepaling",
+                ["PricePilot logica", "SAP prijs", "RSP"],
+                key="prijsbepaling_temp",
+                help="Selecteer een methode voor prijsbepaling.",
+            )
     
-        if bevestiging == "Ja":
-            # Pas de nieuwe keuze toe
-            st.session_state["prijsbepaling_huidig"] = st.session_state["prijsbepaling_temp"]
-            st.success(f"Nieuwe prijslogica toegepast: {st.session_state['prijsbepaling_huidig']}")
-        elif bevestiging == "Nee":
-            # Herstel de tijdelijke waarde naar de huidige waarde
-            reset_prijsbepaling()
-            st.warning("De keuze is hersteld naar de huidige prijsbepaling.") 
+        # Controleer of de selectie afwijkt van de huidige waarde
+        if prijsbepaling_optie != st.session_state["prijsbepaling_huidig"]:
+            bevestigen = st.radio(
+                "Wil je doorgaan met de nieuwe selectie?",
+                ["Ja", "Nee"],
+                key="prijsbevestiging",
+            )
+            if bevestigen == "Ja":
+                # Pas de nieuwe keuze toe
+                st.session_state["prijsbepaling_huidig"] = prijsbepaling_optie
+                st.success(f"Nieuwe prijslogica toegepast: {st.session_state['prijsbepaling_huidig']}")
+            elif bevestigen == "Nee":
+                # Zet de selectie terug naar de huidige waarde
+                st.warning("De keuze is hersteld naar de huidige prijsbepaling.")
+    else:
+        st.info("Huidige prijsbepaling: " + st.session_state["prijsbepaling_huidig"])
 
 # Offerte Genereren tab
 with tab1:
