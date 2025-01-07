@@ -86,42 +86,29 @@ with tab1:
 # Offerte Genereren tab
 with tab1:
     def bereken_prijs_backend(df):
-        if df is None:
-            st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
+        # Controleer direct op een lege of ongeldig dataframe
+        if df is None or df.empty:
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
 
         try:
+            # Zorg ervoor dat alle benodigde kolommen aanwezig zijn
+            vereiste_kolommen = ["SAP Prijs", "RSP", "Verkoopprijs", "M2 totaal", "Prijskwaliteit"]
+            for kolom in vereiste_kolommen:
+                if kolom not in df.columns:
+                    df[kolom] = 0  # Voeg ontbrekende kolommen toe met standaardwaarden
+
             # Zorg ervoor dat kolommen numeriek zijn
             df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
             df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
             df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
+            df["M2 totaal"] = pd.to_numeric(df["M2 totaal"], errors="coerce").fillna(0)
+            df["Prijs_backend"] = pd.to_numeric(df.get("Prijs_backend", 0), errors="coerce").fillna(0)
 
-            # Eerst Prijs_backend bepalen zonder totaal_bedrag
-            def bepaal_prijs_backend(row):
-                if row["Prijsoorsprong"] == "Handmatig":
-                    return row["Prijs_backend"]  # Laat Prijs_backend ongewijzigd
-                if row["Verkoopprijs"] > 0:
-                    return row["Verkoopprijs"]
-                return min(row["SAP Prijs"], row["RSP"])
+            # Voeg de kolom Prijsoorsprong toe als deze nog niet bestaat
+            if "Prijsoorsprong" not in df.columns:
+                df["Prijsoorsprong"] = "Leeg"
 
-            df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
-
-            # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
-            totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
-
-            # Update Prijs_backend afhankelijk van totaal_bedrag
-            def update_prijs_backend(row):
-                if row["Prijsoorsprong"] == "Handmatig":
-                    return row["Prijs_backend"]  # Laat Prijs_backend ongewijzigd
-                if row["Verkoopprijs"] > 0:
-                    return row["Verkoopprijs"]
-                elif totaal_bedrag < 2000:
-                    return row["SAP Prijs"]
-                return min(row["SAP Prijs"], row["RSP"])
-
-            df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
-
-            # Toevoegen van Prijsoorsprong-kolom
+            # Functie: bepaal Prijsoorsprong
             def bepaal_prijsoorsprong(row):
                 if row["Verkoopprijs"] == row["SAP Prijs"]:
                     return "SAP Prijs"
@@ -136,29 +123,52 @@ with tab1:
 
             df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
 
-            # Aanpassen van Verkoopprijs op basis van prijsbepaling-optie
+            # Functie: bepaal Prijs_backend
+            def bepaal_prijs_backend(row):
+                if row["Prijsoorsprong"] == "Handmatig":
+                    return row["Verkoopprijs"]  # Prijs_backend wordt Verkoopprijs
+                if row["Verkoopprijs"] > 0:
+                    return row["Verkoopprijs"]
+                return min(row["SAP Prijs"], row["RSP"])
+
+            df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+
+            # Bereken totaal_bedrag
+            totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
+
+            # Functie: update Prijs_backend
+            def update_prijs_backend(row):
+                if row["Prijsoorsprong"] == "Handmatig":
+                    return row["Verkoopprijs"]
+                if row["Verkoopprijs"] > 0:
+                    return row["Verkoopprijs"]
+                elif totaal_bedrag < 2000:
+                    return row["SAP Prijs"]
+                return min(row["SAP Prijs"], row["RSP"])
+
+            df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
+
+            # Functie: update Verkoopprijs
             def update_verkoopprijs(row):
                 if row["Prijsoorsprong"] == "Handmatig":
                     return row["Verkoopprijs"]  # Laat de Verkoopprijs ongewijzigd
                 elif prijsbepaling_optie == "SAP prijs":
-                    return row["SAP Prijs"]  # Verkoopprijs krijgt SAP Prijs
+                    return row["SAP Prijs"]
                 elif prijsbepaling_optie == "PricePilot logica":
-                    return min(row["RSP"], row["SAP Prijs"])  # Min van RSP en SAP Prijs
+                    return min(row["RSP"], row["SAP Prijs"])
                 elif prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
                     nieuwe_prijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
-                    # Afronden naar boven op de dichtstbijzijnde 5 cent
                     nieuwe_prijs = (nieuwe_prijs * 20 // 1 + (1 if (nieuwe_prijs * 20) % 1 > 0 else 0)) / 20
                     return nieuwe_prijs
-                else:
-                    return row["Verkoopprijs"]
+                return row["Verkoopprijs"]
 
             df["Verkoopprijs"] = df.apply(update_verkoopprijs, axis=1)
 
         except Exception as e:
-            st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
+            # Vang fouten af zonder meldingen in Streamlit
+            return df
 
         return df
-
 
 
 
