@@ -96,6 +96,13 @@ with tab1:
             df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
             df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
 
+            # Controleer of Prijskwaliteit bestaat, voeg deze toe indien nodig
+            if "Prijskwaliteit" not in df.columns:
+                df["Prijskwaliteit"] = 0  # Standaardwaarde
+
+            # Zorg ervoor dat Prijskwaliteit numeriek is
+            df["Prijskwaliteit"] = pd.to_numeric(df["Prijskwaliteit"], errors="coerce").fillna(0)
+
             # Eerst Prijs_backend bepalen zonder totaal_bedrag
             def bepaal_prijs_backend(row):
                 if row["Verkoopprijs"] > 0:
@@ -138,7 +145,7 @@ with tab1:
                     return row["Verkoopprijs"]  # Laat de Verkoopprijs ongewijzigd
                 elif prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
                     nieuwe_prijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
-                    return (nieuwe_prijs * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
+                    return (nieuwe_prijs * 20 // 1 + (1 if (nieuwe_prijs * 20) % 1 > 0 else 0)) / 20
                 else:
                     return row["Verkoopprijs"]
 
@@ -148,7 +155,6 @@ with tab1:
             st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
-
 
 
 
