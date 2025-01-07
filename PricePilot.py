@@ -548,12 +548,12 @@ with tab1:
     else:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-# JavaScript-code om Enter-toets in de grid te detecteren
+# JavaScript-code om Enter-toets in de grid te detecteren en direct de update_tabel functie te triggeren
 enter_to_commit_js = JsCode("""
 function(params) {
     if (params.event.key === 'Enter') {
         params.api.stopEditing();  // Stop de bewerking bij Enter
-        document.getElementById('update_button').click();  // Trigger de verborgen update-knop
+        fetch('/update_tabel');  // Trigger de update_tabel functie direct
     }
 }
 """)
