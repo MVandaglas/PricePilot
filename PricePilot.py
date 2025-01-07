@@ -1335,3 +1335,40 @@ with tab4:
             
 with tab5:
     st.subheader("Jouw instellingen")
+   
+    # Voorbeeld DataFrame
+    data = {"Kolom1": [10, 20, 30], "Kolom2": [40, 50, 60]}
+    df = pd.DataFrame(data)
+    
+    # JavaScript om Enter-toets te detecteren
+    enter_to_commit_js = JsCode("""
+    function(params) {
+        if (params.event.key === 'Enter') {
+            console.log('Enter pressed in grid');  // Debug in browser console
+            fetch('/_stcore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "action": "enter_pressed" })
+            });
+        }
+    }
+    """)
+    
+    # Configureer grid-opties
+    gb = GridOptionsBuilder.from_dataframe(df)
+    gb.configure_default_column(editable=True)
+    gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)
+    grid_options = gb.build()
+    
+    # Toon AgGrid
+    edited_df_response = AgGrid(
+        df,
+        gridOptions=grid_options,
+        allow_unsafe_jscode=True,
+        height=300,
+    )
+    
+    # Simuleer de Enter-actie (debug)
+    if "action" in st.session_state and st.session_state["action"] == "enter_pressed":
+        st.write("Gelukt!")  # Print "Gelukt" wanneer Enter wordt gedrukt
+        st.session_state["action"] = None  # Reset actie
