@@ -873,6 +873,7 @@ def handle_gpt_chat():
                         source,
                         fuzzy_match,  # Vul fuzzy_match kolom
                         original_article_number  # Vul original_article_number kolom
+                        None, #Prijsbepaling
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -912,6 +913,7 @@ def handle_gpt_chat():
                             source,
                             fuzzy_match,  # Vul fuzzy_match kolom
                             original_article_number  # Vul original_article_number kolom
+                            None, #Prijsbepaling
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
