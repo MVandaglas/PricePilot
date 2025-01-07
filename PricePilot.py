@@ -503,21 +503,25 @@ def reset_rijnummers(df):
         df['Rijnummer'] = range(1, len(df) + 1)
     return df
 
-# JavaScript-code voor conditionele opmaak
 cell_style_js = JsCode("""
 function(params) {
     if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
     } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-    } else if (params.colDef.field === "Verkoopprijs" && params.data.Prijs_backend === params.data.Verkoopprijs) {
-        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+    } else if (params.colDef.field === "Verkoopprijs") {
+        if (params.data.Prijsoorsprong === "Handmatig") {
+            return {'backgroundColor': '#A3CFA3', 'fontWeight': 'bold'};  // Donkergroen met vetgedrukte letters
+        } else if (params.data.Prijs_backend === params.data.Verkoopprijs) {
+            return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+        }
     } else if (params.colDef.field !== "Verkoopprijs") {
         return {'backgroundColor': '#e0e0e0'};  // Grijs voor alle andere cellen
     }
     return null;
 }
 """)
+
 
 # Voeg een cell renderer toe om de stericoon weer te geven
 cell_renderer_js = JsCode("""
