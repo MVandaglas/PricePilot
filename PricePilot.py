@@ -130,7 +130,7 @@ with tab1:
                     return "SAP Prijs"
                 elif row["Verkoopprijs"] == row["RSP"]:
                     return "RSP"
-                elif abs(row["Verkoopprijs"] - (row["RSP"] * row["Prijskwaliteit"])) <= 0.05:
+                elif abs(row["Verkoopprijs"] - (row["RSP"] * row["Prijskwaliteit"]/100)) <= 0.05:
                     return "Prijskwaliteit"
                 else:
                     return "Handmatig"
