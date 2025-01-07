@@ -51,7 +51,7 @@ article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
 # Maak de tabs aan
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "🤖 Glasbot", "⚙️ Instellingen"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "🔮 Beoordeel AI", "🤖 Glasbot", "⚙️ Instellingen"])
 
 # Tab 1: Offerte Genereren
 with tab1:
@@ -515,7 +515,7 @@ function(params) {
 cell_renderer_js = JsCode("""
 function(params) {
     if (params.data.Source === "interpretatie" || params.data.Source === "GPT") {
-        return `✨ ${params.value}`;  // Voeg stericoon toe vóór de waarde
+        return `🔮 ${params.value}`;  // Voeg stericoon toe vóór de waarde
     }
     return params.value;  // Toon de originele waarde
 }
