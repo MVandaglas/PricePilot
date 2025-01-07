@@ -40,7 +40,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "Prijsoorsprong"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -160,7 +160,7 @@ cutoff_value = st.sidebar.slider(
     max_value=1.0,
     value=0.6,  # Standaardwaarde
     step=0.1,  # Stappen in float
-    help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
+    help="Stel matchwaarde in. Hogere waarde betekent strengere AI matching, 0.6 aanbevolen."
 )
 
 # Gebruikersinvoer
@@ -542,6 +542,7 @@ gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle=
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
 gb.configure_column("Source", hide=False)
+gb.configure_column("Prijsoorsprong",hide=False, editable=False)
 
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
