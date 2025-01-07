@@ -98,6 +98,8 @@ with tab1:
 
             # Eerst Prijs_backend bepalen zonder totaal_bedrag
             def bepaal_prijs_backend(row):
+                if row["Prijsoorsprong"] == "Handmatig":
+                    return row["Prijs_backend"]  # Laat Prijs_backend ongewijzigd
                 if row["Verkoopprijs"] > 0:
                     return row["Verkoopprijs"]
                 return min(row["SAP Prijs"], row["RSP"])
@@ -109,6 +111,8 @@ with tab1:
 
             # Update Prijs_backend afhankelijk van totaal_bedrag
             def update_prijs_backend(row):
+                if row["Prijsoorsprong"] == "Handmatig":
+                    return row["Prijs_backend"]  # Laat Prijs_backend ongewijzigd
                 if row["Verkoopprijs"] > 0:
                     return row["Verkoopprijs"]
                 elif totaal_bedrag < 2000:
@@ -132,10 +136,14 @@ with tab1:
 
             df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
 
-            # Aanpassen van Verkoopprijs alleen als Prijsoorsprong niet "Handmatig" is
+            # Aanpassen van Verkoopprijs op basis van prijsbepaling-optie
             def update_verkoopprijs(row):
                 if row["Prijsoorsprong"] == "Handmatig":
                     return row["Verkoopprijs"]  # Laat de Verkoopprijs ongewijzigd
+                elif prijsbepaling_optie == "SAP prijs":
+                    return row["SAP Prijs"]  # Verkoopprijs krijgt SAP Prijs
+                elif prijsbepaling_optie == "PricePilot logica":
+                    return min(row["RSP"], row["SAP Prijs"])  # Min van RSP en SAP Prijs
                 elif prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
                     nieuwe_prijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
                     # Afronden naar boven op de dichtstbijzijnde 5 cent
