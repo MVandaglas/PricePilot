@@ -548,20 +548,11 @@ with tab1:
     else:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-# JavaScript-code om Enter-toets in de grid te detecteren en direct de update_tabel functie te triggeren
-enter_to_commit_js = JsCode("""
-function(params) {
-    if (params.event.key === 'Enter') {
-        params.api.stopEditing();  // Stop de bewerking bij Enter
-        fetch('/update_tabel');  // Trigger de update_tabel functie direct
-    }
-}
-""")
+
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=80, editable=True)
-gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)  # Activeer Enter om wijzigingen door te voeren
 gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', cellEditorParams={"values": ["4 - alu", "6 - alu", "7 - alu", "8 - alu", "9 - alu", "10 - alu", "12 - alu", "13 - alu", "14 - alu", "15 - alu", "16 - alu", "18 - alu", "20 - alu", "24 - alu", "10 - warm edge", "12 - warm edge", "14 - warm edge", "15 - warm edge", "16 - warm edge", "18 - warm edge", "20 - warm edge", "24 - warm edge"]})
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"}, cellRenderer=cell_renderer_js)
 gb.configure_column("Artikelnaam", width=600)
@@ -580,7 +571,8 @@ gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle=
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
 gb.configure_column("Source", hide=False)
-gb.configure_column("Prijsoorsprong", hide=False, editable=False)
+gb.configure_column("Prijsoorsprong",hide=False, editable=False)
+
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
 gb.configure_selection(
@@ -592,12 +584,28 @@ gb.configure_selection(
 # Overige configuratie van de grid
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
+# Voeg een JavaScript event listener toe voor directe updates
+js_update_code = JsCode('''
+function onCellValueChanged(params) {
+    let rowNode = params.node;
+    let data = rowNode.data;
+
+    // Zorg ervoor dat wijzigingen direct worden toegepast
+    params.api.applyTransaction({ update: [data] });
+
+    // Forceer visuele update
+    params.api.refreshCells({ force: true
+});
+}
+''')
+gb.configure_grid_options(onCellValueChanged=js_update_code)
+
 # Bouw grid-opties
 grid_options = gb.build()
 
-
 # Offerte Genereren tab
 with tab1:
+
     # Toon de AG Grid met het material-thema
     edited_df_response = AgGrid(
         st.session_state.offer_df,
@@ -605,7 +613,7 @@ with tab1:
         theme='material',
         fit_columns_on_grid_load=False,
         enable_enterprise_modules=True,
-        update_mode=GridUpdateMode.VALUE_CHANGED,
+        update_mode=GridUpdateMode.MANUAL,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         allow_unsafe_jscode=True
     )
@@ -613,22 +621,33 @@ with tab1:
     # Update de DataFrame na elke wijziging
     if "data" in edited_df_response:
         updated_df = pd.DataFrame(edited_df_response['data'])
+        # Werk de sessiestatus bij met de nieuwe data
         st.session_state.offer_df = updated_df
+        # Voer alle benodigde berekeningen uit
         st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
+
+
 # Verbeterde update_tabel functie
 def update_tabel():
+    # Zorg dat de eerste regel automatisch wordt geselecteerd
+    if 'selected_rows' not in st.session_state or not st.session_state['selected_rows']:
+        st.session_state['selected_rows'] = [{"rowIndex": 0}]  # Selecteer de eerste regel met rowIndex
+
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-# Knop om de tabel handmatig te updaten
-if st.button("Update tabel", key="update_button"):
-    update_tabel()
-    update_tabel()
 
+# Offerte Genereren tab
+with tab1:
+    
+    # Knop om de tabel bij te werken
+    if st.button("Update tabel"):
+        update_tabel()
+        update_tabel()
  
     # Update de DataFrame na elke wijziging
     updated_df = edited_df_response['data']
