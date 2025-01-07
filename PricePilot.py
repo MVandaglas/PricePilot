@@ -501,22 +501,19 @@ def reset_rijnummers(df):
 
 cell_style_js = JsCode("""
 function(params) {
-    if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
+    if (params.colDef.field === "Verkoopprijs" && params.data.Prijsoorsprong === "Handmatig") {
+        return {'backgroundColor': '#A3CFA3', 'fontWeight': 'bold'};  // Donkergroen met vetgedrukte letters
+    } else if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
     } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-    } else if (params.colDef.field === "Verkoopprijs") {
-        if (params.data.Prijsoorsprong === "Handmatig") {
-            return {'backgroundColor': '#A3CFA3', 'fontWeight': 'bold'};  // Donkergroen met vetgedrukte letters
-        } else if (params.data.Prijs_backend === params.data.Verkoopprijs) {
-            return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
-        }
-    } else if (params.colDef.field !== "Verkoopprijs") {
-        return {'backgroundColor': '#e0e0e0'};  // Grijs voor alle andere cellen
+    } else if (params.colDef.field === "Verkoopprijs" && params.data.Prijs_backend === params.data.Verkoopprijs) {
+        return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
     }
-    return null;
+    return null;  // Geen stijl toegepast
 }
 """)
+
 
 
 # Voeg een cell renderer toe om de stericoon weer te geven
