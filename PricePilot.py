@@ -137,9 +137,6 @@ with tab1:
             # Correcte toepassing van de functie
             df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
 
-
-            df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
-
             # Aanpassen van Verkoopprijs met nieuwe logica
             def update_verkoopprijs(row):
                 # Controleer op Handmatige Prijs
