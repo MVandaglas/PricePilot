@@ -1341,16 +1341,13 @@ with tab5:
     data = {"Kolom1": [10, 20, 30], "Kolom2": [40, 50, 60]}
     df = pd.DataFrame(data)
     
-    # JavaScript om Enter-toets te detecteren
+    # JavaScript om de focus te verwijderen na Enter
     enter_to_commit_js = JsCode("""
     function(params) {
+        console.log("Toets ingedrukt:", params.event.key);  // Debug
         if (params.event.key === 'Enter') {
-            console.log('Enter pressed in grid');  // Debug in browser console
-            fetch('/_stcore', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ "action": "enter_pressed" })
-            });
+            params.api.stopEditing();  // Stop bewerken
+            console.log('Enter pressed and editing stopped');  // Debug
         }
     }
     """)
@@ -1365,11 +1362,12 @@ with tab5:
     edited_df_response = AgGrid(
         df,
         gridOptions=grid_options,
+        update_mode=GridUpdateMode.MODEL_CHANGED,  # Detecteer wijzigingen
         allow_unsafe_jscode=True,
         height=300,
     )
     
-    # Simuleer de Enter-actie (debug)
-    if "action" in st.session_state and st.session_state["action"] == "enter_pressed":
-        st.write("Gelukt!")  # Print "Gelukt" wanneer Enter wordt gedrukt
-        st.session_state["action"] = None  # Reset actie
+    # Detecteer wijzigingen in de data
+    if edited_df_response.get("data") is not None:
+        st.session_state["edited_data"] = pd.DataFrame(edited_df_response["data"])
+        st.write("Gelukt!")  # Print 'Gelukt!' na bewerken
