@@ -134,6 +134,10 @@ with tab1:
                 else:
                     return "Handmatig"
 
+            # Correcte toepassing van de functie
+            df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
+
+
             df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
 
             # Aanpassen van Verkoopprijs met nieuwe logica
