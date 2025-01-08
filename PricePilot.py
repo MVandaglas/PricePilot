@@ -28,8 +28,8 @@ else:
 
 # Hard gecodeerde klantgegevens
 customer_data = {
-    "111111": {"revenue": "50.000 euro", "size": "D"},
-    "222222": {"revenue": "140.000 euro", "size": "B"},
+    "111111": {"revenue": "60.000 euro", "size": "D"},
+    "222222": {"revenue": "150.000 euro", "size": "B"},
     "333333": {"revenue": "600.000 euro", "size": "A"}
 }
 
