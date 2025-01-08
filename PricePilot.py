@@ -582,7 +582,7 @@ with tab1:
         st.session_state.offer_df = updated_df
         # Voer alle benodigde berekeningen uit
         st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df, prijsbepaling_optie)
 
 
 
