@@ -487,7 +487,7 @@ function(params) {
 def save_changes(df):
     st.session_state.offer_df = df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df, prijsbepaling_optie)
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
 # Offerte Genereren tab
@@ -603,7 +603,7 @@ with tab1:
  
     # Update de DataFrame na elke wijziging
     updated_df = edited_df_response['data']
-    save_changes(pd.DataFrame(updated_df))
+    save_changes(pd.DataFrame(updated_df, prijsbepaling_optie))
     
     # Sla de geselecteerde rijen op in sessie status
     selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
