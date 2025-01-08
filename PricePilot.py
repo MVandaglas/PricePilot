@@ -81,7 +81,7 @@ with tab1:
 
 # Offerte Genereren tab
 with tab1:
-    def bereken_prijs_backend(df, prijsbepaling_optie="Test"):
+    def bereken_prijs_backend(df, prijsbepaling_optie="PricePilot logica"):
         if df is None:
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
