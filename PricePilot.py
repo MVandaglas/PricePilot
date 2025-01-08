@@ -1359,12 +1359,12 @@ with tab5:
     )
     
     # Geüpdatete DataFrame ophalen
-    updated_df = grid_response['data']
-    st.write(updated_df)
+    updated_df2 = grid_response['data']
+    st.write(updated_df2)
     
     # Debugging: print de DataFrame na elke wijziging
     if "data" in grid_response:
-        updated_df = pd.DataFrame(grid_response['data'])
-        st.session_state.offer_df = updated_df
+        updated_df2 = pd.DataFrame(grid_response['data'])
+        st.session_state.offer_df = updated_df2
         st.write("Geüpdatete DataFrame:")
         st.write(st.session_state.offer_df)
