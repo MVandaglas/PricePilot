@@ -756,7 +756,7 @@ def update_dash_table(n_dlt, n_add, data):
             "M2 totaal": [0],
             "Min_prijs": [0],
             "Max_prijs": [0],
-            "Verkoopprijs": [0]
+            "Verkoopprijs": [0],
             "Handmatige prijs": [None]
         })
         df_new_row = pd.DataFrame(new_row)
