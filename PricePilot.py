@@ -859,9 +859,9 @@ def handle_gpt_chat():
                             width,
                             height,
                             quantity,
-                            f"{recommended_price:.2f}" if recommended_price is not None else 0,
                             f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
                             f"{m2_total:.2f}" if m2_total is not None else None,
+                            f"{recommended_price:.2f}" if recommended_price is not None else 0,
                             min_price,
                             max_price,
                             None, # Handmatige prijs is leeg
