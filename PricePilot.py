@@ -503,7 +503,7 @@ with tab1:
     if prijsbepaling_optie == "SAP prijs":
         st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
     else:
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df, prijsbepaling_optie)
 
 
 
