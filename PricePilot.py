@@ -101,14 +101,6 @@ with tab1:
             df["Handmatige Prijs"] = pd.to_numeric(df["Handmatige Prijs"], errors="coerce").fillna(0)
             df["Prijskwaliteit"] = pd.to_numeric(df["Prijskwaliteit"], errors="coerce").fillna(100)
 
-            # Bewaar de originele RSP-waarde om herhaaldelijke bewerkingen te voorkomen
-            if "Originele RSP" not in df.columns:
-                df["Originele RSP"] = df["RSP"]
-
-            # Pas RSP aan met Prijskwaliteit en rond af op 5 cent
-            df["RSP"] = df["Originele RSP"] * (df["Prijskwaliteit"] / 100)
-            df["RSP"] = df["RSP"].apply(lambda x: (x * 20 // 1 + (1 if (x * 20 % 1) > 0 else 0)) / 20)
-
             # Functie om Prijs_backend te bepalen op basis van logica
             def bepaal_prijs_backend(row):
                 # Controleer of Handmatige Prijs is ingevuld
@@ -121,7 +113,8 @@ with tab1:
                 
                 # Logica voor RSP
                 elif prijsbepaling_optie == "RSP":
-                    return row["RSP"]
+                    rsp_met_kwaliteit = row["RSP"] * (row["Prijskwaliteit"] / 100)
+                    return (rsp_met_kwaliteit * 20 // 1 + (1 if (rsp_met_kwaliteit * 20 % 1) > 0 else 0)) / 20
                 
                 # Logica voor PricePilot
                 elif prijsbepaling_optie == "PricePilot logica":
@@ -140,6 +133,7 @@ with tab1:
             st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
+
 
 
 
