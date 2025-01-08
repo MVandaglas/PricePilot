@@ -86,6 +86,10 @@ with tab1:
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
 
+        if prijsbepaling_optie is None:
+            st.error("De parameter 'prijsbepaling_optie' ontbreekt. Geef een geldige optie op.")
+            return df
+
         try:
             # Zorg ervoor dat kolommen numeriek zijn
             df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
@@ -102,7 +106,7 @@ with tab1:
                 elif prijsbepaling_optie == "RSP":
                     verkoopprijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
                     # Afronden naar boven op de dichtstbijzijnde 5 cent
-                    return (verkoopprijs * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
+                    return round(verkoopprijs * 20) / 20
                 elif prijsbepaling_optie == "PricePilot logica":
                     return min(row["SAP Prijs"], row["RSP"])
                 return 0
@@ -113,6 +117,7 @@ with tab1:
             st.error(f"Fout bij het berekenen van Verkoopprijs: {e}")
 
         return df
+
 
 
 
