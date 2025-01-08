@@ -36,7 +36,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "Min_prijs", "M2 p/s", "M2 totaal", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "Handmatige Prijs", "Min_prijs", "M2 p/s", "M2 totaal", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -63,7 +63,7 @@ with tab1:
 
 
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "M2 p/s", "M2 totaal", "RSP", "SAP Prijs", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "M2 p/s", "M2 totaal", "RSP", "SAP Prijs", "Handmatige Prijs", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
 
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
@@ -529,6 +529,7 @@ gb.configure_column("Min_prijs", hide=True)
 gb.configure_column("Artikelnummer", hide=False)
 gb.configure_column("Prijskwaliteit", hide=True)
 gb.configure_column("Max_prijs", hide=True)
+gb.configure_column("Handmatige Prijs", editable=True, type=["numericColumn"])
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
@@ -819,6 +820,7 @@ def handle_gpt_chat():
                         f"{recommended_price:.2f}" if recommended_price is not None else 0,  # RSP gevuld
                         None,  # M2 p/s blijft leeg
                         f"{m2_total:.2f}",  # M2 totaal
+                        None, #Handmatige prijs blijft leeg
                         min_price,
                         max_price,
                         verkoopprijs,
@@ -826,6 +828,7 @@ def handle_gpt_chat():
                         source,
                         fuzzy_match,  # Vul fuzzy_match kolom
                         original_article_number  # Vul original_article_number kolom
+                        
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -860,6 +863,7 @@ def handle_gpt_chat():
                             f"{m2_total:.2f}" if m2_total is not None else None,
                             min_price,
                             max_price,
+                            None,
                             verkoopprijs,
                             prijs_backend,
                             source,
@@ -872,7 +876,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "M2 p/s", "M2 totaal", "RSP", "SAP Prijs", "Handmatige Prijs", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
