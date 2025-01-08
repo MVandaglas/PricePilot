@@ -106,20 +106,20 @@ with tab1:
                 # Controleer of Handmatige Prijs is ingevuld
                 if row["Handmatige Prijs"] > 0:
                     return row["Handmatige Prijs"]
-
+                
                 # Logica voor SAP Prijs
-                if st.session_state.get("prijsbepaling_optie") == "SAP Prijs":
+                elif prijsbepaling_optie == "SAP Prijs":
                     return row["SAP Prijs"]
-
+                
                 # Logica voor RSP
-                if st.session_state.get("prijsbepaling_optie") == "RSP":
+                elif prijsbepaling_optie == "RSP":
                     rsp_met_kwaliteit = row["RSP"] * (row["Prijskwaliteit"] / 100)
                     return (rsp_met_kwaliteit * 20 // 1 + (1 if (rsp_met_kwaliteit * 20 % 1) > 0 else 0)) / 20
-
-                # Logica voor PricePilot logica
-                if st.session_state.get("prijsbepaling_optie") == "PricePilot logica":
+                
+                # Logica voor PricePilot
+                elif prijsbepaling_optie == "PricePilot logica":
                     return min(row["SAP Prijs"], row["RSP"])
-
+                
                 # Default naar 0 als niets anders van toepassing is
                 return 0
 
@@ -133,6 +133,7 @@ with tab1:
             st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
+
 
 
 
