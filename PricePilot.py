@@ -585,15 +585,15 @@ gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor 
 
 
 # JavaScript om de focus te verwijderen na Enter
-    enter_to_commit_js = JsCode("""
-    function(params) {
-        console.log("Toets ingedrukt:", params.event.key);  // Debug
-        if (params.event.key === 'Enter') {
-            params.api.stopEditing();  // Stop bewerken
-            console.log('Enter pressed and editing stopped');  // Debug
-        }
+enter_to_commit_js = JsCode("""
+function(params) {
+    console.log("Toets ingedrukt:", params.event.key);  // Debug
+    if (params.event.key === 'Enter') {
+        params.api.stopEditing();  // Stop bewerken
+        console.log('Enter pressed and editing stopped');  // Debug
     }
-    """)
+}
+""")
 gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)
 
 
