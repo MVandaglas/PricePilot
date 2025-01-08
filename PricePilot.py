@@ -108,7 +108,7 @@ with tab1:
                     return row["Handmatige Prijs"]
                 
                 # Logica voor SAP Prijs
-                elif prijsbepaling_optie == "SAP Prijs":
+                elif st.session_state.get("prijsbepaling_optie") == "SAP Prijs":
                     return row["SAP Prijs"]
                 
                 # Logica voor RSP
