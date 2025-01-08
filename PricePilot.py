@@ -508,12 +508,10 @@ with tab1:
         with col1:
             prijskwaliteit = st.number_input("Prijskwaliteit (%)", min_value=0, max_value=200, value=100, key="prijskwaliteit")
         st.session_state.offer_df["Prijskwaliteit"] = prijskwaliteit
-    
-    # Pas de logica voor prijs_backend aan op basis van de gekozen optie
-    if prijsbepaling_optie == "SAP prijs":
-        st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
-    else:
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+
+    # Altijd de logica via de functie bereken_prijs_backend toepassen
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+
 
 
 
