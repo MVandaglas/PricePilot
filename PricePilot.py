@@ -614,6 +614,7 @@ with tab1:
         update_mode=GridUpdateMode.VALUE_CHANGED,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         allow_unsafe_jscode=True
+        reload_data=False
     )
 
     # Update de DataFrame na elke wijziging
