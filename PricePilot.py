@@ -820,7 +820,8 @@ def handle_gpt_chat():
                         f"{recommended_price:.2f}" if recommended_price is not None else 0,  # RSP gevuld
                         None,  # M2 p/s blijft leeg
                         f"{m2_total:.2f}",  # M2 totaal
-                        None, #Handmatige prijs blijft leeg
+                        None, # Handmatige prijs blijft leeg
+                        None, # SAP Prijs wordt gevuld
                         min_price,
                         max_price,
                         verkoopprijs,
@@ -863,7 +864,8 @@ def handle_gpt_chat():
                             f"{m2_total:.2f}" if m2_total is not None else None,
                             min_price,
                             max_price,
-                            None,
+                            None, # Handmatige prijs is leeg
+                            None, # SAP Prijs wordt gevuld
                             verkoopprijs,
                             prijs_backend,
                             source,
