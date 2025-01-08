@@ -433,7 +433,7 @@ def update_offer_data(df):
                 df.at[index, 'SAP Prijs'] = sap_prijs if sap_prijs else "Geen prijs"
             else:
                 df.at[index, 'SAP Prijs'] = "Geen prijs"
-    df = bereken_prijs_backend(df, prijsbepaling_optie)
+    df = bereken_prijs_backend(df)
     return df
 
 
@@ -493,7 +493,7 @@ function(params) {
 def save_changes(df):
     st.session_state.offer_df = df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df, prijsbepaling_optie)
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
 
 # Offerte Genereren tab
@@ -509,7 +509,7 @@ with tab1:
     if prijsbepaling_optie == "SAP prijs":
         st.session_state.offer_df["Prijs_backend"] = st.session_state.offer_df["SAP Prijs"]
     else:
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df, prijsbepaling_optie)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 
 
@@ -588,7 +588,7 @@ with tab1:
         st.session_state.offer_df = updated_df
         # Voer alle benodigde berekeningen uit
         st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df, prijsbepaling_optie)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 
 
