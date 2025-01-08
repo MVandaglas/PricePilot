@@ -543,11 +543,14 @@ with tab1:
     else:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
+   
+    
 
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, min_width=80, editable=True)
+
 gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', columnGroup="Basisinfo", cellEditorParams={"values": ["4 - alu", "6 - alu", "7 - alu", "8 - alu", "9 - alu", "10 - alu", "12 - alu", "13 - alu", "14 - alu", "15 - alu", "16 - alu", "18 - alu", "20 - alu", "24 - alu", "10 - warm edge", "12 - warm edge", "14 - warm edge", "15 - warm edge", "16 - warm edge", "18 - warm edge", "20 - warm edge", "24 - warm edge"]})
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"}, cellRenderer=cell_renderer_js)
 gb.configure_column("Artikelnaam", width=600)
@@ -580,21 +583,19 @@ gb.configure_selection(
 # Overige configuratie van de grid
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
-# Voeg een JavaScript event listener toe voor directe updates
-js_update_code = JsCode('''
-function onCellValueChanged(params) {
-    let rowNode = params.node;
-    let data = rowNode.data;
 
-    // Zorg ervoor dat wijzigingen direct worden toegepast
-    params.api.applyTransaction({ update: [data] });
+# JavaScript om de focus te verwijderen na Enter
+    enter_to_commit_js = JsCode("""
+    function(params) {
+        console.log("Toets ingedrukt:", params.event.key);  // Debug
+        if (params.event.key === 'Enter') {
+            params.api.stopEditing();  // Stop bewerken
+            console.log('Enter pressed and editing stopped');  // Debug
+        }
+    }
+    """)
+gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)
 
-    // Forceer visuele update
-    params.api.refreshCells({ force: true
-});
-}
-''')
-gb.configure_grid_options(onCellValueChanged=js_update_code)
 
 # Bouw grid-opties
 grid_options = gb.build()
