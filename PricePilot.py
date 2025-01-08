@@ -93,9 +93,9 @@ with tab1:
             df["Handmatige Prijs"] = pd.to_numeric(df["Handmatige Prijs"], errors="coerce").fillna(0)
             df["Prijskwaliteit"] = pd.to_numeric(df.get("Prijskwaliteit", 100), errors="coerce").fillna(100)
 
-            # Functie om afronding op 5 cent toe te passen
-            def afronden_op_5_cent(bedrag):
-                return (bedrag * 20 // 1 + (1 if (bedrag * 20 % 1) > 0 else 0)) / 20
+            # Direct RSP aanpassen met Prijskwaliteit en afronden op 5 cent
+            df["RSP"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
+            df["RSP"] = df["RSP"].apply(lambda x: (x * 20 // 1 + (1 if (x * 20 % 1) > 0 else 0)) / 20)
 
             # Functie om Prijs_backend te bepalen op basis van logica
             def bepaal_prijs_backend(row):
@@ -104,15 +104,15 @@ with tab1:
                     return row["Handmatige Prijs"]
                 
                 # Logica voor SAP Prijs
-                if prijsbepaling_optie == "SAP Prijs":
+                elif prijsbepaling_optie == "SAP Prijs":
                     return row["SAP Prijs"]
                 
                 # Logica voor RSP
-                if prijsbepaling_optie == "RSP":
-                    return afronden_op_5_cent(row["RSP"] * (row["Prijskwaliteit"] / 100))
+                elif prijsbepaling_optie == "RSP":
+                    return row["RSP"]
                 
                 # Logica voor PricePilot
-                if prijsbepaling_optie == "PricePilot logica":
+                elif prijsbepaling_optie == "PricePilot logica":
                     return min(row["SAP Prijs"], row["RSP"])
                 
                 # Default naar 0 als niets anders van toepassing is
@@ -128,6 +128,7 @@ with tab1:
             st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
+
 
 
 # Controleer en zet kolommen om
