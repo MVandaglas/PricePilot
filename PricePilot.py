@@ -595,6 +595,14 @@ function(params) {
 """)
 gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)
 
+cell_value_changed_js = JsCode("""
+function(event) {
+    console.log('Cel gewijzigd:', event);
+    event.api.refreshCells();  // Ververs de cellen onmiddellijk
+}
+""")
+gb.configure_grid_options(onCellValueChanged=cell_value_changed_js)
+
 
 # Bouw grid-opties
 grid_options = gb.build()
