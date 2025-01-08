@@ -125,7 +125,7 @@ with tab1:
                     return "SAP Prijs"
                 elif row["Verkoopprijs"] == row["RSP"]:
                     return "RSP"
-                elif row["Verkoopprijs"] == row["Handmatige Prijs"]:
+                elif row["Verkoopprijs"] == row["Handmatige prijs"]:
                     return "Handmatige Prijs"
                 elif abs(row["Verkoopprijs"] - (row["RSP"] * row["Prijskwaliteit"] / 100)) <= 0.05:
                     return "Prijskwaliteit"
@@ -136,8 +136,7 @@ with tab1:
 
             df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
 
-
-        # Aanpassen van Verkoopprijs met nieuwe logica
+            # Aanpassen van Verkoopprijs met nieuwe logica
             def update_verkoopprijs(row):
                 # Controleer op Handmatige Prijs
                 if row["Handmatige prijs"] > 0:
@@ -155,38 +154,37 @@ with tab1:
                 
                 # Als geen van bovenstaande gevallen van toepassing is, behoud huidige Verkoopprijs
                 return row["Verkoopprijs"]
-            
-            try:
-                # Pas de logica toe op de DataFrame
-                df["Verkoopprijs"] = df.apply(update_verkoopprijs, axis=1)
-            
-            except Exception as e:
-                st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
-            return df
+            # Pas de logica toe op de DataFrame
+            df["Verkoopprijs"] = df.apply(update_verkoopprijs, axis=1)
 
-            st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+        except Exception as e:
+            st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
+
+        return df
+
+    # Voer bereken_prijs_backend uit
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
     # Controleer en zet kolommen om
     for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
         if col not in st.session_state.offer_df.columns:
             st.session_state.offer_df[col] = 0
-        st.session_state.offer_df[col] = pd.to_numeric(st.session_state.offer_df[col], errors='coerce').fillna(0)
-    
+        st.session_state.offer_df[col] = pd.to_numeric(st.session_state.offer_df[col], errors="coerce").fillna(0)
+
     # Berekeningen uitvoeren
     totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
     totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
-    
-    
+
     # Resultaten weergeven
     st.sidebar.title("PricePilot")
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
     st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
-    
+
     # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-    
+
     cutoff_value = st.sidebar.slider(
         "Matchwaarde AI",
         min_value=0.1,
@@ -195,24 +193,23 @@ with tab1:
         step=0.1,  # Stappen in float
         help="Stel matchwaarde in. Hogere waarde betekent strengere AI matching, 0.6 aanbevolen."
     )
-    
+
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
     st.session_state.customer_number = str(customer_number) if customer_number else ''
     offer_amount = totaal_bedrag
-    
+
     # File uploader alleen beschikbaar in de uitklapbare invoeropties
     with st.sidebar.expander("Upload document", expanded=False):
-        customer_file = st.file_uploader("Upload een bestand (bijv. screenshot of document)", type = None)
-    
-    
+        customer_file = st.file_uploader("Upload een bestand (bijv. screenshot of document)", type=None)
+
     if customer_number in customer_data:
         st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
         st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-    
+
         # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
-        klantgrootte = customer_data[customer_number]['size']
+        klantgrootte = customer_data[customer_number]["size"]
         prijsscherpte = ""
         if klantgrootte == "A":
             if offer_amount > 50000:
@@ -259,6 +256,7 @@ with tab1:
             else:
                 prijsscherpte = 10
         st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+
 
 
 # Functie om synoniemen te vervangen in invoertekst
