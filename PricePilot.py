@@ -123,13 +123,6 @@ with tab1:
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df, prijsbepaling_optie)
 
 
-
-
-
-
-
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
-
 # Controleer en zet kolommen om
 for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
     if col not in st.session_state.offer_df.columns:
