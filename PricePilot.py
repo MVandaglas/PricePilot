@@ -4,22 +4,18 @@ from streamlit_option_menu import option_menu
 import os
 import pandas as pd
 from PIL import Image
-import pytesseract
 import re
-from num2words import num2words
 from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
-import dash_bootstrap_components as dbc
 from SAPprijs import sap_prices
 from Synonyms import synonym_dict
 from Articles import article_table
 import difflib
 from rapidfuzz import process, fuzz
-import requests
-from bs4 import BeautifulSoup
 import io
 from PyPDF2 import PdfReader
+
 
 
 # OpenAI API-sleutel instellen
