@@ -35,7 +35,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Handmatige prijs", "Prijs_backend", "Source", "Prijsoorsprong"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "Prijsoorsprong"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -62,7 +62,7 @@ with tab1:
 
 
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "Handmatige prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
 
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
@@ -543,12 +543,11 @@ with tab1:
     else:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-   
-    
+
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
-gb.configure_default_column(flex=1, minWidth=60, editable=True)
+gb.configure_default_column(flex=1, min_width=80, editable=True)
 gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', cellEditorParams={"values": ["4 - alu", "6 - alu", "7 - alu", "8 - alu", "9 - alu", "10 - alu", "12 - alu", "13 - alu", "14 - alu", "15 - alu", "16 - alu", "18 - alu", "20 - alu", "24 - alu", "10 - warm edge", "12 - warm edge", "14 - warm edge", "15 - warm edge", "16 - warm edge", "18 - warm edge", "20 - warm edge", "24 - warm edge"]})
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"}, cellRenderer=cell_renderer_js)
 gb.configure_column("Artikelnaam", width=600)
@@ -562,13 +561,13 @@ gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
-gb.configure_column("Verkoopprijs", editable=False, type=["numericColumn"], cellStyle=cell_style_js, valueFormatter="x.toFixed(2)")
-gb.configure_column("Handmatige prijs", editable=True, type=["numericColumn"])
+gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellStyle=cell_style_js, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
 gb.configure_column("Source", hide=False)
-gb.configure_column("Prijsoorsprong", hide=False, editable=False)
+gb.configure_column("Prijsoorsprong",hide=False, editable=False)
+
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
 gb.configure_selection(
@@ -580,64 +579,71 @@ gb.configure_selection(
 # Overige configuratie van de grid
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
-# JavaScript om de focus te verwijderen na Enter
-enter_to_commit_js = JsCode("""
-function(params) {
-    if (params.event.key === 'Enter') {
-        params.api.stopEditing();  // Stop bewerken
-    }
-}
-""")
-gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)
+# Voeg een JavaScript event listener toe voor directe updates
+js_update_code = JsCode('''
+function onCellValueChanged(params) {
+    let rowNode = params.node;
+    let data = rowNode.data;
 
-# JavaScript callback voor directe verwerking van wijzigingen
-cell_value_changed_js = JsCode("""
-function(event) {
-    console.log('Cel gewijzigd:', event);
-    event.api.refreshCells();  // Ververs de cellen onmiddellijk
+    // Zorg ervoor dat wijzigingen direct worden toegepast
+    params.api.applyTransaction({ update: [data] });
+
+    // Forceer visuele update
+    params.api.refreshCells({ force: true
+});
 }
-""")
-gb.configure_grid_options(onCellValueChanged=cell_value_changed_js)
+''')
+gb.configure_grid_options(onCellValueChanged=js_update_code)
 
 # Bouw grid-opties
 grid_options = gb.build()
 
 # Offerte Genereren tab
 with tab1:
-    # Toon de AG Grid met het materiaal-thema
+
+    # Toon de AG Grid met het material-thema
     edited_df_response = AgGrid(
         st.session_state.offer_df,
         gridOptions=grid_options,
-        theme='streamlit',
+        theme='material',
         fit_columns_on_grid_load=False,
         enable_enterprise_modules=True,
         update_mode=GridUpdateMode.VALUE_CHANGED,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
-        allow_unsafe_jscode=True,
-        reload_data=False
+        allow_unsafe_jscode=True
     )
 
     # Update de DataFrame na elke wijziging
     if "data" in edited_df_response:
         updated_df = pd.DataFrame(edited_df_response['data'])
+        # Werk de sessiestatus bij met de nieuwe data
         st.session_state.offer_df = updated_df
+        # Voer alle benodigde berekeningen uit
         st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
+
+
 # Verbeterde update_tabel functie
 def update_tabel():
+    # Zorg dat de eerste regel automatisch wordt geselecteerd
+    if 'selected_rows' not in st.session_state or not st.session_state['selected_rows']:
+        st.session_state['selected_rows'] = [{"rowIndex": 0}]  # Selecteer de eerste regel met rowIndex
+
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
+
 # Offerte Genereren tab
 with tab1:
+    
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
         update_tabel()
         update_tabel()
-
+ 
     # Update de DataFrame na elke wijziging
     updated_df = edited_df_response['data']
     save_changes(pd.DataFrame(updated_df))
@@ -680,7 +686,7 @@ with tab1:
             # Voeg een lege rij toe aan het DataFrame
             new_row = pd.DataFrame({
                 "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
-                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0], "Handmatige prijs": [None]
+                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
             })
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
             st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
@@ -749,8 +755,7 @@ def update_dash_table(n_dlt, n_add, data):
             "M2 totaal": [0],
             "Min_prijs": [0],
             "Max_prijs": [0],
-            "Verkoopprijs": [0],
-            "Handmatige prijs": [None]
+            "Verkoopprijs": [0]
         })
         df_new_row = pd.DataFrame(new_row)
         updated_table = pd.concat([pd.DataFrame(data), df_new_row])
@@ -854,8 +859,7 @@ def handle_gpt_chat():
                         prijs_backend,
                         source,
                         fuzzy_match,  # Vul fuzzy_match kolom
-                        original_article_number, # Vul original_article_number kolom
-                        None
+                        original_article_number  # Vul original_article_number kolom
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -894,8 +898,7 @@ def handle_gpt_chat():
                             prijs_backend,
                             source,
                             fuzzy_match,  # Vul fuzzy_match kolom
-                            original_article_number,  # Vul original_article_number kolom
-                            None
+                            original_article_number  # Vul original_article_number kolom
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -903,7 +906,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Handmatige prijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
@@ -1334,13 +1337,16 @@ with tab5:
     data = {"Kolom1": [10, 20, 30], "Kolom2": [40, 50, 60]}
     df = pd.DataFrame(data)
     
-    # JavaScript om de focus te verwijderen na Enter
+    # JavaScript om Enter-toets te detecteren
     enter_to_commit_js = JsCode("""
     function(params) {
-        console.log("Toets ingedrukt:", params.event.key);  // Debug
         if (params.event.key === 'Enter') {
-            params.api.stopEditing();  // Stop bewerken
-            console.log('Enter pressed and editing stopped');  // Debug
+            console.log('Enter pressed in grid');  // Debug in browser console
+            fetch('/_stcore', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "action": "enter_pressed" })
+            });
         }
     }
     """)
@@ -1355,12 +1361,11 @@ with tab5:
     edited_df_response = AgGrid(
         df,
         gridOptions=grid_options,
-        update_mode=GridUpdateMode.MODEL_CHANGED,  # Detecteer wijzigingen
         allow_unsafe_jscode=True,
         height=300,
     )
     
-    # Detecteer wijzigingen in de data
-    if edited_df_response.get("data") is not None:
-        st.session_state["edited_data"] = pd.DataFrame(edited_df_response["data"])
-        st.write("Gelukt!")  # Print 'Gelukt!' na bewerken
+    # Simuleer de Enter-actie (debug)
+    if "action" in st.session_state and st.session_state["action"] == "enter_pressed":
+        st.write("Gelukt!")  # Print "Gelukt" wanneer Enter wordt gedrukt
+        st.session_state["action"] = None  # Reset actie
