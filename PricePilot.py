@@ -167,98 +167,98 @@ with tab1:
 
             st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-# Controleer en zet kolommen om
-for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
-    if col not in st.session_state.offer_df.columns:
-        st.session_state.offer_df[col] = 0
-    st.session_state.offer_df[col] = pd.to_numeric(st.session_state.offer_df[col], errors='coerce').fillna(0)
-
-# Berekeningen uitvoeren
-totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
-totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
-
-
-# Resultaten weergeven
-st.sidebar.title("PricePilot")
-st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
-st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
-
-# Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
-st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-
-cutoff_value = st.sidebar.slider(
-    "Matchwaarde AI",
-    min_value=0.1,
-    max_value=1.0,
-    value=0.6,  # Standaardwaarde
-    step=0.1,  # Stappen in float
-    help="Stel matchwaarde in. Hogere waarde betekent strengere AI matching, 0.6 aanbevolen."
-)
-
-# Gebruikersinvoer
-customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-st.session_state.customer_number = str(customer_number) if customer_number else ''
-offer_amount = totaal_bedrag
-
-# File uploader alleen beschikbaar in de uitklapbare invoeropties
-with st.sidebar.expander("Upload document", expanded=False):
-    customer_file = st.file_uploader("Upload een bestand (bijv. screenshot of document)", type = None)
-
-
-if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-
-    # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
-    klantgrootte = customer_data[customer_number]['size']
-    prijsscherpte = ""
-    if klantgrootte == "A":
-        if offer_amount > 50000:
-            prijsscherpte = 100
-        elif offer_amount > 25000:
-            prijsscherpte = 90
-        elif offer_amount > 10000:
-            prijsscherpte = 80
-        elif offer_amount > 5000:
-            prijsscherpte = 70
-        else:
-            prijsscherpte = 60
-    elif klantgrootte == "B":
-        if offer_amount > 50000:
-            prijsscherpte = 80
-        elif offer_amount > 25000:
-            prijsscherpte = 70
-        elif offer_amount > 10000:
-            prijsscherpte = 60
-        elif offer_amount > 5000:
-            prijsscherpte = 50
-        else:
-            prijsscherpte = 40
-    elif klantgrootte == "C":
-        if offer_amount > 50000:
-            prijsscherpte = 75
-        elif offer_amount > 25000:
-            prijsscherpte = 65
-        elif offer_amount > 10000:
-            prijsscherpte = 50
-        elif offer_amount > 5000:
-            prijsscherpte = 40
-        else:
-            prijsscherpte = 30
-    elif klantgrootte == "D":
-        if offer_amount > 50000:
-            prijsscherpte = 70
-        elif offer_amount > 25000:
-            prijsscherpte = 60
-        elif offer_amount > 10000:
-            prijsscherpte = 45
-        elif offer_amount > 5000:
-            prijsscherpte = 25
-        else:
-            prijsscherpte = 10
-    st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+    # Controleer en zet kolommen om
+    for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
+        if col not in st.session_state.offer_df.columns:
+            st.session_state.offer_df[col] = 0
+        st.session_state.offer_df[col] = pd.to_numeric(st.session_state.offer_df[col], errors='coerce').fillna(0)
+    
+    # Berekeningen uitvoeren
+    totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
+    totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
+    
+    
+    # Resultaten weergeven
+    st.sidebar.title("PricePilot")
+    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+    st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
+    st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
+    
+    # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
+    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+    
+    cutoff_value = st.sidebar.slider(
+        "Matchwaarde AI",
+        min_value=0.1,
+        max_value=1.0,
+        value=0.6,  # Standaardwaarde
+        step=0.1,  # Stappen in float
+        help="Stel matchwaarde in. Hogere waarde betekent strengere AI matching, 0.6 aanbevolen."
+    )
+    
+    # Gebruikersinvoer
+    customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
+    customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+    st.session_state.customer_number = str(customer_number) if customer_number else ''
+    offer_amount = totaal_bedrag
+    
+    # File uploader alleen beschikbaar in de uitklapbare invoeropties
+    with st.sidebar.expander("Upload document", expanded=False):
+        customer_file = st.file_uploader("Upload een bestand (bijv. screenshot of document)", type = None)
+    
+    
+    if customer_number in customer_data:
+        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+    
+        # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
+        klantgrootte = customer_data[customer_number]['size']
+        prijsscherpte = ""
+        if klantgrootte == "A":
+            if offer_amount > 50000:
+                prijsscherpte = 100
+            elif offer_amount > 25000:
+                prijsscherpte = 90
+            elif offer_amount > 10000:
+                prijsscherpte = 80
+            elif offer_amount > 5000:
+                prijsscherpte = 70
+            else:
+                prijsscherpte = 60
+        elif klantgrootte == "B":
+            if offer_amount > 50000:
+                prijsscherpte = 80
+            elif offer_amount > 25000:
+                prijsscherpte = 70
+            elif offer_amount > 10000:
+                prijsscherpte = 60
+            elif offer_amount > 5000:
+                prijsscherpte = 50
+            else:
+                prijsscherpte = 40
+        elif klantgrootte == "C":
+            if offer_amount > 50000:
+                prijsscherpte = 75
+            elif offer_amount > 25000:
+                prijsscherpte = 65
+            elif offer_amount > 10000:
+                prijsscherpte = 50
+            elif offer_amount > 5000:
+                prijsscherpte = 40
+            else:
+                prijsscherpte = 30
+        elif klantgrootte == "D":
+            if offer_amount > 50000:
+                prijsscherpte = 70
+            elif offer_amount > 25000:
+                prijsscherpte = 60
+            elif offer_amount > 10000:
+                prijsscherpte = 45
+            elif offer_amount > 5000:
+                prijsscherpte = 25
+            else:
+                prijsscherpte = 10
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
 
 # Functie om synoniemen te vervangen in invoertekst
