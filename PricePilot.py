@@ -4,15 +4,20 @@ from streamlit_option_menu import option_menu
 import os
 import pandas as pd
 from PIL import Image
+import pytesseract
 import re
+from num2words import num2words
 from datetime import datetime
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
+import dash_bootstrap_components as dbc
 from SAPprijs import sap_prices
 from Synonyms import synonym_dict
 from Articles import article_table
 import difflib
 from rapidfuzz import process, fuzz
+import requests
+from bs4 import BeautifulSoup
 import io
 from PyPDF2 import PdfReader
 
@@ -28,14 +33,14 @@ else:
 
 # Hard gecodeerde klantgegevens
 customer_data = {
-    "111111": {"revenue": "60.000 euro", "size": "D"},
-    "222222": {"revenue": "150.000 euro", "size": "B"},
+    "111111": {"revenue": "50.000 euro", "size": "D"},
+    "222222": {"revenue": "140.000 euro", "size": "B"},
     "333333": {"revenue": "600.000 euro", "size": "A"}
 }
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Handmatige Prijs", "Prijs_backend", "Source", "Prijsoorsprong"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -51,7 +56,7 @@ article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
 # Maak de tabs aan
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "🔮 Beoordeel AI", "🤖 Glasbot", "⚙️ Instellingen"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "🤖 Glasbot", "⚙️ Instellingen"])
 
 # Tab 1: Offerte Genereren
 with tab1:
@@ -62,7 +67,7 @@ with tab1:
 
 
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Handmatige Prijs", "Prijs_backend", "Source"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
 
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
@@ -74,41 +79,34 @@ st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer
 with tab1:
     
     # Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
-        col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
-        with col1:
-            prijsbepaling_optie = st.selectbox("Prijsbepaling", ["PricePilot logica", "SAP prijs", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
-        
+    col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
+    with col1:
+        prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
+
 # Offerte Genereren tab
 with tab1:
     def bereken_prijs_backend(df):
         if df is None:
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
-
+    
         try:
             # Zorg ervoor dat kolommen numeriek zijn
             df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
             df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
             df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
-
-            # Controleer of Prijskwaliteit bestaat, voeg deze toe indien nodig
-            if "Prijskwaliteit" not in df.columns:
-                df["Prijskwaliteit"] = 0  # Standaardwaarde
-
-            # Zorg ervoor dat Prijskwaliteit numeriek is
-            df["Prijskwaliteit"] = pd.to_numeric(df["Prijskwaliteit"], errors="coerce").fillna(0)
-
+    
             # Eerst Prijs_backend bepalen zonder totaal_bedrag
             def bepaal_prijs_backend(row):
                 if row["Verkoopprijs"] > 0:
                     return row["Verkoopprijs"]
                 return min(row["SAP Prijs"], row["RSP"])
-
+    
             df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
-
+    
             # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
             totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
-
+    
             # Update Prijs_backend afhankelijk van totaal_bedrag
             def update_prijs_backend(row):
                 if row["Verkoopprijs"] > 0:
@@ -116,148 +114,118 @@ with tab1:
                 elif totaal_bedrag < 2000:
                     return row["SAP Prijs"]
                 return min(row["SAP Prijs"], row["RSP"])
-
+    
             df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
-
-            # Toevoegen van Prijsoorsprong-kolom
-            def bepaal_prijsoorsprong(row):
-                if row["Verkoopprijs"] == row["SAP Prijs"]:
-                    return "SAP Prijs"
-                elif row["Verkoopprijs"] == row["RSP"]:
-                    return "RSP"
-                elif row["Verkoopprijs"] == row["Handmatige prijs"]:
-                    return "Handmatige Prijs"
-                elif abs(row["Verkoopprijs"] - (row["RSP"] * row["Prijskwaliteit"] / 100)) <= 0.05:
-                    return "Prijskwaliteit"
-                elif row["Verkoopprijs"] == 0 or pd.isnull(row["Verkoopprijs"]):
-                    return "Leeg"
-                else:
-                    return "Handmatig"
-
-            # Correcte toepassing van de functie
-            df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
-
-            # Aanpassen van Verkoopprijs met nieuwe logica
-            def update_verkoopprijs(row):
-                # Controleer op Handmatige Prijs
-                if row["Handmatige prijs"] > 0:
-                    return row["Handmatige prijs"]
-                
-                # Bereken RSP als prijsbepaling_optie "RSP" is
-                if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
-                    nieuwe_prijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
-                    # Afronden op dichtstbijzijnde 5 cent
-                    return (nieuwe_prijs * 20 // 1 + (1 if (nieuwe_prijs * 20) % 1 > 0 else 0)) / 20
-                
-                # Gebruik SAP Prijs als prijsbepaling_optie "SAP" is
-                if prijsbepaling_optie == "SAP":
-                    return row["SAP Prijs"]
-                
-                # Als geen van bovenstaande gevallen van toepassing is, behoud huidige Verkoopprijs
-                return row["Verkoopprijs"]
-
-            # Pas de logica toe op de DataFrame
-            df["Verkoopprijs"] = df.apply(update_verkoopprijs, axis=1)
-
+    
+            # Aanpassen van Verkoopprijs als RSP is gekozen
+            if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
+                df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
+    
+                # Afronden naar boven op de dichtstbijzijnde 5 cent
+                df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
+    
         except Exception as e:
             st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
-
+    
         return df
 
-    # Voer bereken_prijs_backend uit
-    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-    # Controleer en zet kolommen om
-    for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
-        if col not in st.session_state.offer_df.columns:
-            st.session_state.offer_df[col] = 0
-        st.session_state.offer_df[col] = pd.to_numeric(st.session_state.offer_df[col], errors="coerce").fillna(0)
 
-    # Berekeningen uitvoeren
-    totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
-    totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
 
-    # Resultaten weergeven
-    st.sidebar.title("PricePilot")
-    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-    st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
-    st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-    # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
-    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+# Controleer en zet kolommen om
+for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
+    if col not in st.session_state.offer_df.columns:
+        st.session_state.offer_df[col] = 0
+    st.session_state.offer_df[col] = pd.to_numeric(st.session_state.offer_df[col], errors='coerce').fillna(0)
 
-    cutoff_value = st.sidebar.slider(
-        "Matchwaarde AI",
-        min_value=0.1,
-        max_value=1.0,
-        value=0.6,  # Standaardwaarde
-        step=0.1,  # Stappen in float
-        help="Stel matchwaarde in. Hogere waarde betekent strengere AI matching, 0.6 aanbevolen."
-    )
+# Berekeningen uitvoeren
+totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
+totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
 
-    # Gebruikersinvoer
-    customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-    customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-    st.session_state.customer_number = str(customer_number) if customer_number else ''
-    offer_amount = totaal_bedrag
 
-    # File uploader alleen beschikbaar in de uitklapbare invoeropties
-    with st.sidebar.expander("Upload document", expanded=False):
-        customer_file = st.file_uploader("Upload een bestand (bijv. screenshot of document)", type=None)
+# Resultaten weergeven
+st.sidebar.title("PricePilot")
+st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
+st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
 
-    if customer_number in customer_data:
-        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+# Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
+st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 
-        # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
-        klantgrootte = customer_data[customer_number]["size"]
-        prijsscherpte = ""
-        if klantgrootte == "A":
-            if offer_amount > 50000:
-                prijsscherpte = 100
-            elif offer_amount > 25000:
-                prijsscherpte = 90
-            elif offer_amount > 10000:
-                prijsscherpte = 80
-            elif offer_amount > 5000:
-                prijsscherpte = 70
-            else:
-                prijsscherpte = 60
-        elif klantgrootte == "B":
-            if offer_amount > 50000:
-                prijsscherpte = 80
-            elif offer_amount > 25000:
-                prijsscherpte = 70
-            elif offer_amount > 10000:
-                prijsscherpte = 60
-            elif offer_amount > 5000:
-                prijsscherpte = 50
-            else:
-                prijsscherpte = 40
-        elif klantgrootte == "C":
-            if offer_amount > 50000:
-                prijsscherpte = 75
-            elif offer_amount > 25000:
-                prijsscherpte = 65
-            elif offer_amount > 10000:
-                prijsscherpte = 50
-            elif offer_amount > 5000:
-                prijsscherpte = 40
-            else:
-                prijsscherpte = 30
-        elif klantgrootte == "D":
-            if offer_amount > 50000:
-                prijsscherpte = 70
-            elif offer_amount > 25000:
-                prijsscherpte = 60
-            elif offer_amount > 10000:
-                prijsscherpte = 45
-            elif offer_amount > 5000:
-                prijsscherpte = 25
-            else:
-                prijsscherpte = 10
-        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+cutoff_value = st.sidebar.slider(
+    "Matchwaarde AI",
+    min_value=0.1,
+    max_value=1.0,
+    value=0.6,  # Standaardwaarde
+    step=0.1,  # Stappen in float
+    help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
+)
 
+# Gebruikersinvoer
+customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
+customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+st.session_state.customer_number = str(customer_number) if customer_number else ''
+offer_amount = totaal_bedrag
+
+# File uploader alleen beschikbaar in de uitklapbare invoeropties
+with st.sidebar.expander("Upload document", expanded=False):
+    customer_file = st.file_uploader("Upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
+
+
+if customer_number in customer_data:
+    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+
+    # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
+    klantgrootte = customer_data[customer_number]['size']
+    prijsscherpte = ""
+    if klantgrootte == "A":
+        if offer_amount > 50000:
+            prijsscherpte = 100
+        elif offer_amount > 25000:
+            prijsscherpte = 90
+        elif offer_amount > 10000:
+            prijsscherpte = 80
+        elif offer_amount > 5000:
+            prijsscherpte = 70
+        else:
+            prijsscherpte = 60
+    elif klantgrootte == "B":
+        if offer_amount > 50000:
+            prijsscherpte = 80
+        elif offer_amount > 25000:
+            prijsscherpte = 70
+        elif offer_amount > 10000:
+            prijsscherpte = 60
+        elif offer_amount > 5000:
+            prijsscherpte = 50
+        else:
+            prijsscherpte = 40
+    elif klantgrootte == "C":
+        if offer_amount > 50000:
+            prijsscherpte = 75
+        elif offer_amount > 25000:
+            prijsscherpte = 65
+        elif offer_amount > 10000:
+            prijsscherpte = 50
+        elif offer_amount > 5000:
+            prijsscherpte = 40
+        else:
+            prijsscherpte = 30
+    elif klantgrootte == "D":
+        if offer_amount > 50000:
+            prijsscherpte = 70
+        elif offer_amount > 25000:
+            prijsscherpte = 60
+        elif offer_amount > 10000:
+            prijsscherpte = 45
+        elif offer_amount > 5000:
+            prijsscherpte = 25
+        else:
+            prijsscherpte = 10
+    st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
 
 # Functie om synoniemen te vervangen in invoertekst
@@ -503,28 +471,27 @@ def reset_rijnummers(df):
         df['Rijnummer'] = range(1, len(df) + 1)
     return df
 
+# JavaScript-code voor conditionele opmaak
 cell_style_js = JsCode("""
 function(params) {
-    if (params.colDef.field === "Verkoopprijs" && params.data.Prijsoorsprong === "Handmatig") {
-        return {'backgroundColor': '#A3CFA3', 'fontWeight': 'bold'};  // Donkergroen met vetgedrukte letters
-    } else if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
+    if (params.colDef.field === "RSP" && params.data.Prijs_backend === params.data.RSP) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
     } else if (params.colDef.field === "SAP Prijs" && params.data.Prijs_backend === params.data["SAP Prijs"]) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
     } else if (params.colDef.field === "Verkoopprijs" && params.data.Prijs_backend === params.data.Verkoopprijs) {
         return {'backgroundColor': '#DFFFD6', 'fontWeight': 'bold'};  // Lichtgroen met vetgedrukte letters
+    } else if (params.colDef.field !== "Verkoopprijs") {
+        return {'backgroundColor': '#e0e0e0'};  // Grijs voor alle andere cellen
     }
-    return null;  // Geen stijl toegepast
+    return null;
 }
 """)
-
-
 
 # Voeg een cell renderer toe om de stericoon weer te geven
 cell_renderer_js = JsCode("""
 function(params) {
     if (params.data.Source === "interpretatie" || params.data.Source === "GPT") {
-        return `🔮 ${params.value}`;  // Voeg stericoon toe vóór de waarde
+        return `✨ ${params.value}`;  // Voeg stericoon toe vóór de waarde
     }
     return params.value;  // Toon de originele waarde
 }
@@ -556,7 +523,7 @@ with tab1:
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
-gb.configure_default_column(flex=1, minWidth=60, editable=True)
+gb.configure_default_column(flex=1, min_width=80, editable=True)
 gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', cellEditorParams={"values": ["4 - alu", "6 - alu", "7 - alu", "8 - alu", "9 - alu", "10 - alu", "12 - alu", "13 - alu", "14 - alu", "15 - alu", "16 - alu", "18 - alu", "20 - alu", "24 - alu", "10 - warm edge", "12 - warm edge", "14 - warm edge", "15 - warm edge", "16 - warm edge", "18 - warm edge", "20 - warm edge", "24 - warm edge"]})
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"}, cellRenderer=cell_renderer_js)
 gb.configure_column("Artikelnaam", width=600)
@@ -571,12 +538,10 @@ gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
 gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellStyle=cell_style_js, valueFormatter="x.toFixed(2)")
-gb.configure_column("Handmatige Prijs",hide=False, editable=True,  type=["numericColumn"], cellStyle=cell_style_js)
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
 gb.configure_column("Source", hide=False)
-gb.configure_column("Prijsoorsprong",hide=False, editable=False)
 
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
@@ -616,10 +581,10 @@ with tab1:
         st.session_state.offer_df,
         gridOptions=grid_options,
         theme='material',
-        fit_columns_on_grid_load=False,
+        fit_columns_on_grid_load=True,
         enable_enterprise_modules=True,
-        update_mode=GridUpdateMode.VALUE_CHANGED,
-        columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
+        update_mode=GridUpdateMode.SELECTION_CHANGED,
+        columns_auto_size_mode=ColumnsAutoSizeMode.NO_AUTOSIZE,
         allow_unsafe_jscode=True
     )
 
@@ -636,15 +601,10 @@ with tab1:
 
 # Verbeterde update_tabel functie
 def update_tabel():
-    # Zorg dat de eerste regel automatisch wordt geselecteerd
-    if 'selected_rows' not in st.session_state or not st.session_state['selected_rows']:
-        st.session_state['selected_rows'] = [{"rowIndex": 0}]  # Selecteer de eerste regel met rowIndex
-
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
-
 
 # Offerte Genereren tab
 with tab1:
@@ -696,7 +656,7 @@ with tab1:
             # Voeg een lege rij toe aan het DataFrame
             new_row = pd.DataFrame({
                 "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
-                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0], "Handmatige Prijs": [None]
+                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
             })
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
             st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
@@ -765,8 +725,7 @@ def update_dash_table(n_dlt, n_add, data):
             "M2 totaal": [0],
             "Min_prijs": [0],
             "Max_prijs": [0],
-            "Verkoopprijs": [0],
-            "Handmatige Prijs": [None]
+            "Verkoopprijs": [0]
         })
         df_new_row = pd.DataFrame(new_row)
         updated_table = pd.concat([pd.DataFrame(data), df_new_row])
@@ -870,8 +829,7 @@ def handle_gpt_chat():
                         prijs_backend,
                         source,
                         fuzzy_match,  # Vul fuzzy_match kolom
-                        original_article_number, # Vul original_article_number kolom
-                        None
+                        original_article_number  # Vul original_article_number kolom
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -910,8 +868,7 @@ def handle_gpt_chat():
                             prijs_backend,
                             source,
                             fuzzy_match,  # Vul fuzzy_match kolom
-                            original_article_number,  # Vul original_article_number kolom
-                            None
+                            original_article_number  # Vul original_article_number kolom
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -919,7 +876,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Handmatige Prijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
@@ -1103,8 +1060,6 @@ with tab1:
 if 'Rijnummer' not in st.session_state.offer_df.columns:
     st.session_state.offer_df.insert(0, 'Rijnummer', range(1, len(st.session_state.offer_df) + 1))
     
-    # Definieer kolommen op een hoger niveau
-col1, col2, col3, col4, col5, col6 = st.columns(6)
 
 
 # Offerte Genereren tab
@@ -1234,7 +1189,7 @@ with tab3:
             beoordeling_tabel,
             gridOptions=grid_options,
             update_mode=GridUpdateMode.SELECTION_CHANGED,
-            fit_columns_on_grid_load=False,
+            fit_columns_on_grid_load=True,
             theme="material"
         )
 
@@ -1345,40 +1300,3 @@ with tab4:
             
 with tab5:
     st.subheader("Jouw instellingen")
-   
-    # Voorbeeld DataFrame
-    data = {"Kolom1": [10, 20, 30], "Kolom2": [40, 50, 60]}
-    df = pd.DataFrame(data)
-    
-    # JavaScript om Enter-toets te detecteren
-    enter_to_commit_js = JsCode("""
-    function(params) {
-        if (params.event.key === 'Enter') {
-            console.log('Enter pressed in grid');  // Debug in browser console
-            fetch('/_stcore', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ "action": "enter_pressed" })
-            });
-        }
-    }
-    """)
-    
-    # Configureer grid-opties
-    gb = GridOptionsBuilder.from_dataframe(df)
-    gb.configure_default_column(editable=True)
-    gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)
-    grid_options = gb.build()
-    
-    # Toon AgGrid
-    edited_df_response = AgGrid(
-        df,
-        gridOptions=grid_options,
-        allow_unsafe_jscode=True,
-        height=300,
-    )
-    
-    # Simuleer de Enter-actie (debug)
-    if "action" in st.session_state and st.session_state["action"] == "enter_pressed":
-        st.write("Gelukt!")  # Print "Gelukt" wanneer Enter wordt gedrukt
-        st.session_state["action"] = None  # Reset actie
