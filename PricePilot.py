@@ -91,7 +91,7 @@ with tab1:
             df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
             df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
             df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
-            df["Handmatige Prijs"] = pd.to_numeric(df["Handmatige Prijs"], errors="coerce").fillna(0)
+            df["Handmatige Prijs"] = pd.to_numeric(df["Handmatige Prijs"], errors="coerce").fillna(None)
             
             # Functie om afronding op 5 cent toe te passen
             def afronden_op_5_cent(bedrag):
