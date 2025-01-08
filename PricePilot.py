@@ -427,7 +427,7 @@ def update_offer_data(df):
                 df.at[index, 'SAP Prijs'] = sap_prijs if sap_prijs else "Geen prijs"
             else:
                 df.at[index, 'SAP Prijs'] = "Geen prijs"
-    df = bereken_prijs_backend(df)
+    df = bereken_prijs_backend(df, prijsbepaling_optie)
     return df
 
 
