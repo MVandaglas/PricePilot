@@ -610,7 +610,7 @@ with tab1:
         theme='streamlit',
         fit_columns_on_grid_load=False,
         enable_enterprise_modules=True,
-        update_mode=GridUpdateMode.VALUE_CHANGED,
+        update_mode=GridUpdateMode.MODEL_CHANGED,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         allow_unsafe_jscode=True
     )
