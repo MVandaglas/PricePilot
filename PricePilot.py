@@ -1331,36 +1331,40 @@ with tab5:
     st.subheader("Jouw instellingen")
    
     # Voorbeeld DataFrame
-    data = {"Kolom1": [10, 20, 30], "Kolom2": [40, 50, 60]}
-    df = pd.DataFrame(data)
+    df = pd.DataFrame({
+        'kolom1': [200, 150, 100],
+        'kolom2': [80, 90, 100]
+    })
     
-    # JavaScript om de focus te verwijderen na Enter
-    enter_to_commit_js = JsCode("""
-    function(params) {
-        console.log("Toets ingedrukt:", params.event.key);  // Debug
-        if (params.event.key === 'Enter') {
-            params.api.stopEditing();  // Stop bewerken
-            console.log('Enter pressed and editing stopped');  // Debug
-        }
-    }
-    """)
-    
-    # Configureer grid-opties
+    # GridOptions instellen
     gb = GridOptionsBuilder.from_dataframe(df)
     gb.configure_default_column(editable=True)
-    gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)
     grid_options = gb.build()
     
-    # Toon AgGrid
-    edited_df_response = AgGrid(
+    # JavaScript callback voor directe verwerking van wijzigingen (tijdelijk uitgeschakeld)
+    # cell_value_changed_js = JsCode("""
+    # function(event) {
+    #     console.log('Cel gewijzigd:', event);
+    #     event.api.refreshCells();  // Ververs de cellen onmiddellijk
+    # }
+    # """)
+    # gb.configure_grid_options(onCellValueChanged=cell_value_changed_js)
+    
+    # AgGrid weergeven
+    grid_response = AgGrid(
         df,
         gridOptions=grid_options,
-        update_mode=GridUpdateMode.MODEL_CHANGED,  # Detecteer wijzigingen
-        allow_unsafe_jscode=True,
-        height=300,
+        update_mode=GridUpdateMode.MODEL_CHANGED,  # Probeer MODEL_CHANGED
+        reload_data=False  # Zorg ervoor dat reload_data op False staat
     )
     
-    # Detecteer wijzigingen in de data
-    if edited_df_response.get("data") is not None:
-        st.session_state["edited_data"] = pd.DataFrame(edited_df_response["data"])
-        st.write("Gelukt!")  # Print 'Gelukt!' na bewerken
+    # Geüpdatete DataFrame ophalen
+    updated_df = grid_response['data']
+    st.write(updated_df)
+    
+    # Debugging: print de DataFrame na elke wijziging
+    if "data" in grid_response:
+        updated_df = pd.DataFrame(grid_response['data'])
+        st.session_state.offer_df = updated_df
+        st.write("Geüpdatete DataFrame:")
+        st.write(st.session_state.offer_df)
