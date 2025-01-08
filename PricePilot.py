@@ -35,7 +35,7 @@ customer_data = {
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
 if "offer_df" not in st.session_state:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "Prijsoorsprong"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Handmatige prijs", "Prijs_backend", "Source", "Prijsoorsprong"])
 if "customer_number" not in st.session_state:
     st.session_state.customer_number = ""
 if "loaded_offer_df" not in st.session_state:
@@ -62,7 +62,7 @@ with tab1:
 
 
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
-    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
+    st.session_state.offer_df = pd.DataFrame(columns=["Rijnummer", "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "SAP Prijs", "Handmatige prijs" "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source"])
 
 
 # Omzetting naar numerieke waarden en lege waarden vervangen door 0
@@ -561,7 +561,8 @@ gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
 gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
-gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellStyle=cell_style_js, valueFormatter="x.toFixed(2)")
+gb.configure_column("Verkoopprijs", editable=False, type=["numericColumn"], cellStyle=cell_style_js, valueFormatter="x.toFixed(2)")
+gb.configure_column("Handmatige prijs", editable=True, type=["numericColumn"])
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
@@ -686,7 +687,7 @@ with tab1:
             # Voeg een lege rij toe aan het DataFrame
             new_row = pd.DataFrame({
                 "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
-                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
+                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0], "Handmatige prijs": [None]
             })
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
             st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
@@ -756,6 +757,7 @@ def update_dash_table(n_dlt, n_add, data):
             "Min_prijs": [0],
             "Max_prijs": [0],
             "Verkoopprijs": [0]
+            "Handmatige prijs": [None]
         })
         df_new_row = pd.DataFrame(new_row)
         updated_table = pd.concat([pd.DataFrame(data), df_new_row])
@@ -859,7 +861,8 @@ def handle_gpt_chat():
                         prijs_backend,
                         source,
                         fuzzy_match,  # Vul fuzzy_match kolom
-                        original_article_number  # Vul original_article_number kolom
+                        original_article_number, # Vul original_article_number kolom
+                        None
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -898,7 +901,8 @@ def handle_gpt_chat():
                             prijs_backend,
                             source,
                             fuzzy_match,  # Vul fuzzy_match kolom
-                            original_article_number  # Vul original_article_number kolom
+                            original_article_number,  # Vul original_article_number kolom
+                            None
                         ])
                     else:
                         st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
@@ -906,7 +910,7 @@ def handle_gpt_chat():
                     st.sidebar.warning("Geen artikelen gevonden in de invoer.")
 
         if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
+            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal", "Min_prijs", "Max_prijs", "Verkoopprijs", "Handmatige prijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
             
             # Voeg regelnummers toe
             new_df.insert(0, 'Rijnummer', new_df.index + 1)
