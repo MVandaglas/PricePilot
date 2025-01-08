@@ -1330,52 +1330,37 @@ with tab4:
 with tab5:
     st.subheader("Jouw instellingen")
    
-        # Voorbeeld DataFrame
-    df = pd.DataFrame({
-        'kolom1': [200, 150, 100],
-        'kolom2': [80, 90, 100],
-        'M2 totaal': [0, 0, 0]  # Initialiseer de kolom met een standaardwaarde
-    })
+    # Voorbeeld DataFrame
+    data = {"Kolom1": [10, 20, 30], "Kolom2": [40, 50, 60]}
+    df = pd.DataFrame(data)
     
-    # GridOptions instellen
+    # JavaScript om de focus te verwijderen na Enter
+    enter_to_commit_js = JsCode("""
+    function(params) {
+        console.log("Toets ingedrukt:", params.event.key);  // Debug
+        if (params.event.key === 'Enter') {
+            params.api.stopEditing();  // Stop bewerken
+            console.log('Enter pressed and editing stopped');  // Debug
+        }
+    }
+    """)
+    
+    # Configureer grid-opties
     gb = GridOptionsBuilder.from_dataframe(df)
     gb.configure_default_column(editable=True)
+    gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)
     grid_options = gb.build()
     
-    # AgGrid weergeven
-    grid_response = AgGrid(
+    # Toon AgGrid
+    edited_df_response = AgGrid(
         df,
         gridOptions=grid_options,
-        update_mode=GridUpdateMode.MODEL_CHANGED,  # Probeer MODEL_CHANGED
-        reload_data=False  # Zorg ervoor dat reload_data op False staat
+        update_mode=GridUpdateMode.MODEL_CHANGED,  # Detecteer wijzigingen
+        allow_unsafe_jscode=True,
+        height=300,
     )
     
-    # Geüpdatete DataFrame ophalen
-    updated_df = grid_response['data']
-    st.write(updated_df)
-    
-    # Debugging: print de DataFrame na elke wijziging
-    if "data" in grid_response:
-        updated_df = pd.DataFrame(grid_response['data'])
-        st.session_state.offer_df = updated_df
-        st.write("Geüpdatete DataFrame:")
-        st.write(st.session_state.offer_df)
-    
-    # Functie om de DataFrame bij te werken
-    def update_offer_data(df):
-        for index, row in df.iterrows():
-            if pd.notna(row['Breedte']) and pd.notna(row['Hoogte']):
-                df.at[index, 'M2 p/s'] = calculate_m2_per_piece(row['Breedte'], row['Hoogte'])
-            if pd.notna(row['Aantal']) and pd.notna(df.at[index, 'M2 p/s']):
-                df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
-        return df
-    
-    # Voorbeeld van hoe de waarde wordt opgeslagen in de state
-    def save_changes(df):
-        st.session_state.offer_df = df
-        st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-    
-    # Update de DataFrame na elke wijziging
-    if "data" in grid_response:
-        updated_df = pd.DataFrame(grid_response['data'])
-        save_changes(updated_df)
+    # Detecteer wijzigingen in de data
+    if edited_df_response.get("data") is not None:
+        st.session_state["edited_data"] = pd.DataFrame(edited_df_response["data"])
+        st.write("Gelukt!")  # Print 'Gelukt!' na bewerken
