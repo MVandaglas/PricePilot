@@ -81,14 +81,10 @@ with tab1:
 
 # Offerte Genereren tab
 with tab1:
-    def bereken_prijs_backend(df, prijsbepaling_optie=None):
+    def bereken_prijs_backend(df, prijsbepaling_optie):
         if df is None:
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
-
-        if prijsbepaling_optie is None:
-            st.error("De parameter 'prijsbepaling_optie' ontbreekt. Geef een geldige optie op.")
-            return df
 
         try:
             # Zorg ervoor dat kolommen numeriek zijn
@@ -117,6 +113,15 @@ with tab1:
             st.error(f"Fout bij het berekenen van Verkoopprijs: {e}")
 
         return df
+
+    # Voorbeeld: roep de functie aan met een default waarde voor prijsbepaling_optie
+    prijsbepaling_optie = st.selectbox(
+        "Selecteer prijsbepaling optie", ["SAP Prijs", "RSP", "PricePilot logica"], index=0
+    )
+
+    # Gebruik de geselecteerde optie bij het bijwerken van de tabel
+    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df, prijsbepaling_optie)
+
 
 
 
