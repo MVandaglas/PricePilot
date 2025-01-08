@@ -90,15 +90,14 @@ with tab1:
             # Zorg ervoor dat kolommen numeriek zijn
             df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
             df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
-            df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
             df["Handmatige Prijs"] = pd.to_numeric(df["Handmatige Prijs"], errors="coerce").fillna(0)
 
             # Functie om afronding op 5 cent toe te passen
             def afronden_op_5_cent(bedrag):
                 return (bedrag * 20 // 1 + (1 if (bedrag * 20 % 1) > 0 else 0)) / 20
 
-            # Functie om Verkoopprijs te bepalen op basis van logica
-            def bepaal_verkoopprijs(row):
+            # Functie om Prijs_backend te bepalen op basis van logica
+            def bepaal_prijs_backend(row):
                 if row["Handmatige Prijs"] > 0:
                     return row["Handmatige Prijs"]
                 elif prijsbepaling_optie == "SAP Prijs":
@@ -109,11 +108,14 @@ with tab1:
                     return min(row["SAP Prijs"], row["RSP"])
                 return 0
 
-            # Pas de verkoopprijs logica toe op de DataFrame
-            df["Verkoopprijs"] = df.apply(bepaal_verkoopprijs, axis=1)
+            # Pas de prijsbepaling logica toe op de DataFrame
+            df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
+
+            # Verkoopprijs is gelijk aan Prijs_backend
+            df["Verkoopprijs"] = df["Prijs_backend"]
 
         except Exception as e:
-            st.error(f"Fout bij het berekenen van Verkoopprijs: {e}")
+            st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
 
