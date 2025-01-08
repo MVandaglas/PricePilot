@@ -77,7 +77,7 @@ with tab1:
     # Voeg een dropdown toe voor prijsbepaling met een breedte-instelling
     col1, _ = st.columns([1, 7])  # Maak kolommen om breedte te beperken
     with col1:
-        prijsbepaling_optie = st.selectbox("Prijsbepaling", ["SAP prijs", "PricePilot logica", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
+        prijsbepaling_optie = st.selectbox("Prijsbepaling", ["PricePilot logica", "SAP prijs", "RSP"], key="prijsbepaling", help="Selecteer een methode voor prijsbepaling.")
 
 # Offerte Genereren tab
 with tab1:
