@@ -81,7 +81,7 @@ with tab1:
 
 # Offerte Genereren tab
 with tab1:
-    def bereken_prijs_backend(df):
+    def bereken_prijs_backend(df, prijsbepaling_optie="PricePilot logica"):
         if df is None or not isinstance(df, pd.DataFrame):
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
@@ -106,29 +106,22 @@ with tab1:
                 # Controleer of Handmatige Prijs is ingevuld
                 if row["Handmatige Prijs"] > 0:
                     return row["Handmatige Prijs"]
-
+                
                 # Logica voor SAP Prijs
-                if st.session_state.get("prijsbepaling_optie") == "SAP prijs":
+                elif prijsbepaling_optie == "SAP Prijs":
                     return row["SAP Prijs"]
-
+                
                 # Logica voor RSP
-                if st.session_state.get("prijsbepaling_optie") == "RSP":
+                elif prijsbepaling_optie == "RSP":
                     rsp_met_kwaliteit = row["RSP"] * (row["Prijskwaliteit"] / 100)
                     return (rsp_met_kwaliteit * 20 // 1 + (1 if (rsp_met_kwaliteit * 20 % 1) > 0 else 0)) / 20
-
-                # Logica voor PricePilot logica
-                if st.session_state.get("prijsbepaling_optie") == "PricePilot logica":
+                
+                # Logica voor PricePilot
+                elif prijsbepaling_optie == "PricePilot logica":
                     return min(row["SAP Prijs"], row["RSP"])
-
+                
                 # Default naar 0 als niets anders van toepassing is
                 return 0
-
-            # Controleer of prijsbepaling_optie correct wordt opgehaald
-            if "prijsbepaling_optie" not in st.session_state:
-                st.warning("Prijsbepaling optie is niet ingesteld.")
-
-            # Debugging: Toon de huidige waarde van prijsbepaling_optie
-            st.write("Huidige prijsbepaling_optie:", st.session_state.get("prijsbepaling_optie"))
 
             # Pas de prijsbepaling logica toe op de DataFrame
             df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
@@ -140,7 +133,6 @@ with tab1:
             st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
-
 
 
 
