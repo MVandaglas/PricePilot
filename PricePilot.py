@@ -81,50 +81,41 @@ with tab1:
 
 # Offerte Genereren tab
 with tab1:
-    def bereken_prijs_backend(df):
+    def bereken_prijs_backend(df, prijsbepaling_optie):
         if df is None:
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
-    
+
         try:
             # Zorg ervoor dat kolommen numeriek zijn
             df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
             df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
             df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
-    
-            # Eerst Prijs_backend bepalen zonder totaal_bedrag
-            def bepaal_prijs_backend(row):
-                if row["Verkoopprijs"] > 0:
-                    return row["Verkoopprijs"]
-                return min(row["SAP Prijs"], row["RSP"])
-    
-            df["Prijs_backend"] = df.apply(bepaal_prijs_backend, axis=1)
-    
-            # Bereken totaal_bedrag nu Prijs_backend is bijgewerkt
-            totaal_bedrag = (df["M2 totaal"] * df["Prijs_backend"]).sum()
-    
-            # Update Prijs_backend afhankelijk van totaal_bedrag
-            def update_prijs_backend(row):
-                if row["Verkoopprijs"] > 0:
-                    return row["Verkoopprijs"]
-                elif totaal_bedrag < 2000:
-                    return row["SAP Prijs"]
-                return min(row["SAP Prijs"], row["RSP"])
-    
-            df["Prijs_backend"] = df.apply(update_prijs_backend, axis=1)
-    
-            # Aanpassen van Verkoopprijs als RSP is gekozen
-            if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
-                df["Verkoopprijs"] = df["RSP"] * (df["Prijskwaliteit"] / 100)
-    
-                # Afronden naar boven op de dichtstbijzijnde 5 cent
-                df["Verkoopprijs"] = (df["Verkoopprijs"] * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
-    
-        except Exception as e:
-            st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
-    
-        return df
+            df["Handmatige Prijs"] = pd.to_numeric(df["Handmatige Prijs"], errors="coerce").fillna(0)
+            
+            # Functie om afronding op 5 cent toe te passen
+            def afronden_op_5_cent(bedrag):
+                return (bedrag * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
 
+            # Functie om Verkoopprijs te bepalen op basis van logica
+            def bepaal_verkoopprijs(row):
+                if row["Handmatige Prijs"] > 0:
+                    return row["Handmatige Prijs"]
+                elif prijsbepaling_optie == "SAP Prijs":
+                    return row["SAP Prijs"]
+                elif prijsbepaling_optie == "RSP":
+                    return afronden_op_5_cent(pd.Series([row["RSP"] * (row.get("Prijskwaliteit", 100) / 100)]))[0]
+                elif prijsbepaling_optie == "PricePilot logica":
+                    return min(row["SAP Prijs"], row["RSP"])
+                return 0
+
+            # Pas de verkoopprijs logica toe op de DataFrame
+            df["Verkoopprijs"] = df.apply(bepaal_verkoopprijs, axis=1)
+
+        except Exception as e:
+            st.error(f"Fout bij het berekenen van Verkoopprijs: {e}")
+
+        return df
 
 # Controleer en zet kolommen om
 for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
