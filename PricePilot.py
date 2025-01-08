@@ -163,7 +163,7 @@ with tab1:
             except Exception as e:
                 st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
-        return df
+            return df
 
 
 
