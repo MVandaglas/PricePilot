@@ -546,7 +546,6 @@ with tab1:
    
     
 
-
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, minWidth=60, editable=True)
@@ -569,8 +568,7 @@ gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle=
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
 gb.configure_column("Source", hide=False)
-gb.configure_column("Prijsoorsprong",hide=False, editable=False)
-
+gb.configure_column("Prijsoorsprong", hide=False, editable=False)
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
 gb.configure_selection(
@@ -582,19 +580,17 @@ gb.configure_selection(
 # Overige configuratie van de grid
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
-
 # JavaScript om de focus te verwijderen na Enter
 enter_to_commit_js = JsCode("""
 function(params) {
-    console.log("Toets ingedrukt:", params.event.key);  // Debug
     if (params.event.key === 'Enter') {
         params.api.stopEditing();  // Stop bewerken
-        console.log('Enter pressed and editing stopped');  // Debug
     }
 }
 """)
 gb.configure_grid_options(onCellKeyDown=enter_to_commit_js)
 
+# JavaScript callback voor directe verwerking van wijzigingen
 cell_value_changed_js = JsCode("""
 function(event) {
     console.log('Cel gewijzigd:', event);
@@ -603,21 +599,19 @@ function(event) {
 """)
 gb.configure_grid_options(onCellValueChanged=cell_value_changed_js)
 
-
 # Bouw grid-opties
 grid_options = gb.build()
 
 # Offerte Genereren tab
 with tab1:
-
-    # Toon de AG Grid met het material-thema
+    # Toon de AG Grid met het materiaal-thema
     edited_df_response = AgGrid(
         st.session_state.offer_df,
         gridOptions=grid_options,
         theme='streamlit',
         fit_columns_on_grid_load=False,
         enable_enterprise_modules=True,
-        update_mode=GridUpdateMode.MODEL_CHANGED,
+        update_mode=GridUpdateMode.VALUE_CHANGED,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         allow_unsafe_jscode=True
     )
@@ -625,34 +619,24 @@ with tab1:
     # Update de DataFrame na elke wijziging
     if "data" in edited_df_response:
         updated_df = pd.DataFrame(edited_df_response['data'])
-        # Werk de sessiestatus bij met de nieuwe data
         st.session_state.offer_df = updated_df
-        # Voer alle benodigde berekeningen uit
         st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-
-
 # Verbeterde update_tabel functie
 def update_tabel():
-    # Zorg dat de eerste regel automatisch wordt geselecteerd
-    if 'selected_rows' not in st.session_state or not st.session_state['selected_rows']:
-        st.session_state['selected_rows'] = [{"rowIndex": 0}]  # Selecteer de eerste regel met rowIndex
-
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-
 # Offerte Genereren tab
 with tab1:
-    
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
         update_tabel()
         update_tabel()
- 
+
     # Update de DataFrame na elke wijziging
     updated_df = edited_df_response['data']
     save_changes(pd.DataFrame(updated_df))
