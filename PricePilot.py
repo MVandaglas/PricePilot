@@ -87,11 +87,19 @@ with tab1:
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
 
         try:
-            # Zorg ervoor dat kolommen numeriek zijn
-            df["SAP Prijs"] = pd.to_numeric(df.get("SAP Prijs", 0), errors="coerce").fillna(0)
-            df["RSP"] = pd.to_numeric(df.get("RSP", 0), errors="coerce").fillna(0)
-            df["Handmatige Prijs"] = pd.to_numeric(df.get("Handmatige Prijs", 0), errors="coerce").fillna(0)
-            df["Prijskwaliteit"] = pd.to_numeric(df.get("Prijskwaliteit", 100), errors="coerce").fillna(100)
+            # Controleer of de DataFrame geldig is
+            if not isinstance(df, pd.DataFrame):
+                raise ValueError("De input is geen geldige DataFrame.")
+
+            # Zorg ervoor dat kolommen numeriek zijn of bestaan
+            for col in ["SAP Prijs", "RSP", "Handmatige Prijs", "Prijskwaliteit"]:
+                if col not in df.columns:
+                    df[col] = 0  # Voeg de kolom toe als deze niet bestaat
+
+            df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
+            df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
+            df["Handmatige Prijs"] = pd.to_numeric(df["Handmatige Prijs"], errors="coerce").fillna(0)
+            df["Prijskwaliteit"] = pd.to_numeric(df["Prijskwaliteit"], errors="coerce").fillna(100)
 
             # Bewaar de originele RSP-waarde om herhaaldelijke bewerkingen te voorkomen
             if "Originele RSP" not in df.columns:
@@ -132,6 +140,7 @@ with tab1:
             st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
+
 
 
 
