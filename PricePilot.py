@@ -81,7 +81,7 @@ with tab1:
 
 # Offerte Genereren tab
 with tab1:
-    def bereken_prijs_backend(df, prijsbepaling_optie = "Test"):
+    def bereken_prijs_backend(df, prijsbepaling_optie="Test"):
         if df is None:
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
@@ -92,10 +92,10 @@ with tab1:
             df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
             df["Verkoopprijs"] = pd.to_numeric(df["Verkoopprijs"], errors="coerce").fillna(0)
             df["Handmatige Prijs"] = pd.to_numeric(df["Handmatige Prijs"], errors="coerce").fillna(0)
-            
+
             # Functie om afronding op 5 cent toe te passen
             def afronden_op_5_cent(bedrag):
-                return (bedrag * 20).apply(lambda x: (x // 1 + (1 if x % 1 > 0 else 0)) / 20)
+                return (bedrag * 20 // 1 + (1 if (bedrag * 20 % 1) > 0 else 0)) / 20
 
             # Functie om Verkoopprijs te bepalen op basis van logica
             def bepaal_verkoopprijs(row):
@@ -104,7 +104,7 @@ with tab1:
                 elif prijsbepaling_optie == "SAP Prijs":
                     return row["SAP Prijs"]
                 elif prijsbepaling_optie == "RSP":
-                    return afronden_op_5_cent(pd.Series([row["RSP"] * (row.get("Prijskwaliteit", 100) / 100)]))[0]
+                    return afronden_op_5_cent(row["RSP"] * (row.get("Prijskwaliteit", 100) / 100))
                 elif prijsbepaling_optie == "PricePilot logica":
                     return min(row["SAP Prijs"], row["RSP"])
                 return 0
