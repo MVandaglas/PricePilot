@@ -125,6 +125,8 @@ with tab1:
                     return "SAP Prijs"
                 elif row["Verkoopprijs"] == row["RSP"]:
                     return "RSP"
+                elif row["Verkoopprijs"] == row["Handmatige Prijs"]:
+                    return "Handmatige Prijs"
                 elif abs(row["Verkoopprijs"] - (row["RSP"] * row["Prijskwaliteit"] / 100)) <= 0.05:
                     return "Prijskwaliteit"
                 elif row["Verkoopprijs"] == 0 or pd.isnull(row["Verkoopprijs"]):
@@ -134,18 +136,32 @@ with tab1:
 
             df["Prijsoorsprong"] = df.apply(bepaal_prijsoorsprong, axis=1)
 
-            # Aanpassen van Verkoopprijs alleen als Prijsoorsprong niet "Handmatig" is
+
+        # Aanpassen van Verkoopprijs met nieuwe logica
             def update_verkoopprijs(row):
+                # Controleer op Handmatige Prijs
+                if row["Handmatige prijs"] > 0:
+                    return row["Handmatige prijs"]
+                
+                # Bereken RSP als prijsbepaling_optie "RSP" is
                 if prijsbepaling_optie == "RSP" and "Prijskwaliteit" in df.columns:
                     nieuwe_prijs = row["RSP"] * (row["Prijskwaliteit"] / 100)
+                    # Afronden op dichtstbijzijnde 5 cent
                     return (nieuwe_prijs * 20 // 1 + (1 if (nieuwe_prijs * 20) % 1 > 0 else 0)) / 20
-                else:
-                    return row["Verkoopprijs"]
-
-            df["Verkoopprijs"] = df.apply(update_verkoopprijs, axis=1)
-
-        except Exception as e:
-            st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
+                
+                # Gebruik SAP Prijs als prijsbepaling_optie "SAP" is
+                if prijsbepaling_optie == "SAP":
+                    return row["SAP Prijs"]
+                
+                # Als geen van bovenstaande gevallen van toepassing is, behoud huidige Verkoopprijs
+                return row["Verkoopprijs"]
+            
+            try:
+                # Pas de logica toe op de DataFrame
+                df["Verkoopprijs"] = df.apply(update_verkoopprijs, axis=1)
+            
+            except Exception as e:
+                st.error(f"Fout bij het berekenen van Prijs_backend: {e}")
 
         return df
 
