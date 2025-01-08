@@ -82,15 +82,15 @@ with tab1:
 # Offerte Genereren tab
 with tab1:
     def bereken_prijs_backend(df, prijsbepaling_optie="PricePilot logica"):
-        if df is None:
+        if df is None or not isinstance(df, pd.DataFrame):
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
 
         try:
             # Zorg ervoor dat kolommen numeriek zijn
-            df["SAP Prijs"] = pd.to_numeric(df["SAP Prijs"], errors="coerce").fillna(0)
-            df["RSP"] = pd.to_numeric(df["RSP"], errors="coerce").fillna(0)
-            df["Handmatige Prijs"] = pd.to_numeric(df["Handmatige Prijs"], errors="coerce").fillna(0)
+            df["SAP Prijs"] = pd.to_numeric(df.get("SAP Prijs", 0), errors="coerce").fillna(0)
+            df["RSP"] = pd.to_numeric(df.get("RSP", 0), errors="coerce").fillna(0)
+            df["Handmatige Prijs"] = pd.to_numeric(df.get("Handmatige Prijs", 0), errors="coerce").fillna(0)
             df["Prijskwaliteit"] = pd.to_numeric(df.get("Prijskwaliteit", 100), errors="coerce").fillna(100)
 
             # Bewaar de originele RSP-waarde om herhaaldelijke bewerkingen te voorkomen
