@@ -558,7 +558,7 @@ gb.configure_selection(
 # Overige configuratie van de grid
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
 
-# Voeg een JavaScript event listener toe voor directe updates
+# Voeg een JavaScript event listener toe voor updates bij het indrukken van Enter
 js_update_code = JsCode('''
 function onCellValueChanged(params) {
     let rowNode = params.node;
@@ -568,8 +568,15 @@ function onCellValueChanged(params) {
     params.api.applyTransaction({ update: [data] });
 
     // Forceer visuele update
-    params.api.refreshCells({ force: true
-});
+    params.api.refreshCells({ force: true });
+
+    // Luister naar de Enter-toets
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            // Ververs de grid wanneer Enter wordt ingedrukt
+            params.api.redrawRows();
+        }
+    });
 }
 ''')
 gb.configure_grid_options(onCellValueChanged=js_update_code)
