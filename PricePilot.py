@@ -521,7 +521,16 @@ with tab1:
     # Altijd de logica via de functie bereken_prijs_backend toepassen
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
+# JavaScript code voor het opslaan van wijzigingen
+js_update_code = JsCode('''
+function onCellEditingStopped(params) {
+    // Opslaan van gewijzigde data na het bewerken van een cel
+    let updatedRow = params.node.data;
 
+    // Zorg ervoor dat wijzigingen worden doorgevoerd in de grid
+    params.api.applyTransaction({ update: [updatedRow] });
+}
+''')
 
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
@@ -554,6 +563,9 @@ gb.configure_selection(
     use_checkbox=True,
     header_checkbox=True  # Voeg een selectievakje in de header toe
 )
+
+# Voeg de JavaScript code toe aan de grid-opties
+gb.configure_grid_options(onCellEditingStopped=js_update_code)
 
 # Overige configuratie van de grid
 gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
@@ -599,6 +611,9 @@ with tab1:
         allow_unsafe_jscode=True
     )
 
+    # Update de data na wijzigingen in de grid
+    update_grid_data(grid_response)
+    
     # Update de DataFrame na elke wijziging
     if "data" in edited_df_response:
         updated_df = pd.DataFrame(edited_df_response['data'])
