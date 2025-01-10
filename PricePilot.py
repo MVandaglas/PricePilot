@@ -612,7 +612,7 @@ with tab1:
     )
 
      # Update de data na wijzigingen in de grid
-    update_grid_data(grid_response)
+    update_grid_data(edited_df_response)
     
     # Update de DataFrame na elke wijziging
     if "data" in edited_df_response:
