@@ -521,7 +521,16 @@ with tab1:
     # Altijd de logica via de functie bereken_prijs_backend toepassen
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
+# JavaScript code voor het opslaan van wijzigingen
+js_update_code = JsCode('''
+function onCellEditingStopped(params) {
+    // Opslaan van gewijzigde data na het bewerken van een cel
+    let updatedRow = params.node.data;
 
+    // Zorg ervoor dat wijzigingen worden doorgevoerd in de grid
+    params.api.applyTransaction({ update: [updatedRow] });
+}
+''')
 
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
