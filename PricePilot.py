@@ -611,8 +611,7 @@ with tab1:
         allow_unsafe_jscode=True
     )
 
-    # Update de data na wijzigingen in de grid
-    update_grid_data(grid_response)
+ 
     
     # Update de DataFrame na elke wijziging
     if "data" in edited_df_response:
