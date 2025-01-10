@@ -612,16 +612,7 @@ with tab1:
     )
 
     
-    # Update de DataFrame na elke wijziging
-    if "data" in edited_df_response:
-        updated_df = pd.DataFrame(edited_df_response['data'])
-        # Werk de sessiestatus bij met de nieuwe data
-        st.session_state.offer_df = updated_df
-        # Voer alle benodigde berekeningen uit
-        st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
-
-
+   
 
 # Verbeterde update_tabel functie
 def update_tabel():
