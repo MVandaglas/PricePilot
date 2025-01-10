@@ -521,23 +521,24 @@ with tab1:
     # Altijd de logica via de functie bereken_prijs_backend toepassen
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-# JavaScript code voor het opslaan van wijzigingen
+# JavaScript code voor opslaan van wijzigingen
 js_update_code = JsCode('''
 function onCellEditingStopped(params) {
-    // Opslaan van gewijzigde data na het bewerken van een cel
     let updatedRow = params.node.data;
 
     // Zorg ervoor dat wijzigingen worden doorgevoerd in de grid
     params.api.applyTransaction({ update: [updatedRow] });
+
+    // Forceer visuele update
+    params.api.refreshCells({ force: true });
 }
 ''')
 
-
-# Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
+# Maak grid-opties aan voor AgGrid
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
 gb.configure_default_column(flex=1, minWidth=50, editable=True)
 gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', cellEditorParams={"values": ["4 - alu", "6 - alu", "7 - alu", "8 - alu", "9 - alu", "10 - alu", "12 - alu", "13 - alu", "14 - alu", "15 - alu", "16 - alu", "18 - alu", "20 - alu", "24 - alu", "10 - warm edge", "12 - warm edge", "14 - warm edge", "15 - warm edge", "16 - warm edge", "18 - warm edge", "20 - warm edge", "24 - warm edge"]})
-gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"}, cellRenderer=cell_renderer_js)
+gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"})
 gb.configure_column("Artikelnaam", width=600)
 gb.configure_column("Offertenummer", hide=True)
 gb.configure_column("Prijs_backend", hide=False)
@@ -549,57 +550,30 @@ gb.configure_column("Handmatige Prijs", editable=True, type=["numericColumn"])
 gb.configure_column("Breedte", editable=True, type=["numericColumn"])
 gb.configure_column("Hoogte", editable=True, type=["numericColumn"])
 gb.configure_column("Aantal", editable=True, type=["numericColumn"])
-gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
-gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellStyle=cell_style_js, valueFormatter="x.toFixed(2)")
+gb.configure_column("RSP", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)")
+gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
-gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
+gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)")
 gb.configure_column("Source", hide=False)
 
-
-# Configuratie voor selectie, inclusief checkbox in de header voor "select all"
-gb.configure_selection(
-    selection_mode='multiple',
-    use_checkbox=True,
-    header_checkbox=True  # Voeg een selectievakje in de header toe
-)
+# Configuratie voor selectie
+gb.configure_selection(selection_mode='multiple', use_checkbox=True, header_checkbox=True)
 
 # Voeg de JavaScript code toe aan de grid-opties
 gb.configure_grid_options(onCellEditingStopped=js_update_code)
-
-# Overige configuratie van de grid
-gb.configure_grid_options(domLayout='normal', rowHeight=23)  # Dit zorgt ervoor dat scrollen mogelijk is
-
-# Voeg een JavaScript event listener toe voor updates bij het indrukken van Enter
-js_update_code = JsCode('''
-function onCellValueChanged(params) {
-    let rowNode = params.node;
-    let data = rowNode.data;
-
-    // Zorg ervoor dat wijzigingen direct worden toegepast
-    params.api.applyTransaction({ update: [data] });
-
-    // Forceer visuele update
-    params.api.refreshCells({ force: true });
-
-    // Luister naar de Enter-toets
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            // Ververs de grid wanneer Enter wordt ingedrukt
-            params.api.redrawRows();
-        }
-    });
-}
-''')
-gb.configure_grid_options(onCellValueChanged=js_update_code)
+gb.configure_grid_options(domLayout='normal', rowHeight=23)
 
 # Bouw grid-opties
 grid_options = gb.build()
 
-# Offerte Genereren tab
-with tab1:
+# Functie om wijzigingen op te slaan
+def update_grid_data(data_returned):
+    if data_returned["data"] is not None:
+        st.session_state.offer_df = pd.DataFrame(data_returned["data"])
 
-    # Toon de AG Grid met het material-thema
+# Render de grid met AgGrid
+with st.container():
     edited_df_response = AgGrid(
         st.session_state.offer_df,
         gridOptions=grid_options,
@@ -611,7 +585,7 @@ with tab1:
         allow_unsafe_jscode=True
     )
 
-     # Update de data na wijzigingen in de grid
+    # Update de data na wijzigingen
     update_grid_data(edited_df_response)
     
     # Update de DataFrame na elke wijziging
