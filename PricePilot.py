@@ -221,25 +221,7 @@ def manual_column_mapping(df, detected_columns):
 
                 
 
-            else:
-                st.warning("Geen relevante kolommen gevonden of gemapped.")
-                return None
-        except Exception as e:
-            st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
-            return None
-
-    elif attachment_name.endswith(".pdf"):
-        try:
-            # Lees PDF-bestand
-            pdf_reader = PdfReader(BytesIO(attachment))
-            st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
-            for page_number, page in enumerate(pdf_reader.pages, start=1):
-                st.write(f"**Pagina {page_number}:**")
-                st.text(page.extract_text())
-        except Exception as e:
-            st.error(f"Fout bij het lezen van PDF-bestand '{attachment_name}': {e}")
-    else:
-        st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
+            
 
 
 # Bepaal de laatste email van een mailboom
@@ -1216,6 +1198,26 @@ def process_attachment(attachment, attachment_name):
 
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
+                
+            else:
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
+                return None
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
+            return None
+
+    elif attachment_name.endswith(".pdf"):
+        try:
+            # Lees PDF-bestand
+            pdf_reader = PdfReader(BytesIO(attachment))
+            st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
+            for page_number, page in enumerate(pdf_reader.pages, start=1):
+                st.write(f"**Pagina {page_number}:**")
+                st.text(page.extract_text())
+        except Exception as e:
+            st.error(f"Fout bij het lezen van PDF-bestand '{attachment_name}': {e}")
+    else:
+        st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
 
 
 # Verwerk de relevante data naar offerte
