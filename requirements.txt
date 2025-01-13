@@ -9,3 +9,4 @@ streamlit-aggrid
 pandas
 rapidfuzz
 PyPDF2
+extract_msg
