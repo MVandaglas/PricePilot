@@ -216,52 +216,7 @@ def manual_column_mapping(df, detected_columns):
 
     return mapped_columns
 
-def handle_mapped_data_to_offer(df):
-    """
-    Verwerkt de gemapte data en vertaalt deze naar de tabelstructuur voor offertes.
-    """
-    data = []
-    for _, row in df.iterrows():
-        description = row["Artikelnaam"]
-        height = row["Hoogte"]
-        width = row["Breedte"]
-        quantity = row["Aantal"]
 
-        # Synoniem lookup en artikelgegevens ophalen
-        article_number = synonym_dict.get(description, description)
-        description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
-
-        if description:
-            recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-            verkoopprijs = None
-            prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
-
-            m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
-            m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
-
-            data.append([
-                None, description, article_number, None, width, height, quantity,
-                f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
-                f"{m2_total:.2f}" if m2_total is not None else None,
-                f"{recommended_price:.2f}" if recommended_price is not None else 0,
-                min_price, None, max_price, None, verkoopprijs, prijs_backend,
-                source, fuzzy_match, original_article_number
-            ])
-        else:
-            st.sidebar.warning(f"Artikelnaam '{description}' niet gevonden in de artikelentabel.")
-
-    if data:
-        new_df = pd.DataFrame(data, columns=[
-            "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", 
-            "Aantal", "M2 p/s", "M2 totaal", "RSP", "SAP Prijs", "Handmatige Prijs", 
-            "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"
-        ])
-        st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
-        st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
-        st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-        st.rerun()
-    else:
-        st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
 
 def process_attachment(attachment, attachment_name):
     """
@@ -1216,7 +1171,52 @@ def handle_email_to_offer(email_body):
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
 
+def handle_mapped_data_to_offer(df):
+    """
+    Verwerkt de gemapte data en vertaalt deze naar de tabelstructuur voor offertes.
+    """
+    data = []
+    for _, row in df.iterrows():
+        description = row["Artikelnaam"]
+        height = row["Hoogte"]
+        width = row["Breedte"]
+        quantity = row["Aantal"]
 
+        # Synoniem lookup en artikelgegevens ophalen
+        article_number = synonym_dict.get(description, description)
+        description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
+
+        if description:
+            recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+            verkoopprijs = None
+            prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+
+            m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
+            m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
+
+            data.append([
+                None, description, article_number, None, width, height, quantity,
+                f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
+                f"{m2_total:.2f}" if m2_total is not None else None,
+                f"{recommended_price:.2f}" if recommended_price is not None else 0,
+                min_price, None, max_price, None, verkoopprijs, prijs_backend,
+                source, fuzzy_match, original_article_number
+            ])
+        else:
+            st.sidebar.warning(f"Artikelnaam '{description}' niet gevonden in de artikelentabel.")
+
+    if data:
+        new_df = pd.DataFrame(data, columns=[
+            "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", 
+            "Aantal", "M2 p/s", "M2 totaal", "RSP", "SAP Prijs", "Handmatige Prijs", 
+            "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"
+        ])
+        st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
+        st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
+        st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+        st.rerun()
+    else:
+        st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
 
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
