@@ -218,32 +218,6 @@ def manual_column_mapping(df, detected_columns):
 
 
 
-def process_attachment(attachment, attachment_name):
-    """
-    Analyseert en verwerkt een bijlage op basis van het type bestand (PDF of Excel).
-    """
-    if attachment_name.endswith(".xlsx"):
-        try:
-            # Lees Excel-bestand
-            df = pd.read_excel(BytesIO(attachment))
-            st.write("Bijlage ingelezen als DataFrame:")
-            st.dataframe(df)
-
-            # Detecteer relevante kolommen
-            detected_columns = detect_relevant_columns(df)
-
-            # Handmatig mappen indien nodig
-            mapped_columns = manual_column_mapping(df, detected_columns)
-
-            if mapped_columns:
-                st.write("Definitieve kolommapping:", mapped_columns)
-
-                # Filter de DataFrame op relevante kolommen
-                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
-                relevant_data.columns = mapped_columns.keys()  # Hernoem kolommen naar standaardnamen
-
-                st.write("Relevante data:")
-                st.dataframe(relevant_data)
 
                 
 
@@ -1215,6 +1189,34 @@ def handle_mapped_data_to_offer(df):
         st.rerun()
     else:
         st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
+
+def process_attachment(attachment, attachment_name):
+    """
+    Analyseert en verwerkt een bijlage op basis van het type bestand (PDF of Excel).
+    """
+    if attachment_name.endswith(".xlsx"):
+        try:
+            # Lees Excel-bestand
+            df = pd.read_excel(BytesIO(attachment))
+            st.write("Bijlage ingelezen als DataFrame:")
+            st.dataframe(df)
+
+            # Detecteer relevante kolommen
+            detected_columns = detect_relevant_columns(df)
+
+            # Handmatig mappen indien nodig
+            mapped_columns = manual_column_mapping(df, detected_columns)
+
+            if mapped_columns:
+                st.write("Definitieve kolommapping:", mapped_columns)
+
+                # Filter de DataFrame op relevante kolommen
+                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()  # Hernoem kolommen naar standaardnamen
+
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
+
 
 # Verwerk de relevante data naar offerte
 if st.sidebar.button("Verwerk gegevens naar offerte"):
