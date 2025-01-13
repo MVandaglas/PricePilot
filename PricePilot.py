@@ -1182,8 +1182,8 @@ with tab1:
 # Knop om de e-mail te vertalen naar een offerte
     if st.button("Vertaal mail naar offerte"):
         handle_email_to_offer(email_body)
-except Exception as e:
-    st.error(f"Fout bij het verwerken van de e-mail: {e}")
+    except Exception as e:
+        st.error(f"Fout bij het verwerken van de e-mail: {e}")
 
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
