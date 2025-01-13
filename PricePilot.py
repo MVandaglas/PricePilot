@@ -192,6 +192,7 @@ with st.sidebar.expander("Upload document", expanded=False):
             msg_subject = msg.subject
             msg_sender = msg.sender
             msg_body = msg.body
+            email_body = msg_body
             
             # Resultaten weergeven
             st.subheader("Berichtinformatie")
