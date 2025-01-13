@@ -1106,22 +1106,21 @@ def manual_column_mapping(df, detected_columns):
 # PDF uitlezen
 def extract_table_from_pdf(pdf_reader):
     """
-    Extracteert tabellen uit een PDF en converteert deze naar een Pandas DataFrame.
+    Extracteert rijen tekst uit een PDF en converteert deze naar een Pandas DataFrame.
     """
     table_data = []
-    headers = []
-
+  
     for page in pdf_reader.pages:
         text = page.extract_text()
         lines = text.splitlines()
 
         for line in lines:
-            # Zoek naar een rij met de headers
-            if re.search(r'Artikelnaam.*?Breedte.*?Hoogte.*?Aantal', line, re.IGNORECASE):
-                headers = re.split(r'\s{2,}', line.strip())
-            elif headers and len(line.split()) >= len(headers):
-                # Splits de gegevens als er headers zijn gedetecteerd
-                table_data.append(re.split(r'\s{2,}', line.strip()))
+            # Voeg elke regel als een lijst van cellen toe
+            table_data.append(line.split())
+
+    if table_data:
+        # Creëer een DataFrame zonder headers, headers worden later gemapt
+        df = pd.DataFrame(table_data)
 
     if headers and table_data:
         df = pd.DataFrame(table_data, columns=headers)
@@ -1192,7 +1191,7 @@ def process_attachment(attachment, attachment_name):
             pdf_reader = PdfReader(BytesIO(attachment))
             st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
 
-            # Extracteer tabel uit PDF
+            # Extracteer rijen uit PDF
             pdf_df = extract_table_from_pdf(pdf_reader)
 
             if not pdf_df.empty:
