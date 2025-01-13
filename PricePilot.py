@@ -1217,7 +1217,7 @@ def handle_mapped_data_to_offer(df):
         st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
 
 # Verwerk de relevante data naar offerte
-if st.button("Verwerk gegevens naar offerte"):
+if st.siodebar.button("Verwerk gegevens naar offerte"):
     handle_mapped_data_to_offer(relevant_data)
 
 # Functie om tekstinvoer te verwerken
