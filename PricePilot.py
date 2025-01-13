@@ -1121,9 +1121,6 @@ def extract_table_from_pdf(pdf_reader):
     if table_data:
         # Creëer een DataFrame zonder headers, headers worden later gemapt
         df = pd.DataFrame(table_data)
-
-    if headers and table_data:
-        df = pd.DataFrame(table_data, columns=headers)
         return df
     else:
         st.warning("Geen tabel gevonden in de PDF.")
