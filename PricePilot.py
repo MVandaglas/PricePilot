@@ -1122,7 +1122,7 @@ def extract_table_from_pdf(pdf_path):
         return extracted_tables
     except Exception as e:
         print(f"Fout bij het verwerken van de PDF met pdfplumber: {e}")
-        return [
+        return []
         
         # Controleer of tabellen zijn gevonden en toon de eerste tabel
         if extracted_tables:
