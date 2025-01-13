@@ -1198,7 +1198,7 @@ with tab1:
             st.sidebar.error(f"Er is een fout opgetreden: {e}")
 
     # Knop om de e-mail te vertalen naar een offerte
-    if st.sidebar.buttonbutton("Vertaal mail naar offerte"):
+    if st.sidebar.button("Vertaal mail naar offerte"):
         try:
             handle_email_to_offer(email_body)
         except Exception as e:
