@@ -1107,7 +1107,7 @@ def manual_column_mapping(df, detected_columns):
 
 
 # Open de PDF en lees tabellen met pdfplumber
-def extract_table_from_PDF(pdf_path):
+def extract_table_from_pdf(pdf_path):
     try:
         with pdfplumber.open(pdf_path) as pdf:
             extracted_tables = []
