@@ -201,53 +201,6 @@ customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6
 st.session_state.customer_number = str(customer_number) if customer_number else ''
 offer_amount = totaal_bedrag
 
-# File uploader alleen beschikbaar in de uitklapbare invoeropties
-with st.sidebar.expander("Upload document", expanded=False):
-    # Bestand uploaden
-    uploaded_file = st.file_uploader("Upload een Outlook .msg bestand", type=["msg"])
-    
-    # Controleren of er een bestand is geüpload
-    if uploaded_file:
-        # Bestand tijdelijk opslaan
-        with open("uploaded_email.msg", "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        
-        # Open het .msg-bestand met extract-msg
-        try:
-            msg = extract_msg.Message("uploaded_email.msg")
-            msg_subject = msg.subject
-            msg_sender = msg.sender
-            full_email_body = msg.body  # De volledige e-mailthread
-            latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
-            msg_body = latest_email
-            email_body = msg_body
-            
-            # Resultaten weergeven
-            st.subheader("Berichtinformatie")
-            st.write(f"**Onderwerp:** {msg_subject}")
-            st.write(f"**Afzender:** {msg_sender}")
-            st.write("**Inhoud van het bericht:**")
-            st.text(msg_body)
-            
-            # Verwerk bijlagen
-            st.subheader("Bijlagen:")
-            if msg.attachments:
-                for attachment in msg.attachments:
-                    attachment_name = attachment.longFilename or attachment.shortFilename
-                    attachment_data = attachment.data
-    
-                    # Toon naam van de bijlage
-                    st.write(f"Bijlage: {attachment_name}")
-    
-                    # Verwerk de bijlage
-                    process_attachment(attachment_data, attachment_name)
-            else:
-                st.write("Geen bijlagen gevonden.")
-        
-        except Exception as e:
-            st.error(f"Fout bij het verwerken van het bestand: {e}")
-    else:
-        st.info("Upload een .msg-bestand om verder te gaan.")    
 
 
 if customer_number in customer_data:
@@ -1215,6 +1168,55 @@ def process_attachment(attachment, attachment_name):
             st.error(f"Fout bij het lezen van PDF-bestand '{attachment_name}': {e}")
     else:
         st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
+
+# File uploader alleen beschikbaar in de uitklapbare invoeropties
+with st.sidebar.expander("Upload document", expanded=False):
+    # Bestand uploaden
+    uploaded_file = st.file_uploader("Upload een Outlook .msg bestand", type=["msg"])
+    
+    # Controleren of er een bestand is geüpload
+    if uploaded_file:
+        # Bestand tijdelijk opslaan
+        with open("uploaded_email.msg", "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        
+        # Open het .msg-bestand met extract-msg
+        try:
+            msg = extract_msg.Message("uploaded_email.msg")
+            msg_subject = msg.subject
+            msg_sender = msg.sender
+            full_email_body = msg.body  # De volledige e-mailthread
+            latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
+            msg_body = latest_email
+            email_body = msg_body
+            
+            # Resultaten weergeven
+            st.subheader("Berichtinformatie")
+            st.write(f"**Onderwerp:** {msg_subject}")
+            st.write(f"**Afzender:** {msg_sender}")
+            st.write("**Inhoud van het bericht:**")
+            st.text(msg_body)
+            
+            # Verwerk bijlagen
+            st.subheader("Bijlagen:")
+            if msg.attachments:
+                for attachment in msg.attachments:
+                    attachment_name = attachment.longFilename or attachment.shortFilename
+                    attachment_data = attachment.data
+    
+                    # Toon naam van de bijlage
+                    st.write(f"Bijlage: {attachment_name}")
+    
+                    # Verwerk de bijlage
+                    process_attachment(attachment_data, attachment_name)
+            else:
+                st.write("Geen bijlagen gevonden.")
+        
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van het bestand: {e}")
+    else:
+        st.info("Upload een .msg-bestand om verder te gaan.")    
+
 
 
 # Verwerk de relevante data naar offerte
