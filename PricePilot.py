@@ -13,7 +13,7 @@ from Synonyms import synonym_dict
 from Articles import article_table
 import difflib
 from rapidfuzz import process, fuzz
-From io import BytesIO
+from io import BytesIO
 from PyPDF2 import PdfReader
 import extract_msg
 
