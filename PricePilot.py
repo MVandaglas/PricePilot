@@ -960,6 +960,79 @@ def handle_gpt_chat():
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
 
 
+# Functie voor het verwerken van e-mailinhoud naar offerte
+def handle_email_to_offer(email_body):
+    if email_body:
+        lines = email_body.splitlines()
+        data = []
+        for line in lines:
+            # Verwerking voor specifieke m2-patronen
+            m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
+            if m2_match:
+                if m2_match.group(1):
+                    m2_total = int(m2_match.group(1))
+                    article_number = m2_match.group(2)
+                else:
+                    article_number = m2_match.group(3)
+                    m2_total = int(m2_match.group(4))
+                
+                # Synoniem lookup en artikelgegevens ophalen
+                article_number = synonym_dict.get(article_number, article_number)
+                description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
+                
+                if description:
+                    recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                    verkoopprijs = None
+                    prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+
+                    data.append([
+                        None, description, article_number, None, None, None, None,
+                        f"{recommended_price:.2f}" if recommended_price is not None else 0,
+                        None, f"{m2_total:.2f}", None, None, min_price, max_price, verkoopprijs, prijs_backend,
+                        source, fuzzy_match, original_article_number
+                    ])
+                else:
+                    st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
+            else:
+                # Alternatieve verwerking van regels
+                quantity, width, height, article_number = extract_all_details(line)
+                if article_number:
+                    article_number = synonym_dict.get(article_number, article_number)
+                    description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
+                    
+                    if description:
+                        spacer = determine_spacer(line)
+                        recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                        m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
+                        m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
+
+                        verkoopprijs = None
+                        prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+
+                        data.append([
+                            None, description, article_number, spacer, width, height, quantity,
+                            f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
+                            f"{m2_total:.2f}" if m2_total is not None else None,
+                            f"{recommended_price:.2f}" if recommended_price is not None else 0,
+                            min_price, None, max_price, None, verkoopprijs, prijs_backend,
+                            source, fuzzy_match, original_article_number
+                        ])
+                    else:
+                        st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
+
+        if data:
+            new_df = pd.DataFrame(data, columns=[
+                "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", 
+                "Aantal", "M2 p/s", "M2 totaal", "RSP", "SAP Prijs", "Handmatige Prijs", 
+                "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"
+            ])
+            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
+            st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
+            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            st.rerun()
+        else:
+            st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
+
 
 
 # Functie om tekstinvoer te verwerken
@@ -1106,7 +1179,11 @@ with tab1:
         st.sidebar.error(f"Er is een fout opgetreden: {e}")
 
 
-
+# Knop om de e-mail te vertalen naar een offerte
+    if st.button("Vertaal mail naar offerte"):
+        handle_email_to_offer(email_body)
+except Exception as e:
+    st.error(f"Fout bij het verwerken van de e-mail: {e}")
 
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
