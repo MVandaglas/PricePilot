@@ -1171,24 +1171,24 @@ def generate_pdf(df):
 
 # Offerte Genereren tab
 with tab1:
-    
-  if st.sidebar.button("Verstuur chat met GPT"):
-    try:
-       handle_gpt_chat()
-    except Exception as e:
-        st.sidebar.error(f"Er is een fout opgetreden: {e}")
+    # Knop om GPT-chat te versturen
+    if st.sidebar.button("Verstuur chat met GPT"):
+        try:
+            handle_gpt_chat()
+        except Exception as e:
+            st.sidebar.error(f"Er is een fout opgetreden: {e}")
 
-
-# Knop om de e-mail te vertalen naar een offerte
+    # Knop om de e-mail te vertalen naar een offerte
     if st.button("Vertaal mail naar offerte"):
-        handle_email_to_offer(email_body)
-    except Exception as e:
-        st.error(f"Fout bij het verwerken van de e-mail: {e}")
-
+        try:
+            handle_email_to_offer(email_body)
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de e-mail: {e}")
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
     st.session_state.offer_df.insert(0, 'Rijnummer', range(1, len(st.session_state.offer_df) + 1))
+
     
 
 
