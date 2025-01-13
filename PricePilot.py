@@ -1148,6 +1148,10 @@ def process_attachment(attachment, attachment_name):
 
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
+              
+                # Verwerk de relevante data naar offerte
+                if st.sidebar.button("Verwerk gegevens naar offerte"):
+                    handle_mapped_data_to_offer(relevant_data)
                 
             else:
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
@@ -1155,6 +1159,7 @@ def process_attachment(attachment, attachment_name):
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
             return None
+        
 
     elif attachment_name.endswith(".pdf"):
         try:
@@ -1219,9 +1224,7 @@ with st.sidebar.expander("Upload document", expanded=False):
 
 
 
-# Verwerk de relevante data naar offerte
-if st.sidebar.button("Verwerk gegevens naar offerte"):
-    handle_mapped_data_to_offer(relevant_data)
+
 
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
