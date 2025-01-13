@@ -177,7 +177,7 @@ def detect_relevant_columns(df):
     column_mapping = {
         "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article"],
         "Hoogte": ["hoogte", "h", "height", "lengte", "Lengte", "Height", "H", "Hoogte"],
-        "Breedte": ["breedte", "b", "width", "Breedte", "B", "Width],
+        "Breedte": ["breedte", "b", "width", "Breedte", "B", "Width"],
         "Aantal": ["aantal", "quantity", "qty", "stuks", "Aantal", "Quantity", "QTY", "Stuks", "Qty"]
     }
     detected_columns = {}
