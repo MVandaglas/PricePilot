@@ -169,6 +169,22 @@ cutoff_value = st.sidebar.slider(
     help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
 )
 
+# Bepaal de laatste email van een mailboom
+def extract_latest_email(body):
+    """
+    Extraheert alleen de laatste e-mail uit een e-mailthread.
+    Het detecteert het begin van een nieuwe e-mail met behulp van het patroon 'Van:' gevolgd door 'Verzonden:'.
+    """
+    # Split de e-mailthread op basis van het patroon
+    email_parts = re.split(r'Van:.*?Verzonden:.*?Aan:.*?Onderwerp:', body, flags=re.DOTALL)
+    
+    # De eerste sectie is de laatste e-mail in de thread
+    if email_parts:
+        latest_email = email_parts[0].strip()
+        return latest_email
+    else:
+        return body.strip()  # Als er niets gesplitst wordt, geef de volledige body terug
+
 # Gebruikersinvoer
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
@@ -191,7 +207,7 @@ with st.sidebar.expander("Upload document", expanded=False):
             msg = extract_msg.Message("uploaded_email.msg")
             msg_subject = msg.subject
             msg_sender = msg.sender
-            msg_body = msg.body
+            msg_body = latest_email
             email_body = msg_body
             
             # Resultaten weergeven
