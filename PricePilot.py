@@ -1107,22 +1107,23 @@ def manual_column_mapping(df, detected_columns):
 
 
 # Open de PDF en lees tabellen met pdfplumber
-try:
-    with pdfplumber.open(pdf_path) as pdf:
-        extracted_tables = []
-        for page in pdf.pages:
-            table = page.extract_table()
-            if table:
-                extracted_tables.append(pd.DataFrame(table))
-
-    # Controleer of tabellen zijn gevonden en toon de eerste tabel
-    if extracted_tables:
-        df_pdfplumber = extracted_tables[0]  # Neem de eerste tabel als voorbeeld
-        tools.display_dataframe_to_user(name="Extracted Table using pdfplumber", dataframe=df_pdfplumber)
-    else:
-        print("Geen tabellen gevonden in de PDF.")
-except Exception as e:
-    print("Er trad een fout op bij het verwerken van de PDF met pdfplumber:", str(e))
+def extract_table_from_PDF(pdf_path):
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            extracted_tables = []
+            for page in pdf.pages:
+                table = page.extract_table()
+                if table:
+                    extracted_tables.append(pd.DataFrame(table))
+    
+        # Controleer of tabellen zijn gevonden en toon de eerste tabel
+        if extracted_tables:
+            df_pdfplumber = extracted_tables[0]  # Neem de eerste tabel als voorbeeld
+            tools.display_dataframe_to_user(name="Extracted Table using pdfplumber", dataframe=df_pdfplumber)
+        else:
+            print("Geen tabellen gevonden in de PDF.")
+    except Exception as e:
+        print("Er trad een fout op bij het verwerken van de PDF met pdfplumber:", str(e))
 
 
 
