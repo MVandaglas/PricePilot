@@ -172,7 +172,7 @@ cutoff_value = st.sidebar.slider(
 # Bijlagen in mail definiëren
 def detect_relevant_columns(df):
     """
-    Detecteert de relevante kolommen (Artikelnummer, Hoogte, Breedte, Aantal) in een DataFrame.
+    Detecteert de relevante kolommen (Artikelnaam, Hoogte, Breedte, Aantal) in een DataFrame.
     """
     column_mapping = {
         "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article"],
@@ -202,7 +202,7 @@ def manual_column_mapping(df, detected_columns):
 
     st.write("Controleer of de kolommen correct zijn gedetecteerd. Indien niet, selecteer de juiste kolom.")
 
-    for key in ["Artikelnummer", "Hoogte", "Breedte", "Aantal"]:
+    for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
         if key not in detected_columns:
             st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
         mapped_columns[key] = st.selectbox(
