@@ -245,9 +245,7 @@ def process_attachment(attachment, attachment_name):
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
 
-                # Verwerk de relevante data naar offerte
-                if st.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(relevant_data)
+                
 
             else:
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
@@ -1217,6 +1215,10 @@ def handle_mapped_data_to_offer(df):
         st.rerun()
     else:
         st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
+
+# Verwerk de relevante data naar offerte
+if st.button("Verwerk gegevens naar offerte"):
+    handle_mapped_data_to_offer(relevant_data)
 
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
