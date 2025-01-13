@@ -1103,7 +1103,32 @@ def manual_column_mapping(df, detected_columns):
 
     return mapped_columns               
 
-            
+# PDF uitlezen
+def extract_table_from_pdf(pdf_reader):
+    """
+    Extracteert tabellen uit een PDF en converteert deze naar een Pandas DataFrame.
+    """
+    table_data = []
+    headers = []
+
+    for page in pdf_reader.pages:
+        text = page.extract_text()
+        lines = text.splitlines()
+
+        for line in lines:
+            # Zoek naar een rij met de headers
+            if re.search(r'Artikelnaam.*?Breedte.*?Hoogte.*?Aantal', line, re.IGNORECASE):
+                headers = re.split(r'\s{2,}', line.strip())
+            elif headers and len(line.split()) >= len(headers):
+                # Splits de gegevens als er headers zijn gedetecteerd
+                table_data.append(re.split(r'\s{2,}', line.strip()))
+
+    if headers and table_data:
+        df = pd.DataFrame(table_data, columns=headers)
+        return df
+    else:
+        st.warning("Geen tabel gevonden in de PDF.")
+        return pd.DataFrame()            
 
 
 # Bepaal de laatste email van een mailboom
@@ -1166,11 +1191,39 @@ def process_attachment(attachment, attachment_name):
             # Lees PDF-bestand
             pdf_reader = PdfReader(BytesIO(attachment))
             st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
-            for page_number, page in enumerate(pdf_reader.pages, start=1):
-                st.write(f"**Pagina {page_number}:**")
-                st.text(page.extract_text())
+
+            # Extracteer tabel uit PDF
+            pdf_df = extract_table_from_pdf(pdf_reader)
+
+            if not pdf_df.empty:
+                st.write("PDF-gegevens als DataFrame:")
+                st.dataframe(pdf_df)
+
+                # Detecteer relevante kolommen
+                detected_columns = detect_relevant_columns(pdf_df)
+
+                # Handmatig mappen indien nodig
+                mapped_columns = manual_column_mapping(pdf_df, detected_columns)
+
+                if mapped_columns:
+                    relevant_data = pdf_df[[mapped_columns[key] for key in mapped_columns]]
+                    relevant_data.columns = mapped_columns.keys()  # Hernoem kolommen naar standaardnamen
+
+                    st.write("Relevante data:")
+                    st.dataframe(relevant_data)
+
+                    # Verwerk de relevante data naar offerte
+                    if not relevant_data.empty:
+                        if st.button("Verwerk gegevens naar offerte"):
+                            handle_mapped_data_to_offer(relevant_data)
+                    else:
+                        st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+                else:
+                    st.warning("Geen relevante kolommen gevonden of gemapped.")
+            else:
+                st.warning("Geen tabelgegevens gevonden in de PDF.")
         except Exception as e:
-            st.error(f"Fout bij het lezen van PDF-bestand '{attachment_name}': {e}")
+            st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
     else:
         st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
 
