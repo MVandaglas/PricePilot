@@ -207,6 +207,7 @@ with st.sidebar.expander("Upload document", expanded=False):
             msg = extract_msg.Message("uploaded_email.msg")
             msg_subject = msg.subject
             msg_sender = msg.sender
+            full_email_body = msg.body  # De volledige e-mailthread
             latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
             msg_body = latest_email
             email_body = msg_body
