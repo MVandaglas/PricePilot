@@ -177,7 +177,30 @@ offer_amount = totaal_bedrag
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
-    customer_file = st.file_uploader("Upload een bestand (bijv. screenshot of document)", type=["png", "jpg", "jpeg", "pdf"])
+    # Bestand uploaden
+    uploaded_file = st.file_uploader("Upload een Outlook .msg bestand", type=["msg"])
+    
+    # Controleren of er een bestand is geüpload
+    if uploaded_file:
+        # Bestand tijdelijk opslaan
+        with open("uploaded_email.msg", "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        
+        # Open het .msg-bestand met extract-msg
+        try:
+            msg = extract_msg.Message("uploaded_email.msg")
+            msg_subject = msg.subject
+            msg_sender = msg.sender
+            msg_body = msg.body
+            
+            # Resultaten weergeven
+            st.subheader("Berichtinformatie")
+            st.write(f"**Onderwerp:** {msg_subject}")
+            st.write(f"**Afzender:** {msg_sender}")
+            st.write("**Inhoud van het bericht:**")
+            st.text(msg_body)
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van het bestand: {e}")
 
 
 if customer_number in customer_data:
