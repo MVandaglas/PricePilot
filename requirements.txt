@@ -10,3 +10,4 @@ pandas
 rapidfuzz
 PyPDF2
 extract_msg
+openpyxl
