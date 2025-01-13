@@ -13,7 +13,7 @@ from Synonyms import synonym_dict
 from Articles import article_table
 import difflib
 from rapidfuzz import process, fuzz
-import io
+import io import BytesIO
 from PyPDF2 import PdfReader
 import extract_msg
 
@@ -169,6 +169,33 @@ cutoff_value = st.sidebar.slider(
     help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
 )
 
+# Bijlagen in mail definieren
+def process_attachment(attachment, attachment_name):
+    """
+    Analyseert en verwerkt een bijlage op basis van het type bestand (PDF of Excel).
+    """
+    if attachment_name.endswith(".xlsx"):
+        try:
+            # Lees Excel-bestand
+            df = pd.read_excel(BytesIO(attachment))
+            st.write(f"Excel-bestand '{attachment_name}' ingelezen:")
+            st.dataframe(df)
+        except Exception as e:
+            st.error(f"Fout bij het lezen van Excel-bestand '{attachment_name}': {e}")
+
+    elif attachment_name.endswith(".pdf"):
+        try:
+            # Lees PDF-bestand
+            pdf_reader = PdfReader(BytesIO(attachment))
+            st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
+            for page_number, page in enumerate(pdf_reader.pages, start=1):
+                st.write(f"**Pagina {page_number}:**")
+                st.text(page.extract_text())
+        except Exception as e:
+            st.error(f"Fout bij het lezen van PDF-bestand '{attachment_name}': {e}")
+    else:
+        st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
+
 # Bepaal de laatste email van een mailboom
 def extract_latest_email(body):
     """
@@ -218,8 +245,26 @@ with st.sidebar.expander("Upload document", expanded=False):
             st.write(f"**Afzender:** {msg_sender}")
             st.write("**Inhoud van het bericht:**")
             st.text(msg_body)
+            
+            # Verwerk bijlagen
+            st.subheader("Bijlagen:")
+            if msg.attachments:
+                for attachment in msg.attachments:
+                    attachment_name = attachment.longFilename or attachment.shortFilename
+                    attachment_data = attachment.data
+    
+                    # Toon naam van de bijlage
+                    st.write(f"Bijlage: {attachment_name}")
+    
+                    # Verwerk de bijlage
+                    process_attachment(attachment_data, attachment_name)
+            else:
+                st.write("Geen bijlagen gevonden.")
+        
         except Exception as e:
             st.error(f"Fout bij het verwerken van het bestand: {e}")
+    else:
+        st.info("Upload een .msg-bestand om verder te gaan.")    
 
 
 if customer_number in customer_data:
