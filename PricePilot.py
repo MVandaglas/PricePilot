@@ -193,52 +193,7 @@ def detect_relevant_columns(df):
 
     return detected_columns
 
-def manual_column_mapping(df, detected_columns):
-    """
-    Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen.
-    """
-    all_columns = list(df.columns)
-    mapped_columns = detected_columns.copy()
 
-    st.write("Controleer of de kolommen correct zijn gedetecteerd. Indien niet, selecteer de juiste kolom.")
-
-    for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
-        if key not in detected_columns:
-            st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
-        mapped_columns[key] = st.selectbox(
-            f"Selecteer kolom voor '{key}'", 
-            options=["Geen"] + all_columns,
-            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0
-        )
-
-    # Filter de mapping om alleen daadwerkelijke selecties te behouden
-    mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
-
-    return mapped_columns
-
-
-
-
-                
-
-            
-
-
-# Bepaal de laatste email van een mailboom
-def extract_latest_email(body):
-    """
-    Extraheert alleen de laatste e-mail uit een e-mailthread.
-    Het detecteert het begin van een nieuwe e-mail met behulp van het patroon 'Van:' gevolgd door 'Verzonden:'.
-    """
-    # Split de e-mailthread op basis van het patroon
-    email_parts = re.split(r'Van:.*?Verzonden:.*?Aan:.*?Onderwerp:', body, flags=re.DOTALL)
-    
-    # De eerste sectie is de laatste e-mail in de thread
-    if email_parts:
-        latest_email = email_parts[0].strip()
-        return latest_email
-    else:
-        return body.strip()  # Als er niets gesplitst wordt, geef de volledige body terug
 
 # Gebruikersinvoer
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
@@ -1171,6 +1126,48 @@ def handle_mapped_data_to_offer(df):
         st.rerun()
     else:
         st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
+
+def manual_column_mapping(df, detected_columns):
+    """
+    Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen.
+    """
+    all_columns = list(df.columns)
+    mapped_columns = detected_columns.copy()
+
+    st.write("Controleer of de kolommen correct zijn gedetecteerd. Indien niet, selecteer de juiste kolom.")
+
+    for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
+        if key not in detected_columns:
+            st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
+        mapped_columns[key] = st.selectbox(
+            f"Selecteer kolom voor '{key}'", 
+            options=["Geen"] + all_columns,
+            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0
+        )
+
+    # Filter de mapping om alleen daadwerkelijke selecties te behouden
+    mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
+
+    return mapped_columns               
+
+            
+
+
+# Bepaal de laatste email van een mailboom
+def extract_latest_email(body):
+    """
+    Extraheert alleen de laatste e-mail uit een e-mailthread.
+    Het detecteert het begin van een nieuwe e-mail met behulp van het patroon 'Van:' gevolgd door 'Verzonden:'.
+    """
+    # Split de e-mailthread op basis van het patroon
+    email_parts = re.split(r'Van:.*?Verzonden:.*?Aan:.*?Onderwerp:', body, flags=re.DOTALL)
+    
+    # De eerste sectie is de laatste e-mail in de thread
+    if email_parts:
+        latest_email = email_parts[0].strip()
+        return latest_email
+    else:
+        return body.strip()  # Als er niets gesplitst wordt, geef de volledige body teru
 
 def process_attachment(attachment, attachment_name):
     """
