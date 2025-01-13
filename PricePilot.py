@@ -16,6 +16,7 @@ from rapidfuzz import process, fuzz
 from io import BytesIO
 from PyPDF2 import PdfReader
 import extract_msg
+import pdfplumber
 
 
 
@@ -1103,28 +1104,26 @@ def manual_column_mapping(df, detected_columns):
 
     return mapped_columns               
 
-# PDF uitlezen
-def extract_table_from_pdf(pdf_reader):
-    """
-    Extracteert rijen tekst uit een PDF en converteert deze naar een Pandas DataFrame.
-    """
-    table_data = []
-  
-    for page in pdf_reader.pages:
-        text = page.extract_text()
-        lines = text.splitlines()
 
-        for line in lines:
-            # Voeg elke regel als een lijst van cellen toe
-            table_data.append(line.split())
 
-    if table_data:
-        # Creëer een DataFrame zonder headers, headers worden later gemapt
-        df = pd.DataFrame(table_data)
-        return df
+# Open de PDF en lees tabellen met pdfplumber
+try:
+    with pdfplumber.open(pdf_path) as pdf:
+        extracted_tables = []
+        for page in pdf.pages:
+            table = page.extract_table()
+            if table:
+                extracted_tables.append(pd.DataFrame(table))
+
+    # Controleer of tabellen zijn gevonden en toon de eerste tabel
+    if extracted_tables:
+        df_pdfplumber = extracted_tables[0]  # Neem de eerste tabel als voorbeeld
+        tools.display_dataframe_to_user(name="Extracted Table using pdfplumber", dataframe=df_pdfplumber)
     else:
-        st.warning("Geen tabel gevonden in de PDF.")
-        return pd.DataFrame()            
+        print("Geen tabellen gevonden in de PDF.")
+except Exception as e:
+    print("Er trad een fout op bij het verwerken van de PDF met pdfplumber:", str(e))
+
 
 
 # Bepaal de laatste email van een mailboom
