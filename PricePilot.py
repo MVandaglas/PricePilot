@@ -1114,8 +1114,16 @@ def extract_table_from_pdf(pdf_path):
             for page in pdf.pages:
                 table = page.extract_table()
                 if table:
-                    extracted_tables.append(pd.DataFrame(table))
-    
+                    # Controleer of de tabel niet leeg is
+                    df = pd.DataFrame(table)
+                    if not df.empty:  # Voeg alleen niet-lege tabellen toe
+                        extracted_tables.append(df)
+
+        return extracted_tables
+    except Exception as e:
+        print(f"Fout bij het verwerken van de PDF met pdfplumber: {e}")
+        return [
+        
         # Controleer of tabellen zijn gevonden en toon de eerste tabel
         if extracted_tables:
             df_pdfplumber = extracted_tables[0]  # Neem de eerste tabel als voorbeeld
