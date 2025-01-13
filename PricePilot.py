@@ -169,7 +169,53 @@ cutoff_value = st.sidebar.slider(
     help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
 )
 
-# Bijlagen in mail definieren
+# Bijlagen in mail definiëren
+def detect_relevant_columns(df):
+    """
+    Detecteert de relevante kolommen (Artikelnummer, Hoogte, Breedte, Aantal) in een DataFrame.
+    """
+    column_mapping = {
+        "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article"],
+        "Hoogte": ["hoogte", "h", "height", "lengte", "Lengte", "Height", "H", "Hoogte"],
+        "Breedte": ["breedte", "b", "width", "Breedte", "B", "Width],
+        "Aantal": ["aantal", "quantity", "qty", "stuks", "Aantal", "Quantity", "QTY", "Stuks", "Qty"]
+    }
+    detected_columns = {}
+
+    for key, patterns in column_mapping.items():
+        for pattern in patterns:
+            for col in df.columns:
+                if re.search(pattern, col, re.IGNORECASE):
+                    detected_columns[key] = col
+                    break
+            if key in detected_columns:
+                break
+
+    return detected_columns
+
+def manual_column_mapping(df, detected_columns):
+    """
+    Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen.
+    """
+    all_columns = list(df.columns)
+    mapped_columns = detected_columns.copy()
+
+    st.write("Controleer of de kolommen correct zijn gedetecteerd. Indien niet, selecteer de juiste kolom.")
+
+    for key in ["Artikelnummer", "Hoogte", "Breedte", "Aantal"]:
+        if key not in detected_columns:
+            st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
+        mapped_columns[key] = st.selectbox(
+            f"Selecteer kolom voor '{key}'", 
+            options=["Geen"] + all_columns,
+            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0
+        )
+
+    # Filter de mapping om alleen daadwerkelijke selecties te behouden
+    mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
+
+    return mapped_columns
+
 def process_attachment(attachment, attachment_name):
     """
     Analyseert en verwerkt een bijlage op basis van het type bestand (PDF of Excel).
@@ -178,10 +224,32 @@ def process_attachment(attachment, attachment_name):
         try:
             # Lees Excel-bestand
             df = pd.read_excel(BytesIO(attachment))
-            st.write(f"Excel-bestand '{attachment_name}' ingelezen:")
+            st.write("Bijlage ingelezen als DataFrame:")
             st.dataframe(df)
+
+            # Detecteer relevante kolommen
+            detected_columns = detect_relevant_columns(df)
+
+            # Handmatig mappen indien nodig
+            mapped_columns = manual_column_mapping(df, detected_columns)
+
+            if mapped_columns:
+                st.write("Definitieve kolommapping:", mapped_columns)
+
+                # Filter de DataFrame op relevante kolommen
+                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()  # Hernoem kolommen naar standaardnamen
+
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
+
+                return relevant_data
+            else:
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
+                return None
         except Exception as e:
-            st.error(f"Fout bij het lezen van Excel-bestand '{attachment_name}': {e}")
+            st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
+            return None
 
     elif attachment_name.endswith(".pdf"):
         try:
