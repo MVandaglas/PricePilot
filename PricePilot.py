@@ -15,6 +15,7 @@ import difflib
 from rapidfuzz import process, fuzz
 import io
 from PyPDF2 import PdfReader
+import extract_msg
 
 
 
