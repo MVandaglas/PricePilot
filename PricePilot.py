@@ -379,7 +379,7 @@ def find_article_details(article_number):
         st.write(first_suggestion)
     
         # Resultaat retourneren
-        return (None, first_suggestion, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
+        return (first_suggestion, None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
 
     except Exception as e:
         # Debug: Toon foutmelding
