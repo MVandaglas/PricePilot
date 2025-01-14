@@ -1117,7 +1117,7 @@ def pdf_to_excel(pdf_path, excel_path):
     """
     try:
         with pdfplumber.open(pdf_path) as pdf:
-            writer = pd.ExcelWriter(excel_path, engine='xlsxwriter')
+            writer = pd.ExcelWriter(excel_path, engine='openpyxl')
             for i, page in enumerate(pdf.pages):
                 table = page.extract_table()
                 if table:
