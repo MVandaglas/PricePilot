@@ -1142,12 +1142,15 @@ def process_attachment(attachment, attachment_name):
             st.write("Volledig Excel-bestand:")
             st.dataframe(full_df)
 
-            # Dropdowns voor header- en datastartregels
-            header_row = st.number_input("Selecteer de regel waar de headers staan (bijvoorbeeld: 18)", min_value=0, max_value=len(full_df), value=0) -1
-            data_start_row = st.number_input("Selecteer de regel waar de data begint (bijvoorbeeld: 20)", min_value=0, max_value=len(full_df), value=1) -1
+          # Dropdowns voor header-, data-start- en data-eindregels
+            header_row = st.number_input("Selecteer de regel waar de headers staan (bijvoorbeeld: 18)", min_value=0, max_value=len(full_df), value=0) - 1
+            data_start_row = st.number_input("Selecteer de regel waar de data begint (bijvoorbeeld: 20)", min_value=0, max_value=len(full_df), value=1) - 1
+            data_end_row = st.number_input("Selecteer de regel waar de data eindigt (bijvoorbeeld: 40)", min_value=data_start_row + 1, max_value=len(full_df), value=len(full_df))
 
             if st.button("Laad geselecteerde data"):
+                # Filteren op rijen en verwijderen van lege regels
                 df = pd.read_excel(BytesIO(attachment), header=header_row, skiprows=range(0, data_start_row))
+                df = df.iloc[:data_end_row - data_start_row].dropna(how='all')
                 st.write("Gefilterde DataFrame:")
                 st.dataframe(df)
 
