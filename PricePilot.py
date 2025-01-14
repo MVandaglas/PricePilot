@@ -1072,7 +1072,6 @@ def handle_mapped_data_to_offer(df):
 def manual_column_mapping(df, detected_columns):
     """
     Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen.
-    Als `multiple=True` is, blijven eerder geselecteerde velden zichtbaar.
     """
     all_columns = list(df.columns)
     mapped_columns = detected_columns.copy()
@@ -1082,19 +1081,17 @@ def manual_column_mapping(df, detected_columns):
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
         if key not in detected_columns:
             st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
-
-        selected_column = st.selectbox(
+        mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'", 
             options=["Geen"] + all_columns,
-            index=all_columns.index(detected_columns[key]) + 1 if key in detected_columns else 0,
-            key=f"select_{key}"
+            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0
         )
 
-        if selected_column != "Geen":
-            mapped_columns[key] = selected_column
+    # Filter de mapping om alleen daadwerkelijke selecties te behouden
+    mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
-  
-    return mapped_columns
+    return mapped_columns               
+
 
 
 
