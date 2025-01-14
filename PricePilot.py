@@ -16,7 +16,8 @@ from rapidfuzz import process, fuzz
 from io import BytesIO
 from PyPDF2 import PdfReader
 import extract_msg
-import pdfplumber
+from borb.pdf import Document
+from borb.toolkit.table.table_extraction import TableFinder
 
 
 
@@ -1108,115 +1109,102 @@ def manual_column_mapping(df, detected_columns):
 
 # Open de PDF en lees tabellen met pdfplumber
 def extract_table_from_pdf(pdf_path):
+    """
+    Extract tables from a PDF using Borb.
+    
+    Parameters:
+        pdf_path (str or BytesIO): Path to the PDF file or a BytesIO object.
+
+    Returns:
+        list: A list of pandas DataFrames containing the extracted tables.
+    """
     try:
-        with pdfplumber.open(pdf_path) as pdf:
-            extracted_tables = []
-            for page in pdf.pages:
-                table = page.extract_table()
-                if table:
-                    # Controleer of de tabel niet leeg is
-                    df = pd.DataFrame(table)
-                    if not df.empty:  # Voeg alleen niet-lege tabellen toe
-                        extracted_tables.append(df)
-
-        return extracted_tables
-    except Exception as e:
-        print(f"Fout bij het verwerken van de PDF met pdfplumber: {e}")
-        return []
+        if isinstance(pdf_path, BytesIO):
+            pdf_path.seek(0)  # Ensure the BytesIO object is at the start
         
-        # Controleer of tabellen zijn gevonden en toon de eerste tabel
-        if extracted_tables:
-            df_pdfplumber = extracted_tables[0]  # Neem de eerste tabel als voorbeeld
-            tools.display_dataframe_to_user(name="Extracted Table using pdfplumber", dataframe=df_pdfplumber)
-        else:
-            print("Geen tabellen gevonden in de PDF.")
+        pdf_document = Document()
+        pdf_document.read_from_stream(pdf_path)
+
+        table_finder = TableFinder()
+        pdf_document.add_event_listener(table_finder)
+
+        tables = []
+        for page_idx in range(len(pdf_document.get_pages())):
+            page_tables = table_finder.get_tables_for_page(page_idx)
+            for table in page_tables:
+                table_data = table.to_list()
+                df = pd.DataFrame(table_data[1:], columns=table_data[0])
+                if not df.empty:
+                    tables.append(df)
+        return tables
     except Exception as e:
-        print("Er trad een fout op bij het verwerken van de PDF met pdfplumber:", str(e))
+        st.error(f"Fout bij het verwerken van de PDF met Borb: {e}")
+        return []
 
-
-
-# Bepaal de laatste email van een mailboom
 def extract_latest_email(body):
     """
-    Extraheert alleen de laatste e-mail uit een e-mailthread.
-    Het detecteert het begin van een nieuwe e-mail met behulp van het patroon 'Van:' gevolgd door 'Verzonden:'.
+    Extracts only the latest email from an email thread.
+    It detects the start of a new email using the pattern 'Van:' followed by 'Verzonden:'.
     """
-    # Split de e-mailthread op basis van het patroon
     email_parts = re.split(r'Van:.*?Verzonden:.*?Aan:.*?Onderwerp:', body, flags=re.DOTALL)
-    
-    # De eerste sectie is de laatste e-mail in de thread
     if email_parts:
         latest_email = email_parts[0].strip()
         return latest_email
     else:
-        return body.strip()  # Als er niets gesplitst wordt, geef de volledige body teru
+        return body.strip()
 
 def process_attachment(attachment, attachment_name):
     """
-    Analyseert en verwerkt een bijlage op basis van het type bestand (PDF of Excel).
+    Analyzes and processes an attachment based on its file type (PDF or Excel).
     """
     if attachment_name.endswith(".xlsx"):
         try:
-            # Lees Excel-bestand
             df = pd.read_excel(BytesIO(attachment))
             st.write("Bijlage ingelezen als DataFrame:")
             st.dataframe(df)
 
-            # Detecteer relevante kolommen
             detected_columns = detect_relevant_columns(df)
-
-            # Handmatig mappen indien nodig
             mapped_columns = manual_column_mapping(df, detected_columns)
 
             if mapped_columns:
                 st.write("Definitieve kolommapping:", mapped_columns)
 
-                # Filter de DataFrame op relevante kolommen
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
-                relevant_data.columns = mapped_columns.keys()  # Hernoem kolommen naar standaardnamen
+                relevant_data.columns = mapped_columns.keys()
 
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
-              
-                # Verwerk de relevante data naar offerte
+
                 if st.sidebar.button("Verwerk gegevens naar offerte"):
                     handle_mapped_data_to_offer(relevant_data)
-                
             else:
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
                 return None
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
             return None
-        
 
     elif attachment_name.endswith(".pdf"):
         try:
-            # Lees PDF-bestand
-            pdf_reader = PdfReader(BytesIO(attachment))
+            pdf_reader = BytesIO(attachment)
             st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
 
-            # Extracteer rijen uit PDF
-            pdf_df = extract_table_from_pdf(pdf_reader)
+            tables = extract_table_from_pdf(pdf_reader)
 
-            if not pdf_df.empty:
+            if tables:
                 st.write("PDF-gegevens als DataFrame:")
-                st.dataframe(pdf_df)
+                st.dataframe(tables[0])
 
-                # Detecteer relevante kolommen
-                detected_columns = detect_relevant_columns(pdf_df)
-
-                # Handmatig mappen indien nodig
-                mapped_columns = manual_column_mapping(pdf_df, detected_columns)
+                detected_columns = detect_relevant_columns(tables[0])
+                mapped_columns = manual_column_mapping(tables[0], detected_columns)
 
                 if mapped_columns:
-                    relevant_data = pdf_df[[mapped_columns[key] for key in mapped_columns]]
-                    relevant_data.columns = mapped_columns.keys()  # Hernoem kolommen naar standaardnamen
+                    relevant_data = tables[0][[mapped_columns[key] for key in mapped_columns]]
+                    relevant_data.columns = mapped_columns.keys()
 
                     st.write("Relevante data:")
                     st.dataframe(relevant_data)
 
-                    # Verwerk de relevante data naar offerte
                     if not relevant_data.empty:
                         if st.button("Verwerk gegevens naar offerte"):
                             handle_mapped_data_to_offer(relevant_data)
