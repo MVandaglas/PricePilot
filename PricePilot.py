@@ -1163,6 +1163,9 @@ def process_attachment(attachment, attachment_name):
                 else:
                     st.warning("Geen relevante kolommen gevonden of gemapped.")
                     return None
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
+            return None
 
     elif attachment_name.endswith(".pdf"):
         try:
