@@ -1148,7 +1148,7 @@ def process_attachment(attachment, attachment_name):
                 st.dataframe(df)
 
                 detected_columns = detect_relevant_columns(df)
-                mapped_columns = manual_column_mapping(df, detected_columns, multiple=True)
+                mapped_columns = manual_column_mapping(df, detected_columns)
 
                 if mapped_columns:
                     st.write("Definitieve kolommapping:", mapped_columns)
@@ -1181,7 +1181,7 @@ def process_attachment(attachment, attachment_name):
             st.dataframe(df)
 
             detected_columns = detect_relevant_columns(df)
-            mapped_columns = manual_column_mapping(df, detected_columns, multiple=True)
+            mapped_columns = manual_column_mapping(df, detected_columns)
 
             if mapped_columns:
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
@@ -1200,11 +1200,10 @@ def process_attachment(attachment, attachment_name):
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
     else:
-        unsupported_attachments.append(attachment_name)
+        None
 
     if unsupported_attachments:
-        unsupported_list = ", ".join(unsupported_attachments)
-        st.warning(f"De volgende bijlagen worden niet ondersteund: {unsupported_list}")
+        None
 
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
