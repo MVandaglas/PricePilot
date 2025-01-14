@@ -1123,7 +1123,7 @@ def pdf_to_excel(pdf_path, excel_path):
                 if table:
                     df = pd.DataFrame(table[1:], columns=table[0])  # Gebruik de eerste rij als header
                     df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
-            writer.save()
+            writer.close()
     except Exception as e:
         st.error(f"Fout bij het converteren van PDF naar Excel: {e}")
 
@@ -1178,7 +1178,7 @@ def process_attachment(attachment, attachment_name):
             excel_path = "converted_file.xlsx"
             pdf_to_excel(pdf_reader, excel_path)
 
-            df = pd.read_excel(excel_path)
+            df = pd.read_excel(excel_path, engine='openpyxl')
             st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
             st.dataframe(df)
 
