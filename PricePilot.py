@@ -1138,8 +1138,8 @@ def process_attachment(attachment, attachment_name):
             st.dataframe(full_df)
 
             # Dropdowns voor header- en datastartregels
-            header_row = st.number_input("Selecteer de regel waar de headers staan (bijvoorbeeld: 18)", min_value=0, max_value=len(full_df), value=0)
-            data_start_row = st.number_input("Selecteer de regel waar de data begint (bijvoorbeeld: 20)", min_value=0, max_value=len(full_df), value=1)
+            header_row = st.number_input("Selecteer de regel waar de headers staan (bijvoorbeeld: 18)", min_value=0, max_value=len(full_df), value=0) -1
+            data_start_row = st.number_input("Selecteer de regel waar de data begint (bijvoorbeeld: 20)", min_value=0, max_value=len(full_df), value=1) -1
 
             if st.button("Laad geselecteerde data"):
                 df = pd.read_excel(BytesIO(attachment), header=header_row, skiprows=range(0, data_start_row))
@@ -1147,7 +1147,7 @@ def process_attachment(attachment, attachment_name):
                 st.dataframe(df)
 
                 detected_columns = detect_relevant_columns(df)
-                mapped_columns = manual_column_mapping(df, detected_columns)
+                mapped_columns = manual_column_mapping(df, detected_columns, multiple=True)
 
                 if mapped_columns:
                     st.write("Definitieve kolommapping:", mapped_columns)
@@ -1180,7 +1180,7 @@ def process_attachment(attachment, attachment_name):
             st.dataframe(df)
 
             detected_columns = detect_relevant_columns(df)
-            mapped_columns = manual_column_mapping(df, detected_columns)
+            mapped_columns = manual_column_mapping(df, detected_columns, multiple=True)
 
             if mapped_columns:
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
@@ -1199,7 +1199,10 @@ def process_attachment(attachment, attachment_name):
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
     else:
-        st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
+        with st.expander("Niet-ondersteunde bijlagen", expanded=False):
+            st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
+
+
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
     # Bestand uploaden
