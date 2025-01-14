@@ -1131,6 +1131,7 @@ def process_attachment(attachment, attachment_name):
     """
     Analyzes and processes an attachment based on its file type (PDF or Excel).
     """
+    unsupported_attachments = []
     if attachment_name.endswith(".xlsx"):
         try:
             full_df = pd.read_excel(BytesIO(attachment), header=None)  # Geen header, alles inladen
