@@ -1093,9 +1093,7 @@ def manual_column_mapping(df, detected_columns):
         if selected_column != "Geen":
             mapped_columns[key] = selected_column
 
-    # Filter de mapping om alleen daadwerkelijke selecties te behouden
-    mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
-
+  
     return mapped_columns
 
 
