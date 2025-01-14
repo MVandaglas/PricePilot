@@ -468,9 +468,9 @@ def update_offer_data(df):
             # Update SAP Prijs
             if st.session_state.customer_number in sap_prices:
                 sap_prijs = sap_prices[st.session_state.customer_number].get(row['Artikelnummer'], None)
-                df.at[index, 'SAP Prijs'] = sap_prijs if sap_prijs else "Geen prijs"
+                df.at[index, 'SAP Prijs'] = sap_prijs if sap_prijs else None
             else:
-                df.at[index, 'SAP Prijs'] = "Geen prijs"
+                df.at[index, 'SAP Prijs'] = None
     df = bereken_prijs_backend(df)
     return df
 
