@@ -16,7 +16,7 @@ from rapidfuzz import process, fuzz
 from io import BytesIO
 from PyPDF2 import PdfReader
 import extract_msg
-from pdfplumber
+import pdfplumber
 
 
 
