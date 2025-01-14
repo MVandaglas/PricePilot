@@ -1497,7 +1497,7 @@ with tab3:
 
     # Controleer of offer_df beschikbaar is in sessiestatus
     if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
-        # Filter regels met "Source" = "interpretatie"
+        # Filter regels met "Source" = "interpretatie" en "GPT"
         interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"].isin(["interpretatie", "GPT"])]
 
         
