@@ -16,8 +16,7 @@ from rapidfuzz import process, fuzz
 from io import BytesIO
 from PyPDF2 import PdfReader
 import extract_msg
-from borb.pdf import Document
-from borb.toolkit.text.simple_text_extraction import SimpleTextExtraction
+from pdfplumber
 
 
 
@@ -1108,38 +1107,25 @@ def manual_column_mapping(df, detected_columns):
 
 
 # Open de PDF en lees tabellen met pdfplumber
-def extract_table_from_pdf(pdf_path):
+def pdf_to_excel(pdf_path, excel_path):
     """
-    Extract tables or structured data from a PDF using SimpleTextExtraction.
+    Convert a PDF containing tables into an Excel file.
     
     Parameters:
         pdf_path (str or BytesIO): Path to the PDF file or a BytesIO object.
-
-    Returns:
-        list: A list of pandas DataFrames containing the extracted tables.
+        excel_path (str): Path to save the output Excel file.
     """
     try:
-        tables = []
-        with open(pdf_path, "rb") as pdf_file:
-            pdf_document = Document()
-            pdf_document.read_from_stream(pdf_file)
-
-            # Text extraction
-            text_extractor = SimpleTextExtraction()
-            pdf_document.add_event_listener(text_extractor)
-            
-            for page_idx, page in enumerate(pdf_document.get_pages()):
-                page_text = text_extractor.get_text_for_page(page_idx)
-                # Split text into rows and columns for tabular data
-                rows = [row.split() for row in page_text.splitlines() if row.strip()]
-                if rows:
-                    df = pd.DataFrame(rows[1:], columns=rows[0])  # Use the first row as headers
-                    tables.append(df)
-
-        return tables
+        with pdfplumber.open(pdf_path) as pdf:
+            writer = pd.ExcelWriter(excel_path, engine='xlsxwriter')
+            for i, page in enumerate(pdf.pages):
+                table = page.extract_table()
+                if table:
+                    df = pd.DataFrame(table[1:], columns=table[0])  # Gebruik de eerste rij als header
+                    df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
+            writer.save()
     except Exception as e:
-        print(f"Fout bij het verwerken van de PDF met Borb: {e}")
-        return []
+        st.error(f"Fout bij het converteren van PDF naar Excel: {e}")
 
 def extract_latest_email(body):
     """
@@ -1189,36 +1175,34 @@ def process_attachment(attachment, attachment_name):
             pdf_reader = BytesIO(attachment)
             st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
 
-            tables = extract_table_from_pdf(pdf_reader)
+            excel_path = "converted_file.xlsx"
+            pdf_to_excel(pdf_reader, excel_path)
 
-            if tables:
-                st.write("PDF-gegevens als DataFrame:")
-                st.dataframe(tables[0])
+            df = pd.read_excel(excel_path)
+            st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
+            st.dataframe(df)
 
-                detected_columns = detect_relevant_columns(tables[0])
-                mapped_columns = manual_column_mapping(tables[0], detected_columns)
+            detected_columns = detect_relevant_columns(df)
+            mapped_columns = manual_column_mapping(df, detected_columns)
 
-                if mapped_columns:
-                    relevant_data = tables[0][[mapped_columns[key] for key in mapped_columns]]
-                    relevant_data.columns = mapped_columns.keys()
+            if mapped_columns:
+                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()
 
-                    st.write("Relevante data:")
-                    st.dataframe(relevant_data)
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
 
-                    if not relevant_data.empty:
-                        if st.button("Verwerk gegevens naar offerte"):
-                            handle_mapped_data_to_offer(relevant_data)
-                    else:
-                        st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+                if not relevant_data.empty:
+                    if st.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
                 else:
-                    st.warning("Geen relevante kolommen gevonden of gemapped.")
+                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
             else:
-                st.warning("Geen tabelgegevens gevonden in de PDF.")
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
     else:
         st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
-
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
     # Bestand uploaden
