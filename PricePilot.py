@@ -334,57 +334,45 @@ def find_article_details(article_number):
             )
 
      # 5. Zoek alternatieven via GPT
-    synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
-    prompt = f"""
-    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
-    {synonym_list_str}
-    Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
-    """
-    try:
-        # Debug: Toon de gegenereerde prompt
-        st.write("### Debug: Prompt naar GPT")
-        st.write(prompt)
-    
-        # Correcte API-aanroep
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=20, 
-            temperature=0.5,
-        )
-    
-        # Debug: Toon de volledige API-response
-        st.write("### Debug: API Response")
-        st.write(response)
-    
-        # Verwerk de response
-        response_text = response.choices[0].message.content.strip()
-    
-        # Debug: Toon de verwerkte respons
-        st.write("### Debug: Verwerkte Respons")
-        st.write(response_text)
-    
-        # Controleer op meerdere regels
-        if "\n" in response_text:
-            suggestions = response_text.split("\n")
-            first_suggestion = suggestions[0]
-        else:
-            first_suggestion = response_text  # Hele respons gebruiken als suggestie
-    
-        # Debug: Toon de geselecteerde suggestie
-        st.write("### Debug: Geselecteerde Suggestie")
-        st.write(first_suggestion)
-    
-        # Resultaat retourneren
-        return (first_suggestion, None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
+   synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
+prompt = f"""
+Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
+{synonym_list_str}
+Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
+"""
+try:
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=20, 
+        temperature=0.5,
+    )
 
-    except Exception as e:
-        # Debug: Toon foutmelding
-        st.write("### Debug: Foutmelding")
-        st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
+    response_text = response.choices[0].message.content.strip()
+
+    # Gebruik de GPT-response correct
+    best_guess = response_text.split("\n")[0] if "\n" in response_text else response_text
+    matched_article_number = synonym_dict.get(best_guess, best_guess)
+
+    # Verifieer of het gegenereerde synoniem geldig is
+    filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+    if not filtered_articles.empty:
+        return (
+            filtered_articles.iloc[0]['Description'],  # Artikelnaam
+            filtered_articles.iloc[0]['Min_prijs'],
+            filtered_articles.iloc[0]['Max_prijs'],
+            matched_article_number,  # Artikelnummer
+            "GPT",  # Bron: GPT match
+            original_article_number,  # Original article number
+            best_guess  # Fuzzy match gevonden door GPT
+        )
+
+except Exception as e:
+    st.warning(f"Fout bij het raadplegen van OpenAI API: {e}")
+
 
 
     # 6. Als alles niet matcht
