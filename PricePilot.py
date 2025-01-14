@@ -1199,8 +1199,11 @@ def process_attachment(attachment, attachment_name):
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
     else:
-        with st.expander("Niet-ondersteunde bijlagen", expanded=False):
-            st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
+        unsupported_attachments.append(attachment_name)
+
+    if unsupported_attachments:
+        unsupported_list = ", ".join(unsupported_attachments)
+        st.warning(f"De volgende bijlagen worden niet ondersteund: {unsupported_list}")
 
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
