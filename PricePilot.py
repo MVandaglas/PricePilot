@@ -17,7 +17,7 @@ from io import BytesIO
 from PyPDF2 import PdfReader
 import extract_msg
 from borb.pdf import Document
-from borb.toolkit.table.table_extraction import TableFinder
+from borb.toolkit.text.simple_text_extraction import SimpleTextExtraction
 
 
 
@@ -1110,7 +1110,7 @@ def manual_column_mapping(df, detected_columns):
 # Open de PDF en lees tabellen met pdfplumber
 def extract_table_from_pdf(pdf_path):
     """
-    Extract tables from a PDF using Borb.
+    Extract tables or structured data from a PDF using SimpleTextExtraction.
     
     Parameters:
         pdf_path (str or BytesIO): Path to the PDF file or a BytesIO object.
@@ -1119,26 +1119,26 @@ def extract_table_from_pdf(pdf_path):
         list: A list of pandas DataFrames containing the extracted tables.
     """
     try:
-        if isinstance(pdf_path, BytesIO):
-            pdf_path.seek(0)  # Ensure the BytesIO object is at the start
-        
-        pdf_document = Document()
-        pdf_document.read_from_stream(pdf_path)
-
-        table_finder = TableFinder()
-        pdf_document.add_event_listener(table_finder)
-
         tables = []
-        for page_idx in range(len(pdf_document.get_pages())):
-            page_tables = table_finder.get_tables_for_page(page_idx)
-            for table in page_tables:
-                table_data = table.to_list()
-                df = pd.DataFrame(table_data[1:], columns=table_data[0])
-                if not df.empty:
+        with open(pdf_path, "rb") as pdf_file:
+            pdf_document = Document()
+            pdf_document.read_from_stream(pdf_file)
+
+            # Text extraction
+            text_extractor = SimpleTextExtraction()
+            pdf_document.add_event_listener(text_extractor)
+            
+            for page_idx, page in enumerate(pdf_document.get_pages()):
+                page_text = text_extractor.get_text_for_page(page_idx)
+                # Split text into rows and columns for tabular data
+                rows = [row.split() for row in page_text.splitlines() if row.strip()]
+                if rows:
+                    df = pd.DataFrame(rows[1:], columns=rows[0])  # Use the first row as headers
                     tables.append(df)
+
         return tables
     except Exception as e:
-        st.error(f"Fout bij het verwerken van de PDF met Borb: {e}")
+        print(f"Fout bij het verwerken van de PDF met Borb: {e}")
         return []
 
 def extract_latest_email(body):
