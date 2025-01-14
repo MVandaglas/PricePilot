@@ -1040,7 +1040,6 @@ def handle_mapped_data_to_offer(df):
     """
     data = []
     for _, row in df.iterrows():
-        article_number = row["Artikelnummer"]
         description = row["Artikelnaam"]
         height = row["Hoogte"]
         width = row["Breedte"]
