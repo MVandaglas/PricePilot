@@ -334,44 +334,44 @@ def find_article_details(article_number):
             )
 
      # 5. Zoek alternatieven via GPT
-   synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
-prompt = f"""
-Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
-{synonym_list_str}
-Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
-"""
-try:
-    response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=20, 
-        temperature=0.5,
-    )
-
-    response_text = response.choices[0].message.content.strip()
-
-    # Gebruik de GPT-response correct
-    best_guess = response_text.split("\n")[0] if "\n" in response_text else response_text
-    matched_article_number = synonym_dict.get(best_guess, best_guess)
-
-    # Verifieer of het gegenereerde synoniem geldig is
-    filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
-    if not filtered_articles.empty:
-        return (
-            filtered_articles.iloc[0]['Description'],  # Artikelnaam
-            filtered_articles.iloc[0]['Min_prijs'],
-            filtered_articles.iloc[0]['Max_prijs'],
-            matched_article_number,  # Artikelnummer
-            "GPT",  # Bron: GPT match
-            original_article_number,  # Original article number
-            best_guess  # Fuzzy match gevonden door GPT
+    synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
+    prompt = f"""
+    Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
+    {synonym_list_str}
+    Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
+    """
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=20, 
+            temperature=0.5,
         )
-
-except Exception as e:
-    st.warning(f"Fout bij het raadplegen van OpenAI API: {e}")
+    
+        response_text = response.choices[0].message.content.strip()
+    
+        # Gebruik de GPT-response correct
+        best_guess = response_text.split("\n")[0] if "\n" in response_text else response_text
+        matched_article_number = synonym_dict.get(best_guess, best_guess)
+    
+        # Verifieer of het gegenereerde synoniem geldig is
+        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
+        if not filtered_articles.empty:
+            return (
+                filtered_articles.iloc[0]['Description'],  # Artikelnaam
+                filtered_articles.iloc[0]['Min_prijs'],
+                filtered_articles.iloc[0]['Max_prijs'],
+                matched_article_number,  # Artikelnummer
+                "GPT",  # Bron: GPT match
+                original_article_number,  # Original article number
+                best_guess  # Fuzzy match gevonden door GPT
+            )
+    
+    except Exception as e:
+        st.warning(f"Fout bij het raadplegen van OpenAI API: {e}")
 
 
 
