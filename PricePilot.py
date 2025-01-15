@@ -1142,10 +1142,20 @@ def process_attachment(attachment, attachment_name):
             detected_columns = detect_relevant_columns(df)
             mapped_columns = manual_column_mapping(df, detected_columns)
 
+            # Validatie voor mapped_columns
+            if not isinstance(mapped_columns, dict):
+                st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
+                return None
+
             if mapped_columns:
 
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
+
+                # Filter relevant data based on start_row and end_row
+                start_row = st.sidebar.number_input("Beginrij data (niet de header):", min_value=0, max_value=len(df)-1, value=0)
+                end_row = st.sidebar.number_input("Eindrij data:", min_value=0, max_value=len(df)-1, value=len(df)-1)
+                relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
 
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
@@ -1174,9 +1184,19 @@ def process_attachment(attachment, attachment_name):
             detected_columns = detect_relevant_columns(df)
             mapped_columns = manual_column_mapping(df, detected_columns)
 
+            # Validatie voor mapped_columns
+            if not isinstance(mapped_columns, dict):
+                st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
+                return None
+
             if mapped_columns:
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
+
+                # Filter relevant data based on start_row and end_row
+                start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(df)-1, value=0)
+                end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(df)-1, value=len(df)-1)
+                relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
 
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
@@ -1191,7 +1211,8 @@ def process_attachment(attachment, attachment_name):
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
     else:
-        pass 
+        pass
+
 
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
