@@ -1081,13 +1081,10 @@ def manual_column_mapping(df, detected_columns):
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
         if key not in detected_columns:
             st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
-        if f"{key}_selection" not in st.session_state:
-            st.session_state[f"{key}_selection"] = "Geen"
         mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'", 
             options=["Geen"] + all_columns,
-            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0,
-            key=f"{key}_selection"
+            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0
         )
 
     # Filter de mapping om alleen daadwerkelijke selecties te behouden
@@ -1096,7 +1093,7 @@ def manual_column_mapping(df, detected_columns):
     return mapped_columns               
 
 
-def process_attachment(attachment, attachment_name):
+  def process_attachment(attachment, attachment_name):
     """
     Analyzes and processes an attachment based on its file type (PDF or Excel).
     """
@@ -1107,7 +1104,7 @@ def process_attachment(attachment, attachment_name):
             st.write("Volledig Excel-bestand:")
             st.dataframe(full_df)
 
-            # Dropdowns voor header-, data-start- en data-eindregels
+          # Dropdowns voor header-, data-start- en data-eindregels
             header_row = st.number_input("Selecteer de regel waar de headers staan (bijvoorbeeld: 18)", min_value=0, max_value=len(full_df), value=0) - 1
             data_start_row = st.number_input("Selecteer de regel waar de data begint (bijvoorbeeld: 20)", min_value=0, max_value=len(full_df), value=1) - 1
             data_end_row = st.number_input("Selecteer de regel waar de data eindigt (bijvoorbeeld: 40)", min_value=data_start_row + 1, max_value=len(full_df), value=len(full_df))
@@ -1176,7 +1173,6 @@ def process_attachment(attachment, attachment_name):
 
     if unsupported_attachments:
         None
-
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
