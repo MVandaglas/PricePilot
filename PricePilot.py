@@ -17,7 +17,7 @@ from io import BytesIO
 from PyPDF2 import PdfReader
 import extract_msg
 import pdfplumber
-from functools import partial
+
 
 
 # OpenAI API-sleutel instellen
@@ -176,7 +176,7 @@ def detect_relevant_columns(df):
     Detecteert de relevante kolommen (Artikelnaam, Hoogte, Breedte, Aantal) in een DataFrame.
     """
     column_mapping = {
-        "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article", "Type", "type"],
+        "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article"],
         "Hoogte": ["hoogte", "h", "height", "lengte", "Lengte", "Height", "H", "Hoogte"],
         "Breedte": ["breedte", "b", "width", "Breedte", "B", "Width"],
         "Aantal": ["aantal", "quantity", "qty", "stuks", "Aantal", "Quantity", "QTY", "Stuks", "Qty"]
@@ -341,6 +341,11 @@ def find_article_details(article_number):
     Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
     """
     try:
+        # Debug: Toon de gegenereerde prompt
+        st.write("### Debug: Prompt naar GPT")
+        st.write(prompt)
+    
+        # Correcte API-aanroep
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -351,28 +356,35 @@ def find_article_details(article_number):
             temperature=0.5,
         )
     
+        # Debug: Toon de volledige API-response
+        st.write("### Debug: API Response")
+        st.write(response)
+    
+        # Verwerk de response
         response_text = response.choices[0].message.content.strip()
     
-        # Gebruik de GPT-response correct
-        best_guess = response_text.split("\n")[0] if "\n" in response_text else response_text
-        matched_article_number = synonym_dict.get(best_guess, best_guess)
+        # Debug: Toon de verwerkte respons
+        st.write("### Debug: Verwerkte Respons")
+        st.write(response_text)
     
-        # Verifieer of het gegenereerde synoniem geldig is
-        filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
-        if not filtered_articles.empty:
-            return (
-                filtered_articles.iloc[0]['Description'],  # Artikelnaam
-                filtered_articles.iloc[0]['Min_prijs'],
-                filtered_articles.iloc[0]['Max_prijs'],
-                matched_article_number,  # Artikelnummer
-                "GPT",  # Bron: GPT match
-                original_article_number,  # Original article number
-                best_guess  # Fuzzy match gevonden door GPT
-            )
+        # Controleer op meerdere regels
+        if "\n" in response_text:
+            suggestions = response_text.split("\n")
+            first_suggestion = suggestions[0]
+        else:
+            first_suggestion = response_text  # Hele respons gebruiken als suggestie
     
-    except Exception as e:
-        st.warning(f"Fout bij het raadplegen van OpenAI API: {e}")
+        # Debug: Toon de geselecteerde suggestie
+        st.write("### Debug: Geselecteerde Suggestie")
+        st.write(first_suggestion)
+    
+        # Resultaat retourneren
+        return (first_suggestion, None, None, original_article_number, "GPT", original_article_number, None)  # Bron: GPT suggestie
 
+    except Exception as e:
+        # Debug: Toon foutmelding
+        st.write("### Debug: Foutmelding")
+        st.write(f"Fout bij het raadplegen van OpenAI API: {e}")
 
 
     # 6. Als alles niet matcht
@@ -1079,26 +1091,19 @@ def manual_column_mapping(df, detected_columns):
     st.write("Controleer of de kolommen correct zijn gedetecteerd. Indien niet, selecteer de juiste kolom.")
 
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
-        if f"{key}_selection" not in st.session_state:
-            st.session_state[f"{key}_selection"] = detected_columns.get(key, "Geen")
-
-        selected_value = st.selectbox(
-            f"Selecteer kolom voor '{key}'",
+        if key not in detected_columns:
+            st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
+        mapped_columns[key] = st.selectbox(
+            f"Selecteer kolom voor '{key}'", 
             options=["Geen"] + all_columns,
-            index=(["Geen"] + all_columns).index(st.session_state[f"{key}_selection"]),
-            key=f"{key}_dropdown"
+            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0
         )
-        st.session_state[f"{key}_selection"] = selected_value
-        mapped_columns[key] = selected_value
 
     # Filter de mapping om alleen daadwerkelijke selecties te behouden
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
-    st.write("DEBUG: Definitieve mapping:", mapped_columns)
+    return mapped_columns               
 
-    return mapped_columns
-
-           
 
 
 # Open de PDF en lees tabellen met pdfplumber
@@ -1122,8 +1127,6 @@ def pdf_to_excel(pdf_path, excel_path):
     except Exception as e:
         st.error(f"Fout bij het converteren van PDF naar Excel: {e}")
 
-
-
 def extract_latest_email(body):
     """
     Extracts only the latest email from an email thread.
@@ -1136,90 +1139,70 @@ def extract_latest_email(body):
     else:
         return body.strip()
 
-
 def process_attachment(attachment, attachment_name):
     """
     Analyzes and processes an attachment based on its file type (PDF or Excel).
     """
     if attachment_name.endswith(".xlsx"):
         try:
-            full_df = pd.read_excel(BytesIO(attachment), header=None)
-            st.write("Volledig Excel-bestand:")
-            st.dataframe(full_df)
+            df = pd.read_excel(BytesIO(attachment))
+            st.write("Bijlage ingelezen als DataFrame:")
+            st.dataframe(df)
 
-            header_row = st.number_input("Selecteer de regel waar de headers staan", min_value=0, max_value=len(full_df), value=0) - 1
-            data_start_row = st.number_input("Selecteer de regel waar de data begint", min_value=0, max_value=len(full_df), value=1) - 1
-            data_end_row = st.number_input("Selecteer de regel waar de data eindigt", min_value=data_start_row + 1, max_value=len(full_df), value=len(full_df))
+            detected_columns = detect_relevant_columns(df)
+            mapped_columns = manual_column_mapping(df, detected_columns)
 
-            if st.button("Laad geselecteerde data"):
-                df = pd.read_excel(BytesIO(attachment), header=header_row, skiprows=range(0, data_start_row))
-                df = df.iloc[:data_end_row - data_start_row].dropna(how="all")
-                st.write("Gefilterde DataFrame:")
-                st.dataframe(df)
+            if mapped_columns:
+                st.write("Definitieve kolommapping:", mapped_columns)
 
-                detected_columns = detect_relevant_columns(df)
-                st.write("DEBUG: Gedetecteerde kolommen:", detected_columns)
+                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()
 
-                mapped_columns = manual_column_mapping(df, detected_columns)
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
 
-                if "relevant_data" not in st.session_state:
-                    st.session_state["relevant_data"] = None
-
-                if mapped_columns:
-                    relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
-                    relevant_data.columns = mapped_columns.keys()
-                    st.session_state["relevant_data"] = relevant_data
-
-                    st.write("Relevante data:")
-                    st.dataframe(relevant_data)
-
-                if st.sidebar.button("Verwerk gegevens naar offerte") and st.session_state["relevant_data"] is not None:
-                    handle_mapped_data_to_offer(st.session_state["relevant_data"])
-                else:
-                    st.warning("Geen relevante data beschikbaar om te verwerken.")
+                if st.sidebar.button("Verwerk gegevens naar offerte"):
+                    handle_mapped_data_to_offer(relevant_data)
+            else:
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
+                return None
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
+            return None
 
     elif attachment_name.endswith(".pdf"):
         try:
             pdf_reader = BytesIO(attachment)
             st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
-    
+
             excel_path = "converted_file.xlsx"
             pdf_to_excel(pdf_reader, excel_path)
-    
+
             df = pd.read_excel(excel_path, engine='openpyxl')
             st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
             st.dataframe(df)
-    
+
             detected_columns = detect_relevant_columns(df)
-            st.write("DEBUG: Gedetecteerde kolommen:", detected_columns)
-    
             mapped_columns = manual_column_mapping(df, detected_columns)
-    
-            # Gebruik session_state voor relevante data
-            if "relevant_data" not in st.session_state:
-                st.session_state["relevant_data"] = None
-    
+
             if mapped_columns:
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
-                st.session_state["relevant_data"] = relevant_data
-    
+
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
-    
-            if st.session_state["relevant_data"] is not None and not st.session_state["relevant_data"].empty:
-                if st.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(st.session_state["relevant_data"])
+
+                if not relevant_data.empty:
+                    if st.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                else:
+                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
             else:
-                st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
-            st.write("DEBUG: Fout details:", e)
-
-
-
+    else:
+        st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
     # Bestand uploaden
@@ -1526,9 +1509,8 @@ with tab3:
 
     # Controleer of offer_df beschikbaar is in sessiestatus
     if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
-        # Filter regels met "Source" = "interpretatie" en "GPT"
-        interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"].isin(["interpretatie", "GPT"])]
-
+        # Filter regels met "Source" = "interpretatie"
+        interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"] == "interpretatie"]
         
         # Houd alleen unieke rijen op basis van combinatie van kolommen
         interpretatie_rows = interpretatie_rows.drop_duplicates(subset=["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"])
