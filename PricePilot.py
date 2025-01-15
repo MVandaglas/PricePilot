@@ -1100,6 +1100,43 @@ def manual_column_mapping(df, detected_columns):
     return mapped_columns               
 
 
+# Open de PDF en lees tabellen met pdfplumber
+def pdf_to_excel(pdf_path, excel_path):
+    """
+    Convert a PDF containing tables into an Excel file.
+    
+    Parameters:
+        pdf_path (str or BytesIO): Path to the PDF file or a BytesIO object.
+        excel_path (str): Path to save the output Excel file.
+    """
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            writer = pd.ExcelWriter(excel_path, engine='openpyxl')
+            for i, page in enumerate(pdf.pages):
+                table = page.extract_table()
+                if table:
+                    df = pd.DataFrame(table[1:], columns=table[0])  # Gebruik de eerste rij als header
+                    df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
+            writer.close()
+    except Exception as e:
+        st.error(f"Fout bij het converteren van PDF naar Excel: {e}")
+
+
+
+def extract_latest_email(body):
+    """
+    Extracts only the latest email from an email thread.
+    It detects the start of a new email using the pattern 'Van:' followed by 'Verzonden:'.
+    """
+    email_parts = re.split(r'Van:.*?Verzonden:.*?Aan:.*?Onderwerp:', body, flags=re.DOTALL)
+    if email_parts:
+        latest_email = email_parts[0].strip()
+        return latest_email
+    else:
+        return body.strip()
+
+
+
 def process_attachment(attachment, attachment_name):
     """
     Analyzes and processes an attachment based on its file type (PDF or Excel).
