@@ -1139,69 +1139,106 @@ def process_attachment(attachment, attachment_name):
     """
     if attachment_name.endswith(".xlsx"):
         try:
-            df = pd.read_excel(BytesIO(attachment))
-            st.write("Bijlage ingelezen als DataFrame:")
-            st.dataframe(df)
+            # Laad het volledige Excel-bestand zonder headers
+            full_df = pd.read_excel(BytesIO(attachment), header=None)
+            st.write("Volledig Excel-bestand:")
+            st.dataframe(full_df)
 
-            detected_columns = detect_relevant_columns(df)
-            mapped_columns = manual_column_mapping(df, detected_columns)
+            # Inputvelden voor header-, start- en eindrijen
+            header_row = st.number_input(
+                "Selecteer de regel waar de headers staan",
+                min_value=0,
+                max_value=len(full_df),
+                value=0,
+                step=1,
+                help="Selecteer de rij waarin de kolomnamen staan."
+            ) - 1
+            data_start_row = st.number_input(
+                "Selecteer de regel waar de data begint",
+                min_value=0,
+                max_value=len(full_df),
+                value=1,
+                step=1,
+                help="Selecteer de eerste rij met gegevens."
+            ) - 1
+            data_end_row = st.number_input(
+                "Selecteer de regel waar de data eindigt",
+                min_value=data_start_row + 1,
+                max_value=len(full_df),
+                value=len(full_df),
+                step=1,
+                help="Selecteer de laatste rij met gegevens."
+            )
 
-            if mapped_columns:
-                st.write("Definitieve kolommapping:", mapped_columns)
+            if st.button("Laad geselecteerde data"):
+                # Verwerk de geselecteerde rijen
+                df = pd.read_excel(BytesIO(attachment), header=header_row, skiprows=range(0, data_start_row))
+                df = df.iloc[:data_end_row - data_start_row].dropna(how='all')
+                st.write("Gefilterde DataFrame:")
+                st.dataframe(df)
 
-                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
-                relevant_data.columns = mapped_columns.keys()
+                # Detecteer kolommen en voer mapping uit
+                detected_columns = detect_relevant_columns(df)
+                st.write("DEBUG: Gedetecteerde kolommen:", detected_columns)
 
-                st.write("Relevante data:")
-                st.dataframe(relevant_data)
+                mapped_columns = manual_column_mapping(df, detected_columns)
 
-                if st.sidebar.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(relevant_data)
-            else:
-                st.warning("Geen relevante kolommen gevonden of gemapped.")
-                return None
+                if mapped_columns:
+                    st.write("Definitieve kolommapping:", mapped_columns)
+
+                    relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                    relevant_data.columns = mapped_columns.keys()
+
+                    st.write("Relevante data:")
+                    st.dataframe(relevant_data)
+
+                    # Verwerk relevante data naar offerte
+                    if st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                else:
+                    st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
-            return None
-
+            st.write("DEBUG: Foutdetails:", e)
 
     elif attachment_name.endswith(".pdf"):
         try:
             pdf_reader = BytesIO(attachment)
-            st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
-    
+            st.write(f"PDF-bestand '{attachment_name}' ingelezen.")
+
             excel_path = "converted_file.xlsx"
             pdf_to_excel(pdf_reader, excel_path)
-    
+
             df = pd.read_excel(excel_path, engine='openpyxl')
             st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
             st.dataframe(df)
-    
+
             detected_columns = detect_relevant_columns(df)
             st.write("DEBUG: Gedetecteerde kolommen:", detected_columns)
-    
+
             mapped_columns = manual_column_mapping(df, detected_columns)
-    
-            # Gebruik session_state voor relevante data
-            if "relevant_data" not in st.session_state:
-                st.session_state["relevant_data"] = None
-    
+
             if mapped_columns:
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
-                st.session_state["relevant_data"] = relevant_data
-    
+
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
-    
-            if st.session_state["relevant_data"] is not None and not st.session_state["relevant_data"].empty:
-                if st.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(st.session_state["relevant_data"])
+
+                if not relevant_data.empty:
+                    if st.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                else:
+                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
             else:
-                st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
-            st.write("DEBUG: Fout details:", e)
+            st.write("DEBUG: Foutdetails:", e)
+
+    else:
+        st.warning(f"Bestandstype van '{attachment_name}' wordt niet ondersteund.")
+
 
 
 
