@@ -1139,85 +1139,64 @@ def process_attachment(attachment, attachment_name):
     """
     if attachment_name.endswith(".xlsx"):
         try:
-            # Laad het volledige Excel-bestand
-            full_df = pd.read_excel(BytesIO(attachment), header=None)
-            st.write("Volledig Excel-bestand:")
-            st.dataframe(full_df)
+            df = pd.read_excel(BytesIO(attachment))
+            st.write("Bijlage ingelezen als DataFrame:")
+            st.dataframe(df)
 
-            # Gebruik sessiestatus om de geselecteerde waarden te onthouden
-            if "header_row" not in st.session_state:
-                st.session_state["header_row"] = 1
-            if "data_start_row" not in st.session_state:
-                st.session_state["data_start_row"] = 2
-            if "data_end_row" not in st.session_state:
-                st.session_state["data_end_row"] = len(full_df)
+            detected_columns = detect_relevant_columns(df)
+            mapped_columns = manual_column_mapping(df, detected_columns)
 
-            # Dropdowns voor het selecteren van header-, start- en eindrijen
-            st.session_state["header_row"] = st.number_input(
-                "Selecteer de regel waar de headers staan (bijvoorbeeld: 18)", 
-                min_value=0, 
-                max_value=len(full_df), 
-                value=st.session_state["header_row"], 
-                step=1
-            ) - 1
-            st.session_state["data_start_row"] = st.number_input(
-                "Selecteer de regel waar de data begint (bijvoorbeeld: 20)", 
-                min_value=0, 
-                max_value=len(full_df), 
-                value=st.session_state["data_start_row"], 
-                step=1
-            ) - 1
-            st.session_state["data_end_row"] = st.number_input(
-                "Selecteer de regel waar de data eindigt (bijvoorbeeld: 40)", 
-                min_value=st.session_state["data_start_row"] + 1, 
-                max_value=len(full_df), 
-                value=st.session_state["data_end_row"], 
-                step=1
-            )
+            if mapped_columns:
+                st.write("Definitieve kolommapping:", mapped_columns)
 
-            # Verwerk de geselecteerde data bij het klikken op een knop
-            if st.button("Laad geselecteerde data"):
-                df = pd.read_excel(
-                    BytesIO(attachment), 
-                    header=st.session_state["header_row"], 
-                    skiprows=range(0, st.session_state["data_start_row"])
-                )
-                df = df.iloc[:st.session_state["data_end_row"] - st.session_state["data_start_row"]].dropna(how='all')
-                st.write("Gefilterde DataFrame:")
-                st.dataframe(df)
+                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()
 
-                # Detecteer relevante kolommen
-                detected_columns = detect_relevant_columns(df)
-                st.write("DEBUG: Gedetecteerde kolommen:", detected_columns)
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
 
-                # Handmatige kolommapping
-                mapped_columns = manual_column_mapping(df, detected_columns)
-
-                if mapped_columns:
-                    st.write("Definitieve kolommapping:", mapped_columns)
-
-                    # Filter de relevante data
-                    relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
-                    relevant_data.columns = mapped_columns.keys()
-
-                    st.write("Relevante data:")
-                    st.dataframe(relevant_data)
-
-                    # Verwerk relevante data naar offerte
-                    if st.sidebar.button("Verwerk gegevens naar offerte"):
-                        handle_mapped_data_to_offer(relevant_data)
-                else:
-                    st.warning("Geen relevante kolommen gevonden of gemapped.")
+                if st.sidebar.button("Verwerk gegevens naar offerte"):
+                    handle_mapped_data_to_offer(relevant_data)
+            else:
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
+                return None
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
-            st.write("DEBUG: Fout details:", e)
+            return None
+
+    elif attachment_name.endswith(".pdf"):
+        try:
+            pdf_reader = BytesIO(attachment)
+            st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
+
+            excel_path = "converted_file.xlsx"
+            pdf_to_excel(pdf_reader, excel_path)
+
+            df = pd.read_excel(excel_path, engine='openpyxl')
+            st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
+            st.dataframe(df)
+
+            detected_columns = detect_relevant_columns(df)
+            mapped_columns = manual_column_mapping(df, detected_columns)
+
+            if mapped_columns:
+                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()
+
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
+
+                if not relevant_data.empty:
+                    if st.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                else:
+                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+            else:
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
     else:
-        st.warning(f"Bestandstype van '{attachment_name}' wordt niet ondersteund.")
-
-
-
-
-
+        st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
     # Bestand uploaden
@@ -1265,6 +1244,7 @@ with st.sidebar.expander("Upload document", expanded=False):
             st.error(f"Fout bij het verwerken van het bestand: {e}")
     else:
         st.info("Upload een .msg-bestand om verder te gaan.")    
+
 
 
 
