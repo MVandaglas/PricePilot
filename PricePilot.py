@@ -17,7 +17,7 @@ from io import BytesIO
 from PyPDF2 import PdfReader
 import extract_msg
 import pdfplumber
-
+from functools import partial
 
 
 # OpenAI API-sleutel instellen
@@ -1088,20 +1088,22 @@ def manual_column_mapping(df, detected_columns):
         if f"{key}_selection" not in st.session_state:
             st.session_state[f"{key}_selection"] = "Geen"
 
+        # Gebruik partial om extra argumenten door te geven
+        callback = partial(update_mapping, key)
+        
         mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'",
             options=["Geen"] + all_columns,
             index=all_columns.index(detected_columns[key]) + 1 if key in detected_columns else 0,
             key=f"{key}_selection",
-            on_change=update_mapping,
-            args=(key,)
+            on_change=callback,
+            args=(st.session_state[f"{key}_selection"],)  # Value meegeven
         )
 
     # Filter de mapping om alleen daadwerkelijke selecties te behouden
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
-    return mapped_columns    
-
+    return mapped_columns
 
 
 
