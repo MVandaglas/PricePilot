@@ -1139,42 +1139,31 @@ def process_attachment(attachment, attachment_name):
     """
     if attachment_name.endswith(".xlsx"):
         try:
-            full_df = pd.read_excel(BytesIO(attachment), header=None)
-            st.write("Volledig Excel-bestand:")
-            st.dataframe(full_df)
+            df = pd.read_excel(BytesIO(attachment))
+            st.write("Bijlage ingelezen als DataFrame:")
+            st.dataframe(df)
 
-            header_row = st.number_input("Selecteer de regel waar de headers staan", min_value=0, max_value=len(full_df), value=0) - 1
-            data_start_row = st.number_input("Selecteer de regel waar de data begint", min_value=0, max_value=len(full_df), value=1) - 1
-            data_end_row = st.number_input("Selecteer de regel waar de data eindigt", min_value=data_start_row + 1, max_value=len(full_df), value=len(full_df))
+            detected_columns = detect_relevant_columns(df)
+            mapped_columns = manual_column_mapping(df, detected_columns)
 
-            if st.button("Laad geselecteerde data"):
-                df = pd.read_excel(BytesIO(attachment), header=header_row, skiprows=range(0, data_start_row))
-                df = df.iloc[:data_end_row - data_start_row].dropna(how="all")
-                st.write("Gefilterde DataFrame:")
-                st.dataframe(df)
+            if mapped_columns:
+                st.write("Definitieve kolommapping:", mapped_columns)
 
-                detected_columns = detect_relevant_columns(df)
-                st.write("DEBUG: Gedetecteerde kolommen:", detected_columns)
+                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()
 
-                mapped_columns = manual_column_mapping(df, detected_columns)
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
 
-                if "relevant_data" not in st.session_state:
-                    st.session_state["relevant_data"] = None
-
-                if mapped_columns:
-                    relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
-                    relevant_data.columns = mapped_columns.keys()
-                    st.session_state["relevant_data"] = relevant_data
-
-                    st.write("Relevante data:")
-                    st.dataframe(relevant_data)
-
-                if st.sidebar.button("Verwerk gegevens naar offerte") and st.session_state["relevant_data"] is not None:
-                    handle_mapped_data_to_offer(st.session_state["relevant_data"])
-                else:
-                    st.warning("Geen relevante data beschikbaar om te verwerken.")
+                if st.sidebar.button("Verwerk gegevens naar offerte"):
+                    handle_mapped_data_to_offer(relevant_data)
+            else:
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
+                return None
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
+            return None
+
 
     elif attachment_name.endswith(".pdf"):
         try:
