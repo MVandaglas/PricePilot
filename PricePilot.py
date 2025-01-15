@@ -1218,7 +1218,7 @@ def process_attachment(attachment, attachment_name):
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
     # Bestand uploaden
-    uploaded_file = st.file_uploader("Upload een Outlook .msg bestand", type=["msg"])
+    uploaded_file = st.file_uploader("Upload een Outlook, PDF of Excel bestand", type=["msg", "pdf", "xlsx"])
     
     # Controleren of er een bestand is geüpload
     if uploaded_file:
@@ -1532,7 +1532,7 @@ with tab3:
         interpretatie_rows = pd.DataFrame()  # Lege DataFrame als fallback
 
     if interpretatie_rows.empty:
-        st.info("Er zijn geen regels met 'interpretatie' om te beoordelen.")
+        st.info("Er zijn geen AI regels om te beoordelen.")
     else:
         # Maak een tabel met de correcte input en gematchte waarden
         beoordeling_tabel = interpretatie_rows.copy()
