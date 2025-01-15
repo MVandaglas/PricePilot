@@ -1078,67 +1078,27 @@ def manual_column_mapping(df, detected_columns):
 
     st.write("Controleer of de kolommen correct zijn gedetecteerd. Indien niet, selecteer de juiste kolom.")
 
-    # Callback voor bijwerken van session_state
-    def update_mapping(key, value):
-        st.session_state[f"{key}_selection"] = value
-
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
         if key not in detected_columns:
             st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
         if f"{key}_selection" not in st.session_state:
             st.session_state[f"{key}_selection"] = "Geen"
-
-        # Gebruik partial om extra argumenten door te geven
-        callback = partial(update_mapping, key)
-        
-        mapped_columns[key] = st.selectbox(
-            f"Selecteer kolom voor '{key}'",
+        selected_value = st.selectbox(
+            f"Selecteer kolom voor '{key}'", 
             options=["Geen"] + all_columns,
-            index=all_columns.index(detected_columns[key]) + 1 if key in detected_columns else 0,
-            key=f"{key}_selection",
-            on_change=callback,
-            args=(st.session_state[f"{key}_selection"],)  # Value meegeven
+            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0,
+            key=f"{key}_selection"
         )
+        st.write(f"DEBUG: Geselecteerde waarde voor {key}: {selected_value}")
+        mapped_columns[key] = selected_value
 
     # Filter de mapping om alleen daadwerkelijke selecties te behouden
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
-    return mapped_columns
+    st.write("DEBUG: Definitieve mapping:", mapped_columns)
 
+    return mapped_columns               
 
-
-# Open de PDF en lees tabellen met pdfplumber
-def pdf_to_excel(pdf_path, excel_path):
-    """
-    Convert a PDF containing tables into an Excel file.
-    
-    Parameters:
-        pdf_path (str or BytesIO): Path to the PDF file or a BytesIO object.
-        excel_path (str): Path to save the output Excel file.
-    """
-    try:
-        with pdfplumber.open(pdf_path) as pdf:
-            writer = pd.ExcelWriter(excel_path, engine='openpyxl')
-            for i, page in enumerate(pdf.pages):
-                table = page.extract_table()
-                if table:
-                    df = pd.DataFrame(table[1:], columns=table[0])  # Gebruik de eerste rij als header
-                    df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
-            writer.close()
-    except Exception as e:
-        st.error(f"Fout bij het converteren van PDF naar Excel: {e}")
-
-def extract_latest_email(body):
-    """
-    Extracts only the latest email from an email thread.
-    It detects the start of a new email using the pattern 'Van:' followed by 'Verzonden:'.
-    """
-    email_parts = re.split(r'Van:.*?Verzonden:.*?Aan:.*?Onderwerp:', body, flags=re.DOTALL)
-    if email_parts:
-        latest_email = email_parts[0].strip()
-        return latest_email
-    else:
-        return body.strip()
 
 def process_attachment(attachment, attachment_name):
     """
@@ -1151,7 +1111,7 @@ def process_attachment(attachment, attachment_name):
             st.write("Volledig Excel-bestand:")
             st.dataframe(full_df)
 
-          # Dropdowns voor header-, data-start- en data-eindregels
+            # Dropdowns voor header-, data-start- en data-eindregels
             header_row = st.number_input("Selecteer de regel waar de headers staan (bijvoorbeeld: 18)", min_value=0, max_value=len(full_df), value=0) - 1
             data_start_row = st.number_input("Selecteer de regel waar de data begint (bijvoorbeeld: 20)", min_value=0, max_value=len(full_df), value=1) - 1
             data_end_row = st.number_input("Selecteer de regel waar de data eindigt (bijvoorbeeld: 40)", min_value=data_start_row + 1, max_value=len(full_df), value=len(full_df))
@@ -1164,6 +1124,8 @@ def process_attachment(attachment, attachment_name):
                 st.dataframe(df)
 
                 detected_columns = detect_relevant_columns(df)
+                st.write("DEBUG: Gedetecteerde kolommen:", detected_columns)
+
                 mapped_columns = manual_column_mapping(df, detected_columns)
 
                 if mapped_columns:
@@ -1182,6 +1144,7 @@ def process_attachment(attachment, attachment_name):
                     return None
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
+            st.write("DEBUG: Fout details:", e)
             return None
 
     elif attachment_name.endswith(".pdf"):
@@ -1197,6 +1160,8 @@ def process_attachment(attachment, attachment_name):
             st.dataframe(df)
 
             detected_columns = detect_relevant_columns(df)
+            st.write("DEBUG: Gedetecteerde kolommen:", detected_columns)
+
             mapped_columns = manual_column_mapping(df, detected_columns)
 
             if mapped_columns:
@@ -1215,11 +1180,13 @@ def process_attachment(attachment, attachment_name):
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
+            st.write("DEBUG: Fout details:", e)
     else:
         None
 
     if unsupported_attachments:
         None
+
 
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
