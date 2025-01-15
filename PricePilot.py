@@ -1074,29 +1074,30 @@ def manual_column_mapping(df, detected_columns):
     Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen.
     """
     all_columns = list(df.columns)
-    mapped_columns = {}
+    mapped_columns = detected_columns.copy()
 
     st.write("Controleer of de kolommen correct zijn gedetecteerd. Indien niet, selecteer de juiste kolom.")
 
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
-        if key not in detected_columns:
-            st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
-        # Gebruik 'Geen' als standaardoptie
-        options = ["Geen"] + all_columns
+        if f"{key}_selection" not in st.session_state:
+            st.session_state[f"{key}_selection"] = detected_columns.get(key, "Geen")
+
         selected_value = st.selectbox(
             f"Selecteer kolom voor '{key}'",
-            options=options,
-            index=options.index(detected_columns.get(key, "Geen")),
+            options=["Geen"] + all_columns,
+            index=(["Geen"] + all_columns).index(st.session_state[f"{key}_selection"]),
             key=f"{key}_dropdown"
         )
-        st.write(f"DEBUG: Geselecteerde waarde voor {key}: {selected_value}")
-        if selected_value != "Geen":
-            mapped_columns[key] = selected_value
+        st.session_state[f"{key}_selection"] = selected_value
+        mapped_columns[key] = selected_value
 
-    # Toon debug-informatie voor de uiteindelijke mapping
+    # Filter de mapping om alleen daadwerkelijke selecties te behouden
+    mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
+
     st.write("DEBUG: Definitieve mapping:", mapped_columns)
 
     return mapped_columns
+
            
 
 
@@ -1136,27 +1137,23 @@ def extract_latest_email(body):
         return body.strip()
 
 
-
 def process_attachment(attachment, attachment_name):
     """
     Analyzes and processes an attachment based on its file type (PDF or Excel).
     """
-    unsupported_attachments = []
     if attachment_name.endswith(".xlsx"):
         try:
-            full_df = pd.read_excel(BytesIO(attachment), header=None)  # Geen header, alles inladen
+            full_df = pd.read_excel(BytesIO(attachment), header=None)
             st.write("Volledig Excel-bestand:")
             st.dataframe(full_df)
 
-            # Dropdowns voor header-, data-start- en data-eindregels
-            header_row = st.number_input("Selecteer de regel waar de headers staan (bijvoorbeeld: 18)", min_value=0, max_value=len(full_df), value=0) - 1
-            data_start_row = st.number_input("Selecteer de regel waar de data begint (bijvoorbeeld: 20)", min_value=0, max_value=len(full_df), value=1) - 1
-            data_end_row = st.number_input("Selecteer de regel waar de data eindigt (bijvoorbeeld: 40)", min_value=data_start_row + 1, max_value=len(full_df), value=len(full_df))
+            header_row = st.number_input("Selecteer de regel waar de headers staan", min_value=0, max_value=len(full_df), value=0) - 1
+            data_start_row = st.number_input("Selecteer de regel waar de data begint", min_value=0, max_value=len(full_df), value=1) - 1
+            data_end_row = st.number_input("Selecteer de regel waar de data eindigt", min_value=data_start_row + 1, max_value=len(full_df), value=len(full_df))
 
             if st.button("Laad geselecteerde data"):
-                # Filteren op rijen en verwijderen van lege regels
                 df = pd.read_excel(BytesIO(attachment), header=header_row, skiprows=range(0, data_start_row))
-                df = df.iloc[:data_end_row - data_start_row].dropna(how='all')
+                df = df.iloc[:data_end_row - data_start_row].dropna(how="all")
                 st.write("Gefilterde DataFrame:")
                 st.dataframe(df)
 
@@ -1165,64 +1162,61 @@ def process_attachment(attachment, attachment_name):
 
                 mapped_columns = manual_column_mapping(df, detected_columns)
 
-                if mapped_columns:
-                    st.write("Definitieve kolommapping:", mapped_columns)
+                if "relevant_data" not in st.session_state:
+                    st.session_state["relevant_data"] = None
 
+                if mapped_columns:
                     relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                     relevant_data.columns = mapped_columns.keys()
+                    st.session_state["relevant_data"] = relevant_data
 
                     st.write("Relevante data:")
                     st.dataframe(relevant_data)
 
-                    if st.sidebar.button("Verwerk gegevens naar offerte"):
-                        handle_mapped_data_to_offer(relevant_data)
+                if st.sidebar.button("Verwerk gegevens naar offerte") and st.session_state["relevant_data"] is not None:
+                    handle_mapped_data_to_offer(st.session_state["relevant_data"])
                 else:
-                    st.warning("Geen relevante kolommen gevonden of gemapped.")
-                    return None
+                    st.warning("Geen relevante data beschikbaar om te verwerken.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
-            st.write("DEBUG: Fout details:", e)
-            return None
 
     elif attachment_name.endswith(".pdf"):
         try:
             pdf_reader = BytesIO(attachment)
             st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
-
+    
             excel_path = "converted_file.xlsx"
             pdf_to_excel(pdf_reader, excel_path)
-
+    
             df = pd.read_excel(excel_path, engine='openpyxl')
             st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
             st.dataframe(df)
-
+    
             detected_columns = detect_relevant_columns(df)
             st.write("DEBUG: Gedetecteerde kolommen:", detected_columns)
-
+    
             mapped_columns = manual_column_mapping(df, detected_columns)
-
+    
+            # Gebruik session_state voor relevante data
+            if "relevant_data" not in st.session_state:
+                st.session_state["relevant_data"] = None
+    
             if mapped_columns:
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
-
+                st.session_state["relevant_data"] = relevant_data
+    
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
-
-                if not relevant_data.empty:
-                    if st.button("Verwerk gegevens naar offerte"):
-                        handle_mapped_data_to_offer(relevant_data)
-                else:
-                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+    
+            if st.session_state["relevant_data"] is not None and not st.session_state["relevant_data"].empty:
+                if st.button("Verwerk gegevens naar offerte"):
+                    handle_mapped_data_to_offer(st.session_state["relevant_data"])
             else:
-                st.warning("Geen relevante kolommen gevonden of gemapped.")
+                st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
             st.write("DEBUG: Fout details:", e)
-    else:
-        None
-
-    if unsupported_attachments:
-        None
 
 
 
