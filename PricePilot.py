@@ -1088,8 +1088,6 @@ def manual_column_mapping(df, detected_columns):
     # Filter de mapping om alleen daadwerkelijke selecties te behouden
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
-    st.write("DEBUG: Definitieve mapping:", mapped_columns)
-
     return mapped_columns
 
            
@@ -1145,7 +1143,6 @@ def process_attachment(attachment, attachment_name):
             mapped_columns = manual_column_mapping(df, detected_columns)
 
             if mapped_columns:
-                st.write("Definitieve kolommapping:", mapped_columns)
 
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
@@ -1194,7 +1191,9 @@ def process_attachment(attachment, attachment_name):
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
     else:
-        st.warning(f"Bijlage '{attachment_name}' wordt niet ondersteund.")
+        pass 
+
+
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
     # Bestand uploaden
