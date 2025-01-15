@@ -1081,10 +1081,13 @@ def manual_column_mapping(df, detected_columns):
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
         if key not in detected_columns:
             st.warning(f"Kolom voor '{key}' niet automatisch gevonden.")
+        if f"{key}_selection" not in st.session_state:
+            st.session_state[f"{key}_selection"] = "Geen"
         mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'", 
             options=["Geen"] + all_columns,
-            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0
+            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0,
+            key=f"{key}_selection"
         )
 
     # Filter de mapping om alleen daadwerkelijke selecties te behouden
