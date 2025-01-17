@@ -1423,6 +1423,46 @@ with tab1:
         except Exception as e:
             st.error(f"Fout bij het verwerken van de e-mail: {e}")
 
+# Offerte Genereren tab
+with tab1:
+    # Eén knop om de acties uit te voeren
+    if st.sidebar.button("Start verwerking naar offerte"):
+        actie_uitgevoerd = False
+
+        # Probeer de eerste actie, tekstvak
+        try:
+            handle_gpt_chat()
+            actie_uitgevoerd = True
+        except Exception as e:
+            st.sidebar.warning("Actie 1: Vertaal chat naar offerte is mislukt. Doorgaan naar de volgende actie...")
+
+        # Als de eerste actie niet slaagt, probeer de tweede, bijlage in mail
+        if not actie_uitgevoerd:
+            try:
+                handle_email_to_offer(email_body)
+                actie_uitgevoerd = True
+            except Exception as e:
+                st.sidebar.warning("Actie 2: Vertaal mail naar offerte is mislukt. Doorgaan naar de volgende actie...")
+
+        # Als de tweede actie niet slaagt, probeer de derde, de inhoud van de mail
+        if not actie_uitgevoerd:
+            try:
+                handle_mapped_data_to_offer(relevant_data)
+                actie_uitgevoerd = True
+            except Exception as e:
+                st.sidebar.error("BullsAI heeft geen gegevens kunnen verwerken.")
+
+# Informatiebalk direct onder de knop
+        st.info(
+            """
+            De acties worden uitgevoerd in de volgende volgorde:
+            1. Verwerk tekstvak naar offerte.
+            2. Verwerk bijlage mail naar offerte.
+            3. Verwerk e-mail naar offerte.
+            Als een actie succesvol is, stopt de verwerking.
+            """
+        )
+
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
     st.session_state.offer_df.insert(0, 'Rijnummer', range(1, len(st.session_state.offer_df) + 1))
