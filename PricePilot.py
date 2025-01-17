@@ -151,119 +151,116 @@ for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
 totaal_m2 = st.session_state.offer_df["M2 totaal"].sum()
 totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]).sum()
 
-
-# Resultaten weergeven
-# HTML-code om afbeelding te centreren en de grootte aan te passen
-html_code_logo = """
-<div style="text-align: center;">
-    <img src="k0gz2vnx.png" style="width: 20%;">
-</div>
-"""
+# Maak drie kolommen
+col1, col2, col3 = st.sidebar.columns(3)
 
 # HTML weergeven in de zijbalk
-st.sidebar.markdown(html_code_logo, unsafe_allow_html=True)
-st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
-st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
+with col2:
+    st.image("k0gz2vnx.png", width=int(30 / 100 * 1024))  # Pas grootte aan (30% van origineel)
 
-# Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
-st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-
-cutoff_value = st.sidebar.slider(
-    "Matchwaarde AI",
-    min_value=0.1,
-    max_value=1.0,
-    value=0.6,  # Standaardwaarde
-    step=0.1,  # Stappen in float
-    help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
-)
-
-# Bijlagen in mail definiëren
-def detect_relevant_columns(df):
-    """
-    Detecteert de relevante kolommen (Artikelnaam, Hoogte, Breedte, Aantal) in een DataFrame.
-    """
-    column_mapping = {
-        "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article", "Type", "type"],
-        "Hoogte": ["hoogte", "h", "height", "lengte", "Lengte", "Height", "H", "Hoogte"],
-        "Breedte": ["breedte", "b", "width", "Breedte", "B", "Width"],
-        "Aantal": ["aantal", "quantity", "qty", "stuks", "Aantal", "Quantity", "QTY", "Stuks", "Qty"]
-    }
-    detected_columns = {}
-
-    for key, patterns in column_mapping.items():
-        for pattern in patterns:
-            for col in df.columns:
-                if re.search(pattern, col, re.IGNORECASE):
-                    detected_columns[key] = col
+with col1:
+    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+    st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
+    st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
+    
+    # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
+    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+    
+    cutoff_value = st.sidebar.slider(
+        "Matchwaarde AI",
+        min_value=0.1,
+        max_value=1.0,
+        value=0.6,  # Standaardwaarde
+        step=0.1,  # Stappen in float
+        help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
+    )
+    
+    # Bijlagen in mail definiëren
+    def detect_relevant_columns(df):
+        """
+        Detecteert de relevante kolommen (Artikelnaam, Hoogte, Breedte, Aantal) in een DataFrame.
+        """
+        column_mapping = {
+            "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article", "Type", "type"],
+            "Hoogte": ["hoogte", "h", "height", "lengte", "Lengte", "Height", "H", "Hoogte"],
+            "Breedte": ["breedte", "b", "width", "Breedte", "B", "Width"],
+            "Aantal": ["aantal", "quantity", "qty", "stuks", "Aantal", "Quantity", "QTY", "Stuks", "Qty"]
+        }
+        detected_columns = {}
+    
+        for key, patterns in column_mapping.items():
+            for pattern in patterns:
+                for col in df.columns:
+                    if re.search(pattern, col, re.IGNORECASE):
+                        detected_columns[key] = col
+                        break
+                if key in detected_columns:
                     break
-            if key in detected_columns:
-                break
-
-    return detected_columns
-
-
-
-# Gebruikersinvoer
-customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-st.session_state.customer_number = str(customer_number) if customer_number else ''
-offer_amount = totaal_bedrag
-
-
-
-if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-
-    # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
-    klantgrootte = customer_data[customer_number]['size']
-    prijsscherpte = ""
-    if klantgrootte == "A":
-        if offer_amount > 50000:
-            prijsscherpte = 100
-        elif offer_amount > 25000:
-            prijsscherpte = 90
-        elif offer_amount > 10000:
-            prijsscherpte = 80
-        elif offer_amount > 5000:
-            prijsscherpte = 70
-        else:
-            prijsscherpte = 60
-    elif klantgrootte == "B":
-        if offer_amount > 50000:
-            prijsscherpte = 80
-        elif offer_amount > 25000:
-            prijsscherpte = 70
-        elif offer_amount > 10000:
-            prijsscherpte = 60
-        elif offer_amount > 5000:
-            prijsscherpte = 50
-        else:
-            prijsscherpte = 40
-    elif klantgrootte == "C":
-        if offer_amount > 50000:
-            prijsscherpte = 75
-        elif offer_amount > 25000:
-            prijsscherpte = 65
-        elif offer_amount > 10000:
-            prijsscherpte = 50
-        elif offer_amount > 5000:
-            prijsscherpte = 40
-        else:
-            prijsscherpte = 30
-    elif klantgrootte == "D":
-        if offer_amount > 50000:
-            prijsscherpte = 70
-        elif offer_amount > 25000:
-            prijsscherpte = 60
-        elif offer_amount > 10000:
-            prijsscherpte = 45
-        elif offer_amount > 5000:
-            prijsscherpte = 25
-        else:
-            prijsscherpte = 10
-    st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+    
+        return detected_columns
+    
+    
+    
+    # Gebruikersinvoer
+    customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
+    customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+    st.session_state.customer_number = str(customer_number) if customer_number else ''
+    offer_amount = totaal_bedrag
+    
+    
+    
+    if customer_number in customer_data:
+        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+    
+        # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
+        klantgrootte = customer_data[customer_number]['size']
+        prijsscherpte = ""
+        if klantgrootte == "A":
+            if offer_amount > 50000:
+                prijsscherpte = 100
+            elif offer_amount > 25000:
+                prijsscherpte = 90
+            elif offer_amount > 10000:
+                prijsscherpte = 80
+            elif offer_amount > 5000:
+                prijsscherpte = 70
+            else:
+                prijsscherpte = 60
+        elif klantgrootte == "B":
+            if offer_amount > 50000:
+                prijsscherpte = 80
+            elif offer_amount > 25000:
+                prijsscherpte = 70
+            elif offer_amount > 10000:
+                prijsscherpte = 60
+            elif offer_amount > 5000:
+                prijsscherpte = 50
+            else:
+                prijsscherpte = 40
+        elif klantgrootte == "C":
+            if offer_amount > 50000:
+                prijsscherpte = 75
+            elif offer_amount > 25000:
+                prijsscherpte = 65
+            elif offer_amount > 10000:
+                prijsscherpte = 50
+            elif offer_amount > 5000:
+                prijsscherpte = 40
+            else:
+                prijsscherpte = 30
+        elif klantgrootte == "D":
+            if offer_amount > 50000:
+                prijsscherpte = 70
+            elif offer_amount > 25000:
+                prijsscherpte = 60
+            elif offer_amount > 10000:
+                prijsscherpte = 45
+            elif offer_amount > 5000:
+                prijsscherpte = 25
+            else:
+                prijsscherpte = 10
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
 
 # Functie om synoniemen te vervangen in invoertekst
