@@ -1426,10 +1426,7 @@ with tab1:
 # Offerte Genereren tab
 with tab1:
     # Een container voor de knop en de informatiebalk
-    with st.sidebar.container():
-        # Upload een bijlage om te verwerken
-        uploaded_file = st.sidebar.file_uploader("Upload een bijlage", type=["xlsx", "pdf"])
-        
+    with st.sidebar.container():   
         relevant_data = None
 
         # Verwerk de bijlage zodra deze is geüpload
