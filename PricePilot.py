@@ -1425,45 +1425,50 @@ with tab1:
 
 # Offerte Genereren tab
 with tab1:
-    # Eén knop om de acties uit te voeren
-    if st.sidebar.button("Start verwerking naar offerte"):
-        actie_uitgevoerd = False
-
-        # Probeer de eerste actie, tekstvak
-        try:
-            handle_gpt_chat()
-            actie_uitgevoerd = True
-        except Exception as e:
-            pass
-
-        # Als de eerste actie niet slaagt, probeer de tweede, bijlage van de mail
-        if not actie_uitgevoerd:
-            try:
-                handle_mapped_data_to_offer(relevant_data)
-                actie_uitgevoerd = True
-            except Exception as e:
-                pass
+    # Een container voor de knop en de informatiebalk
+    with st.sidebar.container():
+        # Upload een bijlage om te verwerken
+        uploaded_file = st.sidebar.file_uploader("Upload een bijlage", type=["xlsx", "pdf"])
         
-        # Als de tweede actie niet slaagt, probeer de derde, tekst in de mail
-        if not actie_uitgevoerd:
+        relevant_data = None
+
+        # Verwerk de bijlage zodra deze is geüpload
+        if uploaded_file is not None:
+            attachment_name = uploaded_file.name
+            relevant_data = process_attachment(uploaded_file.getvalue(), attachment_name)
+        
+        # Eén knop om de acties uit te voeren
+        if st.sidebar.button("Start verwerking naar offerte"):
+            actie_uitgevoerd = False
+
+            # Probeer de eerste actie (tekstvak naar offerte)
             try:
-                handle_email_to_offer(email_body)
+                handle_gpt_chat()
                 actie_uitgevoerd = True
-            except Exception as e:
-                st.sidebar.error("BullsAI heeft geen gegevens kunnen verwerken.")
+            except Exception:
+                pass  # Fout negeren en doorgaan naar de volgende actie
 
+            # Als de eerste actie niet slaagt, probeer de tweede (bijlage mail)
+            if not actie_uitgevoerd and relevant_data is not None:
+                try:
+                    handle_mapped_data_to_offer(relevant_data)
+                    actie_uitgevoerd = True
+                except Exception:
+                    pass  # Fout negeren en doorgaan naar de volgende actie
 
+            # Als de tweede actie niet slaagt, probeer de derde (mail naar offerte)
+            if not actie_uitgevoerd:
+                try:
+                    handle_email_to_offer(email_body)
+                    actie_uitgevoerd = True
+                except Exception:
+                    pass  # Fout negeren
 
-# Informatiebalk direct onder de knop
-        st.info(
-            """
-            De acties worden uitgevoerd in de volgende volgorde:
-            1. Verwerk tekstvak naar offerte.
-            2. Verwerk bijlage mail naar offerte.
-            3. Verwerk e-mail naar offerte.
-            Als een actie succesvol is, stopt de verwerking.
-            """
-        )
+            # Eindstatus bepalen
+            if actie_uitgevoerd:
+                st.write("De offerte is succesvol verwerkt.")
+            else:
+                st.write("BullsAI heeft geen gegevens kunnen verwerken.")
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
