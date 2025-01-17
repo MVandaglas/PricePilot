@@ -153,7 +153,15 @@ totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer
 
 
 # Resultaten weergeven
-st.sidebar.image("k0gz2vnx.png", width=int(30 / 100 * 1024))
+# HTML-code om afbeelding te centreren en de grootte aan te passen
+html_code_logo = """
+<div style="text-align: center;">
+    <img src="k0gz2vnx.png" style="width: 20%;">
+</div>
+"""
+
+# HTML weergeven in de zijbalk
+st.sidebar.markdown(html_code_logo, unsafe_allow_html=True)
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
 st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
