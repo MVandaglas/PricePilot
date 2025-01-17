@@ -1442,7 +1442,7 @@ with tab1:
                 handle_mapped_data_to_offer(relevant_data)
                 actie_uitgevoerd = True
             except Exception as e:
-                st.sidebar.error("BullsAI heeft geen gegevens kunnen verwerken.")
+                pass
         
         # Als de tweede actie niet slaagt, probeer de derde, tekst in de mail
         if not actie_uitgevoerd:
@@ -1450,7 +1450,7 @@ with tab1:
                 handle_email_to_offer(email_body)
                 actie_uitgevoerd = True
             except Exception as e:
-                pass
+                st.sidebar.error("BullsAI heeft geen gegevens kunnen verwerken.")
 
 
 
