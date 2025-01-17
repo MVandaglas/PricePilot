@@ -1434,7 +1434,7 @@ with tab1:
             handle_gpt_chat()
             actie_uitgevoerd = True
         except Exception as e:
-            st.sidebar.warning("Actie 1: Vertaal chat naar offerte is mislukt. Doorgaan naar de volgende actie...")
+            pass
 
         # Als de eerste actie niet slaagt, probeer de tweede, bijlage in mail
         if not actie_uitgevoerd:
@@ -1442,7 +1442,7 @@ with tab1:
                 handle_email_to_offer(email_body)
                 actie_uitgevoerd = True
             except Exception as e:
-                st.sidebar.warning("Actie 2: Vertaal mail naar offerte is mislukt. Doorgaan naar de volgende actie...")
+                pass
 
         # Als de tweede actie niet slaagt, probeer de derde, de inhoud van de mail
         if not actie_uitgevoerd:
