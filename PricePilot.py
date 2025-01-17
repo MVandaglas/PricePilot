@@ -1436,7 +1436,15 @@ with tab1:
         except Exception as e:
             pass
 
-        # Als de eerste actie niet slaagt, probeer de tweede, bijlage in mail
+        # Als de eerste actie niet slaagt, probeer de tweede, bijlage van de mail
+        if not actie_uitgevoerd:
+            try:
+                handle_mapped_data_to_offer(relevant_data)
+                actie_uitgevoerd = True
+            except Exception as e:
+                st.sidebar.error("BullsAI heeft geen gegevens kunnen verwerken.")
+        
+        # Als de tweede actie niet slaagt, probeer de derde, tekst in de mail
         if not actie_uitgevoerd:
             try:
                 handle_email_to_offer(email_body)
@@ -1444,13 +1452,7 @@ with tab1:
             except Exception as e:
                 pass
 
-        # Als de tweede actie niet slaagt, probeer de derde, de inhoud van de mail
-        if not actie_uitgevoerd:
-            try:
-                handle_mapped_data_to_offer(relevant_data)
-                actie_uitgevoerd = True
-            except Exception as e:
-                st.sidebar.error("BullsAI heeft geen gegevens kunnen verwerken.")
+
 
 # Informatiebalk direct onder de knop
         st.info(
