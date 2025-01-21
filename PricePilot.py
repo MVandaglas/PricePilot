@@ -1252,7 +1252,7 @@ with st.sidebar.expander("Upload document", expanded=False):
                 st.session_state.customer_reference = msg_subject  # Stel msg_subject in als klantreferentie
        
             # Forceer her-rendering van de app
-            st.experimental_rerun()
+            st.rerun()
             
             # Resultaten weergeven
             st.subheader("Berichtinformatie")
