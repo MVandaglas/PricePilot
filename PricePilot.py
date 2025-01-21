@@ -1251,7 +1251,7 @@ with st.sidebar.expander("Upload document", expanded=False):
                     # Controleer of de klantreferentie-invoercel leeg is
                     if not st.session_state.get("customer_reference") and not customer_reference.strip():
                         # Zoek naar de tekst na "Onderwerp:"
-                        subject_match = re.search(r"Onderwerp:\s*(.+)", msg_subject)
+                        subject_match = re.search(r"Onderwerp:\s*(.+)", msg_subject, re.DOTALL | re.IGNORECASE)
                         if subject_match:
                             customer_reference = subject_match.group(1).strip()
                             st.sidebar.success(f"Klantreferentie automatisch gevuld met: {customer_reference}")
@@ -1259,6 +1259,7 @@ with st.sidebar.expander("Upload document", expanded=False):
                             st.warning("Geen geldige tekst gevonden na 'Onderwerp:' om de klantreferentie te vullen.")
                 except Exception as e:
                     st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
+                    st.sidebar.write(f"Debugging: msg_subject = '{msg_subject}'")
 
             
             # Resultaten weergeven
