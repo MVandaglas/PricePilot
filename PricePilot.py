@@ -29,6 +29,8 @@ else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
     print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
 
+# Zorg ervoor dat de database bij opstarten correct is
+setup_database()
 
 # Hard gecodeerde klantgegevens
 customer_data = {
