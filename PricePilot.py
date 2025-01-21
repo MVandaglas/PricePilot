@@ -210,7 +210,11 @@ with col1:
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
     st.session_state.customer_number = str(customer_number) if customer_number else ''
-    customer_reference = st.sidebar.text_input("Klantreferentie", value=st.session_state.customer_reference)
+    customer_reference = st.sidebar.text_input(
+        "Klantreferentie",
+        key="customer_reference",  # Koppel het invoerveld direct aan de sessiestatus
+        value=st.session_state.get("customer_reference", "")
+    )
     offer_amount = totaal_bedrag
     
     
@@ -1246,10 +1250,13 @@ with st.sidebar.expander("Upload document", expanded=False):
             latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
             msg_body = latest_email
             email_body = msg_body
-
+        
             # Alleen de klantreferentie invullen als het veld leeg is
-            if not st.session_state.get("customer_reference") or not st.session_state.customer_reference.strip():
+            if "customer_reference" not in st.session_state or not st.session_state.customer_reference.strip():
                 st.session_state.customer_reference = msg_subject  # Stel msg_subject in als klantreferentie
+                st.sidebar.success(f"Klantreferentie automatisch gevuld met: {msg_subject}")
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van het bestand: {e}")
        
             
             # Resultaten weergeven
