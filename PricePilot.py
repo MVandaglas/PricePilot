@@ -1774,3 +1774,9 @@ with tab4:
             
 with tab5:
     st.subheader("Jouw instellingen")
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    st.write("Beschikbare tabellen:", cursor.fetchall())
+    conn.close()
+
