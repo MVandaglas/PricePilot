@@ -1250,7 +1250,9 @@ with st.sidebar.expander("Upload document", expanded=False):
             # Alleen de klantreferentie invullen als het veld leeg is
             if not st.session_state.get("customer_reference") or not st.session_state.customer_reference.strip():
                 st.session_state.customer_reference = msg_subject  # Stel msg_subject in als klantreferentie
-            
+       
+            # Forceer her-rendering van de app
+            st.experimental_rerun()
             
             # Resultaten weergeven
             st.subheader("Berichtinformatie")
