@@ -16,7 +16,7 @@ def setup_database():
     # Tabel Offertes
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS Offertes (
-        Offertenummer INTEGER PRIMARY KEY AUTOINCREMENT,
+        Offertenummer INTEGER,
         Rijnummer INTEGER,
         Artikelnaam TEXT NOT NULL,
         Artikelnummer TEXT NOT NULL,
@@ -34,7 +34,8 @@ def setup_database():
         Prijs_backend REAL,
         Verkoopprijs REAL,
         Source TEXT,
-        Datum TEXT DEFAULT CURRENT_TIMESTAMP
+        Datum TEXT DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (Offertenummer, Rijnummer) -- Gekoppelde PRIMARY KEY
     );
     """)
 
