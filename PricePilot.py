@@ -1244,6 +1244,16 @@ with st.sidebar.expander("Upload document", expanded=False):
             latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
             msg_body = latest_email
             email_body = msg_body
+
+            # Vul customer_reference als deze leeg is
+            if "Onderwerp:" in msg_subject and not st.session_state.get("customer_reference"):
+                try:
+                    subject_match = re.search(r"Onderwerp:\s*(.+)", msg_subject)
+                    if subject_match:
+                        st.session_state["customer_reference"] = subject_match.group(1).strip()
+                        st.sidebar.success(f"Klantreferentie automatisch gevuld met: {st.session_state['customer_reference']}")
+                except Exception as e:
+                    st.error(f"Fout bij het extraheren van de onderwerpregel: {e}")
             
             # Resultaten weergeven
             st.subheader("Berichtinformatie")
