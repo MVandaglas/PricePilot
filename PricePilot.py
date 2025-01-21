@@ -202,7 +202,9 @@ with col1:
     
         return detected_columns
     
-    
+    # Zorg ervoor dat customer_reference in sessiestatus is ingesteld vóór gebruik
+    if "customer_reference" not in st.session_state:
+        st.session_state.customer_reference = ""  # Standaardwaarde
     
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
