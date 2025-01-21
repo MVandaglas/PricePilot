@@ -18,7 +18,7 @@ from PyPDF2 import PdfReader
 import extract_msg
 import pdfplumber
 from functools import partial
-from database_setup import create_connection
+from setup_database import create_connection
 import sqlite3
 
 # OpenAI API-sleutel instellen
