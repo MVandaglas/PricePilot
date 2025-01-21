@@ -210,14 +210,15 @@ with col1:
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-    st.session_state.customer_number = str(customer_number) if customer_number else ''
+    st.session_state.customer_number = str(customer_number) if customer_number else ""
     
-    # Koppel de sessiestatus aan de widget, zonder verdere wijzigingen
+    # Stel de klantreferentie in met de tijdelijke variabele als standaardwaarde
     customer_reference = st.sidebar.text_input(
         "Klantreferentie",
-        value=st.session_state.customer_reference,  # Gebruik de waarde in sessiestatus
-        key="customer_reference"  # Bind de widget aan sessiestatus
+        value=initial_customer_reference,  # Gebruik de tijdelijke variabele
+        key="customer_reference"  # Bind aan sessiestatus
     )
+
     offer_amount = totaal_bedrag
 
 
@@ -1247,22 +1248,21 @@ with st.sidebar.expander("Upload document", expanded=False):
             f.write(uploaded_file.getbuffer())
         
         # Open het .msg-bestand met extract-msg
+        if "customer_reference" not in st.session_state:
+            st.session_state.customer_reference = ""
+        
+        # Controleer of een bestand is geüpload en of msg_subject aanwezig is
         try:
             msg = extract_msg.Message("uploaded_email.msg")
             msg_subject = msg.subject  # Onderwerp van de e-mail
-            msg_sender = msg.sender
-            full_email_body = msg.body  # De volledige e-mailthread
-            latest_email = extract_latest_email(full_email_body)  # Alleen de laatste e-mail
-            msg_body = latest_email
-            email_body = msg_body
         
-            # Alleen de klantreferentie invullen als deze leeg is
-            if not st.session_state.get("customer_reference") or not st.session_state.customer_reference.strip():
-                # Stel de klantreferentie in vóór de widget
-                st.session_state.customer_reference = msg_subject
-                st.sidebar.success(f"Klantreferentie automatisch gevuld met: {msg_subject}")
-        except Exception as e:
-            st.error(f"Fout bij het verwerken van het bestand: {e}")
+            # Gebruik de onderwerptekst alleen als de klantreferentie leeg is
+            if not st.session_state.customer_reference.strip():
+                initial_customer_reference = msg_subject
+            else:
+                initial_customer_reference = st.session_state.customer_reference
+        except Exception:
+            initial_customer_reference = st.session_state.customer_reference
 
 
                
