@@ -18,7 +18,8 @@ from PyPDF2 import PdfReader
 import extract_msg
 import pdfplumber
 from functools import partial
-
+from database_setup import create_connection
+import sqlite3
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -1476,7 +1477,6 @@ if 'Rijnummer' not in st.session_state.offer_df.columns:
 
 # Offerte Genereren tab
 with tab1:    
-
     with col6:
         # Voeg een knop toe om de offerte als PDF te downloaden
         if totaal_bedrag > 25000:
@@ -1487,6 +1487,7 @@ with tab1:
                 pdf_buffer = generate_pdf(st.session_state.offer_df)
                 st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
     
+        # Knop om offerte op te slaan in database
         if st.button("Sla offerte op", key='save_offerte_button'):
             # Zoek het hoogste offertenummer
             if not st.session_state.saved_offers.empty:
@@ -1496,27 +1497,49 @@ with tab1:
                 offer_number = 1
     
             # Bereken eindtotaal
-            if all(col in edited_df_response.data.columns for col in ['RSP', 'M2 totaal']):
-                eindtotaal = edited_df_response.data.apply(lambda row: float(str(row['RSP']).replace('€', '').replace(',', '.').strip()) * float(str(row['M2 totaal']).split()[0].replace(',', '.')) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0, axis=1).sum()
+            if all(col in st.session_state.offer_df.columns for col in ['RSP', 'M2 totaal']):
+                eindtotaal = st.session_state.offer_df.apply(
+                    lambda row: float(row['RSP']) * float(row['M2 totaal']) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0,
+                    axis=1
+                ).sum()
             else:
                 eindtotaal = 0
     
-            # Voeg offerte-informatie toe aan een nieuwe DataFrame
+            # Voeg offerte-informatie toe aan opgeslagen offertes in sessie
             offer_summary = pd.DataFrame({
                 'Offertenummer': [offer_number],
                 'Klantnummer': [str(st.session_state.customer_number)],
                 'Eindbedrag': [eindtotaal],
                 'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
             })
-    
-            # Voeg offerte-informatie toe aan opgeslagen offertes
             st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
     
             # Voeg offertenummer toe aan elke regel in de offerte
-            st.session_state.offer_df.loc[st.session_state.offer_df['Offertenummer'].isna(), 'Offertenummer'] = offer_number
-    
-            # Toon succesbericht
-            st.success(f"Offerte is opgeslagen onder offertenummer {offer_number}")
+            st.session_state.offer_df['Offertenummer'] = offer_number
+
+            # Opslaan in database
+            conn = create_connection()
+            cursor = conn.cursor()
+
+            try:
+                # Voeg elke rij van de offerte toe aan de database
+                for index, row in st.session_state.offer_df.iterrows():
+                    cursor.execute("""
+                    INSERT INTO Offertes (Offertenummer, Rijnummer, Artikelnaam, Artikelnummer, Spacer, Breedte, Hoogte, Aantal, M2_per_stuk, M2_totaal, RSP, SAP_Prijs, Handmatige_Prijs, Min_prijs, Max_prijs, Prijs_backend, Verkoopprijs, Source, Datum)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        row['Offertenummer'], index + 1, row['Artikelnaam'], row['Artikelnummer'], row['Spacer'],
+                        row['Breedte'], row['Hoogte'], row['Aantal'], row['M2 p/s'], row['M2 totaal'], 
+                        row['RSP'], row['SAP Prijs'], row['Handmatige Prijs'], row['Min_prijs'], row['Max_prijs'], 
+                        row['Prijs_backend'], row['Verkoopprijs'], row['Source'], datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    ))
+
+                conn.commit()
+                st.success(f"Offerte {offer_number} succesvol opgeslagen in de database!")
+            except sqlite3.Error as e:
+                st.error(f"Fout bij het opslaan in de database: {e}")
+            finally:
+                conn.close()
 
 
 if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
@@ -1551,19 +1574,55 @@ with tab2:
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
-    if "loaded_offer_df" in st.session_state and not st.session_state.loaded_offer_df.empty:
-        st.title("Geladen Offerte")
-        required_columns = [
-            "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", 
-            "Aantal", "RSP", "M2 p/s", "M2 totaal"
+
+    # Verbinding maken met de database en offertes ophalen
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    # Haal unieke offertenummers op
+    cursor.execute("SELECT DISTINCT Offertenummer, Datum FROM Offertes")
+    offertes = cursor.fetchall()
+
+    # Controleer of er offertes beschikbaar zijn
+    if offertes:
+        # Maak een dropdownmenu met beschikbare offertes
+        offerte_options = [
+            f"Offertenummer {offerte[0]} - Datum {offerte[1]}" for offerte in offertes
         ]
-        # Controleer of alle vereiste kolommen aanwezig zijn
-        if all(col in st.session_state.loaded_offer_df.columns for col in required_columns):
-            st.dataframe(st.session_state.loaded_offer_df[required_columns])
-        else:
-            st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
+        selected_offerte = st.selectbox("Selecteer een offerte om te laden", offerte_options)
+
+        if st.button("Laad offerte"):
+            # Parse het geselecteerde offerte nummer
+            selected_offertenummer = int(selected_offerte.split()[1])
+
+            # Haal de details van de geselecteerde offerte op
+            cursor.execute("SELECT * FROM Offertes WHERE Offertenummer = ?", (selected_offertenummer,))
+            offerte_rows = cursor.fetchall()
+
+            if offerte_rows:
+                # Maak een DataFrame van de offertegegevens
+                col_names = [desc[0] for desc in cursor.description]  # Kolomnamen ophalen
+                loaded_offer_df = pd.DataFrame(offerte_rows, columns=col_names)
+
+                # Sla de geladen offerte op in de sessiestatus
+                st.session_state.loaded_offer_df = loaded_offer_df
+
+                # Toon de geladen offerte
+                required_columns = [
+                    "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte",
+                    "Aantal", "RSP", "M2_per_stuk", "M2_totaal"
+                ]
+                if all(col in loaded_offer_df.columns for col in required_columns):
+                    st.write(f"Offerte {selected_offertenummer} details:")
+                    st.dataframe(loaded_offer_df[required_columns])
+                else:
+                    st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
+            else:
+                st.warning(f"Geen gegevens gevonden voor offerte {selected_offertenummer}.")
     else:
-        st.info("Er is nog geen offerte geladen om weer te geven.")
+        st.info("Er zijn nog geen offertes opgeslagen in de database.")
+
+    conn.close()
 
 
 with tab3:
