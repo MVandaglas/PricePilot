@@ -1245,21 +1245,19 @@ with st.sidebar.expander("Upload document", expanded=False):
             msg_body = latest_email
             email_body = msg_body
 
-            # Vul de "customer_reference" alleen als het invoerveld leeg is
             if msg_subject:
                 try:
-                    # Controleer of de klantreferentie-invoercel leeg is
                     if not st.session_state.get("customer_reference") and not customer_reference.strip():
-                        # Zoek naar de tekst na "Onderwerp:"
+                        # Flexibele regex om tekst na 'Onderwerp:' op te halen
                         subject_match = re.search(r"Onderwerp:\s*(.+)", msg_subject, re.DOTALL | re.IGNORECASE)
                         if subject_match:
                             customer_reference = subject_match.group(1).strip()
                             st.sidebar.success(f"Klantreferentie automatisch gevuld met: {customer_reference}")
                         else:
-                            st.warning("Geen geldige tekst gevonden na 'Onderwerp:' om de klantreferentie te vullen.")
+                            # Fallback: Toon volledige 'msg_subject' als waarschuwing
+                            st.sidebar.warning(f"Geen specifieke tekst gevonden na 'Onderwerp:'. Volledige tekst: {msg_subject.strip()}")
                 except Exception as e:
                     st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
-                    st.sidebar.write(f"Debugging: msg_subject = '{msg_subject}'")
 
             
             # Resultaten weergeven
