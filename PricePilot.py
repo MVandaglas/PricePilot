@@ -203,14 +203,20 @@ with col1:
         return detected_columns
     
 
+    # Controleer of de klantreferentie nog niet is ingesteld
+    if "customer_reference" not in st.session_state:
+        st.session_state.customer_reference = ""
+    
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
     st.session_state.customer_number = str(customer_number) if customer_number else ''
+    
+    # Gebruik de sessiestatus om de klantreferentie in te stellen
     customer_reference = st.sidebar.text_input(
         "Klantreferentie",
-        key="customer_reference",  # Koppel het invoerveld direct aan de sessiestatus
-        value=st.session_state.get("customer_reference", "")
+        key="customer_reference",  # Bind aan de sessiestatus
+        value=st.session_state.customer_reference  # Gebruik de huidige waarde in sessiestatus
     )
     offer_amount = totaal_bedrag
     
@@ -1241,20 +1247,20 @@ with st.sidebar.expander("Upload document", expanded=False):
         # Open het .msg-bestand met extract-msg
         try:
             msg = extract_msg.Message("uploaded_email.msg")
-            msg_subject = msg.subject
+            msg_subject = msg.subject  # Onderwerp van de e-mail
             msg_sender = msg.sender
             full_email_body = msg.body  # De volledige e-mailthread
-            latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
+            latest_email = extract_latest_email(full_email_body)  # Alleen de laatste e-mail
             msg_body = latest_email
             email_body = msg_body
         
-            # Alleen de klantreferentie invullen als het veld leeg is
-            if "customer_reference" not in st.session_state or not st.session_state.customer_reference.strip():
+            # Alleen de klantreferentie instellen als deze nog leeg is
+            if not st.session_state.customer_reference.strip():
                 st.session_state.customer_reference = msg_subject  # Stel msg_subject in als klantreferentie
                 st.sidebar.success(f"Klantreferentie automatisch gevuld met: {msg_subject}")
         except Exception as e:
             st.error(f"Fout bij het verwerken van het bestand: {e}")
-       
+               
             
             # Resultaten weergeven
             st.subheader("Berichtinformatie")
