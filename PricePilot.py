@@ -51,12 +51,6 @@ if "saved_offers" not in st.session_state:
 if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
 
-# Controleer of de klantreferentie al in sessiestatus staat
-if "customer_reference" not in st.session_state:
-    st.session_state.customer_reference = ""
-initial_customer_reference = st.session_state.customer_reference  # Standaardwaarde
-
-
 
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
@@ -208,23 +202,14 @@ with col1:
     
         return detected_columns
     
-
-    # Stel de klantreferentie alleen in als deze nog niet bestaat
+    
+    
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-    st.session_state.customer_number = str(customer_number) if customer_number else ""
-    
-    # Stel de klantreferentie in met de tijdelijke variabele als standaardwaarde
-    customer_reference = st.sidebar.text_input(
-        "Klantreferentie",
-        value=initial_customer_reference,  # Gebruik de tijdelijke variabele
-        key="customer_reference"  # Bind aan sessiestatus
-    )
-
+    st.session_state.customer_number = str(customer_number) if customer_number else ''
+    customer_reference = st.sidebar.text_input("Klantreferentie")
     offer_amount = totaal_bedrag
-
-
     
     
     
@@ -1252,20 +1237,28 @@ with st.sidebar.expander("Upload document", expanded=False):
         
         # Open het .msg-bestand met extract-msg
         try:
-            # Verwerk het .msg-bestand
             msg = extract_msg.Message("uploaded_email.msg")
-            msg_subject = msg.subject  # Onderwerp van de e-mail
-        
-            # Gebruik de onderwerptekst alleen als de klantreferentie leeg is
-            if not st.session_state.customer_reference.strip():
-                initial_customer_reference = msg_subject
-            else:
-                initial_customer_reference = st.session_state.customer_reference
-        except Exception:
-            initial_customer_reference = st.session_state.customer_reference
+            msg_subject = msg.subject
+            msg_sender = msg.sender
+            full_email_body = msg.body  # De volledige e-mailthread
+            latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
+            msg_body = latest_email
+            email_body = msg_body
 
+            if msg_subject:
+                try:
+                    if not st.session_state.get("customer_reference") and not customer_reference.strip():
+                        # Flexibele regex om tekst na 'Onderwerp:' op te halen
+                        subject_match = re.search(r"Onderwerp:\s*(.+)", msg_subject, re.DOTALL | re.IGNORECASE)
+                        if subject_match:
+                            customer_reference = subject_match.group(1).strip()
+                            st.sidebar.success(f"Klantreferentie automatisch gevuld met: {customer_reference}")
+                        else:
+                            # Fallback: Toon volledige 'msg_subject' als waarschuwing
+                            st.sidebar.warning(f"Geen specifieke tekst gevonden na 'Onderwerp:'. Volledige tekst: {msg_subject.strip()}")
+                except Exception as e:
+                    st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
 
-               
             
             # Resultaten weergeven
             st.subheader("Berichtinformatie")
@@ -1802,4 +1795,3 @@ with tab5:
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     st.write("Beschikbare tabellen:", cursor.fetchall())
     conn.close()
-
