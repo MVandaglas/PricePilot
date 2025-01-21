@@ -1,5 +1,8 @@
 import sqlite3
 
+# Database-instellingen
+DATABASE_FILE = "bullsai.db"
+
 def create_connection():
     """Maak verbinding met de SQLite-database."""
     conn = sqlite3.connect("bullsai.db")  # Databasebestand
