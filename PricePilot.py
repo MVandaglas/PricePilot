@@ -54,6 +54,8 @@ if "selected_rows" not in st.session_state:
 # Controleer of de klantreferentie al in sessiestatus staat
 if "customer_reference" not in st.session_state:
     st.session_state.customer_reference = ""
+initial_customer_reference = st.session_state.customer_reference  # Standaardwaarde
+
 
 
 # Converteer article_table naar DataFrame
