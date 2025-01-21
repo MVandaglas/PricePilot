@@ -203,7 +203,7 @@ with col1:
         return detected_columns
     
 
-    # Controleer of de klantreferentie nog niet is ingesteld
+    # Controleer of 'customer_reference' al in sessiestatus bestaat
     if "customer_reference" not in st.session_state:
         st.session_state.customer_reference = ""
     
@@ -215,10 +215,11 @@ with col1:
     # Gebruik de sessiestatus om de klantreferentie in te stellen
     customer_reference = st.sidebar.text_input(
         "Klantreferentie",
-        key="customer_reference",  # Bind aan de sessiestatus
-        value=st.session_state.customer_reference  # Gebruik de huidige waarde in sessiestatus
+        value=st.session_state.customer_reference,  # Gebruik de waarde in sessiestatus
+        key="customer_reference"  # Bind de widget aan sessiestatus
     )
     offer_amount = totaal_bedrag
+
     
     
     
@@ -1254,12 +1255,14 @@ with st.sidebar.expander("Upload document", expanded=False):
             msg_body = latest_email
             email_body = msg_body
         
-            # Alleen de klantreferentie instellen als deze nog leeg is
+            # Stel de klantreferentie in als het veld leeg is
             if not st.session_state.customer_reference.strip():
-                st.session_state.customer_reference = msg_subject  # Stel msg_subject in als klantreferentie
+                # Gebruik een tijdelijke variabele om aanpassingen te maken zonder de widget direct te overschrijven
+                st.session_state["customer_reference"] = msg_subject
                 st.sidebar.success(f"Klantreferentie automatisch gevuld met: {msg_subject}")
         except Exception as e:
             st.error(f"Fout bij het verwerken van het bestand: {e}")
+
                
             
             # Resultaten weergeven
