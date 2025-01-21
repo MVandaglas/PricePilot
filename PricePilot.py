@@ -51,6 +51,10 @@ if "saved_offers" not in st.session_state:
 if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
 
+# Controleer of de klantreferentie al in sessiestatus staat
+if "customer_reference" not in st.session_state:
+    st.session_state.customer_reference = ""
+
 
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
@@ -204,9 +208,6 @@ with col1:
     
 
     # Stel de klantreferentie alleen in als deze nog niet bestaat
-    if "customer_reference" not in st.session_state or not st.session_state.customer_reference.strip():
-        st.session_state.customer_reference = ""
-    
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
@@ -1248,11 +1249,8 @@ with st.sidebar.expander("Upload document", expanded=False):
             f.write(uploaded_file.getbuffer())
         
         # Open het .msg-bestand met extract-msg
-        if "customer_reference" not in st.session_state:
-            st.session_state.customer_reference = ""
-        
-        # Controleer of een bestand is geüpload en of msg_subject aanwezig is
         try:
+            # Verwerk het .msg-bestand
             msg = extract_msg.Message("uploaded_email.msg")
             msg_subject = msg.subject  # Onderwerp van de e-mail
         
