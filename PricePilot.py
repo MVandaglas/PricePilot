@@ -203,8 +203,8 @@ with col1:
         return detected_columns
     
 
-    # Controleer of 'customer_reference' al in sessiestatus bestaat
-    if "customer_reference" not in st.session_state:
+    # Stel de klantreferentie alleen in als deze nog niet bestaat
+    if "customer_reference" not in st.session_state or not st.session_state.customer_reference.strip():
         st.session_state.customer_reference = ""
     
     # Gebruikersinvoer
@@ -212,13 +212,14 @@ with col1:
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
     st.session_state.customer_number = str(customer_number) if customer_number else ''
     
-    # Gebruik de sessiestatus om de klantreferentie in te stellen
+    # Koppel de sessiestatus aan de widget, zonder verdere wijzigingen
     customer_reference = st.sidebar.text_input(
         "Klantreferentie",
         value=st.session_state.customer_reference,  # Gebruik de waarde in sessiestatus
         key="customer_reference"  # Bind de widget aan sessiestatus
     )
     offer_amount = totaal_bedrag
+
 
     
     
@@ -1255,13 +1256,14 @@ with st.sidebar.expander("Upload document", expanded=False):
             msg_body = latest_email
             email_body = msg_body
         
-            # Stel de klantreferentie in als het veld leeg is
-            if not st.session_state.customer_reference.strip():
-                # Gebruik een tijdelijke variabele om aanpassingen te maken zonder de widget direct te overschrijven
-                st.session_state["customer_reference"] = msg_subject
+            # Alleen de klantreferentie invullen als deze leeg is
+            if not st.session_state.get("customer_reference") or not st.session_state.customer_reference.strip():
+                # Stel de klantreferentie in vóór de widget
+                st.session_state.customer_reference = msg_subject
                 st.sidebar.success(f"Klantreferentie automatisch gevuld met: {msg_subject}")
         except Exception as e:
             st.error(f"Fout bij het verwerken van het bestand: {e}")
+
 
                
             
