@@ -1249,9 +1249,6 @@ with st.sidebar.expander("Upload document", expanded=False):
             if not st.session_state.get("customer_reference") or not st.session_state.customer_reference.strip():
                 st.session_state.customer_reference = msg_subject  # Stel msg_subject in als klantreferentie
             
-            # Toon de klantreferentie in het invoerveld
-            customer_reference = st.sidebar.text_input("Klantreferentie", value=st.session_state.customer_reference)
-
             
             # Resultaten weergeven
             st.subheader("Berichtinformatie")
