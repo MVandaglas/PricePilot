@@ -1881,7 +1881,7 @@ with tab5:
 
                     # Knop om geselecteerde rijen als synoniem in te lezen
                     if st.button("Lees in als synoniem"):
-                        if geselecteerde_rijen:
+                        if len(geselecteerde_rijen) > 0:  # Controleer of er geselecteerde rijen zijn
                             try:
                                 for rij in geselecteerde_rijen:
                                     synoniem = rij.get("Synoniem")
@@ -1953,7 +1953,7 @@ with tab5:
 
                     # Knop om geselecteerde rijen te verwijderen
                     if st.button("Verwijder geselecteerde actieve synoniemen"):
-                        if geselecteerde_rijen_actief:
+                        if len(geselecteerde_rijen_actief) > 0:
                             try:
                                 for rij in geselecteerde_rijen_actief:
                                     synoniem = rij.get("Synoniem")
