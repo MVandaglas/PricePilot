@@ -20,6 +20,7 @@ import pdfplumber
 from functools import partial
 from database_setup import create_connection, setup_database
 import sqlite3
+from http.cookies import SimpleCookie
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -65,6 +66,28 @@ with tab1:
     
     if st.session_state.offer_df is not None and not st.session_state.offer_df.empty:
         st.title("Offerteoverzicht")
+
+# Initialiseer CookieManager
+cookie_manager = CookieManager(key="cookie_manager")
+st.experimental_singleton(lambda: cookie_manager)
+
+col6 = st.columns([1])[0]  # Definieer col6
+
+with col6:
+    # Controleer of er een gebruikersnaam in de cookies staat
+    user_name = cookie_manager.get("user_name")
+
+    if not user_name:
+        # Als er geen gebruikersnaam is opgeslagen, vraag om invoer
+        user_name_input = st.text_input("Vul je naam in:", key="user_input")
+        if user_name_input:
+            # Sla de gebruikersnaam op in een cookie
+            cookie_manager.set("user_name", user_name_input, max_age=3600 * 24 * 30)  # 30 dagen geldig
+            cookie_manager.save()  # Sla de cookie-instellingen op
+            st.experimental_rerun()  # Herlaad de pagina om het welkombericht te tonen
+    else:
+        # Toon welkombericht als de gebruikersnaam is opgeslagen
+        st.write(f"Welkom, {user_name}!")
 
 
 if st.session_state.offer_df is None or st.session_state.offer_df.empty:
