@@ -21,6 +21,7 @@ from functools import partial
 from database_setup import create_connection, setup_database
 import sqlite3
 from http.cookies import SimpleCookie
+from simple_salesforce import Salesforce, SalesforceLogin
 
 # Salesforce Login Configuratie
 SF_USERNAME = "martijn.wissink@vandaglas.com.qa"
