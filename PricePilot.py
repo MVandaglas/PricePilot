@@ -277,15 +277,15 @@ with col3:
         klantgrootte = customer_data[customer_number]['size']
 
         # Toon omzet klant
-        st.metric(label="Omzet klant (€)", value=f"€ {omzet_klant:.2f}")
+        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
 
         # Toon klantgrootte
-        st.metric(label="Klantgrootte", value=klantgrootte)
+        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
 
         # Toon prijsscherpte
-        st.metric(label="Prijsscherpte (%)", value=f"{prijsscherpte}%")
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
     else:
-        st.write("Geen klantinformatie beschikbaar")
+        pass
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
