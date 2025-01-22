@@ -646,11 +646,11 @@ with tab1:
    
 
 # Verbeterde update_tabel functie
-def update_tabel():
-    updated_df = pd.DataFrame(edited_df_response['data'])
-    st.session_state.offer_df = updated_df
-    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
-    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+# def update_tabel():
+#    updated_df = pd.DataFrame(edited_df_response['data'])
+#    st.session_state.offer_df = updated_df
+#    st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
+#    st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
 # Offerte Genereren tab
 with tab1:
@@ -661,8 +661,8 @@ with tab1:
         update_tabel()
  
     # Update de DataFrame na elke wijziging
-    updated_df = edited_df_response['data']
-    save_changes(pd.DataFrame(updated_df))
+ #   updated_df = edited_df_response['data']
+ #   save_changes(pd.DataFrame(updated_df))
     
     # Sla de geselecteerde rijen op in sessie status
     selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
