@@ -163,6 +163,19 @@ col1, col2, col3 = st.sidebar.columns(3)
 with col2:
     st.image("k0gz2vnx.png", width=int(30 / 100 * 1024))  # Pas grootte aan (30% van origineel)
 
+# Toon Klantinformatie in col2
+with col3:
+    if customer_number in customer_data:
+        omzet_klant = customer_data[customer_number]['revenue']
+        klantgrootte = customer_data[customer_number]['size']
+
+        # Toon klantinformatie
+        st.metric("Omzet klant (€)", f"€ {omzet_klant:.2f}")
+        st.metric("Klantgrootte", klantgrootte)
+        st.metric("Prijsscherpte (%)", f"{prijsscherpte}%")
+    else:
+        pass
+
 with col1:
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
@@ -270,22 +283,6 @@ with col1:
                 prijsscherpte = 10
         st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
-with col3:
-    # Controleer of de klant bestaat in de data
-    if customer_number in customer_data:
-        omzet_klant = customer_data[customer_number]['revenue']
-        klantgrootte = customer_data[customer_number]['size']
-
-        # Toon omzet klant
-        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-
-        # Toon klantgrootte
-        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-
-        # Toon prijsscherpte
-        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
-    else:
-        pass
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
