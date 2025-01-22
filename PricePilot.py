@@ -26,7 +26,7 @@ import time
 
 # Salesforce Login Configuratie
 SF_USERNAME =  os.environ.get("SALESFORCE_USERNAME")
-SF_PASSWORD =  os.environ.get("SALESFORCE_PASSOWRD")
+SF_PASSWORD =  os.environ.get("SALESFORCE_PASSOWRD") + os.environ.get("SF_SECURITY_TOKEN")
 SF_SECURITY_TOKEN =  os.environ.get("SF_SECURITY_TOKEN")
 SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox
 
@@ -35,7 +35,6 @@ try:
     session_id, instance = SalesforceLogin(
         username=SF_USERNAME,
         password=SF_PASSWORD,
-        security_token=SF_SECURITY_TOKEN,
         domain=SF_DOMAIN
     )
     sf = Salesforce(instance=instance, session_id=session_id)
