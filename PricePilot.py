@@ -1685,10 +1685,15 @@ with tab3:
         # Knop voor accordering
         if st.button("Accordeer synoniem"):
             geselecteerde_rijen = response.get("selected_rows", [])  # Haal geselecteerde rijen op
-            st.write("Geselecteerde rijen (debug):", geselecteerde_rijen)  # Debug output
+        
+            # Debugging output
+            st.write("Type van geselecteerde rijen:", type(geselecteerde_rijen))
+            st.write("Inhoud van geselecteerde rijen:", geselecteerde_rijen)
         
             # Controleer of er daadwerkelijk rijen zijn geselecteerd
             if isinstance(geselecteerde_rijen, list) and len(geselecteerde_rijen) > 0:
+                st.success("Er zijn rijen geselecteerd. Verwerking gestart...")
+        
                 # Maak databaseverbinding
                 conn = create_connection()
                 cursor = conn.cursor()
