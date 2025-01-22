@@ -39,9 +39,9 @@ def setup_database():
     );
     """)
 
-    # Tabel Synoniemen
+    # Tabel SynoniemenAI
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS Synoniemen (
+    CREATE TABLE IF NOT EXISTS SynoniemenAI (
         Synoniem TEXT PRIMARY KEY,
         Artikelnummer TEXT NOT NULL,
         Artikelnaam TEXT,
