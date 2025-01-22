@@ -21,7 +21,6 @@ from functools import partial
 from database_setup import create_connection, setup_database
 import sqlite3
 from http.cookies import SimpleCookie
-from streamlit_cookies_manager import CookieManager
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
