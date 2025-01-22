@@ -1684,10 +1684,10 @@ with tab3:
 
         # Knop voor accordering
         if st.button("Accordeer synoniem"):
-            geselecteerde_rijen = response["selected_rows"]
-            st.write("Geselecteerde rijen:", geselecteerde_rijen)
-            
-            # Controleer of geselecteerde_rijen de juiste structuur heeft
+            geselecteerde_rijen = response.get("selected_rows", [])  # Haal geselecteerde rijen op
+            st.write("Geselecteerde rijen (debug):", geselecteerde_rijen)  # Debug output
+        
+            # Controleer of er daadwerkelijk rijen zijn geselecteerd
             if isinstance(geselecteerde_rijen, list) and len(geselecteerde_rijen) > 0:
                 # Maak databaseverbinding
                 conn = create_connection()
@@ -1733,7 +1733,6 @@ with tab3:
                     conn.close()
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
-
 
 
 
