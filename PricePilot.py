@@ -163,24 +163,69 @@ col1, col2, col3 = st.sidebar.columns(3)
 with col2:
     st.image("k0gz2vnx.png", width=int(30 / 100 * 1024))  # Pas grootte aan (30% van origineel)
 
-# Toon Klantinformatie in col2
-with col3:
-    if customer_number in customer_data:
-        omzet_klant = customer_data[customer_number]['revenue']
-        klantgrootte = customer_data[customer_number]['size']
 
-        # Toon klantinformatie
-        st.metric("Omzet klant (€)", f"€ {omzet_klant:.2f}")
-        st.metric("Klantgrootte", klantgrootte)
-        st.metric("Prijsscherpte (%)", f"{prijsscherpte}%")
-    else:
-        pass
 
 with col1:
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
     st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
 
+
+# Toon klantinformatie in col2
+with col2:
+    if customer_number in customer_data:
+        omzet_klant = customer_data[customer_number]['revenue']
+        klantgrootte = customer_data[customer_number]['size']
+        prijsscherpte = ""
+        if klantgrootte == "A":
+            if offer_amount > 50000:
+                prijsscherpte = 100
+            elif offer_amount > 25000:
+                prijsscherpte = 90
+            elif offer_amount > 10000:
+                prijsscherpte = 80
+            elif offer_amount > 5000:
+                prijsscherpte = 70
+            else:
+                prijsscherpte = 60
+        elif klantgrootte == "B":
+            if offer_amount > 50000:
+                prijsscherpte = 80
+            elif offer_amount > 25000:
+                prijsscherpte = 70
+            elif offer_amount > 10000:
+                prijsscherpte = 60
+            elif offer_amount > 5000:
+                prijsscherpte = 50
+            else:
+                prijsscherpte = 40
+        elif klantgrootte == "C":
+            if offer_amount > 50000:
+                prijsscherpte = 75
+            elif offer_amount > 25000:
+                prijsscherpte = 65
+            elif offer_amount > 10000:
+                prijsscherpte = 50
+            elif offer_amount > 5000:
+                prijsscherpte = 40
+            else:
+                prijsscherpte = 30
+        elif klantgrootte == "D":
+            if offer_amount > 50000:
+                prijsscherpte = 70
+            elif offer_amount > 25000:
+                prijsscherpte = 60
+            elif offer_amount > 10000:
+                prijsscherpte = 45
+            elif offer_amount > 5000:
+                prijsscherpte = 25
+            else:
+                prijsscherpte = 10
+        st.metric("Omzet klant (€)", f"€ {omzet_klant:.2f}")
+        st.metric("Klantgrootte", klantgrootte)
+        st.metric("Prijsscherpte (%)", f"{prijsscherpte}%")
+    else:
+        pass
 
 with col1:    
     # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
