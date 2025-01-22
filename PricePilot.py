@@ -633,14 +633,14 @@ with tab1:
         allow_unsafe_jscode=True
     )
 
- #   # Update de DataFrame na elke wijziging
- #   if "data" in edited_df_response:
- #       updated_df = pd.DataFrame(edited_df_response['data'])
- #       # Werk de sessiestatus bij met de nieuwe data
- #       st.session_state.offer_df = updated_df
- #       # Voer alle benodigde berekeningen uit
- #       st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
- #       st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+    # Update de DataFrame na elke wijziging
+    if "data" in edited_df_response:
+        updated_df = pd.DataFrame(edited_df_response['data'])
+        # Werk de sessiestatus bij met de nieuwe data
+        st.session_state.offer_df = updated_df
+        # Voer alle benodigde berekeningen uit
+        st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
+        st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
  
    
@@ -660,9 +660,9 @@ with tab1:
         update_tabel()
         update_tabel()
  
-    # Update de DataFrame na elke wijziging
-    updated_df = edited_df_response['data']
-    save_changes(pd.DataFrame(updated_df))
+    # # Update de DataFrame na elke wijziging
+    # updated_df = edited_df_response['data']
+    # save_changes(pd.DataFrame(updated_df))
     
     # Sla de geselecteerde rijen op in sessie status
     selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
