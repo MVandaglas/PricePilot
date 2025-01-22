@@ -1987,6 +1987,7 @@ with tab5:
                                 # Haal de tabel opnieuw op
                                 cursor.execute("SELECT * FROM Synoniemen_actief")
                                 actieve_synoniemen_data = cursor.fetchall()
+                                kolomnamen = [desc[0] for desc in cursor.description]  # Dynamisch kolomnamen ophalen
                                 st.session_state.actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
                                 st.success("De tabel is succesvol vernieuwd.")
                             except Exception as e:
