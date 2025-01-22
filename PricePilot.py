@@ -625,7 +625,7 @@ with tab1:
     edited_df_response = AgGrid(
         st.session_state.offer_df,
         gridOptions=grid_options,
-        theme='material',
+        theme='alpine',
         fit_columns_on_grid_load=True,
         enable_enterprise_modules=True,
         update_mode=GridUpdateMode.MANUAL,
