@@ -165,7 +165,12 @@ with col1:
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
     st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
-    
+
+with col3:
+        if customer_number in customer_data:
+            st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+            st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+with col1:    
     # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     
