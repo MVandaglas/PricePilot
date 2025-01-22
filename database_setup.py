@@ -5,11 +5,11 @@ DATABASE_FILE = "bullsai.db"
 
 def create_connection():
     """Maak verbinding met de SQLite-database."""
-    conn = sqlite3.connect("bullsai.db")  # Databasebestand
+    conn = sqlite3.connect(DATABASE_FILE)  # Databasebestand
     return conn
 
 def setup_database():
-    """Maak de tabellen `Offertes` en `Synoniemen` aan."""
+    """Maak de tabellen `Offertes`, `SynoniemenAI` en `Synoniemen_actief` aan."""
     conn = create_connection()
     cursor = conn.cursor()
 
@@ -51,8 +51,20 @@ def setup_database():
     );
     """)
 
+    # Nieuwe tabel Synoniemen_actief
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS Synoniemen_actief (
+        Synoniem TEXT PRIMARY KEY,
+        Artikelnummer TEXT NOT NULL
+    );
+    """)
+
     conn.commit()
     conn.close()
+
+# Roep deze functie aan bij het opstarten
+if __name__ == "__main__":
+    setup_database()
 
 # Roep deze functie aan bij het opstarten
 if __name__ == "__main__":
