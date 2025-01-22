@@ -177,8 +177,11 @@ with col1:
 with col3:
 
     # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
+    if customer_number and customer_number in customer_data:
     klantgrootte = customer_data[customer_number]['size']
     prijsscherpte = ""
+    
+    # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
     if klantgrootte == "A":
         if offer_amount > 50000:
             prijsscherpte = 100
@@ -223,12 +226,13 @@ with col3:
             prijsscherpte = 25
         else:
             prijsscherpte = 10
+else:
+    pass
     
     if customer_number in customer_data:
         st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
         st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-
-    st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
 with col1:    
     cutoff_value = st.sidebar.slider(
