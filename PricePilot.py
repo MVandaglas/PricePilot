@@ -1685,11 +1685,13 @@ with tab3:
         # Knop voor accordering
         if st.button("Accordeer synoniem"):
             geselecteerde_rijen = response["selected_rows"]
-            if not pd.DataFrame(geselecteerde_rijen).empty:  # Controleer of er rijen zijn geselecteerd
+            
+            # Controleer of geselecteerde_rijen de juiste structuur heeft
+            if isinstance(geselecteerde_rijen, list) and len(geselecteerde_rijen) > 0:
                 # Maak databaseverbinding
                 conn = create_connection()
                 cursor = conn.cursor()
-                
+        
                 try:
                     # Zorg dat de tabel Synoniemen bestaat
                     cursor.execute("""
@@ -1703,18 +1705,21 @@ with tab3:
                     );
                     """)
         
-                    # Voeg de geselecteerde synoniemen toe aan de tabel
+                    # Verwerk elke geselecteerde rij
                     for rij in geselecteerde_rijen:
-                        input_waarde = rij["Input"]
-                        artikelnummer = rij["Artikelnummer"]
-                        artikelnaam = rij["Artikelnaam"]
+                        if isinstance(rij, dict):  # Zorg dat elke rij een dictionary is
+                            input_waarde = rij.get("Input", "")
+                            artikelnummer = rij.get("Artikelnummer", "")
+                            artikelnaam = rij.get("Artikelnaam", "")
         
-                        if input_waarde and artikelnummer:
-                            cursor.execute("""
-                            INSERT OR IGNORE INTO Synoniemen (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
-                            VALUES (?, ?, ?, ?, ?);
-                            """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
-                            st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
+                            if input_waarde and artikelnummer:
+                                cursor.execute("""
+                                INSERT OR IGNORE INTO Synoniemen (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
+                                VALUES (?, ?, ?, ?, ?);
+                                """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
+                                st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
+                        else:
+                            st.error("Ongeldige structuur in geselecteerde rij.")
         
                     # Commit wijzigingen naar de database
                     conn.commit()
@@ -1726,7 +1731,8 @@ with tab3:
                     # Sluit de verbinding
                     conn.close()
             else:
-                st.warning("Selecteer minimaal één rij om te accorderen.")
+                st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
+
 
 
 
