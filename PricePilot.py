@@ -24,7 +24,7 @@ from http.cookies import SimpleCookie
 from simple_salesforce import Salesforce, SalesforceLogin
 
 # Salesforce Login Configuratie
-SF_USERNAME = "martijn.wissink@vandaglas.com.qa"
+SF_USERNAME = "martijnwissink@vandaglas.com.qa"
 SF_PASSWORD = "Salesforce1!"
 SF_SECURITY_TOKEN = "0ZdfpqHSnDyhUVtisVxk3Pzbs"
 SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox
