@@ -1,5 +1,6 @@
 import streamlit as st
 st.set_page_config(layout="wide")
+page_icon="🎯",
 from streamlit_option_menu import option_menu
 import os
 import pandas as pd
