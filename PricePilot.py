@@ -1881,16 +1881,22 @@ with tab5:
 
                     # Knop om geselecteerde rijen als synoniem in te lezen
                     if st.button("Lees in als synoniem"):
+                        st.write("Geselecteerde rijen (debug):", geselecteerde_rijen)  # Debug output
                         if len(geselecteerde_rijen) > 0:  # Controleer of er geselecteerde rijen zijn
                             try:
                                 for rij in geselecteerde_rijen:
-                                    synoniem = rij.get("Synoniem")
-                                    artikelnummer = rij.get("Artikelnummer")
-                                    if synoniem and artikelnummer:
-                                        cursor.execute("""
-                                        INSERT OR IGNORE INTO Synoniemen_actief (Synoniem, Artikelnummer)
-                                        VALUES (?, ?);
-                                        """, (synoniem, artikelnummer))
+                                    # Controleer of de rij een dictionary is
+                                    if isinstance(rij, dict):
+                                        synoniem = rij.get("Synoniem", None)
+                                        artikelnummer = rij.get("Artikelnummer", None)
+                    
+                                        if synoniem and artikelnummer:
+                                            cursor.execute("""
+                                            INSERT OR IGNORE INTO Synoniemen_actief (Synoniem, Artikelnummer)
+                                            VALUES (?, ?);
+                                            """, (synoniem, artikelnummer))
+                                    else:
+                                        st.warning(f"Onverwachte structuur in rij: {rij}")
                                 conn.commit()
                                 st.success("Geselecteerde synoniemen zijn succesvol ingelezen in 'Synoniemen_actief'.")
                             except Exception as e:
