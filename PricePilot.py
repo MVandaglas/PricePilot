@@ -78,7 +78,6 @@ st.session_state.offer_df["M2 totaal"] = pd.to_numeric(st.session_state.offer_df
 st.session_state.offer_df["RSP"] = pd.to_numeric(st.session_state.offer_df["RSP"], errors='coerce').fillna(0)
 st.session_state.offer_df["Verkoopprijs"] = pd.to_numeric(st.session_state.offer_df["Verkoopprijs"], errors='coerce')
 
-
 # Offerte Genereren tab
 with tab1:
     
@@ -163,30 +162,68 @@ col1, col2, col3 = st.sidebar.columns(3)
 # HTML weergeven in de zijbalk
 with col2:
     st.image("k0gz2vnx.png", width=int(30 / 100 * 1024))  # Pas grootte aan (30% van origineel)
-    customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-    st.session_state.customer_number = str(customer_number) if customer_number else ''
 
 with col1:
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
     st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
-    
+
+
+with col1:    
     # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-
-# Berekening van offer_amount
-offer_amount = (
-    st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]
-).sum() if "M2 totaal" in st.session_state.offer_df.columns and "Prijs_backend" in st.session_state.offer_df.columns else 0
-
-with col3:
-    # Controleer of er een klantnummer is ingevoerd en deze in de data staat
-    if customer_number and customer_number in customer_data:
-        klantgrootte = customer_data[customer_number]['size']
-        omzet_klant = customer_data[customer_number]['revenue']
-        prijsscherpte = ""
-
+    
+    cutoff_value = st.sidebar.slider(
+        "Matchwaarde AI",
+        min_value=0.1,
+        max_value=1.0,
+        value=0.6,  # Standaardwaarde
+        step=0.1,  # Stappen in float
+        help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
+    )
+    
+    # Bijlagen in mail definiëren
+    def detect_relevant_columns(df):
+        """
+        Detecteert de relevante kolommen (Artikelnaam, Hoogte, Breedte, Aantal) in een DataFrame.
+        """
+        column_mapping = {
+            "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article", "Type", "type"],
+            "Hoogte": ["hoogte", "h", "height", "lengte", "Lengte", "Height", "H", "Hoogte"],
+            "Breedte": ["breedte", "b", "width", "Breedte", "B", "Width"],
+            "Aantal": ["aantal", "quantity", "qty", "stuks", "Aantal", "Quantity", "QTY", "Stuks", "Qty"]
+        }
+        detected_columns = {}
+    
+        for key, patterns in column_mapping.items():
+            for pattern in patterns:
+                for col in df.columns:
+                    if re.search(pattern, col, re.IGNORECASE):
+                        detected_columns[key] = col
+                        break
+                if key in detected_columns:
+                    break
+    
+        return detected_columns
+    
+    
+    
+    # Gebruikersinvoer
+    customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
+    customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+    st.session_state.customer_number = str(customer_number) if customer_number else ''
+    customer_reference = st.sidebar.text_input("Klantreferentie")
+    offer_amount = totaal_bedrag
+    
+    
+    
+    if customer_number in customer_data:
+        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+    
         # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
+        klantgrootte = customer_data[customer_number]['size']
+        prijsscherpte = ""
         if klantgrootte == "A":
             if offer_amount > 50000:
                 prijsscherpte = 100
@@ -231,68 +268,30 @@ with col3:
                 prijsscherpte = 25
             else:
                 prijsscherpte = 10
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
-        # Toon de berekende gegevens in de sidebar
-        st.sidebar.write(f"Omzet klant: € {omzet_klant:.2f}")
-        st.sidebar.write(f"Klantgrootte: {klantgrootte}")
-        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}%")
+with col3:
+    # Controleer of de klant bestaat in de data
+    if customer_number in customer_data:
+        omzet_klant = customer_data[customer_number]['revenue']
+        klantgrootte = customer_data[customer_number]['size']
 
+        # Toon omzet klant
+        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+
+        # Toon klantgrootte
+        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+
+        # Toon prijsscherpte
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
     else:
-        # Fallback voor het geval dat customer_number niet geldig is of ontbreekt
-        st.sidebar.write("Voer een geldig klantnummer in of controleer de klantdata.")
-
-
-with col1:    
-    cutoff_value = st.sidebar.slider(
-        "Matchwaarde AI",
-        min_value=0.1,
-        max_value=1.0,
-        value=0.6,  # Standaardwaarde
-        step=0.1,  # Stappen in float
-        help="Stel matchwaarde in. Hogere waarde betekent strengere matching, 0.6 aanbevolen."
-    )
-    
-    # Bijlagen in mail definiëren
-    def detect_relevant_columns(df):
-        """
-        Detecteert de relevante kolommen (Artikelnaam, Hoogte, Breedte, Aantal) in een DataFrame.
-        """
-        column_mapping = {
-            "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article", "Type", "type"],
-            "Hoogte": ["hoogte", "h", "height", "lengte", "Lengte", "Height", "H", "Hoogte"],
-            "Breedte": ["breedte", "b", "width", "Breedte", "B", "Width"],
-            "Aantal": ["aantal", "quantity", "qty", "stuks", "Aantal", "Quantity", "QTY", "Stuks", "Qty"]
-        }
-        detected_columns = {}
-    
-        for key, patterns in column_mapping.items():
-            for pattern in patterns:
-                for col in df.columns:
-                    if re.search(pattern, col, re.IGNORECASE):
-                        detected_columns[key] = col
-                        break
-                if key in detected_columns:
-                    break
-    
-        return detected_columns
-    
-    
-    
-    # Gebruikersinvoer
-    customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-    offer_amount = totaal_bedrag
-    
-    
-    
-
-
+        pass
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
     for term, synonym in synonyms.items():
         input_text = input_text.replace(term, synonym)
     return input_text
-
 
 # Functie om artikelgegevens te vinden
 def find_article_details(article_number):
