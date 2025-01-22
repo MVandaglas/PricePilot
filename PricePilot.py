@@ -270,6 +270,22 @@ with col1:
                 prijsscherpte = 10
         st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
+with col3:
+    # Controleer of de klant bestaat in de data
+    if customer_number in customer_data:
+        omzet_klant = customer_data[customer_number]['revenue']
+        klantgrootte = customer_data[customer_number]['size']
+
+        # Toon omzet klant
+        st.metric(label="Omzet klant (€)", value=f"€ {omzet_klant:.2f}")
+
+        # Toon klantgrootte
+        st.metric(label="Klantgrootte", value=klantgrootte)
+
+        # Toon prijsscherpte
+        st.metric(label="Prijsscherpte (%)", value=f"{prijsscherpte}%")
+    else:
+        st.write("Geen klantinformatie beschikbaar")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
