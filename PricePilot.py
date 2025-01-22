@@ -159,7 +159,7 @@ col1, col2, col3 = st.sidebar.columns(3)
 
 # HTML weergeven in de zijbalk
 with col2:
-    st.image("k0gz2vnx.png", width=int(30 / 100 * 1024))  # Pas grootte aan (30% van origineel)
+    st.image("BullsAI_logo.png", width=int(30 / 100 * 1024))  # Pas grootte aan (30% van origineel)
 
 with col1:
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
