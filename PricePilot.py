@@ -176,8 +176,8 @@ with col1:
 
 with col3:
     if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
 
     # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
     klantgrootte = customer_data[customer_number]['size']
