@@ -25,14 +25,14 @@ from simple_salesforce import Salesforce, SalesforceLogin
 import time
 
 # Controleer of de omgevingsvariabelen geladen worden
-st.write(f"SALESFORCE_USERNAME: {os.environ.get('SALESFORCE_USERNAME')}")
-st.write(f"SALESFORCE_PASSWORD: {os.environ.get('SALESFORCE_PASSWORD')}")
-st.write(f"SF_SECURITY_TOKEN: {os.environ.get('SF_SECURITY_TOKEN')}")
+st.write(f"SALESFORCE_USERNAME: {os.getenv('SALESFORCE_USERNAME')}")
+st.write(f"SALESFORCE_PASSWORD: {os.getenv('SALESFORCE_PASSWORD')}")
+st.write(f"SF_SECURITY_TOKEN: {os.getenv('SF_SECURITY_TOKEN')}")
 
 # Salesforce Login Configuratie
-SF_USERNAME =  os.environ.get("SALESFORCE_USERNAME")
-SF_PASSWORD = os.environ.get("SALESFORCE_PASSWORD") + os.environ.get("SF_SECURITY_TOKEN")
-SF_SECURITY_TOKEN =  os.environ.get("SF_SECURITY_TOKEN")
+SF_USERNAME =  os.getenv("SALESFORCE_USERNAME")
+SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD") + os.environ.get("SF_SECURITY_TOKEN")
+SF_SECURITY_TOKEN =  os.getenv("SF_SECURITY_TOKEN")
 SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox
 
 
