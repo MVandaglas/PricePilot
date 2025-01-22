@@ -1898,50 +1898,75 @@ with tab5:
                         else:
                             st.warning("Selecteer minimaal één rij om in te lezen.")
 
+            # Excel-upload functionaliteit in een expander
+            with st.expander("Excel-upload voor Synoniemen_actief", expanded=False):
+                st.markdown("### Upload een Excel-bestand om synoniemen toe te voegen aan 'Synoniemen_actief'")
+                uploaded_file = st.file_uploader("Kies een Excel-bestand", type=["xlsx"])
+
+                if uploaded_file:
+                    try:
+                        # Lees het Excel-bestand in
+                        upload_df = pd.read_excel(uploaded_file)
+                        
+                        # Controleer of vereiste kolommen bestaan
+                        if "Synoniem" in upload_df.columns and "Artikelnummer" in upload_df.columns:
+                            for _, row in upload_df.iterrows():
+                                synoniem = row["Synoniem"]
+                                artikelnummer = row["Artikelnummer"]
+                                if pd.notna(synoniem) and pd.notna(artikelnummer):
+                                    cursor.execute("""
+                                    INSERT OR IGNORE INTO Synoniemen_actief (Synoniem, Artikelnummer)
+                                    VALUES (?, ?);
+                                    """, (synoniem, artikelnummer))
+                            conn.commit()
+                            st.success("Excel-bestand is succesvol ingelezen in 'Synoniemen_actief'.")
+                        else:
+                            st.error("Het Excel-bestand moet kolommen 'Synoniem' en 'Artikelnummer' bevatten.")
+                    except Exception as e:
+                        st.error(f"Fout bij het verwerken van het Excel-bestand: {e}")
+
+            # Actieve synoniemen in een expander
+            with st.expander("Bekijk en beheer actieve synoniemen", expanded=False):
+                cursor.execute("SELECT * FROM Synoniemen_actief")
+                kolomnamen = [desc[0] for desc in cursor.description]
+                actieve_synoniemen_data = cursor.fetchall()
+
+                if actieve_synoniemen_data:
+                    actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
+
+                    # Configureer AgGrid voor actieve synoniemen
+                    gb_actief = GridOptionsBuilder.from_dataframe(actieve_synoniemen_df)
+                    gb_actief.configure_selection(selection_mode="multiple", use_checkbox=True)
+                    gb_actief.configure_default_column(editable=False)
+                    grid_options_actief = gb_actief.build()
+
+                    # Toon AgGrid met actieve synoniemen
+                    response_actief = AgGrid(
+                        actieve_synoniemen_df,
+                        gridOptions=grid_options_actief,
+                        update_mode=GridUpdateMode.SELECTION_CHANGED,
+                        fit_columns_on_grid_load=True,
+                        theme="material"
+                    )
+
+                    geselecteerde_rijen_actief = response_actief["selected_rows"]
+
                     # Knop om geselecteerde rijen te verwijderen
-                    if st.button("Verwijder geselecteerde rijen"):
-                        if geselecteerde_rijen:
+                    if st.button("Verwijder geselecteerde actieve synoniemen"):
+                        if geselecteerde_rijen_actief:
                             try:
-                                for rij in geselecteerde_rijen:
+                                for rij in geselecteerde_rijen_actief:
                                     synoniem = rij.get("Synoniem")
                                     if synoniem:
-                                        cursor.execute("DELETE FROM SynoniemenAI WHERE Synoniem = ?", (synoniem,))
+                                        cursor.execute("DELETE FROM Synoniemen_actief WHERE Synoniem = ?", (synoniem,))
                                 conn.commit()
-                                st.success("Geselecteerde rijen zijn succesvol verwijderd.")
+                                st.success("Geselecteerde actieve synoniemen zijn succesvol verwijderd.")
                             except Exception as e:
                                 st.error(f"Fout bij het verwijderen: {e}")
                         else:
                             st.warning("Selecteer minimaal één rij om te verwijderen.")
                 else:
-                    st.info("Er zijn nog geen geaccordeerde synoniemen beschikbaar.")
-            else:
-                st.warning("De tabel 'SynoniemenAI' bestaat niet. Voeg eerst data toe aan de tabel.")
-
-            # Excel-upload voor Synoniemen_actief
-            st.markdown("### Upload een Excel-bestand om synoniemen toe te voegen aan 'Synoniemen_actief'")
-            uploaded_file = st.file_uploader("Kies een Excel-bestand", type=["xlsx"])
-
-            if uploaded_file:
-                try:
-                    # Lees het Excel-bestand in
-                    upload_df = pd.read_excel(uploaded_file)
-                    
-                    # Controleer of vereiste kolommen bestaan
-                    if "Synoniem" in upload_df.columns and "Artikelnummer" in upload_df.columns:
-                        for _, row in upload_df.iterrows():
-                            synoniem = row["Synoniem"]
-                            artikelnummer = row["Artikelnummer"]
-                            if pd.notna(synoniem) and pd.notna(artikelnummer):
-                                cursor.execute("""
-                                INSERT OR IGNORE INTO Synoniemen_actief (Synoniem, Artikelnummer)
-                                VALUES (?, ?);
-                                """, (synoniem, artikelnummer))
-                        conn.commit()
-                        st.success("Excel-bestand is succesvol ingelezen in 'Synoniemen_actief'.")
-                    else:
-                        st.error("Het Excel-bestand moet kolommen 'Synoniem' en 'Artikelnummer' bevatten.")
-                except Exception as e:
-                    st.error(f"Fout bij het verwerken van het Excel-bestand: {e}")
+                    st.info("Er zijn geen actieve synoniemen beschikbaar.")
 
         except Exception as e:
             st.error(f"Fout bij het ophalen van de data: {e}")
@@ -1950,4 +1975,3 @@ with tab5:
             conn.close()
     elif wachtwoord:
         st.error("Onjuist wachtwoord. Toegang geweigerd.")
-
