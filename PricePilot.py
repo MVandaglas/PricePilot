@@ -1685,7 +1685,7 @@ with tab3:
         # Knop voor accordering
         if st.button("Accordeer synoniem"):
             geselecteerde_rijen = response["selected_rows"]
-            if geselecteerde_rijen:
+            if not pd.DataFrame(geselecteerde_rijen).empty:  # Controleer of er rijen zijn geselecteerd
                 # Maak databaseverbinding
                 conn = create_connection()
                 cursor = conn.cursor()
@@ -1702,31 +1702,32 @@ with tab3:
                         Datum TEXT DEFAULT CURRENT_TIMESTAMP
                     );
                     """)
-
+        
                     # Voeg de geselecteerde synoniemen toe aan de tabel
                     for rij in geselecteerde_rijen:
                         input_waarde = rij["Input"]
                         artikelnummer = rij["Artikelnummer"]
                         artikelnaam = rij["Artikelnaam"]
-
+        
                         if input_waarde and artikelnummer:
                             cursor.execute("""
                             INSERT OR IGNORE INTO Synoniemen (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
                             VALUES (?, ?, ?, ?, ?);
                             """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
                             st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
-
+        
                     # Commit wijzigingen naar de database
                     conn.commit()
-
+        
                 except Exception as e:
                     st.error(f"Fout bij het opslaan: {e}")
-
+        
                 finally:
                     # Sluit de verbinding
                     conn.close()
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen.")
+
 
 
 with tab4:
