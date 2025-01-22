@@ -1507,58 +1507,70 @@ with tab1:
                 st.download_button(label="Download PDF", data=pdf_buffer, file_name="offerte.pdf", mime="application/pdf")
     
         # Knop om offerte op te slaan in database
-        if st.button("Sla offerte op", key='save_offerte_button'):
-            # Zoek het hoogste offertenummer
-            if not st.session_state.saved_offers.empty:
-                max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
-                offer_number = max_offer_number + 1
-            else:
-                offer_number = 1
-    
-            # Bereken eindtotaal
-            if all(col in st.session_state.offer_df.columns for col in ['RSP', 'M2 totaal']):
-                eindtotaal = st.session_state.offer_df.apply(
-                    lambda row: float(row['RSP']) * float(row['M2 totaal']) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0,
-                    axis=1
-                ).sum()
-            else:
-                eindtotaal = 0
-    
-            # Voeg offerte-informatie toe aan opgeslagen offertes in sessie
-            offer_summary = pd.DataFrame({
-                'Offertenummer': [offer_number],
-                'Klantnummer': [str(st.session_state.customer_number)],
-                'Eindbedrag': [eindtotaal],
-                'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-            })
-            st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
-    
-            # Voeg offertenummer toe aan elke regel in de offerte
-            st.session_state.offer_df['Offertenummer'] = offer_number
-
-            # Opslaan in database
-            conn = create_connection()
-            cursor = conn.cursor()
-
+        if st.button("Sla offerte op"):
             try:
-                # Voeg elke rij van de offerte toe aan de database
-                for index, row in st.session_state.offer_df.iterrows():
-                    cursor.execute("""
-                    INSERT INTO Offertes (Offertenummer, Rijnummer, Artikelnaam, Artikelnummer, Spacer, Breedte, Hoogte, Aantal, M2_per_stuk, M2_totaal, RSP, SAP_Prijs, Handmatige_Prijs, Min_prijs, Max_prijs, Prijs_backend, Verkoopprijs, Source, Datum)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """, (
-                        row['Offertenummer'], index + 1, row['Artikelnaam'], row['Artikelnummer'], row['Spacer'],
-                        row['Breedte'], row['Hoogte'], row['Aantal'], row['M2 p/s'], row['M2 totaal'], 
-                        row['RSP'], row['SAP Prijs'], row['Handmatige Prijs'], row['Min_prijs'], row['Max_prijs'], 
-                        row['Prijs_backend'], row['Verkoopprijs'], row['Source'], datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    ))
-
-                conn.commit()
-                st.success(f"Offerte {offer_number} succesvol opgeslagen in de database!")
-            except sqlite3.Error as e:
-                st.error(f"Fout bij het opslaan in de database: {e}")
-            finally:
-                conn.close()
+                # Haal de ingelogde Windows-gebruikersnaam op
+                import os
+                windows_user = os.getlogin()
+        
+                # Zoek het hoogste offertenummer
+                if not st.session_state.saved_offers.empty:
+                    max_offer_number = st.session_state.saved_offers['Offertenummer'].max()
+                    offer_number = max_offer_number + 1
+                else:
+                    offer_number = 1
+        
+                # Bereken eindtotaal
+                if all(col in st.session_state.offer_df.columns for col in ['RSP', 'M2 totaal']):
+                    eindtotaal = st.session_state.offer_df.apply(
+                        lambda row: float(row['RSP']) * float(row['M2 totaal']) if pd.notna(row['RSP']) and pd.notna(row['M2 totaal']) else 0,
+                        axis=1
+                    ).sum()
+                else:
+                    eindtotaal = 0
+        
+                # Voeg offerte-informatie toe aan opgeslagen offertes in sessie
+                offer_summary = pd.DataFrame({
+                    'Offertenummer': [offer_number],
+                    'Klantnummer': [str(st.session_state.customer_number)],
+                    'Eindbedrag': [eindtotaal],
+                    'Datum': [datetime.now().strftime("%Y-%m-%d %H:%M:%S")],
+                    'Gebruiker': [windows_user]  # Voeg gebruikersnaam toe
+                })
+                st.session_state.saved_offers = pd.concat([st.session_state.saved_offers, offer_summary], ignore_index=True)
+        
+                # Voeg offertenummer en gebruikersnaam toe aan elke regel in de offerte
+                st.session_state.offer_df['Offertenummer'] = offer_number
+                st.session_state.offer_df['Gebruiker'] = windows_user
+        
+                # Opslaan in database
+                conn = create_connection()
+                cursor = conn.cursor()
+        
+                try:
+                    # Voeg elke rij van de offerte toe aan de database
+                    for index, row in st.session_state.offer_df.iterrows():
+                        cursor.execute("""
+                        INSERT INTO Offertes (Offertenummer, Rijnummer, Artikelnaam, Artikelnummer, Spacer, Breedte, Hoogte, Aantal, 
+                                              M2_per_stuk, M2_totaal, RSP, SAP_Prijs, Handmatige_Prijs, Min_prijs, Max_prijs, 
+                                              Prijs_backend, Verkoopprijs, Source, Datum, Gebruiker)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, (
+                            row['Offertenummer'], index + 1, row['Artikelnaam'], row['Artikelnummer'], row['Spacer'],
+                            row['Breedte'], row['Hoogte'], row['Aantal'], row['M2 p/s'], row['M2 totaal'], 
+                            row['RSP'], row['SAP Prijs'], row['Handmatige Prijs'], row['Min_prijs'], row['Max_prijs'], 
+                            row['Prijs_backend'], row['Verkoopprijs'], row['Source'], datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            windows_user  # Sla gebruikersnaam op
+                        ))
+        
+                    conn.commit()
+                    st.success(f"Offerte {offer_number} succesvol opgeslagen door {windows_user}.")
+                except sqlite3.Error as e:
+                    st.error(f"Fout bij het opslaan in de database: {e}")
+                finally:
+                    conn.close()
+            except Exception as e:
+                st.error(f"Er is een fout opgetreden: {e}")
 
 
 if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
