@@ -39,6 +39,8 @@ try:
     )
     sf = Salesforce(instance=instance, session_id=session_id)
     st.success("Succesvol verbonden met Salesforce!")
+    time.sleep(3)  # Wacht 5 seconden
+    success_placeholder.empty()  # Verwijder de melding
 except Exception as e:
     st.error(f"Fout bij het verbinden met Salesforce: {e}")
 
