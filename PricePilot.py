@@ -53,6 +53,7 @@ if "saved_offers" not in st.session_state:
 if "selected_rows" not in st.session_state:
     st.session_state.selected_rows = []
 
+    st.session_state.customer_number = str(customer_number) if customer_number else ''
 
 # Converteer article_table naar DataFrame
 article_table = pd.DataFrame(article_table)
