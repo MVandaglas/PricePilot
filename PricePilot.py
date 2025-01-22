@@ -25,9 +25,9 @@ from simple_salesforce import Salesforce, SalesforceLogin
 import time
 
 # Salesforce Login Configuratie
-SF_USERNAME = SALESFORCE_USERNAME
-SF_PASSWORD = SALESFORCE_PASSOWRD
-SF_SECURITY_TOKEN = SF_SECURITY_TOKEN
+SF_USERNAME =  os.environ.get("SALESFORCE_USERNAME")
+SF_PASSWORD =  os.environ.get("SALESFORCE_PASSOWRD")
+SF_SECURITY_TOKEN =  os.environ.get("SF_SECURITY_TOKEN")
 SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox
 
 # Verbind met Salesforce
