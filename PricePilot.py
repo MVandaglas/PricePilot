@@ -628,7 +628,7 @@ with tab1:
         theme='material',
         fit_columns_on_grid_load=True,
         enable_enterprise_modules=True,
-        update_mode=GridUpdateMode.VALUE_CHANGED,
+        update_mode=GridUpdateMode.MANUAL,
         columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
         allow_unsafe_jscode=True
     )
@@ -658,11 +658,11 @@ with tab1:
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
         update_tabel()
-        update_tabel()
+
  
-    # # Update de DataFrame na elke wijziging
-    # updated_df = edited_df_response['data']
-    # save_changes(pd.DataFrame(updated_df))
+    # Update de DataFrame na elke wijziging
+    updated_df = edited_df_response['data']
+    save_changes(pd.DataFrame(updated_df))
     
     # Sla de geselecteerde rijen op in sessie status
     selected_rows = edited_df_response.get('selected_rows_id', edited_df_response.get('selected_rows', edited_df_response.get('selected_data', [])))
