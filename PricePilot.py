@@ -174,6 +174,11 @@ with col1:
     # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 
+# Berekening van offer_amount
+offer_amount = (
+    st.session_state.offer_df["M2 totaal"] * st.session_state.offer_df["Prijs_backend"]
+).sum() if "M2 totaal" in st.session_state.offer_df.columns and "Prijs_backend" in st.session_state.offer_df.columns else 0
+
 with col3:
     # Controleer of er een klantnummer is ingevoerd en deze in de data staat
     if customer_number and customer_number in customer_data:
