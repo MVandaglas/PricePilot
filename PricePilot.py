@@ -170,7 +170,7 @@ with col1:
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 
 with tab3:    
-    cutoff_value = st.sidebar.slider(
+    cutoff_value = st.slider(
         "Matchwaarde AI",
         min_value=0.1,
         max_value=1.0,
