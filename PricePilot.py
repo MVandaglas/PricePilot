@@ -22,6 +22,56 @@ from database_setup import create_connection, setup_database
 import sqlite3
 from http.cookies import SimpleCookie
 
+# Salesforce Login Configuratie
+SF_USERNAME = "martijn.wissink@vandaglas.com.qa"
+SF_PASSWORD = "Salesforce1!"
+SF_SECURITY_TOKEN = "0ZdfpqHSnDyhUVtisVxk3Pzbs"
+SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox
+
+# Verbind met Salesforce
+try:
+    session_id, instance = SalesforceLogin(
+        username=SF_USERNAME,
+        password=SF_PASSWORD,
+        security_token=SF_SECURITY_TOKEN,
+        domain=SF_DOMAIN
+    )
+    sf = Salesforce(instance=instance, session_id=session_id)
+    st.success("Succesvol verbonden met Salesforce!")
+except Exception as e:
+    st.error(f"Fout bij het verbinden met Salesforce: {e}")
+
+# Streamlit UI
+st.title("Salesforce Accounts Lijst")
+
+if st.button("Haal Accounts op"):
+    try:
+        # Query om Accounts op te halen
+        accounts = sf.query("""
+        SELECT Id, Name, Industry, AnnualRevenue, Phone
+        FROM Account
+        LIMIT 100
+        """)
+        
+        # Zet de resultaten om naar een DataFrame
+        accounts_data = accounts["records"]
+        df = pd.DataFrame(accounts_data).drop(columns="attributes")
+        
+        # Toon de gegevens in Streamlit
+        st.write("**Accounts Tabel:**")
+        st.dataframe(df)
+
+        # Optioneel: Download als CSV
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download Accounts als CSV",
+            data=csv,
+            file_name="accounts.csv",
+            mime="text/csv",
+        )
+    except Exception as e:
+        st.error(f"Fout bij het ophalen van de gegevens: {e}")
+
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
@@ -215,7 +265,30 @@ with tab3:
     customer_reference = st.sidebar.text_input("Klantreferentie")
     offer_amount = totaal_bedrag
     
+    # Filter Accounts in Salesforce
+    if customer_number:
+        try:
+            # SOQL-query om Accounts op te halen die overeenkomen met de invoer
+            query = f"""
+            SELECT Id, Name, BillingCity, Industry, Phone
+            FROM Account
+            WHERE Name LIKE '%{customer_number}%'
+            LIMIT 10
+            """
+            accounts = sf.query(query)
     
+            # Toon resultaten in de zijbalk
+            st.sidebar.subheader("Zoekresultaten:")
+            if accounts["totalSize"] > 0:
+                for account in accounts["records"]:
+                    st.sidebar.write(f"**{account['Name']}**")
+                    st.sidebar.write(f"- Plaats: {account['BillingCity'] or 'Onbekend'}")
+                    st.sidebar.write(f"- Telefoon: {account['Phone'] or 'Onbekend'}")
+                    st.sidebar.write("---")
+            else:
+                st.sidebar.write("Geen resultaten gevonden.")
+        except Exception as e:
+            st.sidebar.error(f"Fout bij het ophalen van klantgegevens: {e}")
     
     if customer_number in customer_data:
         st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
