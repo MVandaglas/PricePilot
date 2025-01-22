@@ -646,7 +646,7 @@ with tab1:
    
 
  # Verbeterde update_tabel functie
- def update_tabel():
+def update_tabel():
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
