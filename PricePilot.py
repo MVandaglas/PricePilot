@@ -168,7 +168,8 @@ with col1:
     
     # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-    
+
+with tab3:    
     cutoff_value = st.sidebar.slider(
         "Matchwaarde AI",
         min_value=0.1,
