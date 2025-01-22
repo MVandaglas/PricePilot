@@ -1874,11 +1874,28 @@ with tab5:
                         theme="material"
                     )
 
-                    # Knop om geselecteerde rijen te verwerken
+                    # Haal de geselecteerde rijen op
+                    geselecteerde_rijen = response["selected_rows"]
+
+                    # Knop om geselecteerde rijen als synoniem in te lezen
                     if st.button("Lees in als synoniem"):
-                        geselecteerde_rijen = response["selected_rows"]
                         st.write("Geselecteerde rijen:", geselecteerde_rijen)
                         st.success("Functie voor 'Lees in als synoniem' wordt nog gedefinieerd.")
+
+                    # Knop om geselecteerde rijen te verwijderen
+                    if st.button("Verwijder geselecteerde rijen"):
+                        if geselecteerde_rijen:
+                            try:
+                                for rij in geselecteerde_rijen:
+                                    synoniem = rij.get("Synoniem")
+                                    if synoniem:
+                                        cursor.execute("DELETE FROM Synoniemen WHERE Synoniem = ?", (synoniem,))
+                                conn.commit()
+                                st.success("Geselecteerde rijen zijn succesvol verwijderd.")
+                            except Exception as e:
+                                st.error(f"Fout bij het verwijderen: {e}")
+                        else:
+                            st.warning("Selecteer minimaal één rij om te verwijderen.")
                 else:
                     st.info("Er zijn nog geen geaccordeerde synoniemen beschikbaar.")
             else:
