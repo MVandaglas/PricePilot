@@ -1685,6 +1685,7 @@ with tab3:
         # Knop voor accordering
         if st.button("Accordeer synoniem"):
             geselecteerde_rijen = response["selected_rows"]
+            st.write("Geselecteerde rijen:", geselecteerde_rijen)
             
             # Controleer of geselecteerde_rijen de juiste structuur heeft
             if isinstance(geselecteerde_rijen, list) and len(geselecteerde_rijen) > 0:
