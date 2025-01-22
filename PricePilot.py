@@ -1684,15 +1684,17 @@ with tab3:
 
         # Knop voor accordering
         if st.button("Accordeer synoniem"):
-            geselecteerde_rijen = response.get("selected_rows", [])  # Haal geselecteerde rijen op
+            geselecteerde_rijen = response.get("selected_rows", pd.DataFrame())  # Haal geselecteerde rijen op als DataFrame
         
-            # Debugging output
+            # Debug output om te controleren
             st.write("Type van geselecteerde rijen:", type(geselecteerde_rijen))
             st.write("Inhoud van geselecteerde rijen:", geselecteerde_rijen)
         
-            # Controleer of er daadwerkelijk rijen zijn geselecteerd
-            if isinstance(geselecteerde_rijen, list) and len(geselecteerde_rijen) > 0:
-                st.success("Er zijn rijen geselecteerd. Verwerking gestart...")
+            # Controleer of de DataFrame niet leeg is
+            if not geselecteerde_rijen.empty:
+                # Converteer de DataFrame naar een lijst van dictionaries
+                geselecteerde_rijen_lijst = geselecteerde_rijen.to_dict("records")
+                st.write("Geconverteerde geselecteerde rijen:", geselecteerde_rijen_lijst)  # Debug output
         
                 # Maak databaseverbinding
                 conn = create_connection()
@@ -1711,21 +1713,18 @@ with tab3:
                     );
                     """)
         
-                    # Verwerk elke geselecteerde rij
-                    for rij in geselecteerde_rijen:
-                        if isinstance(rij, dict):  # Zorg dat elke rij een dictionary is
-                            input_waarde = rij.get("Input", "")
-                            artikelnummer = rij.get("Artikelnummer", "")
-                            artikelnaam = rij.get("Artikelnaam", "")
+                    # Verwerk elke rij in de lijst
+                    for rij in geselecteerde_rijen_lijst:
+                        input_waarde = rij.get("Input", "")
+                        artikelnummer = rij.get("Artikelnummer", "")
+                        artikelnaam = rij.get("Artikelnaam", "")
         
-                            if input_waarde and artikelnummer:
-                                cursor.execute("""
-                                INSERT OR IGNORE INTO Synoniemen (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
-                                VALUES (?, ?, ?, ?, ?);
-                                """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
-                                st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
-                        else:
-                            st.error("Ongeldige structuur in geselecteerde rij.")
+                        if input_waarde and artikelnummer:
+                            cursor.execute("""
+                            INSERT OR IGNORE INTO Synoniemen (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
+                            VALUES (?, ?, ?, ?, ?);
+                            """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
+                            st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
         
                     # Commit wijzigingen naar de database
                     conn.commit()
