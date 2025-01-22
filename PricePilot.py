@@ -1650,7 +1650,6 @@ with tab3:
     if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
         # Filter regels met "Source" = "interpretatie" en "GPT"
         interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"].isin(["interpretatie", "GPT"])]
-
         
         # Houd alleen unieke rijen op basis van combinatie van kolommen
         interpretatie_rows = interpretatie_rows.drop_duplicates(subset=["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"])
@@ -1687,14 +1686,48 @@ with tab3:
         if st.button("Accordeer synoniem"):
             geselecteerde_rijen = response["selected_rows"]
             if geselecteerde_rijen:
-                for rij in geselecteerde_rijen:
-                    input_waarde = rij["Input"]
-                    artikelnummer = rij["Artikelnummer"]
-                    if input_waarde and artikelnummer:
-                        Suggested_synonyms_dict[input_waarde] = artikelnummer
-                        st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
+                # Maak databaseverbinding
+                conn = create_connection()
+                cursor = conn.cursor()
+                
+                try:
+                    # Zorg dat de tabel Synoniemen bestaat
+                    cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS Synoniemen (
+                        Synoniem TEXT PRIMARY KEY,
+                        Artikelnummer TEXT NOT NULL,
+                        Artikelnaam TEXT,
+                        Input TEXT,
+                        Bron TEXT,
+                        Datum TEXT DEFAULT CURRENT_TIMESTAMP
+                    );
+                    """)
+
+                    # Voeg de geselecteerde synoniemen toe aan de tabel
+                    for rij in geselecteerde_rijen:
+                        input_waarde = rij["Input"]
+                        artikelnummer = rij["Artikelnummer"]
+                        artikelnaam = rij["Artikelnaam"]
+
+                        if input_waarde and artikelnummer:
+                            cursor.execute("""
+                            INSERT OR IGNORE INTO Synoniemen (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
+                            VALUES (?, ?, ?, ?, ?);
+                            """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
+                            st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
+
+                    # Commit wijzigingen naar de database
+                    conn.commit()
+
+                except Exception as e:
+                    st.error(f"Fout bij het opslaan: {e}")
+
+                finally:
+                    # Sluit de verbinding
+                    conn.close()
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen.")
+
 
 with tab4:
     st.subheader("💬 Glasadvies Chatbot")
