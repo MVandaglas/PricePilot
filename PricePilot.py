@@ -709,7 +709,7 @@ with tab1:
             # Werk de Rijnummer-kolom bij zodat deze overeenkomt met de index + 1
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
             # Vernieuw de AgGrid
-            # st.rerun()
+            st.rerun()
     
     with col2:
         if st.button("Verwijder rijen (2x klikken)", key='delete_rows_button'):
@@ -724,7 +724,7 @@ with tab1:
                 st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
                 # Reset de Rijnummer-kolom na verwijderen
                 st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-                # st.rerun
+                st.rerun
             else:
                 st.warning("Selecteer eerst rijen om te verwijderen.")
     
@@ -948,7 +948,7 @@ def handle_gpt_chat():
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
 
             # Vernieuw de AgGrid
-            # st.rerun()
+            st.rerun()
 
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
@@ -1027,7 +1027,7 @@ def handle_email_to_offer(email_body):
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            # st.rerun()
+            st.rerun()
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
 
@@ -1074,7 +1074,7 @@ def handle_mapped_data_to_offer(df):
         st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
         st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
         st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-        # st.rerun()
+        st.rerun()
     else:
         st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
 
