@@ -24,10 +24,6 @@ from http.cookies import SimpleCookie
 from simple_salesforce import Salesforce, SalesforceLogin
 import time
 
-# Controleer of de omgevingsvariabelen geladen worden
-st.write(f"SALESFORCE_USERNAME: {os.getenv('SALESFORCE_USERNAME')}")
-st.write(f"SALESFORCE_PASSWORD: {os.getenv('SALESFORCE_PASSWORD')}")
-st.write(f"SF_SECURITY_TOKEN: {os.getenv('SF_SECURITY_TOKEN')}")
 
 # Salesforce Login Configuratie
 SF_USERNAME =  os.getenv("SALESFORCE_USERNAME")
@@ -36,14 +32,13 @@ SF_SECURITY_TOKEN =  os.getenv("SF_SECURITY_TOKEN")
 SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox
 
 
-
 # Verbind met Salesforce
 try:
     session_id, instance = SalesforceLogin(
         username=SF_USERNAME,
         password=SF_PASSWORD,
         domain=SF_DOMAIN
-    )
+    ) #keys in manage app secrets
     sf = Salesforce(instance=instance, session_id=session_id)
 
 except Exception as e:
