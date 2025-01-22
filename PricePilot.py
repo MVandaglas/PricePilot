@@ -22,6 +22,7 @@ from database_setup import create_connection, setup_database
 import sqlite3
 from http.cookies import SimpleCookie
 from simple_salesforce import Salesforce, SalesforceLogin
+import time
 
 # Salesforce Login Configuratie
 SF_USERNAME = "martijnwissink@vandaglas.com.qa"
