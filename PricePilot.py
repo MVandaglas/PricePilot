@@ -1861,6 +1861,7 @@ with tab5:
 
                 if not synoniemenAI_df.empty:
                     # Configureer AgGrid voor de synoniemenAI tabel
+                    from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
                     gb = GridOptionsBuilder.from_dataframe(synoniemenAI_df)
                     gb.configure_selection(selection_mode="multiple", use_checkbox=True)
                     gb.configure_default_column(editable=False)
@@ -1880,8 +1881,22 @@ with tab5:
 
                     # Knop om geselecteerde rijen als synoniem in te lezen
                     if st.button("Lees in als synoniem"):
-                        st.write("Geselecteerde rijen:", geselecteerde_rijen)
-                        st.success("Functie voor 'Lees in als synoniem' wordt nog gedefinieerd.")
+                        if geselecteerde_rijen:
+                            try:
+                                for rij in geselecteerde_rijen:
+                                    synoniem = rij.get("Synoniem")
+                                    artikelnummer = rij.get("Artikelnummer")
+                                    if synoniem and artikelnummer:
+                                        cursor.execute("""
+                                        INSERT OR IGNORE INTO Synoniemen_actief (Synoniem, Artikelnummer)
+                                        VALUES (?, ?);
+                                        """, (synoniem, artikelnummer))
+                                conn.commit()
+                                st.success("Geselecteerde synoniemen zijn succesvol ingelezen in 'Synoniemen_actief'.")
+                            except Exception as e:
+                                st.error(f"Fout bij het inlezen van synoniemen: {e}")
+                        else:
+                            st.warning("Selecteer minimaal één rij om in te lezen.")
 
                     # Knop om geselecteerde rijen te verwijderen
                     if st.button("Verwijder geselecteerde rijen"):
@@ -1901,7 +1916,33 @@ with tab5:
                     st.info("Er zijn nog geen geaccordeerde synoniemen beschikbaar.")
             else:
                 st.warning("De tabel 'SynoniemenAI' bestaat niet. Voeg eerst data toe aan de tabel.")
-        
+
+            # Excel-upload voor Synoniemen_actief
+            st.markdown("### Upload een Excel-bestand om synoniemen toe te voegen aan 'Synoniemen_actief'")
+            uploaded_file = st.file_uploader("Kies een Excel-bestand", type=["xlsx"])
+
+            if uploaded_file:
+                try:
+                    # Lees het Excel-bestand in
+                    upload_df = pd.read_excel(uploaded_file)
+                    
+                    # Controleer of vereiste kolommen bestaan
+                    if "Synoniem" in upload_df.columns and "Artikelnummer" in upload_df.columns:
+                        for _, row in upload_df.iterrows():
+                            synoniem = row["Synoniem"]
+                            artikelnummer = row["Artikelnummer"]
+                            if pd.notna(synoniem) and pd.notna(artikelnummer):
+                                cursor.execute("""
+                                INSERT OR IGNORE INTO Synoniemen_actief (Synoniem, Artikelnummer)
+                                VALUES (?, ?);
+                                """, (synoniem, artikelnummer))
+                        conn.commit()
+                        st.success("Excel-bestand is succesvol ingelezen in 'Synoniemen_actief'.")
+                    else:
+                        st.error("Het Excel-bestand moet kolommen 'Synoniem' en 'Artikelnummer' bevatten.")
+                except Exception as e:
+                    st.error(f"Fout bij het verwerken van het Excel-bestand: {e}")
+
         except Exception as e:
             st.error(f"Fout bij het ophalen van de data: {e}")
 
@@ -1909,3 +1950,4 @@ with tab5:
             conn.close()
     elif wachtwoord:
         st.error("Onjuist wachtwoord. Toegang geweigerd.")
+
