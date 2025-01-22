@@ -32,8 +32,6 @@ else:
 # Zorg ervoor dat de database bij opstarten correct is
 setup_database()
 
-
-
 # Hard gecodeerde klantgegevens
 customer_data = {
     "111111": {"revenue": "50.000 euro", "size": "D"},
@@ -167,9 +165,7 @@ with col1:
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
     st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
-
-
-with col1:    
+    
     # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     
@@ -270,22 +266,6 @@ with col1:
                 prijsscherpte = 10
         st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
-with col3:
-    # Controleer of de klant bestaat in de data
-    if customer_number in customer_data:
-        omzet_klant = customer_data[customer_number]['revenue']
-        klantgrootte = customer_data[customer_number]['size']
-
-        # Toon omzet klant
-        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-
-        # Toon klantgrootte
-        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-
-        # Toon prijsscherpte
-        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
-    else:
-        pass
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
