@@ -716,6 +716,7 @@ with tab1:
             # Haal de geselecteerde rijen op in de juiste vorm
             selected = st.session_state.selected_rows
             st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
+            update_tabel()
     
             # Verwijder rijen op basis van index
             if len(selected) > 0:
