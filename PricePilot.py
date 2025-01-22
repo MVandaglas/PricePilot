@@ -57,7 +57,7 @@ article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
 # Maak de tabs aan
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "🤖 Glasbot", "⚙️ Beheer"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "🤖 Glasbot", "⚙️ Instellingen"])
 
 # Tab 1: Offerte Genereren
 with tab1:
@@ -165,14 +165,7 @@ with col1:
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
     st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
-
-with col2:
-    if customer_number in customer_data:
-        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
-        
-with col1:        
+    
     # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     
@@ -220,7 +213,9 @@ with col1:
     
     
     
-
+    if customer_number in customer_data:
+        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
     
         # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
         klantgrootte = customer_data[customer_number]['size']
@@ -721,7 +716,6 @@ with tab1:
             # Haal de geselecteerde rijen op in de juiste vorm
             selected = st.session_state.selected_rows
             st.write("Geselecteerde rijen voor verwijdering:", selected)  # Debugging statement
-            update_tabel()
     
             # Verwijder rijen op basis van index
             if len(selected) > 0:
