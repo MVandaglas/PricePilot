@@ -178,8 +178,8 @@ with col3:
 
     # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
     if customer_number and customer_number in customer_data:
-    klantgrootte = customer_data[customer_number]['size']
-    prijsscherpte = ""
+        klantgrootte = customer_data[customer_number]['size']
+        prijsscherpte = ""
     
     # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
     if klantgrootte == "A":
