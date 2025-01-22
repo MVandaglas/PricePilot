@@ -1698,9 +1698,9 @@ with tab3:
                 cursor = conn.cursor()
         
                 try:
-                    # Zorg dat de tabel Synoniemen bestaat
+                    # Zorg dat de tabel SynoniemenAI bestaat
                     cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS Synoniemen (
+                    CREATE TABLE IF NOT EXISTS SynoniemenAI (
                         Synoniem TEXT PRIMARY KEY,
                         Artikelnummer TEXT NOT NULL,
                         Artikelnaam TEXT,
@@ -1718,7 +1718,7 @@ with tab3:
         
                         if input_waarde and artikelnummer:
                             cursor.execute("""
-                            INSERT OR IGNORE INTO Synoniemen (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
+                            INSERT OR IGNORE INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
                             VALUES (?, ?, ?, ?, ?);
                             """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
                             st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
@@ -1843,32 +1843,32 @@ with tab5:
         cursor = conn.cursor()
 
         try:
-            # Controleer of de tabel 'Synoniemen' bestaat
+            # Controleer of de tabel 'SynoniemenAI' bestaat
             cursor.execute("""
-            SELECT name FROM sqlite_master WHERE type='table' AND name='Synoniemen';
+            SELECT name FROM sqlite_master WHERE type='table' AND name='SynoniemenAI';
             """)
             tabel_bestaat = cursor.fetchone()
             
             if tabel_bestaat:
                 # Haal de geaccordeerde synoniemen op uit de tabel
-                cursor.execute("SELECT * FROM Synoniemen")
+                cursor.execute("SELECT * FROM SynoniemenAI")
                 kolomnamen = [desc[0] for desc in cursor.description]
-                synoniemen_data = cursor.fetchall()
+                synoniemenAI_data = cursor.fetchall()
 
                 # Zet de data in een DataFrame
                 import pandas as pd
-                synoniemen_df = pd.DataFrame(synoniemen_data, columns=kolomnamen)
+                synoniemenAI_df = pd.DataFrame(synoniemenAI_data, columns=kolomnamen)
 
-                if not synoniemen_df.empty:
-                    # Configureer AgGrid voor de synoniemen tabel
-                    gb = GridOptionsBuilder.from_dataframe(synoniemen_df)
+                if not synoniemenAI_df.empty:
+                    # Configureer AgGrid voor de synoniemenAI tabel
+                    gb = GridOptionsBuilder.from_dataframe(synoniemenAI_df)
                     gb.configure_selection(selection_mode="multiple", use_checkbox=True)
                     gb.configure_default_column(editable=False)
                     grid_options = gb.build()
 
                     # Toon de AgGrid-tabel met multi-selectbox
                     response = AgGrid(
-                        synoniemen_df,
+                        synoniemenAI_df,
                         gridOptions=grid_options,
                         update_mode=GridUpdateMode.SELECTION_CHANGED,
                         fit_columns_on_grid_load=True,
@@ -1890,7 +1890,7 @@ with tab5:
                                 for rij in geselecteerde_rijen:
                                     synoniem = rij.get("Synoniem")
                                     if synoniem:
-                                        cursor.execute("DELETE FROM Synoniemen WHERE Synoniem = ?", (synoniem,))
+                                        cursor.execute("DELETE FROM SynoniemenAI WHERE Synoniem = ?", (synoniem,))
                                 conn.commit()
                                 st.success("Geselecteerde rijen zijn succesvol verwijderd.")
                             except Exception as e:
@@ -1900,7 +1900,7 @@ with tab5:
                 else:
                     st.info("Er zijn nog geen geaccordeerde synoniemen beschikbaar.")
             else:
-                st.warning("De tabel 'Synoniemen' bestaat niet. Voeg eerst data toe aan de tabel.")
+                st.warning("De tabel 'SynoniemenAI' bestaat niet. Voeg eerst data toe aan de tabel.")
         
         except Exception as e:
             st.error(f"Fout bij het ophalen van de data: {e}")
