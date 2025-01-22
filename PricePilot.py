@@ -1686,10 +1686,6 @@ with tab3:
         if st.button("Accordeer synoniem"):
             geselecteerde_rijen = response.get("selected_rows", pd.DataFrame())  # Haal geselecteerde rijen op als DataFrame
         
-            # Debug output om te controleren
-            st.write("Type van geselecteerde rijen:", type(geselecteerde_rijen))
-            st.write("Inhoud van geselecteerde rijen:", geselecteerde_rijen)
-        
             # Controleer of de DataFrame niet leeg is
             if not geselecteerde_rijen.empty:
                 # Converteer de DataFrame naar een lijst van dictionaries
