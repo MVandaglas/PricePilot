@@ -35,6 +35,7 @@ def setup_database():
         Verkoopprijs REAL,
         Source TEXT,
         Datum TEXT DEFAULT CURRENT_TIMESTAMP,
+        Gebruiker TEXT,
         PRIMARY KEY (Offertenummer, Rijnummer) -- Gekoppelde PRIMARY KEY
     );
     """)
