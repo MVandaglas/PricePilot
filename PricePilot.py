@@ -1829,7 +1829,6 @@ with tab4:
             st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
 
             
-# Beheer tab
 with tab5:
     st.subheader("Beheer")
     
@@ -1881,26 +1880,20 @@ with tab5:
 
                     # Knop om geselecteerde rijen als synoniem in te lezen
                     if st.button("Lees in als synoniem"):
-                        st.write("Geselecteerde rijen (debug):", geselecteerde_rijen)  # Debug output
-                        if len(geselecteerde_rijen) > 0:
+                        if len(geselecteerde_rijen) > 0:  # Controleer of er geselecteerde rijen zijn
                             try:
                                 for rij in geselecteerde_rijen:
                                     if isinstance(rij, dict):
                                         synoniem = rij.get("Synoniem", None)
                                         artikelnummer = rij.get("Artikelnummer", None)
-                    
+
                                         if synoniem and artikelnummer:
                                             cursor.execute("""
                                             INSERT OR IGNORE INTO Synoniemen_actief (Synoniem, Artikelnummer)
                                             VALUES (?, ?);
                                             """, (synoniem, artikelnummer))
-                                conn.commit()  # Belangrijk: Sla wijzigingen op in de database
+                                conn.commit()
                                 st.success("Geselecteerde synoniemen zijn succesvol ingelezen in 'Synoniemen_actief'.")
-                    
-                                # Haal de data opnieuw op voor de AgGrid-tabel
-                                cursor.execute("SELECT * FROM Synoniemen_actief")
-                                actieve_synoniemen_data = cursor.fetchall()
-                                st.write("Actieve synoniemen na toevoeging:", actieve_synoniemen_data)  # Debug output
                             except Exception as e:
                                 st.error(f"Fout bij het inlezen van synoniemen: {e}")
                         else:
@@ -1935,44 +1928,69 @@ with tab5:
 
             # Actieve synoniemen in een expander
             with st.expander("Bekijk en beheer actieve synoniemen", expanded=False):
-                cursor.execute("SELECT * FROM Synoniemen_actief")
-                kolomnamen = [desc[0] for desc in cursor.description]
-                actieve_synoniemen_data = cursor.fetchall()
+                if "actieve_synoniemen_df" not in st.session_state:
+                    cursor.execute("SELECT * FROM Synoniemen_actief")
+                    kolomnamen = [desc[0] for desc in cursor.description]
+                    actieve_synoniemen_data = cursor.fetchall()
+                    if actieve_synoniemen_data:
+                        st.session_state.actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
+                    else:
+                        st.session_state.actieve_synoniemen_df = pd.DataFrame(columns=["Synoniem", "Artikelnummer"])
 
-                if actieve_synoniemen_data:
-                    actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
+                # Toon AgGrid
+                actieve_synoniemen_df = st.session_state.actieve_synoniemen_df
 
-                    # Configureer AgGrid voor actieve synoniemen
+                if not actieve_synoniemen_df.empty:
+                    # Configureer AgGrid met filtering
                     gb_actief = GridOptionsBuilder.from_dataframe(actieve_synoniemen_df)
+                    gb_actief.configure_default_column(editable=False, filter=True)  # Activeer filtering
                     gb_actief.configure_selection(selection_mode="multiple", use_checkbox=True)
-                    gb_actief.configure_default_column(editable=False)
                     grid_options_actief = gb_actief.build()
 
-                    # Toon AgGrid met actieve synoniemen
                     response_actief = AgGrid(
                         actieve_synoniemen_df,
                         gridOptions=grid_options_actief,
-                        update_mode=GridUpdateMode.SELECTION_CHANGED,
+                        update_mode=GridUpdateMode.SELECTION_CHANGED | GridUpdateMode.FILTERING_CHANGED,
                         fit_columns_on_grid_load=True,
                         theme="material"
                     )
 
                     geselecteerde_rijen_actief = response_actief["selected_rows"]
 
-                    # Knop om geselecteerde rijen te verwijderen
-                    if st.button("Verwijder geselecteerde actieve synoniemen"):
-                        if len(geselecteerde_rijen_actief) > 0:
+                    # Knoppen voor verwijdering en vernieuwen
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        if st.button("Verwijder geselecteerde actieve synoniemen"):
+                            if len(geselecteerde_rijen_actief) > 0:
+                                try:
+                                    for rij in geselecteerde_rijen_actief:
+                                        synoniem = rij.get("Synoniem")
+                                        if synoniem:
+                                            cursor.execute("DELETE FROM Synoniemen_actief WHERE Synoniem = ?", (synoniem,))
+                                    conn.commit()
+
+                                    # Vernieuw de tabel na verwijdering
+                                    cursor.execute("SELECT * FROM Synoniemen_actief")
+                                    actieve_synoniemen_data = cursor.fetchall()
+                                    st.session_state.actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
+
+                                    st.success("Geselecteerde actieve synoniemen zijn succesvol verwijderd.")
+                                except Exception as e:
+                                    st.error(f"Fout bij het verwijderen: {e}")
+                            else:
+                                st.warning("Selecteer minimaal één rij om te verwijderen.")
+
+                    with col2:
+                        if st.button("Vernieuw tabel"):
                             try:
-                                for rij in geselecteerde_rijen_actief:
-                                    synoniem = rij.get("Synoniem")
-                                    if synoniem:
-                                        cursor.execute("DELETE FROM Synoniemen_actief WHERE Synoniem = ?", (synoniem,))
-                                conn.commit()
-                                st.success("Geselecteerde actieve synoniemen zijn succesvol verwijderd.")
+                                # Haal de tabel opnieuw op
+                                cursor.execute("SELECT * FROM Synoniemen_actief")
+                                actieve_synoniemen_data = cursor.fetchall()
+                                st.session_state.actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
+                                st.success("De tabel is succesvol vernieuwd.")
                             except Exception as e:
-                                st.error(f"Fout bij het verwijderen: {e}")
-                        else:
-                            st.warning("Selecteer minimaal één rij om te verwijderen.")
+                                st.error(f"Fout bij het vernieuwen van de tabel: {e}")
                 else:
                     st.info("Er zijn geen actieve synoniemen beschikbaar.")
 
