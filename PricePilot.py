@@ -210,8 +210,8 @@ with col1:
     
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-    st.session_state.customer_number = str(customer_number) if customer_number else ''
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+    st.session_state.customer_number = str(customer_number) if customer_number else ''
     customer_reference = st.sidebar.text_input("Klantreferentie")
     offer_amount = totaal_bedrag
     
