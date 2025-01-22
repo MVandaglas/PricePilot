@@ -1828,10 +1828,66 @@ with tab4:
             st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
 
             
+# Beheer tab
 with tab5:
-    st.subheader("Jouw instellingen")
-    conn = create_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    st.write("Beschikbare tabellen:", cursor.fetchall())
-    conn.close()
+    st.subheader("Beheer")
+    
+    # Wachtwoordbeveiliging
+    wachtwoord = st.text_input("Voer het wachtwoord in om toegang te krijgen:", type="password")
+    if wachtwoord == "Comex25":
+        st.success("Toegang verleend tot de beheertab.")
+
+        # Verbinding met database
+        conn = create_connection()
+        cursor = conn.cursor()
+
+        try:
+            # Controleer of de tabel 'Synoniemen' bestaat
+            cursor.execute("""
+            SELECT name FROM sqlite_master WHERE type='table' AND name='Synoniemen';
+            """)
+            tabel_bestaat = cursor.fetchone()
+            
+            if tabel_bestaat:
+                # Haal de geaccordeerde synoniemen op uit de tabel
+                cursor.execute("SELECT * FROM Synoniemen")
+                kolomnamen = [desc[0] for desc in cursor.description]
+                synoniemen_data = cursor.fetchall()
+
+                # Zet de data in een DataFrame
+                import pandas as pd
+                synoniemen_df = pd.DataFrame(synoniemen_data, columns=kolomnamen)
+
+                if not synoniemen_df.empty:
+                    # Configureer AgGrid voor de synoniemen tabel
+                    gb = GridOptionsBuilder.from_dataframe(synoniemen_df)
+                    gb.configure_selection(selection_mode="multiple", use_checkbox=True)
+                    gb.configure_default_column(editable=False)
+                    grid_options = gb.build()
+
+                    # Toon de AgGrid-tabel met multi-selectbox
+                    response = AgGrid(
+                        synoniemen_df,
+                        gridOptions=grid_options,
+                        update_mode=GridUpdateMode.SELECTION_CHANGED,
+                        fit_columns_on_grid_load=True,
+                        theme="material"
+                    )
+
+                    # Knop om geselecteerde rijen te verwerken
+                    if st.button("Lees in als synoniem"):
+                        geselecteerde_rijen = response["selected_rows"]
+                        st.write("Geselecteerde rijen:", geselecteerde_rijen)
+                        st.success("Functie voor 'Lees in als synoniem' wordt nog gedefinieerd.")
+                else:
+                    st.info("Er zijn nog geen geaccordeerde synoniemen beschikbaar.")
+            else:
+                st.warning("De tabel 'Synoniemen' bestaat niet. Voeg eerst data toe aan de tabel.")
+        
+        except Exception as e:
+            st.error(f"Fout bij het ophalen van de data: {e}")
+
+        finally:
+            conn.close()
+    elif wachtwoord:
+        st.error("Onjuist wachtwoord. Toegang geweigerd.")
