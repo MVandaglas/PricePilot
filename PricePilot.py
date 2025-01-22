@@ -1511,7 +1511,7 @@ with tab1:
             try:
                 # Haal de ingelogde Windows-gebruikersnaam op
                 import os
-                windows_user = os.getlogin()
+                windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
         
                 # Zoek het hoogste offertenummer
                 if not st.session_state.saved_offers.empty:
