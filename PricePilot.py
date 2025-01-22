@@ -25,9 +25,9 @@ from simple_salesforce import Salesforce, SalesforceLogin
 import time
 
 # Salesforce Login Configuratie
-SF_USERNAME = "martijnwissink@vandaglas.com.qa"
-SF_PASSWORD = "Salesforce1!"
-SF_SECURITY_TOKEN = "0ZdfpqHSnDyhUVtisVxk3Pzbs"
+SF_USERNAME = SALESFORCE_USERNAME
+SF_PASSWORD = SALESFORCE_PASSOWRD
+SF_SECURITY_TOKEN = SF_SECURITY_TOKEN
 SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox
 
 # Verbind met Salesforce
@@ -40,11 +40,6 @@ try:
     )
     sf = Salesforce(instance=instance, session_id=session_id)
 
-    # Tijdelijke succesmelding
-    success_placeholder = st.empty()  # Lege container
-    success_placeholder.success("Succesvol verbonden met Salesforce!")
-    time.sleep(5)  # Wacht 5 seconden
-    success_placeholder.empty()  # Verwijder de melding
 except Exception as e:
     st.error(f"Fout bij het verbinden met Salesforce: {e}")
 
