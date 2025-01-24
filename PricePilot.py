@@ -1675,7 +1675,7 @@ if st.checkbox("Creeer Opportunity"):
     # Velden in de eerste kolom
     with col1:
         name = st.text_input("Name (gevuld met customer_reference):", value=customer_reference)
-        account_id = st.text_input("AccountID:", value=geldig_account_id)
+        account_id = st.text_input("AccountID:", value="001KI0000084Q8VYAU")
         stage_name = st.selectbox(
             "StageName:",
             options=["RFQ / Initial Quote", "Customer is fixed", "Negotiation", "Verbal Agreement"],
