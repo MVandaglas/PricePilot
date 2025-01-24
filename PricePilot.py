@@ -1332,13 +1332,13 @@ with st.sidebar.expander("Upload document", expanded=False):
             email_body = msg_body
             
             # Controleer of msg_subject aanwezig is
+            # Controleer of er een onderwerp is en klantreferentie leeg is
             if msg_subject:
                 try:
-                    # Als klantreferentie nog niet is ingesteld of leeg is
-                    if not st.session_state.get("customer_reference") or not st.session_state["customer_reference"].strip():
-                        # Gebruik altijd het volledige msg_subject als klantreferentie
+                    if not st.session_state.get("customer_reference") or not customer_reference.strip():
+                        # Gebruik altijd het volledige msg_subject
                         st.session_state["customer_reference"] = msg_subject.strip()
-                        st.sidebar.success(f"Klantreferentie automatisch gevuld met: {st.session_state['customer_reference']}")
+                        st.sidebar.success(f"Klantreferentie automatisch gevuld met: {msg_subject.strip()}")
                 except Exception as e:
                     st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
 
