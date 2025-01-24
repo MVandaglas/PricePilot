@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from PIL import Image
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
 from SAPprijs import sap_prices
@@ -1674,8 +1674,8 @@ if st.checkbox("Creeer Opportunity"):
     account_id = st.text_input("Account ID:", value="005KB000000gzb4YAA")
     stage_name = st.text_input("Stage:", value="RFQ / Initial Quote")
     close_date = st.date_input(
-        "Close date:",
-        value=datetime.today() + timedelta(weeks=2),
+        "CloseDate (datum vandaag + 2 weken):",
+        value=date.today() + timedelta(weeks=2),
     )
     amount = st.number_input("Bedrag:", value=totaal_bedrag)
     description = st.text_area("Beschrijving:", value=customer_reference)
