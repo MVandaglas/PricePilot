@@ -1340,7 +1340,6 @@ with st.sidebar.expander("Upload document", expanded=False):
                         
                         # Gebruik het opgeschoonde onderwerp als klantreferentie
                         st.session_state["customer_reference"] = clean_subject
-                        st.sidebar.success(f"Klantreferentie automatisch gevuld met: {clean_subject}")
                         
                         # Trigger herladen van de interface
                         st.rerun()
