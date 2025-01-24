@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from PIL import Image
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
 from SAPprijs import sap_prices
