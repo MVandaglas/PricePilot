@@ -265,7 +265,8 @@ with tab3:
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
     st.session_state.customer_number = str(customer_number) if customer_number else ''
-    customer_reference = st.sidebar.text_input("Klantreferentie", value=st.session_state.get("customer_reference", ""))
+    customer_reference = st.sidebar.text_input("Klantreferentie", value=st.session_state.get("customer_reference", "") if not st.session_state.get("customer_reference", "").strip() else "")
+
 
     offer_amount = totaal_bedrag
     
@@ -1329,8 +1330,8 @@ with st.sidebar.expander("Upload document", expanded=False):
             # Controleer of msg_subject aanwezig is
             if msg_subject:
                 try:
-                    # Controleer of de klantreferentie nog leeg is
-                    if not st.session_state.get("customer_reference") and not customer_reference.strip():
+                    # Controleer of de klantreferentie nog leeg is in de session state of handmatig verwijderd
+                    if not st.session_state.get("customer_reference", "").strip():
                         # Flexibele regex om onderwerp als klantreferentie in te laden
                         subject_match = re.search(r"(?<=Onderwerp:)\s*(.+)", msg_subject, re.DOTALL | re.IGNORECASE)
                         if subject_match:
