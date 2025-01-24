@@ -1330,18 +1330,23 @@ with st.sidebar.expander("Upload document", expanded=False):
             latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
             msg_body = latest_email
             email_body = msg_body
-            
-            # Controleer of msg_subject aanwezig is
-            # Controleer of er een onderwerp is en klantreferentie leeg is
+
+            # Stel onderwerp van de mail in als klantreferentie als deze nog leeg is. Verwijder FW: of RE: vooraan het onderwerp.
             if msg_subject:
                 try:
                     if not st.session_state.get("customer_reference") or not customer_reference.strip():
-                        # Gebruik altijd het volledige msg_subject
-                        st.session_state["customer_reference"] = msg_subject.strip()
-                        st.sidebar.success(f"Klantreferentie automatisch gevuld met: {msg_subject.strip()}")
+                        # Verwijder "FW: " of "RE: " aan het begin van msg_subject
+                        clean_subject = re.sub(r"^(FW:|RE:)\s*", "", msg_subject.strip(), flags=re.IGNORECASE)
+                        
+                        # Gebruik het opgeschoonde onderwerp als klantreferentie
+                        st.session_state["customer_reference"] = clean_subject
+                        st.sidebar.success(f"Klantreferentie automatisch gevuld met: {clean_subject}")
+                        
+                        # Trigger herladen van de interface
                         st.rerun()
                 except Exception as e:
                     st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
+
 
             
             # Resultaten weergeven
