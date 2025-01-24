@@ -265,7 +265,8 @@ with tab3:
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
     st.session_state.customer_number = str(customer_number) if customer_number else ''
-    customer_reference = st.sidebar.text_input("Klantreferentie")
+   customer_reference = st.sidebar.text_input("Klantreferentie", value=st.session_state.get("customer_reference", ""))
+
     offer_amount = totaal_bedrag
     
     # Filter Accounts in Salesforce
@@ -1324,19 +1325,23 @@ with st.sidebar.expander("Upload document", expanded=False):
             latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
             msg_body = latest_email
             email_body = msg_body
-
+            
+            # Controleer of msg_subject aanwezig is
             if msg_subject:
                 try:
-                    # Controleer eerst of er al een klantreferentie aanwezig is
+                    # Controleer of de klantreferentie nog leeg is
                     if not st.session_state.get("customer_reference") and not customer_reference.strip():
-                        # Flexibele regex om tekst na 'Onderwerp:' op te halen
+                        # Flexibele regex om onderwerp als klantreferentie in te laden
                         subject_match = re.search(r"(?<=Onderwerp:)\s*(.+)", msg_subject, re.DOTALL | re.IGNORECASE)
                         if subject_match:
                             customer_reference = subject_match.group(1).strip()
+                            st.session_state["customer_reference"] = customer_reference  # Sla op in de sessie
                             st.sidebar.success(f"Klantreferentie automatisch gevuld met: {customer_reference}")
                         else:
-                            # Fallback: Toon volledige 'msg_subject' als waarschuwing
-                            st.sidebar.warning(f"Geen specifieke tekst gevonden na 'Onderwerp:'. Volledige tekst: {msg_subject.strip()}")
+                            # Als geen specifieke match, gebruik hele msg_subject als referentie
+                            st.sidebar.warning(f"Geen specifieke tekst gevonden na 'Onderwerp:'. Volledige tekst wordt gebruikt.")
+                            customer_reference = msg_subject.strip()
+                            st.session_state["customer_reference"] = customer_reference  # Sla op in de sessie
                 except Exception as e:
                     st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
 
