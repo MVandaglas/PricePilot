@@ -1339,7 +1339,7 @@ with st.sidebar.expander("Upload document", expanded=False):
                         # Gebruik altijd het volledige msg_subject
                         st.session_state["customer_reference"] = msg_subject.strip()
                         st.sidebar.success(f"Klantreferentie automatisch gevuld met: {msg_subject.strip()}")
-                        st.rerun
+                        st.rerun()
                 except Exception as e:
                     st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
 
