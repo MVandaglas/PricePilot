@@ -782,7 +782,7 @@ with tab1:
             # Voeg een lege rij toe aan het DataFrame
             new_row = pd.DataFrame({
                 "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
-                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [0], "Max_prijs": [0], "Verkoopprijs": [0]
+                "Aantal": [0], "RSP": [0], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [None], "Max_prijs": [None], "Verkoopprijs": [0]
             })
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
             st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
@@ -1327,9 +1327,10 @@ with st.sidebar.expander("Upload document", expanded=False):
 
             if msg_subject:
                 try:
+                    # Controleer eerst of er al een klantreferentie aanwezig is
                     if not st.session_state.get("customer_reference") and not customer_reference.strip():
                         # Flexibele regex om tekst na 'Onderwerp:' op te halen
-                        subject_match = re.search(r"Onderwerp:\s*(.+)", msg_subject, re.DOTALL | re.IGNORECASE)
+                        subject_match = re.search(r"(?<=Onderwerp:)\s*(.+)", msg_subject, re.DOTALL | re.IGNORECASE)
                         if subject_match:
                             customer_reference = subject_match.group(1).strip()
                             st.sidebar.success(f"Klantreferentie automatisch gevuld met: {customer_reference}")
