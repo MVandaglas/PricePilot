@@ -1671,7 +1671,7 @@ if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
 if st.checkbox("Creeer Opportunity"):
     # Velden weergeven
     name = st.text_input("Opportunity naam:", value=customer_reference)
-    account_id = st.text_input("Account ID:", value="005KB000000gzb4YAA")
+    account_id = st.text_input("Account ID:", value="001KI0000084Q8VYAU")
     stage_name = st.text_input("Stage:", value="RFQ / Initial Quote")
     close_date = st.date_input(
         "CloseDate (datum vandaag + 2 weken):",
