@@ -267,7 +267,7 @@ with tab3:
     st.session_state.customer_number = str(customer_number) if customer_number else ''
     customer_reference = st.sidebar.text_input("Klantreferentie", value=st.session_state.get("customer_reference", ""))
     if not customer_reference.strip():
-    st.session_state["customer_reference"] = ""
+        st.session_state["customer_reference"] = ""
 
 
 
