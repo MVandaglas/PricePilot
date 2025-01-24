@@ -1665,6 +1665,41 @@ if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
     edited_df = update_offer_data(edited_df)
     st.session_state.offer_df = edited_df
 
+
+
+# Checkbox voor het creëren van een Opportunity
+if st.checkbox("Creeer Opportunity"):
+    # Velden weergeven
+    name = st.text_input("Opportunity naam:", value=customer_reference)
+    account_id = st.text_input("Account ID:", value="005KB000000gzb4YAA")
+    stage_name = st.text_input("Stage:", value="RFQ / Initial Quote")
+    close_date = st.date_input(
+        "Close date:",
+        value=datetime.today() + timedelta(weeks=2),
+    )
+    amount = st.number_input("Bedrag:", value=totaal_bedrag)
+    description = st.text_area("Beschrijving:", value=customer_reference)
+
+    # Knop om de Opportunity aan te maken
+    if st.button("Opportunity aanmaken"):
+        try:
+            # Opportunity-gegevens
+            opportunity_data = {
+                "Name": name,
+                "AccountId": account_id,
+                "StageName": stage_name,
+                "CloseDate": close_date.isoformat(),
+                "Amount": amount,
+                "Description": description,
+            }
+
+            # Opportunity aanmaken in Salesforce
+            resultaat = sf.Opportunity.create(opportunity_data)
+            st.success(f"Opportunity succesvol aangemaakt! ID: {resultaat['id']}")
+        except Exception as e:
+            st.error(f"Fout bij het aanmaken van de Opportunity: {e}")
+
+
 # Opgeslagen Offertes tab
 with tab2:
     st.subheader("Opgeslagen Offertes")
