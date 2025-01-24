@@ -1334,19 +1334,11 @@ with st.sidebar.expander("Upload document", expanded=False):
             # Controleer of msg_subject aanwezig is
             if msg_subject:
                 try:
-                    # Controleer of de klantreferentie nog leeg is in de session state of handmatig verwijderd
-                    if not st.session_state.get("customer_reference", "").strip():
-                        # Flexibele regex om onderwerp als klantreferentie in te laden
-                        subject_match = re.search(r"(?<=Onderwerp:)\s*(.+)", msg_subject, re.DOTALL | re.IGNORECASE)
-                        if subject_match:
-                            customer_reference = subject_match.group(1).strip()
-                            st.session_state["customer_reference"] = customer_reference  # Sla op in de sessie
-                            st.sidebar.success(f"Klantreferentie automatisch gevuld met: {customer_reference}")
-                        else:
-                            # Als geen specifieke match, gebruik hele msg_subject als referentie
-                            st.sidebar.warning(f"Geen specifieke tekst gevonden na 'Onderwerp:'. Volledige tekst wordt gebruikt.")
-                            customer_reference = msg_subject.strip()
-                            st.session_state["customer_reference"] = customer_reference  # Sla op in de sessie
+                    # Als klantreferentie nog niet is ingesteld of leeg is
+                    if not st.session_state.get("customer_reference") or not st.session_state["customer_reference"].strip():
+                        # Gebruik altijd het volledige msg_subject als klantreferentie
+                        st.session_state["customer_reference"] = msg_subject.strip()
+                        st.sidebar.success(f"Klantreferentie automatisch gevuld met: {st.session_state['customer_reference']}")
                 except Exception as e:
                     st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
 
