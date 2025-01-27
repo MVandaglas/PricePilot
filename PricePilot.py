@@ -493,8 +493,7 @@ with tab3:
         
     # Dynamisch zoeken in de zijbalk
     with st.sidebar:
-        st.subheader("Zoek een klant")
-        search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
+        search_query = ""
         
         # Filter de resultaten op basis van de invoer
         if not accounts_df.empty and search_query:
@@ -507,7 +506,7 @@ with tab3:
             klantopties = [""] + filtered_df["Klantinfo"].tolist()
         
             selected_customer = st.selectbox(
-                "Selecteer een klant:",
+                "Selecteer een klant",
                 options=klantopties,
                 index=0,  # Stel de lege string in als standaard
                 help="Kies een klant uit de lijst.",
