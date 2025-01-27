@@ -530,6 +530,7 @@ col1, col2 = st.sidebar.columns([1, 1])
 with col1:
     st.metric("Totaal m2", f"{totaal_m2:.2f}")
     st.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
+    st.metric("Prijskwaliteit", f"€ {totaal_bedrag:.2f}")
 
 # Rechter kolom: Klantinformatie
 with col2:
