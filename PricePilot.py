@@ -536,8 +536,8 @@ with col2:
     if customer_number in customer_data:
         st.write("") # Om alles beter uit te lijnen
         st.write("") # Om alles beter uit te lijnen
-        st.metric(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-        st.metric(f"Klantgrootte: {customer_data[customer_number]['size']}")
+        st.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+        st.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
         
         # Haal de aangepaste matrix op
         prijsscherpte_matrix = st.session_state.prijsscherpte_matrix
@@ -553,7 +553,7 @@ with col2:
                 else:
                     break
 
-        st.metric(f"Prijsscherpte: {prijsscherpte}")
+        st.write(f"Prijsscherpte: {prijsscherpte}")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
