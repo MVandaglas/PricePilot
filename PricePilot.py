@@ -264,7 +264,7 @@ with tab3:
     
     
 # Gebruikersinvoer
-customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
+customer_input = st.sidebar.text_area("Voer hier handmatig het klantverzoek in")
 
 # Dynamisch zoeken en selecteren in één veld
 with st.sidebar:
@@ -277,9 +277,8 @@ with st.sidebar:
     else:
         # Dynamisch tekstinvoerveld met filter- en selectiemogelijkheid
         search_query = st.selectbox(
-            "Typ om te zoeken en selecteer een klant",
             options=[""] + accounts_df["Klantinfo"].tolist(),
-            help="Zoek naar een klant op naam of nummer en selecteer direct."
+            help="Zoek naar een klant op naam of nummer en selecteer."
         )
 
         # Valideer de selectie
@@ -288,21 +287,26 @@ with st.sidebar:
         else:
             selected_customer = None
 
-# Afleiden van customer_number van de geselecteerde input
-if customer_input:
-    customer_number = customer_input[:6]  # De eerste 6 karakters van de invoer
-else:
-    customer_number = None
-
-# Zet het customer_number in de sessiestatus (niet zichtbaar in de UI)
-st.session_state.customer_number = str(customer_number) if customer_number else ''
-
-# Verwerk de geselecteerde klant
+# Afleiden van `customer_number`
 if selected_customer:
-    klantnummer = selected_customer.split(" - ")[0]  # Het klantnummer uit de selectie halen
+    # Klantnummer uit selectie halen
+    klantnummer = selected_customer.split(" - ")[0]
     st.session_state.customer_number = klantnummer
-    
+elif customer_input:
+    # Eerste 6 karakters van handmatige invoer gebruiken
+    st.session_state.customer_number = customer_input[:6]
+else:
+    st.session_state.customer_number = None
+
+# Logica om prijsscherpte te berekenen
+customer_number = st.session_state.customer_number
 offer_amount = totaal_bedrag
+
+if customer_number in customer_data:
+    klant_info = customer_data[customer_number]
+    klantgrootte = klant_info["size"]
+    omzet = klant_info["revenue"]
+
 
 
 if customer_number in customer_data:
