@@ -517,7 +517,7 @@ with tab3:
                 customer_number = selected_customer[:6]  # Haal de eerste 6 tekens uit de selectie
             else:
                 customer_number = None
-          else:
+        else:
             customer_number = None
             
             
