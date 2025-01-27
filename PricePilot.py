@@ -567,6 +567,10 @@ with tab3:
         else:
             pass
 
+st.write(f"Klantgrootte: {klantgrootte}")
+st.write(f"Offertebedrag: {offer_amount}")
+st.write(f"Beschikbare kolommen in matrix: {list(st.session_state.prijsscherpte_matrix.columns)}")
+
         
 
 
