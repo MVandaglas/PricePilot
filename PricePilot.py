@@ -26,7 +26,7 @@ import time
 
 
 windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
-print(windows_user)
+print(f"De Windows-gebruiker is: {windows_user}")
 
 # Salesforce Login Configuratie
 SF_USERNAME =  os.getenv("SALESFORCE_USERNAME")
