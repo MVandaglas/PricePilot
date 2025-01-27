@@ -294,6 +294,9 @@ with tab5:
                         "C": [30, 40, 50, 65, 75],
                         "D": [10, 25, 45, 60, 70],
                     })
+
+                # Haal de aangepaste matrix op
+                prijsscherpte_matrix = st.session_state.prijsscherpte_matrix
                 
                 # Maak de AgGrid configuratie
                 st.subheader("Dynamische Prijsscherpte Matrix")
