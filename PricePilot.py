@@ -332,7 +332,7 @@ with tab5:
                     st.warning("Klantgrootte niet gevonden in de matrix.")
         
         except Exception as e:
-            st.error(f"Fout bij het ophalen van de data: {e}")
+            pass
 
         finally:
             conn.close()
