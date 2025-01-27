@@ -1581,7 +1581,6 @@ with st.sidebar.expander("Upload document", expanded=False):
 customer_input = st.sidebar.text_area("Voer hier handmatig het klantverzoek in.")
 
 
-
 # Functie om tekstinvoer te verwerken
 def handle_text_input(input_text):
     matched_articles = [(term, synonym_dict[term]) for term in synonym_dict if term in input_text]
@@ -1716,21 +1715,21 @@ def generate_pdf(df):
     buffer.seek(0)
     return buffer
 
-# Offerte Genereren tab
-with tab1:
-    # Knop om GPT-chat te versturen
-    if st.sidebar.button("Vertaal chat naar offerte"):
-        try:
-            handle_gpt_chat()
-        except Exception as e:
-            st.sidebar.error(f"Er is een fout opgetreden: {e}")
+# # Offerte Genereren tab
+# with tab1:
+#     # Knop om GPT-chat te versturen
+#     if st.sidebar.button("Vertaal chat naar offerte"):
+#         try:
+#             handle_gpt_chat()
+#         except Exception as e:
+#             st.sidebar.error(f"Er is een fout opgetreden: {e}")
 
-    # Knop om de e-mail te vertalen naar een offerte
-    if st.sidebar.button("Vertaal mail naar offerte"):
-        try:
-            handle_email_to_offer(email_body)
-        except Exception as e:
-            st.error(f"Fout bij het verwerken van de e-mail: {e}")
+#     # Knop om de e-mail te vertalen naar een offerte
+#     if st.sidebar.button("Vertaal mail naar offerte"):
+#         try:
+#             handle_email_to_offer(email_body)
+#         except Exception as e:
+#             st.error(f"Fout bij het verwerken van de e-mail: {e}")
 
 # Offerte Genereren tab
 with tab1:
