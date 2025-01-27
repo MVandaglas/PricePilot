@@ -268,7 +268,6 @@ customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, te
 
 # Dynamisch zoeken in de zijbalk
 with st.sidebar:
-    st.subheader("Zoek een klant")
 
     # Controleer of de accounts DataFrame bestaat en niet leeg is
     if accounts_df.empty:
@@ -276,7 +275,7 @@ with st.sidebar:
         filtered_df = pd.DataFrame()  # Maak een lege DataFrame voor verdere verwerking
     else:
         # Dynamisch tekstinvoerveld
-        search_query = ""
+        search_query = pass
 
         # Filter de resultaten op basis van de invoer
         if search_query:
