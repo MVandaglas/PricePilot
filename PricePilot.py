@@ -283,10 +283,13 @@ with tab3:
                 options=filtered_df["Klantinfo"].tolist(),
                 help="Kies een klant uit de lijst.",
             )
-            st.success(f"Geselecteerde klant: {selected_customer}")
         else:
             st.warning("Geen resultaten gevonden voor de opgegeven zoekterm.")
-    customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+        # Afleiden van customer_number van de geselecteerde input
+    if customer_input:
+        customer_number = customer_input[:6]  # De eerste 6 karakters van de invoer
+    else:
+        customer_number = None
     
     st.session_state.customer_number = str(customer_number) if customer_number else ''
     customer_reference = st.sidebar.text_input(
