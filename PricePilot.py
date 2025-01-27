@@ -550,7 +550,7 @@ with tab3:
         prijsscherpte_matrix = st.session_state.prijsscherpte_matrix
         
         # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
-        klantgrootte = customer_data[customer_number]['size']
+        klantgrootte = {customer_data[customer_number]['size']}
         prijsscherpte = ""
         
         if klantgrootte in prijsscherpte_matrix.columns:
