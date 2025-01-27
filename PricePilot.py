@@ -516,8 +516,8 @@ with tab3:
             customer_number = selected_customer[:6]  # Haal de eerste 6 tekens uit de selectie
         else:
             customer_number = None
-        else:
-            customer_number = None
+    else:
+        customer_number = None
             
     st.session_state.customer_number = str(customer_number) if customer_number else ''
     customer_reference = st.sidebar.text_input(
