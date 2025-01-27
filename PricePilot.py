@@ -553,15 +553,22 @@ with tab3:
         klantgrootte = {customer_data[customer_number]['size']}
         prijsscherpte = ""
         
-        if klantgrootte in prijsscherpte_matrix.columns:
-            # Vind de juiste prijsscherpte op basis van offer_amount
-            for index, row in prijsscherpte_matrix.iterrows():
+        if klantgrootte in st.session_state.prijsscherpte_matrix.columns:
+            prijsscherpte = None  # Voeg een standaardwaarde toe
+            for index, row in st.session_state.prijsscherpte_matrix.iterrows():
                 if offer_amount >= row["Offertebedrag"]:
                     prijsscherpte = row[klantgrootte]
                 else:
                     break
+            if prijsscherpte is not None:
+                st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+            else:
+                pass
+        else:
+            pass
+
         
-        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
