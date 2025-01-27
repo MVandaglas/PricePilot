@@ -300,7 +300,7 @@ with tab5:
                 
                 gb = GridOptionsBuilder.from_dataframe(st.session_state.prijsscherpte_matrix)
                 gb.configure_default_column(editable=True)  # Maak kolommen bewerkbaar
-                gb.configure_column("Offertebedrag", editable=False)  # Offertebedrag mag niet bewerkt worden
+                gb.configure_column("Offertebedrag", editable=True)  # Offertebedrag mag niet bewerkt worden
                 gb.configure_grid_options(enableRangeSelection=True)  # Selecteer meerdere cellen indien nodig
                 
                 grid_options = gb.build()
