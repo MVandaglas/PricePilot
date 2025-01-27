@@ -77,16 +77,16 @@ if st.button("Haal Accounts op"):
     except Exception as e:
         st.error(f"Fout bij het ophalen van de gegevens: {e}")
 
-# Functie om klantgegevens op te halen uit Salesforce
 @st.cache_data(ttl=600)  # Cache voor betere performance, 10 minuten
-def fetch_salesforce_accounts(sf):
+def fetch_salesforce_accounts(session_id, instance):
     try:
+        sf = Salesforce(instance=instance, session_id=session_id)  # Maak de verbinding binnen de functie
         accounts_query = sf.query("""
             SELECT Id, Name, ERP_Number__c
             FROM Account
             WHERE ERP_Number__c != NULL AND Active = TRUE
             ORDER BY Name ASC
-            LIMIT 1000
+            LIMIT 6000
         """)
         return accounts_query["records"]
     except Exception as e:
@@ -96,10 +96,19 @@ def fetch_salesforce_accounts(sf):
 # Verkrijg accounts
 accounts = fetch_salesforce_accounts(sf)
 
-# Converteer naar DataFrame
-accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
-accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
-accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
+# Gebruik de Salesforce-credentials en haal accounts op
+if session_id and instance:
+    accounts = fetch_salesforce_accounts(session_id, instance)
+else:
+    accounts = []
+
+# Verwerk de accounts alleen als er gegevens beschikbaar zijn
+if accounts:
+    accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
+    accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
+    accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
+else:
+    accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
