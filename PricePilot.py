@@ -304,7 +304,7 @@ else:
 # Zet het customer_number in de sessiestatus (niet zichtbaar in de UI)
 st.session_state.customer_number = str(customer_number) if customer_number else ''
 
-offer_amount = totaal_bedrag
+        offer_amount = totaal_bedrag
 
 # Filter Accounts in Salesforce
 if customer_number:
