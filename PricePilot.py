@@ -46,46 +46,36 @@ try:
 except Exception as e:
     st.error(f"Fout bij het verbinden met Salesforce: {e}")
 
+# Streamlit UI
+st.title("Salesforce Accounts Lijst")
 
-
-@st.cache_data(ttl=600)  # Cache voor betere performance, 10 minuten
-def fetch_salesforce_accounts(session_id, instance):
+if st.button("Haal Accounts op"):
     try:
-        sf = Salesforce(instance=instance, session_id=session_id)  # Maak de verbinding binnen de functie
-        accounts_query = sf.query("""
-            SELECT Id, Name, ERP_Number__c
-            FROM Account
-            WHERE ERP_Number__c != NULL AND Active = TRUE
-            ORDER BY Name ASC
-            LIMIT 6000
+        # Query om Accounts op te halen
+        accounts = sf.query("""
+        SELECT Id, Name, Industry, AnnualRevenue, Phone
+        FROM Account
+        LIMIT 100
         """)
-        return accounts_query["records"]
+        
+        # Zet de resultaten om naar een DataFrame
+        accounts_data = accounts["records"]
+        df = pd.DataFrame(accounts_data).drop(columns="attributes")
+        
+        # Toon de gegevens in Streamlit
+        st.write("**Accounts Tabel:**")
+        st.dataframe(df)
+
+        # Optioneel: Download als CSV
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="Download Accounts als CSV",
+            data=csv,
+            file_name="accounts.csv",
+            mime="text/csv",
+        )
     except Exception as e:
-        st.error(f"Fout bij ophalen van Salesforce-accounts: {e}")
-        return []
-
-# Verkrijg accounts
-accounts = fetch_salesforce_accounts(sf)
-
-# Verbind met Salesforce
-try:
-    session_id, instance = SalesforceLogin(
-        username=SF_USERNAME,
-        password=SF_PASSWORD,
-        domain=SF_DOMAIN
-    )
-    sf = Salesforce(instance=instance, session_id=session_id)
-except Exception as e:
-    st.error(f"Fout bij het verbinden met Salesforce: {e}")
-    sf = None
-
-# Verwerk de accounts als er gegevens beschikbaar zijn
-if accounts:
-    accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
-    accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
-    accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
-else:
-    accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
+        st.error(f"Fout bij het ophalen van de gegevens: {e}")
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -276,26 +266,6 @@ with tab3:
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
-    # Voeg interactief veld toe voor selectie van klant
-    selected_customer = st.sidebar.selectbox(
-        "Selecteer Klantnummer - Klantnaam",
-        options=accounts_df["Klantinfo"].tolist(),
-        help="Typ om te zoeken naar een klant op naam of nummer."
-    )
-    offer_amount = totaal_bedrag
-
-# Extract klantnummer uit de geselecteerde waarde
-if selected_customer:
-    klantnummer = selected_customer.split(" - ")[0]  # Klantnummer voor verdere verwerking
-    st.session_state.customer_number = klantnummer
-    st.sidebar.write(f"**Geselecteerde Klantnummer:** {klantnummer}")
-
-# Controleer of klantnummer is geselecteerd
-if "customer_number" in st.session_state:
-    st.sidebar.success(f"Geselecteerde klantnummer: {st.session_state.customer_number}")
-else:
-    st.sidebar.warning("Geen klantnummer geselecteerd.")
-    
     st.session_state.customer_number = str(customer_number) if customer_number else ''
     customer_reference = st.sidebar.text_input(
         "Klantreferentie",
@@ -303,59 +273,86 @@ else:
 )
 
 
- 
-if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
 
-    # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
-    klantgrootte = customer_data[customer_number]['size']
-    prijsscherpte = ""
-    if klantgrootte == "A":
-        if offer_amount > 50000:
-            prijsscherpte = 100
-        elif offer_amount > 25000:
-            prijsscherpte = 90
-        elif offer_amount > 10000:
-            prijsscherpte = 80
-        elif offer_amount > 5000:
-            prijsscherpte = 70
-        else:
-            prijsscherpte = 60
-    elif klantgrootte == "B":
-        if offer_amount > 50000:
-            prijsscherpte = 80
-        elif offer_amount > 25000:
-            prijsscherpte = 70
-        elif offer_amount > 10000:
-            prijsscherpte = 60
-        elif offer_amount > 5000:
-            prijsscherpte = 50
-        else:
-            prijsscherpte = 40
-    elif klantgrootte == "C":
-        if offer_amount > 50000:
-            prijsscherpte = 75
-        elif offer_amount > 25000:
-            prijsscherpte = 65
-        elif offer_amount > 10000:
-            prijsscherpte = 50
-        elif offer_amount > 5000:
-            prijsscherpte = 40
-        else:
-            prijsscherpte = 30
-    elif klantgrootte == "D":
-        if offer_amount > 50000:
-            prijsscherpte = 70
-        elif offer_amount > 25000:
-            prijsscherpte = 60
-        elif offer_amount > 10000:
-            prijsscherpte = 45
-        elif offer_amount > 5000:
-            prijsscherpte = 25
-        else:
-            prijsscherpte = 10
-    st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+    offer_amount = totaal_bedrag
+    
+    # Filter Accounts in Salesforce
+    if customer_number:
+        try:
+            # SOQL-query om Accounts op te halen die overeenkomen met de invoer
+            query = f"""
+            SELECT Id, Name, BillingCity, Industry, Phone
+            FROM Account
+            WHERE Name LIKE '%{customer_number}%'
+            LIMIT 10
+            """
+            accounts = sf.query(query)
+    
+            # Toon resultaten in de zijbalk
+            st.sidebar.subheader("Zoekresultaten:")
+            if accounts["totalSize"] > 0:
+                for account in accounts["records"]:
+                    st.sidebar.write(f"**{account['Name']}**")
+                    st.sidebar.write(f"- Plaats: {account['BillingCity'] or 'Onbekend'}")
+                    st.sidebar.write(f"- Telefoon: {account['Phone'] or 'Onbekend'}")
+                    st.sidebar.write("---")
+            else:
+                st.sidebar.write("Geen resultaten gevonden.")
+        except Exception as e:
+            st.sidebar.error(f"Fout bij het ophalen van klantgegevens: {e}")
+    
+    if customer_number in customer_data:
+        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+    
+        # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
+        klantgrootte = customer_data[customer_number]['size']
+        prijsscherpte = ""
+        if klantgrootte == "A":
+            if offer_amount > 50000:
+                prijsscherpte = 100
+            elif offer_amount > 25000:
+                prijsscherpte = 90
+            elif offer_amount > 10000:
+                prijsscherpte = 80
+            elif offer_amount > 5000:
+                prijsscherpte = 70
+            else:
+                prijsscherpte = 60
+        elif klantgrootte == "B":
+            if offer_amount > 50000:
+                prijsscherpte = 80
+            elif offer_amount > 25000:
+                prijsscherpte = 70
+            elif offer_amount > 10000:
+                prijsscherpte = 60
+            elif offer_amount > 5000:
+                prijsscherpte = 50
+            else:
+                prijsscherpte = 40
+        elif klantgrootte == "C":
+            if offer_amount > 50000:
+                prijsscherpte = 75
+            elif offer_amount > 25000:
+                prijsscherpte = 65
+            elif offer_amount > 10000:
+                prijsscherpte = 50
+            elif offer_amount > 5000:
+                prijsscherpte = 40
+            else:
+                prijsscherpte = 30
+        elif klantgrootte == "D":
+            if offer_amount > 50000:
+                prijsscherpte = 70
+            elif offer_amount > 25000:
+                prijsscherpte = 60
+            elif offer_amount > 10000:
+                prijsscherpte = 45
+            elif offer_amount > 5000:
+                prijsscherpte = 25
+            else:
+                prijsscherpte = 10
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
 
 # Functie om synoniemen te vervangen in invoertekst
@@ -1742,9 +1739,9 @@ with tab2:
         st.warning("Er zijn nog geen offertes opgeslagen!")
 
 
-    windows_user = os.environ.get('USERNAME')
+    windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
     print(f"De Windows-gebruiker is: {windows_user}")
-    
+
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
 
