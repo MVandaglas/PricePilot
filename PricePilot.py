@@ -534,6 +534,7 @@ with col1:
 # Rechter kolom: Klantinformatie
 with col2:
     if customer_number in customer_data:
+        st.write("") # Om alles beter uit te lijnen
         st.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
         st.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
         
