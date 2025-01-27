@@ -46,36 +46,7 @@ try:
 except Exception as e:
     st.error(f"Fout bij het verbinden met Salesforce: {e}")
 
-# Streamlit UI
-st.title("Salesforce Accounts Lijst")
 
-if st.button("Haal Accounts op"):
-    try:
-        # Query om Accounts op te halen
-        accounts = sf.query("""
-        SELECT Id, Name, Industry, AnnualRevenue, Phone
-        FROM Account
-        LIMIT 100
-        """)
-        
-        # Zet de resultaten om naar een DataFrame
-        accounts_data = accounts["records"]
-        df = pd.DataFrame(accounts_data).drop(columns="attributes")
-        
-        # Toon de gegevens in Streamlit
-        st.write("**Accounts Tabel:**")
-        st.dataframe(df)
-
-        # Optioneel: Download als CSV
-        csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Download Accounts als CSV",
-            data=csv,
-            file_name="accounts.csv",
-            mime="text/csv",
-        )
-    except Exception as e:
-        st.error(f"Fout bij het ophalen van de gegevens: {e}")
 
 @st.cache_data(ttl=600)  # Cache voor betere performance, 10 minuten
 def fetch_salesforce_accounts(session_id, instance):
@@ -96,13 +67,19 @@ def fetch_salesforce_accounts(session_id, instance):
 # Verkrijg accounts
 accounts = fetch_salesforce_accounts(sf)
 
-# Gebruik de Salesforce-credentials en haal accounts op
-if session_id and instance:
-    accounts = fetch_salesforce_accounts(session_id, instance)
-else:
-    accounts = []
+# Verbind met Salesforce
+try:
+    session_id, instance = SalesforceLogin(
+        username=SF_USERNAME,
+        password=SF_PASSWORD,
+        domain=SF_DOMAIN
+    )
+    sf = Salesforce(instance=instance, session_id=session_id)
+except Exception as e:
+    st.error(f"Fout bij het verbinden met Salesforce: {e}")
+    sf = None
 
-# Verwerk de accounts alleen als er gegevens beschikbaar zijn
+# Verwerk de accounts als er gegevens beschikbaar zijn
 if accounts:
     accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
     accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
