@@ -1736,7 +1736,7 @@ with tab2:
             st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
             st.success("Alle opgeslagen offertes zijn vergeten.")
     else:
-        st.warning("Er zijn nog geen offertes opgeslagen.")
+        st.warning("Er zijn nog geen offertes opgeslagen!")
 
 
     windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
