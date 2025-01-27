@@ -294,7 +294,6 @@ with tab5:
                         "C": [30, 40, 50, 65, 75],
                         "D": [10, 25, 45, 60, 70],
                     })
-                    st.rerun()
                 
                 # Maak de AgGrid configuratie
                 st.subheader("Dynamische Prijsscherpte Matrix")
@@ -541,7 +540,7 @@ with tab3:
         
         # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
         klantgrootte = customer_data[customer_number]['size']
-        prijsscherpte = ""
+
         
         if klantgrootte in prijsscherpte_matrix.columns:
             # Vind de juiste prijsscherpte op basis van offer_amount
