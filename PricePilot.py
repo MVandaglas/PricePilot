@@ -294,9 +294,6 @@ with tab5:
                         "C": [30, 40, 50, 65, 75],
                         "D": [10, 25, 45, 60, 70],
                     })
-
-                # Haal de aangepaste matrix op
-                prijsscherpte_matrix = st.session_state.prijsscherpte_matrix
                 
                 # Maak de AgGrid configuratie
                 st.subheader("Dynamische Prijsscherpte Matrix")
@@ -451,11 +448,6 @@ with col1:
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
     st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
-
-with col3:
-    if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
     
     # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
     st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
