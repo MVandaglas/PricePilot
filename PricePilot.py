@@ -294,6 +294,7 @@ with tab5:
                         "C": [30, 40, 50, 65, 75],
                         "D": [10, 25, 45, 60, 70],
                     })
+
                 
                 # Maak de AgGrid configuratie
                 st.subheader("Dynamische Prijsscherpte Matrix")
@@ -516,8 +517,7 @@ with tab3:
                 customer_number = selected_customer[:6]  # Haal de eerste 6 tekens uit de selectie
             else:
                 customer_number = None
-                st.rerun()
-        else:
+          else:
             customer_number = None
             
             
