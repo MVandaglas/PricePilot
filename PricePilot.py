@@ -488,8 +488,7 @@ with tab3:
     
     
     
-    # Gebruikersinvoer
-    customer_input = st.sidebar.text_area("Voer hier handmatig het klantverzoek in.")
+
         
     # Dynamisch zoeken in de zijbalk
     with st.sidebar:
@@ -1574,8 +1573,8 @@ with st.sidebar.expander("Upload document", expanded=False):
     else:
         st.info("Upload een .msg-bestand om verder te gaan.")    
 
-
-
+# Gebruikersinvoer
+customer_input = st.sidebar.text_area("Voer hier handmatig het klantverzoek in.")
 
 
 
