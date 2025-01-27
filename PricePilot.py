@@ -502,11 +502,14 @@ with tab3:
         else:
             filtered_df = accounts_df
     
-        # Toon gefilterde resultaten in een selectbox
         if not filtered_df.empty:
+            # Voeg een lege string toe aan de lijst met opties
+            klantopties = [""] + filtered_df["Klantinfo"].tolist()
+        
             selected_customer = st.selectbox(
-                "Selecteer een klant",
-                options=filtered_df["Klantinfo"].tolist(),
+                "Selecteer een klant:",
+                options=klantopties,
+                index=0,  # Stel de lege string in als standaard
                 help="Kies een klant uit de lijst.",
             )
             # Afleiden van customer_number als de selectie is gemaakt
