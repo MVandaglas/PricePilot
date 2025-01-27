@@ -269,24 +269,31 @@ customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, te
 # Dynamisch zoeken in de zijbalk
 with st.sidebar:
     st.subheader("Zoek een klant")
-    search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
-    
-    # Filter de resultaten op basis van de invoer
-    if not accounts_df.empty and search_query:
-        filtered_df = accounts_df[accounts_df["Klantnaam"].str.contains(search_query, case=False, na=False)]
-    else:
-        filtered_df = accounts_df
 
-    # Toon gefilterde resultaten in een selectbox
-    if not filtered_df.empty:
-        selected_customer = st.selectbox(
-            "Selecteer een klant",
-            options=filtered_df["Klantinfo"].tolist(),
-            help="Kies een klant uit de lijst.",
-        )
+    # Controleer of de accounts DataFrame bestaat en niet leeg is
+    if accounts_df.empty:
+        st.warning("Geen accounts beschikbaar om te zoeken.")
+        filtered_df = pd.DataFrame()  # Maak een lege DataFrame voor verdere verwerking
     else:
-        selected_customer = None
-        st.warning("Geen resultaten gevonden voor de opgegeven zoekterm.")
+        # Dynamisch tekstinvoerveld
+        search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
+
+        # Filter de resultaten op basis van de invoer
+        if search_query:
+            filtered_df = accounts_df[accounts_df["Klantnaam"].str.contains(search_query, case=False, na=False)]
+        else:
+            filtered_df = accounts_df
+
+        # Controleer of er gefilterde resultaten zijn
+        if not filtered_df.empty:
+            selected_customer = st.selectbox(
+                "Selecteer een klant",
+                options=filtered_df["Klantinfo"].tolist(),
+                help="Kies een klant uit de lijst.",
+            )
+        else:
+            selected_customer = None
+            st.warning("Geen resultaten gevonden voor de opgegeven zoekterm.")
 
 # Afleiden van customer_number van de geselecteerde input
 if customer_input:
@@ -294,13 +301,8 @@ if customer_input:
 else:
     customer_number = None
 
-    
-    st.session_state.customer_number = str(customer_number) if customer_number else ''
-    customer_reference = st.sidebar.text_input(
-        "Klantreferentie",
-        value=st.session_state.get("customer_reference", ""),
-)
-
+# Zet het customer_number in de sessiestatus (niet zichtbaar in de UI)
+st.session_state.customer_number = str(customer_number) if customer_number else ''
 
 
     offer_amount = totaal_bedrag
