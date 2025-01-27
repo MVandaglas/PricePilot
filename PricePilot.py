@@ -552,7 +552,7 @@ with col2:
                     break
         
         # Toon klantinformatie als metrics
-        st.metric("Omzet klant", omzet_klant)
+        st.write(f"**Omzet klant:** € {omzet_klant:,.2f}")
         st.metric("Klantgrootte", klantgrootte)
         st.metric("Prijsscherpte", prijsscherpte)
 
