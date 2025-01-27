@@ -1638,52 +1638,52 @@ if 'edited_df' in locals() and not edited_df.equals(st.session_state.offer_df):
     st.session_state.offer_df = edited_df
 
 
-
-# Checkbox voor het creëren van een Opportunity
-if st.checkbox("Creeer Opportunity"):
-    # Indeling in vier kolommen
-    col1, col2, col3, col4 = st.columns(4)
-
-    # Velden in de eerste kolom
-    with col1:
-        name = st.text_input("Name (gevuld met customer_reference):", value=customer_reference)
-        account_id = st.text_input("AccountID:", value="001KI0000084Q8VYAU")
-        stage_name = st.selectbox(
-            "StageName:",
-            options=["RFQ / Initial Quote", "Customer is fixed", "Negotiation", "Verbal Agreement"],
-            index=0,  # Standaard geselecteerde waarde
-        )
-        close_date = st.date_input(
-            "CloseDate (datum vandaag + 2 weken):",
-            value=date.today() + timedelta(weeks=2),
-        )
-        amount = st.number_input("Amount (gevuld met totaal_bedrag):", value=totaal_bedrag)
-        description = st.text_area("Description (gevuld met customer_reference):", value=customer_reference)
-
-    # Knop om de Opportunity aan te maken
-    if st.button("Opportunity aanmaken"):
-        try:
-            # Opportunity-gegevens
-            opportunity_data = {
-                "Name": name,
-                "AccountId": account_id,
-                "StageName": stage_name,
-                "CloseDate": close_date.isoformat(),
-                "Amount": amount,
-                "Description": description,
-            }
-
-            # Opportunity aanmaken in Salesforce
-            resultaat = sf.Opportunity.create(opportunity_data)
-
-            # Maak een hyperlink naar de Salesforce Opportunity
-            opportunity_id = resultaat['id']
-            salesforce_url = f"https://vandaglasnl--qa.sandbox.my.salesforce.com/{opportunity_id}"
-            hyperlink = f"[{customer_reference}]({salesforce_url})"
-
-            st.success(f"Opportunity succesvol aangemaakt! {hyperlink}")
-        except Exception as e:
-            st.error(f"Fout bij het aanmaken van de Opportunity: {e}")
+with tab1:
+    # Checkbox voor het creëren van een Opportunity
+    if st.checkbox("Creeer Opportunity"):
+        # Indeling in vier kolommen
+        col1, col2, col3, col4 = st.columns(4)
+    
+        # Velden in de eerste kolom
+        with col1:
+            name = st.text_input("Name (gevuld met customer_reference):", value=customer_reference)
+            account_id = st.text_input("AccountID:", value="001KI0000084Q8VYAU")
+            stage_name = st.selectbox(
+                "StageName:",
+                options=["RFQ / Initial Quote", "Customer is fixed", "Negotiation", "Verbal Agreement"],
+                index=0,  # Standaard geselecteerde waarde
+            )
+            close_date = st.date_input(
+                "CloseDate (datum vandaag + 2 weken):",
+                value=date.today() + timedelta(weeks=2),
+            )
+            amount = st.number_input("Amount (gevuld met totaal_bedrag):", value=totaal_bedrag)
+            description = st.text_area("Description (gevuld met customer_reference):", value=customer_reference)
+    
+        # Knop om de Opportunity aan te maken
+        if st.button("Opportunity aanmaken"):
+            try:
+                # Opportunity-gegevens
+                opportunity_data = {
+                    "Name": name,
+                    "AccountId": account_id,
+                    "StageName": stage_name,
+                    "CloseDate": close_date.isoformat(),
+                    "Amount": amount,
+                    "Description": description,
+                }
+    
+                # Opportunity aanmaken in Salesforce
+                resultaat = sf.Opportunity.create(opportunity_data)
+    
+                # Maak een hyperlink naar de Salesforce Opportunity
+                opportunity_id = resultaat['id']
+                salesforce_url = f"https://vandaglasnl--qa.sandbox.my.salesforce.com/{opportunity_id}"
+                hyperlink = f"[{customer_reference}]({salesforce_url})"
+    
+                st.success(f"Opportunity succesvol aangemaakt! {hyperlink}")
+            except Exception as e:
+                st.error(f"Fout bij het aanmaken van de Opportunity: {e}")
 
 
 # Opgeslagen Offertes tab
