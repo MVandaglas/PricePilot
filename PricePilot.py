@@ -2118,25 +2118,61 @@ with tab5:
 
             # Pricing tabel
             with st.expander("Beheer prijsscherpte matrix", expanded=False):
-                # Dynamische prijsscherpte matrix
+                # Controleer of de prijsscherpte matrix al in de sessie staat
                 if "prijsscherpte_matrix" not in st.session_state:
                     # Initialiseer de matrix met standaardwaarden
                     st.session_state.prijsscherpte_matrix = pd.DataFrame({
                         "Offertebedrag": [0, 5000, 10000, 25000, 50000],  # X-as
-                        "A": [60, 70, 80, 90, 100],  # Y-as rijen
+                        "A": [60, 70, 80, 90, 100],  # Y-as kolommen
                         "B": [40, 50, 60, 70, 80],
                         "C": [30, 40, 50, 65, 75],
                         "D": [10, 25, 45, 60, 70],
                     })
-
-                # Toon de matrix in de app en maak hem bewerkbaar
-                st.subheader("Prijsscherpte Matrix")
-                edited_matrix = st.experimental_data_editor(
+                
+                # Maak de AgGrid configuratie
+                st.subheader("Dynamische Prijsscherpte Matrix")
+                
+                gb = GridOptionsBuilder.from_dataframe(st.session_state.prijsscherpte_matrix)
+                gb.configure_default_column(editable=True)  # Maak kolommen bewerkbaar
+                gb.configure_column("Offertebedrag", editable=False)  # Offertebedrag mag niet bewerkt worden
+                gb.configure_grid_options(enableRangeSelection=True)  # Selecteer meerdere cellen indien nodig
+                
+                grid_options = gb.build()
+                
+                # Toon de matrix met AgGrid
+                grid_response = AgGrid(
                     st.session_state.prijsscherpte_matrix,
-                    num_rows="dynamic",
-                    key="matrix_editor"
+                    gridOptions=grid_options,
+                    update_mode=GridUpdateMode.MANUAL,  # Update alleen wanneer gebruiker klaar is
+                    fit_columns_on_grid_load=True,
+                    editable=True,
+                    height=300,
+                    width="100%",
+                    theme="material",  # Kies een thema, zoals 'material' of 'alpine'
                 )
-                st.session_state.prijsscherpte_matrix = edited_matrix    
+                
+                # Sla de bewerkte gegevens op in de sessiestatus
+                updated_matrix = grid_response["data"]
+                st.session_state.prijsscherpte_matrix = pd.DataFrame(updated_matrix)
+                
+                # Controleer en toon de bijgewerkte matrix
+                st.write("Bijgewerkte Matrix:")
+                st.dataframe(st.session_state.prijsscherpte_matrix)
+                
+                # Voorbeeld gebruik: berekeningen met de aangepaste matrix
+                st.subheader("Gebruik de aangepaste matrix")
+                klantgrootte = "B"  # Voorbeeld
+                offer_amount = 12000  # Voorbeeld offertebedrag
+                
+                if klantgrootte in st.session_state.prijsscherpte_matrix.columns:
+                    for index, row in st.session_state.prijsscherpte_matrix.iterrows():
+                        if offer_amount >= row["Offertebedrag"]:
+                            prijsscherpte = row[klantgrootte]
+                        else:
+                            break
+                    st.write(f"Prijsscherpte voor klantgrootte {klantgrootte} en offertebedrag {offer_amount}: {prijsscherpte}")
+                else:
+                    st.warning("Klantgrootte niet gevonden in de matrix.")
         
         except Exception as e:
             st.error(f"Fout bij het ophalen van de data: {e}")
