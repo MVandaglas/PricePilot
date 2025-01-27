@@ -33,7 +33,7 @@ def fetch_salesforce_accounts_direct(sf_connection):
         accounts_query = sf_connection.query("""
             SELECT Id, Name, ERP_Number__c
             FROM Account
-            WHERE ERP_Number__c != NULL AND Active = TRUE
+            WHERE ERP_Number__c != NULL AND Is_Active__c = TRUE
             ORDER BY Name ASC
             LIMIT 6000
         """)
