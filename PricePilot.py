@@ -1510,7 +1510,7 @@ def process_attachment(attachment, attachment_name):
     else:
         pass
 
-
+st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid  
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
