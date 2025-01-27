@@ -563,15 +563,11 @@ with tab3:
             if prijsscherpte is not None:
                 st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
             else:
-                pass
+                st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
         else:
             pass
 
-        st.write(f"Klantgrootte: {klantgrootte}")
-        st.write(f"Offertebedrag: {offer_amount}")
-        st.write(f"Beschikbare kolommen in matrix: {list(st.session_state.prijsscherpte_matrix.columns)}")
-
-        
+          
 
 
 # Functie om synoniemen te vervangen in invoertekst
