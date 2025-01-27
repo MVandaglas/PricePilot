@@ -308,55 +308,22 @@ with tab3:
         st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
         st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
     
+        # Haal de aangepaste matrix op
+        prijsscherpte_matrix = st.session_state.prijsscherpte_matrix
+        
         # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
         klantgrootte = customer_data[customer_number]['size']
         prijsscherpte = ""
-        if klantgrootte == "A":
-            if offer_amount > 50000:
-                prijsscherpte = 100
-            elif offer_amount > 25000:
-                prijsscherpte = 90
-            elif offer_amount > 10000:
-                prijsscherpte = 80
-            elif offer_amount > 5000:
-                prijsscherpte = 70
-            else:
-                prijsscherpte = 60
-        elif klantgrootte == "B":
-            if offer_amount > 50000:
-                prijsscherpte = 80
-            elif offer_amount > 25000:
-                prijsscherpte = 70
-            elif offer_amount > 10000:
-                prijsscherpte = 60
-            elif offer_amount > 5000:
-                prijsscherpte = 50
-            else:
-                prijsscherpte = 40
-        elif klantgrootte == "C":
-            if offer_amount > 50000:
-                prijsscherpte = 75
-            elif offer_amount > 25000:
-                prijsscherpte = 65
-            elif offer_amount > 10000:
-                prijsscherpte = 50
-            elif offer_amount > 5000:
-                prijsscherpte = 40
-            else:
-                prijsscherpte = 30
-        elif klantgrootte == "D":
-            if offer_amount > 50000:
-                prijsscherpte = 70
-            elif offer_amount > 25000:
-                prijsscherpte = 60
-            elif offer_amount > 10000:
-                prijsscherpte = 45
-            elif offer_amount > 5000:
-                prijsscherpte = 25
-            else:
-                prijsscherpte = 10
+        
+        if klantgrootte in prijsscherpte_matrix.columns:
+            # Vind de juiste prijsscherpte op basis van offer_amount
+            for index, row in prijsscherpte_matrix.iterrows():
+                if offer_amount >= row["Offertebedrag"]:
+                    prijsscherpte = row[klantgrootte]
+                else:
+                    break
+        
         st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
-
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
@@ -2149,6 +2116,28 @@ with tab5:
                 else:
                     st.info("Er zijn geen actieve synoniemen beschikbaar.")
 
+            # Pricing tabel
+            with st.expander("Beheer prijsscherpte matrix", expanded=False):
+                # Dynamische prijsscherpte matrix
+                if "prijsscherpte_matrix" not in st.session_state:
+                    # Initialiseer de matrix met standaardwaarden
+                    st.session_state.prijsscherpte_matrix = pd.DataFrame({
+                        "Offertebedrag": [0, 5000, 10000, 25000, 50000],  # X-as
+                        "A": [60, 70, 80, 90, 100],  # Y-as rijen
+                        "B": [40, 50, 60, 70, 80],
+                        "C": [30, 40, 50, 65, 75],
+                        "D": [10, 25, 45, 60, 70],
+                    })
+
+                # Toon de matrix in de app en maak hem bewerkbaar
+                st.subheader("Prijsscherpte Matrix")
+                edited_matrix = st.experimental_data_editor(
+                    st.session_state.prijsscherpte_matrix,
+                    num_rows="dynamic",
+                    key="matrix_editor"
+                )
+                st.session_state.prijsscherpte_matrix = edited_matrix    
+        
         except Exception as e:
             st.error(f"Fout bij het ophalen van de data: {e}")
 
