@@ -288,7 +288,7 @@ with tab5:
                 if "prijsscherpte_matrix" not in st.session_state:
                     # Initialiseer de matrix met standaardwaarden
                     st.session_state.prijsscherpte_matrix = pd.DataFrame({
-                        "Offertebedrag": [-1, 5000, 10000, 25000, 50000],  # X-as
+                        "Offertebedrag": [0, 5000, 10000, 25000, 50000],  # X-as
                         "A": [60, 70, 80, 90, 100],  # Y-as kolommen
                         "B": [40, 50, 60, 70, 80],
                         "C": [30, 40, 50, 65, 75],
@@ -493,7 +493,8 @@ with tab3:
         
     # Dynamisch zoeken in de zijbalk
     with st.sidebar:
-        search_query = ""
+        st.subheader("Zoek een klant")
+        search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
         
         # Filter de resultaten op basis van de invoer
         if not accounts_df.empty and search_query:
@@ -501,14 +502,11 @@ with tab3:
         else:
             filtered_df = accounts_df
     
+        # Toon gefilterde resultaten in een selectbox
         if not filtered_df.empty:
-            # Voeg een lege string toe aan de lijst met opties
-            klantopties = [""] + filtered_df["Klantinfo"].tolist()
-        
             selected_customer = st.selectbox(
                 "Selecteer een klant",
-                options=klantopties,
-                index=0,  # Stel de lege string in als standaard
+                options=filtered_df["Klantinfo"].tolist(),
                 help="Kies een klant uit de lijst.",
             )
             # Afleiden van customer_number als de selectie is gemaakt
@@ -518,7 +516,6 @@ with tab3:
                 customer_number = None
         else:
             customer_number = None
-            
             
     st.session_state.customer_number = str(customer_number) if customer_number else ''
     customer_reference = st.sidebar.text_input(
@@ -534,18 +531,7 @@ with tab3:
     if customer_number in customer_data:
         st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
         st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-
-            # Controleer of de prijsscherpte matrix al in de sessie staat
-    if "prijsscherpte_matrix" not in st.session_state:
-        # Initialiseer de matrix met standaardwaarden
-        st.session_state.prijsscherpte_matrix = pd.DataFrame({
-            "Offertebedrag": [0, 5000, 10000, 25000, 50000],  # X-as
-            "A": [60, 70, 80, 90, 100],  # Y-as kolommen
-            "B": [40, 50, 60, 70, 80],
-            "C": [30, 40, 50, 65, 75],
-            "D": [10, 25, 45, 60, 70],
-        })
-        
+    
         # Haal de aangepaste matrix op
         prijsscherpte_matrix = st.session_state.prijsscherpte_matrix
         
@@ -553,22 +539,15 @@ with tab3:
         klantgrootte = customer_data[customer_number]['size']
         prijsscherpte = ""
         
-        if klantgrootte in st.session_state.prijsscherpte_matrix.columns:
-            prijsscherpte = None  # Voeg een standaardwaarde toe
-            for index, row in st.session_state.prijsscherpte_matrix.iterrows():
+        if klantgrootte in prijsscherpte_matrix.columns:
+            # Vind de juiste prijsscherpte op basis van offer_amount
+            for index, row in prijsscherpte_matrix.iterrows():
                 if offer_amount >= row["Offertebedrag"]:
                     prijsscherpte = row[klantgrootte]
                 else:
                     break
-            if prijsscherpte is not None:
-                st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
-            else:
-                st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
-        else:
-            pass
-
-          
-
+        
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
