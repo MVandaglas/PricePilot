@@ -1739,9 +1739,9 @@ with tab2:
         st.warning("Er zijn nog geen offertes opgeslagen!")
 
 
-    windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
+    windows_user = os.environ.get('USERNAME')
     print(f"De Windows-gebruiker is: {windows_user}")
-
+    
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
 
