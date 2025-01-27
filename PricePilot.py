@@ -25,6 +25,9 @@ from simple_salesforce import Salesforce, SalesforceLogin
 import time
 
 
+windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
+print(windows_user)
+
 # Salesforce Login Configuratie
 SF_USERNAME =  os.getenv("SALESFORCE_USERNAME")
 SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD") + os.environ.get("SF_SECURITY_TOKEN")
