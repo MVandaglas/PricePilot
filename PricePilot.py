@@ -266,33 +266,27 @@ with tab3:
 # Gebruikersinvoer
 customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
 
-# Dynamisch zoeken in de zijbalk
+# Dynamisch zoeken en selecteren in één veld
 with st.sidebar:
+    st.subheader("Zoek en selecteer een klant")
 
     # Controleer of de accounts DataFrame bestaat en niet leeg is
     if accounts_df.empty:
         st.warning("Geen accounts beschikbaar om te zoeken.")
-        filtered_df = pd.DataFrame()  # Maak een lege DataFrame voor verdere verwerking
+        selected_customer = None
     else:
-        # Dynamisch tekstinvoerveld
-        search_query = pass
+        # Dynamisch tekstinvoerveld met filter- en selectiemogelijkheid
+        search_query = st.selectbox(
+            "Typ om te zoeken en selecteer een klant",
+            options=[""] + accounts_df["Klantinfo"].tolist(),
+            help="Zoek naar een klant op naam of nummer en selecteer direct."
+        )
 
-        # Filter de resultaten op basis van de invoer
+        # Valideer de selectie
         if search_query:
-            filtered_df = accounts_df[accounts_df["Klantnaam"].str.contains(search_query, case=False, na=False)]
-        else:
-            filtered_df = accounts_df
-
-        # Controleer of er gefilterde resultaten zijn
-        if not filtered_df.empty:
-            selected_customer = st.selectbox(
-                "Selecteer een klant",
-                options=filtered_df["Klantinfo"].tolist(),
-                help="Kies een klant uit de lijst.",
-            )
+            selected_customer = search_query
         else:
             selected_customer = None
-            st.warning("Geen resultaten gevonden voor de opgegeven zoekterm.")
 
 # Afleiden van customer_number van de geselecteerde input
 if customer_input:
@@ -303,6 +297,11 @@ else:
 # Zet het customer_number in de sessiestatus (niet zichtbaar in de UI)
 st.session_state.customer_number = str(customer_number) if customer_number else ''
 
+# Verwerk de geselecteerde klant
+if selected_customer:
+    klantnummer = selected_customer.split(" - ")[0]  # Het klantnummer uit de selectie halen
+    st.session_state.customer_number = klantnummer
+    
 offer_amount = totaal_bedrag
 
 
