@@ -268,7 +268,7 @@ customer_input = st.sidebar.text_area("Voer hier handmatig het klantverzoek in")
 
 # Dynamisch zoeken en selecteren in één veld
 with st.sidebar:
-    st.subheader("Zoek en selecteer een klant")
+    st.subheader("Zoek en selecteer een klant.")
 
     # Controleer of de accounts DataFrame bestaat en niet leeg is
     if accounts_df.empty:
