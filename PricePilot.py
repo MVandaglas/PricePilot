@@ -90,9 +90,9 @@ setup_database()
 
 # Hard gecodeerde klantgegevens
 customer_data = {
-    "111111": {"revenue": "50.000 euro", "size": "D"},
-    "222222": {"revenue": "140.000 euro", "size": "B"},
-    "333333": {"revenue": "600.000 euro", "size": "A"}
+    "100007": {"revenue": "50.000 euro", "size": "D"},
+    "100011": {"revenue": "240.000 euro", "size": "B"},
+    "100860": {"revenue": "1.600.000 euro", "size": "A"}
 }
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
@@ -215,7 +215,7 @@ totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer
 # Maak drie kolommen
 col1, col2, col3 = st.sidebar.columns(3)
 
-# HTML weergeven in de zijbalk
+# HTML BullsAI logo weergeven in de zijbalk
 with col2:
     st.image("BullsAI_logo.png", width=int(30 / 100 * 1024))  # Pas grootte aan (30% van origineel)
 
@@ -266,9 +266,6 @@ with tab3:
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
         # Dynamisch zoeken in de zijbalk
-    with st.sidebar:
-        st.subheader("Zoek een klant")
-        search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
         
         # Filter de resultaten op basis van de invoer
         if not accounts_df.empty and search_query:
