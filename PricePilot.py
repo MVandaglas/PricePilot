@@ -276,7 +276,7 @@ with st.sidebar:
         filtered_df = pd.DataFrame()  # Maak een lege DataFrame voor verdere verwerking
     else:
         # Dynamisch tekstinvoerveld
-        search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
+        search_query = ""
 
         # Filter de resultaten op basis van de invoer
         if search_query:
