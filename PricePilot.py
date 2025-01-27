@@ -288,7 +288,7 @@ with tab5:
                 if "prijsscherpte_matrix" not in st.session_state:
                     # Initialiseer de matrix met standaardwaarden
                     st.session_state.prijsscherpte_matrix = pd.DataFrame({
-                        "Offertebedrag": [0, 5000, 10000, 25000, 50000],  # X-as
+                        "Offertebedrag": [-1, 5000, 10000, 25000, 50000],  # X-as
                         "A": [60, 70, 80, 90, 100],  # Y-as kolommen
                         "B": [40, 50, 60, 70, 80],
                         "C": [30, 40, 50, 65, 75],
