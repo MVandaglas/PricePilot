@@ -534,13 +534,24 @@ with tab3:
     if customer_number in customer_data:
         st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
         st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-    
+
+            # Controleer of de prijsscherpte matrix al in de sessie staat
+    if "prijsscherpte_matrix" not in st.session_state:
+        # Initialiseer de matrix met standaardwaarden
+        st.session_state.prijsscherpte_matrix = pd.DataFrame({
+            "Offertebedrag": [0, 5000, 10000, 25000, 50000],  # X-as
+            "A": [60, 70, 80, 90, 100],  # Y-as kolommen
+            "B": [40, 50, 60, 70, 80],
+            "C": [30, 40, 50, 65, 75],
+            "D": [10, 25, 45, 60, 70],
+        })
+        
         # Haal de aangepaste matrix op
         prijsscherpte_matrix = st.session_state.prijsscherpte_matrix
         
         # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
         klantgrootte = customer_data[customer_number]['size']
-
+        prijsscherpte = ""
         
         if klantgrootte in prijsscherpte_matrix.columns:
             # Vind de juiste prijsscherpte op basis van offer_amount
