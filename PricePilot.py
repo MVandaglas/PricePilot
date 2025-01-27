@@ -265,8 +265,9 @@ with tab3:
     
     
     # Gebruikersinvoer
-    customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-        # Dynamisch zoeken in de zijbalk
+    customer_input = st.sidebar.text_area("Voer hier handmatig het klantverzoek in.")
+        
+    # Dynamisch zoeken in de zijbalk
     with st.sidebar:
         st.subheader("Zoek een klant")
         search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
@@ -290,7 +291,6 @@ with tab3:
             else:
                 customer_number = None
         else:
-            st.warning("Geen resultaten gevonden voor de opgegeven zoekterm.")
             customer_number = None
             
     st.session_state.customer_number = str(customer_number) if customer_number else ''
@@ -303,30 +303,6 @@ with tab3:
 
     offer_amount = totaal_bedrag
     
-    # Filter Accounts in Salesforce
-    if customer_number:
-        try:
-            # SOQL-query om Accounts op te halen die overeenkomen met de invoer
-            query = f"""
-            SELECT Id, Name, BillingCity, Industry, Phone
-            FROM Account
-            WHERE Name LIKE '%{customer_number}%'
-            LIMIT 10
-            """
-            accounts = sf.query(query)
-    
-            # Toon resultaten in de zijbalk
-            st.sidebar.subheader("Zoekresultaten:")
-            if accounts["totalSize"] > 0:
-                for account in accounts["records"]:
-                    st.sidebar.write(f"**{account['Name']}**")
-                    st.sidebar.write(f"- Plaats: {account['BillingCity'] or 'Onbekend'}")
-                    st.sidebar.write(f"- Telefoon: {account['Phone'] or 'Onbekend'}")
-                    st.sidebar.write("---")
-            else:
-                st.sidebar.write("Geen resultaten gevonden.")
-        except Exception as e:
-            st.sidebar.error(f"Fout bij het ophalen van klantgegevens: {e}")
     
     if customer_number in customer_data:
         st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
