@@ -24,7 +24,7 @@ from http.cookies import SimpleCookie
 from simple_salesforce import Salesforce, SalesforceLogin
 import time
 
-
+st.sidebar.write(f"Laatste update: {time.ctime()}")
 
 # Functie om klantgegevens op te halen uit Salesforce zonder caching
 def fetch_salesforce_accounts_direct(sf_connection):
