@@ -320,16 +320,7 @@ with tab5:
                 # Sla de bewerkte gegevens op in de sessiestatus
                 updated_matrix = grid_response["data"]
                 st.session_state.prijsscherpte_matrix = pd.DataFrame(updated_matrix)
-                
-                # Controleer en toon de bijgewerkte matrix
-                st.write("Bijgewerkte Matrix:")
-                st.dataframe(st.session_state.prijsscherpte_matrix)
-                
-                # Voorbeeld gebruik: berekeningen met de aangepaste matrix
-                st.subheader("Gebruik de aangepaste matrix")
-                klantgrootte = "B"  # Voorbeeld
-                offer_amount = 12000  # Voorbeeld offertebedrag
-                
+
                 if klantgrootte in st.session_state.prijsscherpte_matrix.columns:
                     for index, row in st.session_state.prijsscherpte_matrix.iterrows():
                         if offer_amount >= row["Offertebedrag"]:
