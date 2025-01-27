@@ -25,8 +25,7 @@ from simple_salesforce import Salesforce, SalesforceLogin
 import time
 
 
-windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
-print(f"De Windows-gebruiker is: {windows_user}")
+
 
 # Salesforce Login Configuratie
 SF_USERNAME =  os.getenv("SALESFORCE_USERNAME")
@@ -1740,7 +1739,8 @@ with tab2:
         st.warning("Er zijn nog geen offertes opgeslagen.")
 
 
-
+    windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
+    print(f"De Windows-gebruiker is: {windows_user}")
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
