@@ -90,9 +90,9 @@ setup_database()
 
 # Hard gecodeerde klantgegevens
 customer_data = {
-    "100007": {"revenue": "50.000 euro", "size": "D"},
-    "100011": {"revenue": "240.000 euro", "size": "B"},
-    "100860": {"revenue": "1.600.000 euro", "size": "A"}
+    "111111": {"revenue": "50.000 euro", "size": "D"},
+    "222222": {"revenue": "140.000 euro", "size": "B"},
+    "333333": {"revenue": "600.000 euro", "size": "A"}
 }
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
@@ -215,7 +215,7 @@ totaal_bedrag = (st.session_state.offer_df["M2 totaal"] * st.session_state.offer
 # Maak drie kolommen
 col1, col2, col3 = st.sidebar.columns(3)
 
-# HTML BullsAI logo weergeven in de zijbalk
+# HTML weergeven in de zijbalk
 with col2:
     st.image("BullsAI_logo.png", width=int(30 / 100 * 1024))  # Pas grootte aan (30% van origineel)
 
@@ -263,104 +263,118 @@ with tab3:
     
     
     
-# Gebruikersinvoer
-customer_input = st.sidebar.text_area("Voer hier handmatig het klantverzoek in")
-
-# Dynamisch zoeken en selecteren in één veld
-with st.sidebar:
-    st.subheader("Zoek en selecteer een klant.")
-
-    # Controleer of de accounts DataFrame bestaat en niet leeg is
-    if accounts_df.empty:
-        st.warning("Geen accounts beschikbaar om te zoeken.")
-        selected_customer = None
-    else:
-        # Dynamisch tekstinvoerveld met filter- en selectiemogelijkheid
-        search_query = st.selectbox("test",
-            options=[""] + accounts_df["Klantinfo"].tolist(),
-            help="Zoek naar een klant op naam of nummer en selecteer."
-        )
-
-        # Valideer de selectie
-        if search_query:
-            selected_customer = search_query
+    # Gebruikersinvoer
+    customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
+        # Dynamisch zoeken in de zijbalk
+    with st.sidebar:
+        st.subheader("Zoek een klant")
+        search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
+        
+        # Filter de resultaten op basis van de invoer
+        if not accounts_df.empty and search_query:
+            filtered_df = accounts_df[accounts_df["Klantnaam"].str.contains(search_query, case=False, na=False)]
         else:
-            selected_customer = None
-
-# Afleiden van `customer_number`
-if selected_customer:
-    # Klantnummer uit selectie halen
-    klantnummer = selected_customer.split(" - ")[0]
-    st.session_state.customer_number = klantnummer
-elif customer_input:
-    # Eerste 6 karakters van handmatige invoer gebruiken
-    st.session_state.customer_number = customer_input[:6]
-else:
-    st.session_state.customer_number = None
-
-# Logica om prijsscherpte te berekenen
-customer_number = st.session_state.customer_number
-offer_amount = totaal_bedrag
-
-if customer_number in customer_data:
-    klant_info = customer_data[customer_number]
-    klantgrootte = klant_info["size"]
-    omzet = klant_info["revenue"]
-
-
-
-if customer_number in customer_data:
-    st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-    st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
-
-    # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
-    klantgrootte = customer_data[customer_number]['size']
-    prijsscherpte = ""
-    if klantgrootte == "A":
-        if offer_amount > 50000:
-            prijsscherpte = 100
-        elif offer_amount > 25000:
-            prijsscherpte = 90
-        elif offer_amount > 10000:
-            prijsscherpte = 80
-        elif offer_amount > 5000:
-            prijsscherpte = 70
+            filtered_df = accounts_df
+    
+        # Toon gefilterde resultaten in een selectbox
+        if not filtered_df.empty:
+            selected_customer = st.selectbox(
+                "Selecteer een klant",
+                options=filtered_df["Klantinfo"].tolist(),
+                help="Kies een klant uit de lijst.",
+            )
+            st.success(f"Geselecteerde klant: {selected_customer}")
         else:
-            prijsscherpte = 60
-    elif klantgrootte == "B":
-        if offer_amount > 50000:
-            prijsscherpte = 80
-        elif offer_amount > 25000:
-            prijsscherpte = 70
-        elif offer_amount > 10000:
-            prijsscherpte = 60
-        elif offer_amount > 5000:
-            prijsscherpte = 50
-        else:
-            prijsscherpte = 40
-    elif klantgrootte == "C":
-        if offer_amount > 50000:
-            prijsscherpte = 75
-        elif offer_amount > 25000:
-            prijsscherpte = 65
-        elif offer_amount > 10000:
-            prijsscherpte = 50
-        elif offer_amount > 5000:
-            prijsscherpte = 40
-        else:
-            prijsscherpte = 30
-    elif klantgrootte == "D":
-        if offer_amount > 50000:
-            prijsscherpte = 70
-        elif offer_amount > 25000:
-            prijsscherpte = 60
-        elif offer_amount > 10000:
-            prijsscherpte = 45
-        elif offer_amount > 5000:
-            prijsscherpte = 25
-        else:
-            prijsscherpte = 10
-    st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+            st.warning("Geen resultaten gevonden voor de opgegeven zoekterm.")
+    customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+    
+    st.session_state.customer_number = str(customer_number) if customer_number else ''
+    customer_reference = st.sidebar.text_input(
+        "Klantreferentie",
+        value=st.session_state.get("customer_reference", ""),
+)
+
+
+
+    offer_amount = totaal_bedrag
+    
+    # Filter Accounts in Salesforce
+    if customer_number:
+        try:
+            # SOQL-query om Accounts op te halen die overeenkomen met de invoer
+            query = f"""
+            SELECT Id, Name, BillingCity, Industry, Phone
+            FROM Account
+            WHERE Name LIKE '%{customer_number}%'
+            LIMIT 10
+            """
+            accounts = sf.query(query)
+    
+            # Toon resultaten in de zijbalk
+            st.sidebar.subheader("Zoekresultaten:")
+            if accounts["totalSize"] > 0:
+                for account in accounts["records"]:
+                    st.sidebar.write(f"**{account['Name']}**")
+                    st.sidebar.write(f"- Plaats: {account['BillingCity'] or 'Onbekend'}")
+                    st.sidebar.write(f"- Telefoon: {account['Phone'] or 'Onbekend'}")
+                    st.sidebar.write("---")
+            else:
+                st.sidebar.write("Geen resultaten gevonden.")
+        except Exception as e:
+            st.sidebar.error(f"Fout bij het ophalen van klantgegevens: {e}")
+    
+    if customer_number in customer_data:
+        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+    
+        # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
+        klantgrootte = customer_data[customer_number]['size']
+        prijsscherpte = ""
+        if klantgrootte == "A":
+            if offer_amount > 50000:
+                prijsscherpte = 100
+            elif offer_amount > 25000:
+                prijsscherpte = 90
+            elif offer_amount > 10000:
+                prijsscherpte = 80
+            elif offer_amount > 5000:
+                prijsscherpte = 70
+            else:
+                prijsscherpte = 60
+        elif klantgrootte == "B":
+            if offer_amount > 50000:
+                prijsscherpte = 80
+            elif offer_amount > 25000:
+                prijsscherpte = 70
+            elif offer_amount > 10000:
+                prijsscherpte = 60
+            elif offer_amount > 5000:
+                prijsscherpte = 50
+            else:
+                prijsscherpte = 40
+        elif klantgrootte == "C":
+            if offer_amount > 50000:
+                prijsscherpte = 75
+            elif offer_amount > 25000:
+                prijsscherpte = 65
+            elif offer_amount > 10000:
+                prijsscherpte = 50
+            elif offer_amount > 5000:
+                prijsscherpte = 40
+            else:
+                prijsscherpte = 30
+        elif klantgrootte == "D":
+            if offer_amount > 50000:
+                prijsscherpte = 70
+            elif offer_amount > 25000:
+                prijsscherpte = 60
+            elif offer_amount > 10000:
+                prijsscherpte = 45
+            elif offer_amount > 5000:
+                prijsscherpte = 25
+            else:
+                prijsscherpte = 10
+        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
 
 
 # Functie om synoniemen te vervangen in invoertekst
