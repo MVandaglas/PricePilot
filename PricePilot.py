@@ -268,8 +268,7 @@ with tab3:
         # Dynamisch zoeken in de zijbalk
         
     # Filter de resultaten op basis van de invoer
-    if not accounts_df.empty and search_query:
-        filtered_df = accounts_df[accounts_df["Klantnaam"].str.contains(search_query, case=False, na=False)]
+    if not accounts_df.empty
     else:
         filtered_df = accounts_df
 
