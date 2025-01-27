@@ -525,9 +525,9 @@ with tab3:
 
 # Maak drie kolommen
 col1, col2, col3 = st.sidebar.columns(3)
-
+st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 with col1:
-    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+
     st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
     st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
     
