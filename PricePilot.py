@@ -536,7 +536,7 @@ with col1:
 with col2:
     if customer_number in customer_data:
         # Haal klantinformatie op
-        omzet_klant = customer_data[customer_number]['revenue']
+        omzet_klant = customer_data[customer_number]['revenue'].replace("euro", "€").strip()
         klantgrootte = customer_data[customer_number]['size']
         
         # Haal de aangepaste matrix op
