@@ -523,38 +523,34 @@ with tab3:
 
     offer_amount = totaal_bedrag
 
-# Maak drie kolommen
-col1, col2, col3 = st.sidebar.columns(3)
+# Maak twee kolommen in de sidebar (verhoudingen kunnen aangepast worden)
+col1, col2 = st.sidebar.columns([1, 1])
 
+# Linker kolom: Totaalwaarden
 with col1:
+    st.metric("Totaal m2", f"{totaal_m2:.2f}")
+    st.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
 
-    st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
-    st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
-    
-    
-with col3:    
+# Rechter kolom: Klantinformatie
+with col2:
     if customer_number in customer_data:
         st.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
         st.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
- 
-        # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
-        st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid    
-
+        
         # Haal de aangepaste matrix op
         prijsscherpte_matrix = st.session_state.prijsscherpte_matrix
         
         # Bepaal prijsscherpte op basis van klantgrootte en offertebedrag
         klantgrootte = customer_data[customer_number]['size']
         prijsscherpte = ""
-        
+
         if klantgrootte in prijsscherpte_matrix.columns:
-            # Vind de juiste prijsscherpte op basis van offer_amount
             for index, row in prijsscherpte_matrix.iterrows():
                 if offer_amount >= row["Offertebedrag"]:
                     prijsscherpte = row[klantgrootte]
                 else:
                     break
-        
+
         st.write(f"Prijsscherpte: {prijsscherpte}")
 
 # Functie om synoniemen te vervangen in invoertekst
