@@ -534,8 +534,8 @@ with col1:
     
 with col3:    
     if customer_number in customer_data:
-        st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
-        st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
+        st.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
+        st.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
  
         # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
         st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid    
@@ -555,7 +555,7 @@ with col3:
                 else:
                     break
         
-        st.sidebar.write(f"Prijsscherpte: {prijsscherpte}")
+        st.write(f"Prijsscherpte: {prijsscherpte}")
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
