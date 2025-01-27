@@ -513,9 +513,9 @@ with tab3:
         )
             # Afleiden van customer_number als de selectie is gemaakt
         if selected_customer:
-                customer_number = selected_customer[:6]  # Haal de eerste 6 tekens uit de selectie
-            else:
-                customer_number = None
+            customer_number = selected_customer[:6]  # Haal de eerste 6 tekens uit de selectie
+        else:
+            customer_number = None
         else:
             customer_number = None
             
