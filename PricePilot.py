@@ -61,6 +61,12 @@ try:
 except Exception as e:
     st.error(f"Fout bij het verbinden met Salesforce: {e}")
 
+# Haal accounts op als de verbinding geslaagd is
+if sf:
+    accounts = fetch_salesforce_accounts_direct(sf)
+else:
+    accounts = []
+
 # Verwerk de accounts als er gegevens beschikbaar zijn
 if accounts:
     accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
