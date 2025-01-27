@@ -494,7 +494,7 @@ with tab3:
     # Dynamisch zoeken in de zijbalk
     with st.sidebar:
         st.subheader("Zoek een klant")
-        search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
+        search_query = ""
         
         # Filter de resultaten op basis van de invoer
         if not accounts_df.empty and search_query:
