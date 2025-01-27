@@ -444,13 +444,7 @@ col1, col2, col3 = st.sidebar.columns(3)
 with col2:
     st.image("BullsAI_logo.png", width=int(30 / 100 * 1024))  # Pas grootte aan (30% van origineel)
 
-with col1:
-    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
-    st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
-    st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
-    
-    # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
-    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+
 
 with tab3:    
     cutoff_value = st.slider(
@@ -528,8 +522,17 @@ with tab3:
 
 
     offer_amount = totaal_bedrag
+
+
+with col1:
+    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
+    st.sidebar.metric("Totaal m2", f"{totaal_m2:.2f}")
+    st.sidebar.metric("Totaal Bedrag", f"€ {totaal_bedrag:.2f}")
     
+    # Voeg totaal m2 en totaal bedrag toe aan de sidebar onderaan
+    st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
     
+with col3:    
     if customer_number in customer_data:
         st.sidebar.write(f"Omzet klant: {customer_data[customer_number]['revenue']}")
         st.sidebar.write(f"Klantgrootte: {customer_data[customer_number]['size']}")
