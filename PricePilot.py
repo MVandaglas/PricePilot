@@ -26,6 +26,21 @@ import time
 
 
 
+# Functie om klantgegevens op te halen uit Salesforce zonder caching
+def fetch_salesforce_accounts_direct(sf_connection):
+    try:
+        # Query voor Salesforce-accounts
+        accounts_query = sf_connection.query("""
+            SELECT Id, Name, ERP_Number__c
+            FROM Account
+            WHERE ERP_Number__c != NULL AND Active = TRUE
+            ORDER BY Name ASC
+            LIMIT 6000
+        """)
+        return accounts_query["records"]
+    except Exception as e:
+        st.error(f"Fout bij ophalen van Salesforce-accounts: {e}")
+        return []
 
 # Salesforce Login Configuratie
 SF_USERNAME =  os.getenv("SALESFORCE_USERNAME")
@@ -46,36 +61,15 @@ try:
 except Exception as e:
     st.error(f"Fout bij het verbinden met Salesforce: {e}")
 
-# Streamlit UI
-st.title("Salesforce Accounts Lijst")
+# Verwerk de accounts als er gegevens beschikbaar zijn
+if accounts:
+    accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
+    accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
+    accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
+else:
+    accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
 
-if st.button("Haal Accounts op"):
-    try:
-        # Query om Accounts op te halen
-        accounts = sf.query("""
-        SELECT Id, Name, Industry, AnnualRevenue, Phone
-        FROM Account
-        LIMIT 100
-        """)
-        
-        # Zet de resultaten om naar een DataFrame
-        accounts_data = accounts["records"]
-        df = pd.DataFrame(accounts_data).drop(columns="attributes")
-        
-        # Toon de gegevens in Streamlit
-        st.write("**Accounts Tabel:**")
-        st.dataframe(df)
 
-        # Optioneel: Download als CSV
-        csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="Download Accounts als CSV",
-            data=csv,
-            file_name="accounts.csv",
-            mime="text/csv",
-        )
-    except Exception as e:
-        st.error(f"Fout bij het ophalen van de gegevens: {e}")
 
 # OpenAI API-sleutel instellen
 api_key = os.getenv("OPENAI_API_KEY")
@@ -265,7 +259,29 @@ with tab3:
     
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
+        # Dynamisch zoeken in de zijbalk
+    with st.sidebar:
+        st.subheader("Zoek een klant")
+        search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
+        
+        # Filter de resultaten op basis van de invoer
+        if not accounts_df.empty and search_query:
+            filtered_df = accounts_df[accounts_df["Klantnaam"].str.contains(search_query, case=False, na=False)]
+        else:
+            filtered_df = accounts_df
+    
+        # Toon gefilterde resultaten in een selectbox
+        if not filtered_df.empty:
+            selected_customer = st.selectbox(
+                "Selecteer een klant",
+                options=filtered_df["Klantinfo"].tolist(),
+                help="Kies een klant uit de lijst.",
+            )
+            st.success(f"Geselecteerde klant: {selected_customer}")
+        else:
+            st.warning("Geen resultaten gevonden voor de opgegeven zoekterm.")
     customer_number = st.sidebar.text_input("Klantnummer (6 karakters)", max_chars=6)
+    
     st.session_state.customer_number = str(customer_number) if customer_number else ''
     customer_reference = st.sidebar.text_input(
         "Klantreferentie",
