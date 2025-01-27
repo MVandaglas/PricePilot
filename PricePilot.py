@@ -276,7 +276,7 @@ with st.sidebar:
         selected_customer = None
     else:
         # Dynamisch tekstinvoerveld met filter- en selectiemogelijkheid
-        search_query = st.selectbox("test",
+        search_query = st.selectbox(
             options=[""] + accounts_df["Klantinfo"].tolist(),
             help="Zoek naar een klant op naam of nummer en selecteer."
         )
