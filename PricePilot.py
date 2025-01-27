@@ -265,22 +265,28 @@ with tab3:
     
     # Gebruikersinvoer
     customer_input = st.sidebar.text_area("Voer hier het klantverzoek in (e-mail, tekst, etc.)")
-        # Dynamisch zoeken in de zijbalk
+    # Dynamisch zoeken in de zijbalk
+    with st.sidebar:
+        st.subheader("Zoek een klant")
+        search_query = st.text_input("Zoek op klantnaam", help="Typ een deel van de klantnaam om resultaten te filteren.")
         
-    # Filter de resultaten op basis van de invoer
-    if not accounts_df.empty
-    else:
-        filtered_df = accounts_df
-
-    # Toon gefilterde resultaten in een selectbox
-    if not filtered_df.empty:
-        selected_customer = st.selectbox(
-            "Selecteer een klant",
-            options=filtered_df["Klantinfo"].tolist(),
-            help="Kies een klant uit de lijst.",
-        )
-    else:
-        st.warning("Geen resultaten gevonden voor de opgegeven zoekterm.")
+        # Filter de resultaten op basis van de invoer
+        if not accounts_df.empty and search_query:
+            filtered_df = accounts_df[accounts_df["Klantnaam"].str.contains(search_query, case=False, na=False)]
+        else:
+            filtered_df = accounts_df
+    
+        # Toon gefilterde resultaten in een selectbox
+        if not filtered_df.empty:
+            selected_customer = st.selectbox(
+                "Selecteer een klant",
+                options=filtered_df["Klantinfo"].tolist(),
+                help="Kies een klant uit de lijst.",
+            )
+        else:
+            selected_customer = None
+            st.warning("Geen resultaten gevonden voor de opgegeven zoekterm.")
+            
     # Afleiden van customer_number van de geselecteerde input
 if customer_input:
     customer_number = customer_input[:6]  # De eerste 6 karakters van de invoer
