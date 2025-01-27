@@ -92,7 +92,8 @@ setup_database()
 customer_data = {
     "111111": {"revenue": "50.000 euro", "size": "D"},
     "222222": {"revenue": "140.000 euro", "size": "B"},
-    "333333": {"revenue": "600.000 euro", "size": "A"}
+    "333333": {"revenue": "600.000 euro", "size": "A"},
+    "100007": {"revenue": "140.000 euro", "size": "B"},
 }
 
 # Initialiseer offerte DataFrame en klantnummer in sessiestatus
