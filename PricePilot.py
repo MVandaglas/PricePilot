@@ -155,6 +155,20 @@ article_table = pd.DataFrame(article_table)
 # Maak de tabs aan
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "🤖 Glasbot", "⚙️ Beheer"])
 
+# Functie om de RSP voor alle regels te updaten
+def update_rsp_for_all_rows(df, prijsscherpte):
+    # Controleer of prijsscherpte geldig is
+    if prijsscherpte:
+        for index, row in df.iterrows():
+            min_price, max_price = row.get('Min_prijs', None), row.get('Max_prijs', None)
+            if pd.notna(min_price) and pd.notna(max_price):
+                rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                # Rond RSP af naar de dichtstbijzijnde 5 cent en zorg voor 2 decimalen
+                df.at[index, 'RSP'] = round(rsp_value * 20) / 20
+        df = bereken_prijs_backend(df)
+    return df
+
+
 with tab5:
     st.subheader("Beheer")
     
@@ -790,18 +804,6 @@ def update_offer_data(df):
     return df
 
 
-# Functie om de RSP voor alle regels te updaten
-def update_rsp_for_all_rows(df, prijsscherpte):
-    # Controleer of prijsscherpte geldig is
-    if prijsscherpte:
-        for index, row in df.iterrows():
-            min_price, max_price = row.get('Min_prijs', None), row.get('Max_prijs', None)
-            if pd.notna(min_price) and pd.notna(max_price):
-                rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                # Rond RSP af naar de dichtstbijzijnde 5 cent en zorg voor 2 decimalen
-                df.at[index, 'RSP'] = round(rsp_value * 20) / 20
-        df = bereken_prijs_backend(df)
-    return df
 
 
 
