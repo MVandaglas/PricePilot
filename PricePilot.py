@@ -1147,7 +1147,7 @@ def handle_gpt_chat():
 
                 # Sla het artikelnummer op als huidig artikelnummer
                 current_article_number = article_number
-
+                
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
@@ -1171,7 +1171,7 @@ def handle_gpt_chat():
                 quantity, width, height, article_number = extract_all_details(line)
 
                 # Gebruik het laatst gevonden artikelnummer als geen artikelnummer wordt gevonden
-                if not article_number:
+                if not article_number and current_article_number:
                     article_number = current_article_number
 
                 # Debug: Toon huidig artikelnummer dat wordt gebruikt
@@ -1183,6 +1183,7 @@ def handle_gpt_chat():
 
                     # Haal artikelgegevens op
                     description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
+                    
                     if description:
                         spacer = determine_spacer(line)
                         recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
@@ -1222,13 +1223,14 @@ def handle_gpt_chat():
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state["trigger_update"] = True
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-
+            st.rerun()
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 
