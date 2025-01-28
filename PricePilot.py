@@ -1993,6 +1993,8 @@ with col1:
 with col2:
     st.write("")
     st.write("")
+    st.write("")
+    st.write("")
     if "loaded_offer_df" in st.session_state:
         sap_columns = ["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]
         if all(col in st.session_state.loaded_offer_df.columns for col in sap_columns):
