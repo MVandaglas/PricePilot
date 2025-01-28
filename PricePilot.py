@@ -309,7 +309,7 @@ with tab5:
                 grid_response = AgGrid(
                     st.session_state.prijsscherpte_matrix,
                     gridOptions=grid_options,
-                    update_mode=GridUpdateMode.MODEL_CHANGED,  # Update alleen wanneer gebruiker klaar is
+                    update_mode=GridUpdateMode.MANUAL,  # Update alleen wanneer gebruiker klaar is
                     fit_columns_on_grid_load=True,
                     editable=True,
                     height=300,
