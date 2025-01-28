@@ -1173,9 +1173,12 @@ def handle_gpt_chat():
                 # Gebruik het laatst gevonden artikelnummer als geen artikelnummer wordt gevonden
                 if not article_number and current_article_number:
                     article_number = current_article_number
+                elif not article_number:
+                    st.write("Geen artikelnummer beschikbaar. Regel wordt overgeslagen.")
+                    continue  # Ga naar de volgende regel
 
                 # Debug: Toon huidig artikelnummer dat wordt gebruikt
-                st.write(f"Geen artikelnummer in regel gevonden. Gebruik huidig artikelnummer: '{current_article_number}'")
+                st.write(f"Gebruik huidig artikelnummer: '{current_article_number}'")
 
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
@@ -1230,6 +1233,7 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 
