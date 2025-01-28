@@ -1940,39 +1940,52 @@ with tab2:
             f"Offertenummer {offerte[0]} - Datum {offerte[1]}" for offerte in offertes
         ]
         selected_offerte = st.selectbox("Selecteer een offerte om te laden", offerte_options)
+       
+        # Knoppen voor verwijdering en vernieuwen
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
 
-        if st.button("Laad offerte"):
-            # Parse het geselecteerde offerte nummer
-            selected_offertenummer = int(selected_offerte.split()[1])
-
-            # Haal de details van de geselecteerde offerte op
-            cursor.execute("SELECT * FROM Offertes WHERE Offertenummer = ?", (selected_offertenummer,))
-            offerte_rows = cursor.fetchall()
-
-            if offerte_rows:
-                # Maak een DataFrame van de offertegegevens
-                col_names = [desc[0] for desc in cursor.description]  # Kolomnamen ophalen
-                loaded_offer_df = pd.DataFrame(offerte_rows, columns=col_names)
-
-                # Sla de geladen offerte op in de sessiestatus
-                st.session_state.loaded_offer_df = loaded_offer_df
-
-                # Toon de geladen offerte
-                required_columns = [
-                    "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte",
-                    "Aantal", "RSP", "M2_per_stuk", "M2_totaal"
-                ]
-                if all(col in loaded_offer_df.columns for col in required_columns):
-                    st.write(f"Offerte {selected_offertenummer} details:")
-                    st.dataframe(loaded_offer_df[required_columns])
+        with col1:
+            if st.button("Laad offerte"):
+                # Parse het geselecteerde offerte nummer
+                selected_offertenummer = int(selected_offerte.split()[1])
+    
+                    with col2:
+                    # Knop om de offerte naar "gesloten gewonnen" te zetten
+                    if st.button("Offerte naar gesloten gewonnen"):
+                        # Hier kun je de benodigde logica implementeren om de status van de offerte te wijzigen
+                        st.success(f"Offerte is nu gesloten en gewonnen!")
+                    else:
+                        st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
+    
+    
+                # Haal de details van de geselecteerde offerte op
+                cursor.execute("SELECT * FROM Offertes WHERE Offertenummer = ?", (selected_offertenummer,))
+                offerte_rows = cursor.fetchall()
+    
+                if offerte_rows:
+                    # Maak een DataFrame van de offertegegevens
+                    col_names = [desc[0] for desc in cursor.description]  # Kolomnamen ophalen
+                    loaded_offer_df = pd.DataFrame(offerte_rows, columns=col_names)
+    
+                    # Sla de geladen offerte op in de sessiestatus
+                    st.session_state.loaded_offer_df = loaded_offer_df
+    
+                    # Toon de geladen offerte
+                    required_columns = [
+                        "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte",
+                        "Aantal", "RSP", "M2_per_stuk", "M2_totaal"
+                    ]
+                    if all(col in loaded_offer_df.columns for col in required_columns):
+                        st.write(f"Offerte {selected_offertenummer} details:")
+                        st.dataframe(loaded_offer_df[required_columns])
+                    else:
+                        st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
                 else:
-                    st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
-            else:
-                st.warning(f"Geen gegevens gevonden voor offerte {selected_offertenummer}.")
-    else:
-        st.info("Er zijn nog geen offertes opgeslagen in de database.")
-
-    conn.close()
+                    st.warning(f"Geen gegevens gevonden voor offerte {selected_offertenummer}.")
+        else:
+            st.info("Er zijn nog geen offertes opgeslagen in de database.")
+    
+        conn.close()
 
 # Knoppen voor verwijdering en vernieuwen
 col1, col2, col3 = st.columns(3)
@@ -2005,13 +2018,6 @@ with col2:
                 content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
                 st.write("Tabelinhoud gekopieerd naar het klembord!")
                 
-            with col3:
-                # Knop om de offerte naar "gesloten gewonnen" te zetten
-                if st.button("Offerte naar gesloten gewonnen"):
-                    # Hier kun je de benodigde logica implementeren om de status van de offerte te wijzigen
-                    st.success(f"Offerte is nu gesloten en gewonnen!")
-                else:
-                    st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
 
 
 
