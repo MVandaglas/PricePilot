@@ -1243,8 +1243,8 @@ def handle_gpt_chat():
     
             else:
                 st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
-        elif customer_file:
-            handle_file_upload(customer_file)
+            elif customer_file:
+                handle_file_upload(customer_file)
         else:
             st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
 
