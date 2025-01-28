@@ -23,6 +23,7 @@ import sqlite3
 from http.cookies import SimpleCookie
 from simple_salesforce import Salesforce, SalesforceLogin
 import time
+from pyrfc import Connection
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
@@ -36,6 +37,33 @@ if "prijsscherpte_matrix" not in st.session_state:
     })
 
 st.sidebar.write(f"Laatste update: {time.ctime()}")
+
+##################################
+
+# SAP-verbinding configuratie ophalen vanuit Streamlit Secrets
+sap_connection_parameters = {
+    'user': os.getenv("SAP_USERNAME"),
+    'passwd': os.getenv("SAP_PASSWORD"),
+    'ashost': os.getenv("SAP_ASHOST"),
+    'sysnr': os.getenv("SAP_SYSNR"),
+    'client': os.getenv("SAP_CLIENT"),
+    'lang': os.getenv("SAP_LANG"),
+    'sysid': os.getenv("SAP_SYSID"),
+}
+
+# Verbinden met SAP
+try:
+    conn = Connection(**sap_connection_parameters)
+    st.success("Succesvol verbonden met SAP!")
+
+    # Test een RFC-call (bijv. ophalen van systeeminformatie)
+    result = conn.call("STFC_CONNECTION", REQUTEXT="Hallo SAP")
+    st.write("Resultaat:", result)
+
+except Exception as e:
+    st.error(f"Kon geen verbinding maken: {e}")
+
+###################################
 
 # Functie om klantgegevens op te halen uit Salesforce zonder caching
 def fetch_salesforce_accounts_direct(sf_connection):
