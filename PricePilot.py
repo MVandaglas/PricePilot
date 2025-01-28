@@ -1745,35 +1745,37 @@ with tab1:
         # Eén knop om de acties uit te voeren
         if st.sidebar.button("Start verwerking naar offerte"):
             actie_uitgevoerd = False
-
-            # Probeer de eerste actie (tekstvak naar offerte)
-            try:
-                handle_gpt_chat()
-                actie_uitgevoerd = True
-            except Exception:
-                pass  # Fout negeren en doorgaan naar de volgende actie
-
-            # Als de eerste actie niet slaagt, probeer de tweede (bijlage mail)
-            if not actie_uitgevoerd and relevant_data is not None:
+        
+            # Spinner toevoegen rond alle acties
+            with st.spinner("BullsAI is bezig met de verwerking..."):
+                # Probeer de eerste actie (tekstvak naar offerte)
                 try:
-                    handle_mapped_data_to_offer(relevant_data)
+                    handle_gpt_chat()
                     actie_uitgevoerd = True
                 except Exception:
                     pass  # Fout negeren en doorgaan naar de volgende actie
-
-            # Als de tweede actie niet slaagt, probeer de derde (mail naar offerte)
-            if not actie_uitgevoerd:
-                try:
-                    handle_email_to_offer(email_body)
-                    actie_uitgevoerd = True
-                except Exception:
-                    pass  # Fout negeren
-
+        
+                # Als de eerste actie niet slaagt, probeer de tweede (bijlage mail)
+                if not actie_uitgevoerd and relevant_data is not None:
+                    try:
+                        handle_mapped_data_to_offer(relevant_data)
+                        actie_uitgevoerd = True
+                    except Exception:
+                        pass  # Fout negeren en doorgaan naar de volgende actie
+        
+                # Als de tweede actie niet slaagt, probeer de derde (mail naar offerte)
+                if not actie_uitgevoerd:
+                    try:
+                        handle_email_to_offer(email_body)
+                        actie_uitgevoerd = True
+                    except Exception:
+                        pass  # Fout negeren
+        
             # Eindstatus bepalen
             if actie_uitgevoerd:
-                st.write("De offerte is succesvol verwerkt.")
+                st.success("De offerte is succesvol verwerkt.")
             else:
-                st.write("BullsAI heeft geen gegevens kunnen verwerken.")
+                st.error("BullsAI heeft geen gegevens kunnen verwerken.")
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
