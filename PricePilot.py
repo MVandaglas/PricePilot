@@ -775,8 +775,6 @@ def update_rsp_for_all_rows(df, prijsscherpte):
 
 
 
-
-
 # Functie om Prijs_backend te updaten na wijzigingen
 def update_prijs_backend():
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
@@ -1225,6 +1223,9 @@ def handle_gpt_chat():
             
             # Update de waarden direct om de RSP en andere kolommen te berekenen
             st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Update de tabel na toevoegen van nieuwe data
+            
+            # Herberekening RSP
+            st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state["prijsscherpte"])
             
             # Update de RSP voor alle regels op basis van de nieuwe prijsscherpte
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
