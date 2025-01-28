@@ -23,7 +23,7 @@ import sqlite3
 from http.cookies import SimpleCookie
 from simple_salesforce import Salesforce, SalesforceLogin
 import time
-from pyrfc import Connection
+# from pyrfc import Connection
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
