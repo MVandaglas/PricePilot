@@ -2005,7 +2005,7 @@ with col2:
                 content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
                 st.write("Tabelinhoud gekopieerd naar het klembord!")
                 
-            with col1:
+            with col3:
                 # Knop om de offerte naar "gesloten gewonnen" te zetten
                 if st.button("Offerte naar gesloten gewonnen"):
                     # Hier kun je de benodigde logica implementeren om de status van de offerte te wijzigen
