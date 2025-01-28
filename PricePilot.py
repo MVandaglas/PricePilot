@@ -168,6 +168,7 @@ def update_rsp_for_all_rows(df, prijsscherpte):
         df = bereken_prijs_backend(df)
     return df
 
+prijsscherpte = st.session_state.get('prijsscherpte', 0)  # Geef een standaardwaarde als deze ontbreekt
 
 with tab5:
     st.subheader("Beheer")
