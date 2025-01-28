@@ -1949,7 +1949,7 @@ with tab2:
                 # Parse het geselecteerde offerte nummer
                 selected_offertenummer = int(selected_offerte.split()[1])
     
-                    with col2:
+                with col2:
                     # Knop om de offerte naar "gesloten gewonnen" te zetten
                     if st.button("Offerte naar gesloten gewonnen"):
                         # Hier kun je de benodigde logica implementeren om de status van de offerte te wijzigen
