@@ -1131,83 +1131,58 @@ def handle_gpt_chat():
             # Debug: Toon de regel die wordt verwerkt
             st.write(f"Verwerking regel: '{line}'")
 
-            # Zoek naar een artikelnummer in de regel (bijvoorbeeld 6-6)
-            m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
+            # Zoek naar een artikelnummer en m2 in de regel
+            m2_match = re.search(r'(\d+)\s*x\s*(\d+)\s*(\d+-\d+)?', line, re.IGNORECASE)
             if m2_match:
-                # Haal het artikelnummer en m2 op uit de match
-                if m2_match.group(1):
-                    m2_total = int(m2_match.group(1))
-                    article_number = m2_match.group(2)
-                else:
-                    article_number = m2_match.group(3)
-                    m2_total = int(m2_match.group(4))
+                # Haal hoeveelheid, breedte, hoogte en optioneel artikelnummer op
+                quantity = int(m2_match.group(1))
+                width = int(m2_match.group(2))
+                article_number = m2_match.group(3)  # Optioneel artikelnummer
 
                 # Debug: Toon gevonden artikelnummer
-                st.write(f"Gevonden artikelnummer (m2-match): '{article_number}'")
+                if article_number:
+                    st.write(f"Gevonden artikelnummer: '{article_number}'")
 
-                # Sla het artikelnummer op als huidig artikelnummer
-                current_article_number = article_number
-                
+                # Gebruik huidig artikelnummer als er geen nieuw artikelnummer is
+                if not article_number and current_article_number:
+                    article_number = current_article_number
+                elif article_number:
+                    current_article_number = article_number  # Update huidig artikelnummer
+
+                # Controleer of een artikelnummer beschikbaar is
+                if not article_number:
+                    st.write("Geen artikelnummer beschikbaar. Regel wordt overgeslagen.")
+                    continue
+
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
                 # Haal artikelgegevens op
                 description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
                 if description:
+                    # Bereken de aanbevolen prijs (RSP)
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                     verkoopprijs = None  
                     prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
 
+                    # Bereken m2
+                    m2_per_piece = round(calculate_m2_per_piece(width, width), 2)
+                    m2_total = round(quantity * m2_per_piece, 2)
+
+                    # Voeg data toe
                     data.append([
-                        None, description, article_number, None, None, None, None,
-                        f"{recommended_price:.2f}" if recommended_price else 0, None,
-                        f"{m2_total:.2f}", None, None, min_price, max_price,
-                        verkoopprijs, prijs_backend, source, fuzzy_match, original_article_number
+                        None, description, article_number, None, width, width, quantity,
+                        f"{m2_per_piece:.2f}" if m2_per_piece else None,
+                        f"{m2_total:.2f}" if m2_total else None,
+                        f"{recommended_price:.2f}" if recommended_price else 0,
+                        min_price, None, max_price, None, verkoopprijs, prijs_backend,
+                        source, fuzzy_match, original_article_number
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
             else:
-                # Haal hoeveelheid, breedte en hoogte uit de regel
-                quantity, width, height, article_number = extract_all_details(line)
-
-                # Gebruik het laatst gevonden artikelnummer als geen artikelnummer wordt gevonden
-                if not article_number and current_article_number:
-                    article_number = current_article_number
-                elif not article_number:
-                    st.write("Geen artikelnummer beschikbaar. Regel wordt overgeslagen.")
-                    continue  # Ga naar de volgende regel
-
-                # Debug: Toon huidig artikelnummer dat wordt gebruikt
-                st.write(f"Gebruik huidig artikelnummer: '{current_article_number}'")
-
-                if article_number:
-                    # Zoek artikelnummer op in synoniemenlijst
-                    article_number = synonym_dict.get(article_number, article_number)
-
-                    # Haal artikelgegevens op
-                    description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
-                    
-                    if description:
-                        spacer = determine_spacer(line)
-                        recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                        m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
-                        m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
-
-                        verkoopprijs = None
-                        prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
-
-                        data.append([
-                            None, description, article_number, spacer, width, height, quantity,
-                            f"{m2_per_piece:.2f}" if m2_per_piece else None,
-                            f"{m2_total:.2f}" if m2_total else None,
-                            f"{recommended_price:.2f}" if recommended_price else 0,
-                            min_price, None, max_price, None, verkoopprijs, prijs_backend,
-                            source, fuzzy_match, original_article_number
-                        ])
-                    else:
-                        st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
-                else:
-                    st.sidebar.warning("Geen artikelnummer of afmetingen gevonden in de invoerregel.")
+                st.write("Geen artikelnummer of afmetingen gevonden in de invoerregel.")
+                continue
 
         # Verwerk alle verzamelde data
         if data:
