@@ -1,3 +1,4 @@
+
 import streamlit as st
 st.set_page_config(page_icon="🎯",layout="wide")
 from streamlit_option_menu import option_menu
@@ -23,7 +24,6 @@ import sqlite3
 from http.cookies import SimpleCookie
 from simple_salesforce import Salesforce, SalesforceLogin
 import time
-# from pyrfc import Connection
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
@@ -37,33 +37,6 @@ if "prijsscherpte_matrix" not in st.session_state:
     })
 
 st.sidebar.write(f"Laatste update: {time.ctime()}")
-
-##################################
-
-# # SAP-verbinding configuratie ophalen vanuit Streamlit Secrets
-# sap_connection_parameters = {
-#     'user': os.getenv("SAP_USERNAME"),
-#     'passwd': os.getenv("SAP_PASSWORD"),
-#     'ashost': os.getenv("SAP_ASHOST"),
-#     'sysnr': os.getenv("SAP_SYSNR"),
-#     'client': os.getenv("SAP_CLIENT"),
-#     'lang': os.getenv("SAP_LANG"),
-#     'sysid': os.getenv("SAP_SYSID"),
-# }
-
-# # Verbinden met SAP
-# try:
-#     conn = Connection(**sap_connection_parameters)
-#     st.success("Succesvol verbonden met SAP!")
-
-#     # Test een RFC-call (bijv. ophalen van systeeminformatie)
-#     result = conn.call("STFC_CONNECTION", REQUTEXT="Hallo SAP")
-#     st.write("Resultaat:", result)
-
-# except Exception as e:
-#     st.error(f"Kon geen verbinding maken: {e}")
-
-###################################
 
 # Functie om klantgegevens op te halen uit Salesforce zonder caching
 def fetch_salesforce_accounts_direct(sf_connection):
@@ -154,33 +127,6 @@ article_table = pd.DataFrame(article_table)
 # Streamlit UI-instellingen
 # Maak de tabs aan
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "🤖 Glasbot", "⚙️ Beheer"])
-
-# Functie om de RSP voor alle regels te updaten
-def update_rsp_for_all_rows(df, prijsscherpte):
-    # Controleer of prijsscherpte geldig is
-    if prijsscherpte:
-        for index, row in df.iterrows():
-            min_price, max_price = row.get('Min_prijs', None), row.get('Max_prijs', None)
-            if pd.notna(min_price) and pd.notna(max_price):
-                rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                # Rond RSP af naar de dichtstbijzijnde 5 cent en zorg voor 2 decimalen
-                df.at[index, 'RSP'] = round(rsp_value * 20) / 20
-        df = bereken_prijs_backend(df)
-    return df
-
-def update_rsp_final(df, prijsscherpte):
-    # Controleer of de kolommen 'Min_prijs' en 'Max_prijs' aanwezig zijn
-    if 'Min_prijs' in df.columns and 'Max_prijs' in df.columns:
-        for index, row in df.iterrows():
-            min_price = row.get('Min_prijs', None)
-            max_price = row.get('Max_prijs', None)
-            if pd.notna(min_price) and pd.notna(max_price):
-                # Bereken RSP op basis van de prijsscherpte
-                rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                df.at[index, 'RSP'] = round(rsp_value * 20) / 20  # Rond af naar 5 cent
-    return df
-
-prijsscherpte = st.session_state.get('prijsscherpte', 0)  # Geef een standaardwaarde als deze ontbreekt
 
 with tab5:
     st.subheader("Beheer")
@@ -393,8 +339,6 @@ with tab5:
             conn.close()
     elif wachtwoord:
         st.error("Onjuist wachtwoord. Toegang geweigerd.")
-    if "offer_df" in st.session_state:
-        st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
 
 
 # Tab 1: Offerte Genereren
@@ -817,6 +761,18 @@ def update_offer_data(df):
     return df
 
 
+# Functie om de RSP voor alle regels te updaten
+def update_rsp_for_all_rows(df, prijsscherpte):
+    # Controleer of prijsscherpte geldig is
+    if prijsscherpte:
+        for index, row in df.iterrows():
+            min_price, max_price = row.get('Min_prijs', None), row.get('Max_prijs', None)
+            if pd.notna(min_price) and pd.notna(max_price):
+                rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                # Rond RSP af naar de dichtstbijzijnde 5 cent en zorg voor 2 decimalen
+                df.at[index, 'RSP'] = round(rsp_value * 20) / 20
+        df = bereken_prijs_backend(df)
+    return df
 
 
 
@@ -884,11 +840,6 @@ function onCellEditingStopped(params) {
     params.api.applyTransaction({ update: [updatedRow] });
 }
 ''')
-
-
-
-# Update de RSP voor alle rijen vlak voor het renderen van de DataFrame
-st.session_state.offer_df = update_rsp_final(st.session_state.offer_df, prijsscherpte)
 
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
@@ -993,13 +944,8 @@ with tab1:
     
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
-        updated_df = pd.DataFrame(edited_df_response['data'])        
         update_tabel()
-        if "offer_df" in st.session_state:
-            # Herschrijf de RSP op basis van de nieuwe prijsscherpte
-            st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
-            st.success("RSP is opnieuw berekend voor alle regels!")
-            st.rerun()  # Herlaad de Streamlit app
+
  
     # Update de DataFrame na elke wijziging
     updated_df = edited_df_response['data']
@@ -1120,6 +1066,8 @@ def update_dash_table(n_dlt, n_add, data):
 
     elif ctx.triggered_id == "delete-row-btn":
         return True, no_update
+
+
   
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
@@ -1295,6 +1243,7 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 # Functie voor het verwerken van e-mailinhoud naar offerte
 def handle_email_to_offer(email_body):
@@ -1795,42 +1744,37 @@ with tab1:
         # Eén knop om de acties uit te voeren
         if st.sidebar.button("BullsAI 🚀"):
             actie_uitgevoerd = False
-            
-            if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
-                st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
-                # Update de RSP voor alle rijen vlak voor het renderen van de DataFrame
-                st.session_state.offer_df = update_rsp_final(st.session_state.offer_df, prijsscherpte)
-                
-                # Spinner toevoegen rond alle acties
-                with st.spinner("BullsAI is bezig met de verwerking..."):
-                    # Probeer de eerste actie (tekstvak naar offerte)
+        
+            # Spinner toevoegen rond alle acties
+            with st.spinner("BullsAI is bezig met de verwerking..."):
+                # Probeer de eerste actie (tekstvak naar offerte)
+                try:
+                    handle_gpt_chat()
+                    actie_uitgevoerd = True
+                except Exception:
+                    pass  # Fout negeren en doorgaan naar de volgende actie
+        
+                # Als de eerste actie niet slaagt, probeer de tweede (bijlage mail)
+                if not actie_uitgevoerd and relevant_data is not None:
                     try:
-                        handle_gpt_chat()
+                        handle_mapped_data_to_offer(relevant_data)
                         actie_uitgevoerd = True
                     except Exception:
                         pass  # Fout negeren en doorgaan naar de volgende actie
-            
-                    # Als de eerste actie niet slaagt, probeer de tweede (bijlage mail)
-                    if not actie_uitgevoerd and relevant_data is not None:
-                        try:
-                            handle_mapped_data_to_offer(relevant_data)
-                            actie_uitgevoerd = True
-                        except Exception:
-                            pass  # Fout negeren en doorgaan naar de volgende actie
-            
-                    # Als de tweede actie niet slaagt, probeer de derde (mail naar offerte)
-                    if not actie_uitgevoerd:
-                        try:
-                            handle_email_to_offer(email_body)
-                            actie_uitgevoerd = True
-                        except Exception:
-                            pass  # Fout negeren
-            
-                # Eindstatus bepalen
-                if actie_uitgevoerd:
-                    st.success("De offerte is succesvol verwerkt.")
-                else:
-                    st.error("BullsAI heeft geen gegevens kunnen verwerken.")
+        
+                # Als de tweede actie niet slaagt, probeer de derde (mail naar offerte)
+                if not actie_uitgevoerd:
+                    try:
+                        handle_email_to_offer(email_body)
+                        actie_uitgevoerd = True
+                    except Exception:
+                        pass  # Fout negeren
+        
+            # Eindstatus bepalen
+            if actie_uitgevoerd:
+                st.success("De offerte is succesvol verwerkt.")
+            else:
+                st.error("BullsAI heeft geen gegevens kunnen verwerken.")
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
@@ -2045,8 +1989,8 @@ with tab2:
         conn.close()
 
 
-        # Knoppen voor verwijdering en vernieuwen
-        col1, col2, col3 = st.columns(3)
+    # Knoppen voor verwijdering en vernieuwen
+    col1, col2, col3 = st.columns(3)
         with col1:
             # Voeg een tabel toe met de kolommen voor "Verwerk in SAP"
             st.subheader("Verwerk in SAP")
@@ -2074,7 +2018,7 @@ with tab2:
                         # Kopieer alleen de inhoud (geen headers en rijnummers)
                         content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
                         st.write("Tabelinhoud gekopieerd naar het klembord!")
-                            
+                        
 
 
 
