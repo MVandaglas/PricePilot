@@ -1799,7 +1799,9 @@ with tab1:
             
             if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
                 st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
-
+                # Update de RSP voor alle rijen vlak voor het renderen van de DataFrame
+                st.session_state.offer_df = update_rsp_final(st.session_state.offer_df, prijsscherpte)
+                
                 # Spinner toevoegen rond alle acties
                 with st.spinner("BullsAI is bezig met de verwerking..."):
                     # Probeer de eerste actie (tekstvak naar offerte)
