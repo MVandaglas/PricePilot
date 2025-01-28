@@ -885,8 +885,6 @@ function onCellEditingStopped(params) {
 }
 ''')
 
-st.write("DEBUG: Voor update RSP:", st.session_state.offer_df)
-st.write("DEBUG: Prijsscherpte:", prijsscherpte)
 
 
 # Update de RSP voor alle rijen vlak voor het renderen van de DataFrame
