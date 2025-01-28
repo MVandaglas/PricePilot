@@ -1988,7 +1988,6 @@ with tab2:
         conn.close()
 
 
-with st.expander("Kopieer tabel en verwerk in SAP", expanded=False):
     # Knoppen voor verwijdering en vernieuwen
     col1, col2, col3 = st.columns(3)
         with col1:
