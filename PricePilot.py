@@ -1916,26 +1916,7 @@ with tab1:
 
 
 # Opgeslagen Offertes tab
-with tab2:
-    st.subheader("Opgeslagen Offertes")
-    if 'saved_offers' in st.session_state and not st.session_state.saved_offers.empty:
-        offers_summary = st.session_state.saved_offers
-        offers_summary['Selectie'] = offers_summary.apply(lambda x: f"Offertenummer: {x['Offertenummer']} | Klantnummer: {x['Klantnummer']} | Eindtotaal: € {x['Eindbedrag']:.2f} | Datum: {x['Datum']}", axis=1)
-        selected_offer = st.selectbox("Selecteer een offerte om in te laden", offers_summary['Selectie'], key='select_offerte')
-        if st.button("Laad offerte", key='load_offerte_button'):
-            selected_offertenummer = int(selected_offer.split('|')[0].split(':')[1].strip())
-            offer_rows = st.session_state.saved_offers[st.session_state.saved_offers['Offertenummer'] == selected_offertenummer]
-            if not offer_rows.empty:
-                st.session_state.loaded_offer_df = st.session_state.offer_df[st.session_state.offer_df['Offertenummer'] == selected_offertenummer].copy()
-                st.success(f"Offerte {selected_offertenummer} succesvol ingeladen.")
-            else:
-                st.warning("Geen gedetailleerde gegevens gevonden voor de geselecteerde offerte.")
-        if st.button("Vergeet alle offertes", key='forget_offers_button'):
-            st.session_state.saved_offers = pd.DataFrame(columns=["Offertenummer", "Klantnummer", "Eindbedrag", "Datum"])
-            st.session_state.offer_df = pd.DataFrame(columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "RSP", "M2 p/s", "M2 totaal"])
-            st.success("Alle opgeslagen offertes zijn vergeten.")
-    else:
-        st.warning("Er zijn nog geen offertes opgeslagen!")
+
 
 
     windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
