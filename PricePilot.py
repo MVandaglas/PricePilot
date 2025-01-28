@@ -168,6 +168,18 @@ def update_rsp_for_all_rows(df, prijsscherpte):
         df = bereken_prijs_backend(df)
     return df
 
+def update_rsp_final(df, prijsscherpte):
+    # Controleer of de kolommen 'Min_prijs' en 'Max_prijs' aanwezig zijn
+    if 'Min_prijs' in df.columns and 'Max_prijs' in df.columns:
+        for index, row in df.iterrows():
+            min_price = row.get('Min_prijs', None)
+            max_price = row.get('Max_prijs', None)
+            if pd.notna(min_price) and pd.notna(max_price):
+                # Bereken RSP op basis van de prijsscherpte
+                rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                df.at[index, 'RSP'] = round(rsp_value * 20) / 20  # Rond af naar 5 cent
+    return df
+
 prijsscherpte = st.session_state.get('prijsscherpte', 0)  # Geef een standaardwaarde als deze ontbreekt
 
 with tab5:
@@ -872,6 +884,9 @@ function onCellEditingStopped(params) {
     params.api.applyTransaction({ update: [updatedRow] });
 }
 ''')
+
+# Update de RSP voor alle rijen vlak voor het renderen van de DataFrame
+st.session_state.offer_df = update_rsp_final(st.session_state.offer_df, prijsscherpte)
 
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
