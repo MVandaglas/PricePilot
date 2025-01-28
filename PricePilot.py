@@ -1135,6 +1135,10 @@ def handle_gpt_chat():
                     article_number = m2_match.group(3)
                     m2_total = int(m2_match.group(4))
 
+                # Debug: toon gevonden artikelnummer
+                st.write(f"Gevonden artikelnummer uit m2-match: {article_number}")
+
+                
                 # Sla het artikelnummer op als huidig artikelnummer
                 current_article_number = article_number
                 
