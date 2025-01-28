@@ -1985,14 +1985,14 @@ with tab2:
             if all(col in st.session_state.loaded_offer_df.columns for col in sap_columns):
                 sap_table = st.session_state.loaded_offer_df[sap_columns]
                 st.dataframe(sap_table, use_container_width=True)
-    
-                # Knop om de inhoud van de tabel te kopiëren
-                if st.button("Kopieer tabel"):
-                    # Kopieer alleen de inhoud (geen headers en rijnummers)
-                    content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
-                    st.write("Tabelinhoud gekopieerd naar het klembord!")
-                    st.code(content_to_copy)
-                with col2:
+                  with col2:
+                    # Knop om de inhoud van de tabel te kopiëren
+                    if st.button("Kopieer tabel"):
+                        # Kopieer alleen de inhoud (geen headers en rijnummers)
+                        content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
+                        st.write("Tabelinhoud gekopieerd naar het klembord!")
+                        st.code(content_to_copy)
+              
                     # Knop om de offerte naar "gesloten gewonnen" te zetten
                     if st.button("Offerte naar gesloten gewonnen"):
                         # Hier kun je de benodigde logica implementeren om de status van de offerte te wijzigen
