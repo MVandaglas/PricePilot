@@ -1999,8 +1999,8 @@ with tab2:
                         st.success(f"Offerte {selected_offertenummer} is nu gesloten en gewonnen!")
                     else:
                         st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
-            else:
-                st.warning("Laad een offerte om de gegevens te verwerken.")
+                else:
+                    st.warning("Laad een offerte om de gegevens te verwerken.")
 
 
 with tab3:
