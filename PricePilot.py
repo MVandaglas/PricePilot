@@ -1179,8 +1179,8 @@ def handle_gpt_chat():
                 quantity, width, height, article_number = extract_all_details(line)
               
                 # Gebruik het laatst gevonden artikelnummer als geen artikelnummer wordt gevonden
-                if not article_number and current_article_number:
-                    article_number = current_article_number
+                if not article_number:
+                    article_number = current_article_number  # Toepassen van laatste gevonden artikelnummer
                 
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
