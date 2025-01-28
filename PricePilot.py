@@ -1975,7 +1975,7 @@ with tab2:
     conn.close()
 
 # Knoppen voor verwijdering en vernieuwen
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     # Voeg een tabel toe met de kolommen voor "Verwerk in SAP"
@@ -2005,13 +2005,14 @@ with col2:
                 content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
                 st.write("Tabelinhoud gekopieerd naar het klembord!")
                 st.code(content_to_copy)
-
-            # Knop om de offerte naar "gesloten gewonnen" te zetten
-            if st.button("Offerte naar gesloten gewonnen"):
-                # Hier kun je de benodigde logica implementeren om de status van de offerte te wijzigen
-                st.success(f"Offerte is nu gesloten en gewonnen!")
-        else:
-            st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
+            
+            with col1:
+                # Knop om de offerte naar "gesloten gewonnen" te zetten
+                if st.button("Offerte naar gesloten gewonnen"):
+                    # Hier kun je de benodigde logica implementeren om de status van de offerte te wijzigen
+                    st.success(f"Offerte is nu gesloten en gewonnen!")
+            else:
+                st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
 
 
 
