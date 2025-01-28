@@ -1124,17 +1124,17 @@ def handle_gpt_chat():
         current_article_number = None  # Onthoud het laatst gevonden artikelnummer
 
         for line in lines:
-            line = line.strip()  # Verwijder extra spaties rondom de regel
+            line = line.strip()  # Verwijder spaties rondom de regel
             if not line:
                 continue  # Sla lege regels over
-            
-            # Debug: toon huidige regel
+
+            # Debug: Toon de regel die wordt verwerkt
             st.write(f"Verwerking regel: '{line}'")
 
-            # Zoek naar artikelnummer en m2 (patroon zoals 6-6 of 400m2)
+            # Zoek naar een artikelnummer in de regel (bijvoorbeeld 6-6)
             m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
             if m2_match:
-                # Haal artikelnummer en m2 op uit de match
+                # Haal het artikelnummer en m2 op uit de match
                 if m2_match.group(1):
                     m2_total = int(m2_match.group(1))
                     article_number = m2_match.group(2)
@@ -1142,7 +1142,7 @@ def handle_gpt_chat():
                     article_number = m2_match.group(3)
                     m2_total = int(m2_match.group(4))
 
-                # Debug: toon gevonden artikelnummer
+                # Debug: Toon gevonden artikelnummer
                 st.write(f"Gevonden artikelnummer (m2-match): '{article_number}'")
 
                 # Sla het artikelnummer op als huidig artikelnummer
@@ -1167,20 +1167,20 @@ def handle_gpt_chat():
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
             else:
-                # Haal hoeveelheid, breedte, hoogte en artikelnummer uit de regel
+                # Haal hoeveelheid, breedte en hoogte uit de regel
                 quantity, width, height, article_number = extract_all_details(line)
-              
-                # Gebruik het laatst gevonden artikelnummer als er geen artikelnummer wordt gevonden
+
+                # Gebruik het laatst gevonden artikelnummer als geen artikelnummer wordt gevonden
                 if not article_number:
                     article_number = current_article_number
-                
-                # Debug: toon fallback artikelnummer
+
+                # Debug: Toon huidig artikelnummer dat wordt gebruikt
                 st.write(f"Geen artikelnummer in regel gevonden. Gebruik huidig artikelnummer: '{current_article_number}'")
 
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
                     article_number = synonym_dict.get(article_number, article_number)
-                    
+
                     # Haal artikelgegevens op
                     description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
                     if description:
@@ -1222,13 +1222,14 @@ def handle_gpt_chat():
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state["trigger_update"] = True
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-
+            st.rerun()
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 
