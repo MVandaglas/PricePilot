@@ -1997,10 +1997,10 @@ with tab2:
                     if st.button("Offerte naar gesloten gewonnen"):
                         # Hier kun je de benodigde logica implementeren om de status van de offerte te wijzigen
                         st.success(f"Offerte {selected_offertenummer} is nu gesloten en gewonnen!")
+                    else:
+                        st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
                 else:
-                    st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
-            else:
-                st.warning("Laad een offerte om de gegevens te verwerken.")
+                    st.warning("Laad een offerte om de gegevens te verwerken.")
 
 
 with tab3:
