@@ -1122,11 +1122,6 @@ def update_dash_table(n_dlt, n_add, data):
 
     elif ctx.triggered_id == "delete-row-btn":
         return True, no_update
-
-# Test direct buiten de grid
-if st.button("Test RSP Update"):
-    st.session_state.offer_df = update_rsp_final(st.session_state.offer_df, 110)  # Test met 110% prijsscherpte
-    st.write(st.session_state.offer_df)
   
 # Functie om het aantal uit tekst te extraheren
 def extract_quantity(text):
