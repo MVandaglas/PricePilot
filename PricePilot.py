@@ -283,7 +283,7 @@ with tab5:
                     st.info("Er zijn geen actieve synoniemen beschikbaar.")
 
             # Pricing tabel
-            with st.expander("Beheer prijsscherpte matrix", expanded=False):
+            with st.expander("Beheer prijsscherpte matrix", expanded=True):
                 # Controleer of de prijsscherpte matrix al in de sessie staat
                 if "prijsscherpte_matrix" not in st.session_state:
                     # Initialiseer de matrix met standaardwaarden
