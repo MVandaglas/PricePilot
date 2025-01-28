@@ -971,8 +971,9 @@ with tab1:
     
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
+        updated_df = pd.DataFrame(edited_df_response['data'])        
         update_tabel()
-        update_rsp_for_all_rows(df, prijsscherpte)
+        update_rsp_for_all_rows(updated_df, prijsscherpte)
 
  
     # Update de DataFrame na elke wijziging
