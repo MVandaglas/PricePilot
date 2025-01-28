@@ -1782,41 +1782,39 @@ with tab1:
         if st.sidebar.button("BullsAI 🚀"):
             actie_uitgevoerd = False
             
-            if st.sidebar.button("BullsAI 🚀"):
-                with st.spinner("RSP opnieuw berekenen..."):
-                    if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
-                        st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
-        
-                        # Spinner toevoegen rond alle acties
-                        with st.spinner("BullsAI is bezig met de verwerking..."):
-                            # Probeer de eerste actie (tekstvak naar offerte)
-                            try:
-                                handle_gpt_chat()
-                                actie_uitgevoerd = True
-                            except Exception:
-                                pass  # Fout negeren en doorgaan naar de volgende actie
-                    
-                            # Als de eerste actie niet slaagt, probeer de tweede (bijlage mail)
-                            if not actie_uitgevoerd and relevant_data is not None:
-                                try:
-                                    handle_mapped_data_to_offer(relevant_data)
-                                    actie_uitgevoerd = True
-                                except Exception:
-                                    pass  # Fout negeren en doorgaan naar de volgende actie
-                    
-                            # Als de tweede actie niet slaagt, probeer de derde (mail naar offerte)
-                            if not actie_uitgevoerd:
-                                try:
-                                    handle_email_to_offer(email_body)
-                                    actie_uitgevoerd = True
-                                except Exception:
-                                    pass  # Fout negeren
-                    
-                        # Eindstatus bepalen
-                        if actie_uitgevoerd:
-                            st.success("De offerte is succesvol verwerkt.")
-                        else:
-                            st.error("BullsAI heeft geen gegevens kunnen verwerken.")
+            if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
+                st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, st.session_state.get('prijsscherpte', ''))
+
+                # Spinner toevoegen rond alle acties
+                with st.spinner("BullsAI is bezig met de verwerking..."):
+                    # Probeer de eerste actie (tekstvak naar offerte)
+                    try:
+                        handle_gpt_chat()
+                        actie_uitgevoerd = True
+                    except Exception:
+                        pass  # Fout negeren en doorgaan naar de volgende actie
+            
+                    # Als de eerste actie niet slaagt, probeer de tweede (bijlage mail)
+                    if not actie_uitgevoerd and relevant_data is not None:
+                        try:
+                            handle_mapped_data_to_offer(relevant_data)
+                            actie_uitgevoerd = True
+                        except Exception:
+                            pass  # Fout negeren en doorgaan naar de volgende actie
+            
+                    # Als de tweede actie niet slaagt, probeer de derde (mail naar offerte)
+                    if not actie_uitgevoerd:
+                        try:
+                            handle_email_to_offer(email_body)
+                            actie_uitgevoerd = True
+                        except Exception:
+                            pass  # Fout negeren
+            
+                # Eindstatus bepalen
+                if actie_uitgevoerd:
+                    st.success("De offerte is succesvol verwerkt.")
+                else:
+                    st.error("BullsAI heeft geen gegevens kunnen verwerken.")
 
 # Voeg rijnummers toe aan de offerte DataFrame als deze nog niet bestaat
 if 'Rijnummer' not in st.session_state.offer_df.columns:
