@@ -1741,7 +1741,7 @@ with tab1:
             relevant_data = process_attachment(uploaded_file.getvalue(), attachment_name)
         
         # Eén knop om de acties uit te voeren
-        if st.sidebar.button("Start verwerking naar offerte"):
+        if st.sidebar.button("BullsAI 🚀"):
             actie_uitgevoerd = False
         
             # Spinner toevoegen rond alle acties
