@@ -1245,8 +1245,8 @@ def handle_gpt_chat():
                 st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
             elif customer_file:
                 handle_file_upload(customer_file)
-        else:
-            st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+    else:
+        st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
 
 
 # Functie voor het verwerken van e-mailinhoud naar offerte
