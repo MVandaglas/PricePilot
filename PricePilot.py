@@ -1982,8 +1982,8 @@ with tab2:
                         st.warning("De geladen offerte bevat niet alle verwachte kolommen.")
                 else:
                     st.warning(f"Geen gegevens gevonden voor offerte {selected_offertenummer}.")
-        else:
-            st.info("Er zijn nog geen offertes opgeslagen in de database.")
+            else:
+                st.info("Er zijn nog geen offertes opgeslagen in de database.")
     
         conn.close()
 
