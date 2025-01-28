@@ -972,7 +972,7 @@ with tab1:
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
         update_tabel()
-        update_rsp_for_all_rows()
+        update_rsp_for_all_rows(df, prijsscherpte)
 
  
     # Update de DataFrame na elke wijziging
