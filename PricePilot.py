@@ -2004,15 +2004,14 @@ with col2:
                 # Kopieer alleen de inhoud (geen headers en rijnummers)
                 content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
                 st.write("Tabelinhoud gekopieerd naar het klembord!")
-                st.code(content_to_copy)
-            
+                
             with col1:
                 # Knop om de offerte naar "gesloten gewonnen" te zetten
                 if st.button("Offerte naar gesloten gewonnen"):
                     # Hier kun je de benodigde logica implementeren om de status van de offerte te wijzigen
                     st.success(f"Offerte is nu gesloten en gewonnen!")
-            else:
-                st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
+                else:
+                    st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
 
 
 
