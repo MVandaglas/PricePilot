@@ -1135,6 +1135,9 @@ def handle_gpt_chat():
                     article_number = m2_match.group(3)
                     m2_total = int(m2_match.group(4))
 
+                # Sla het artikelnummer op als huidig artikelnummer
+                current_article_number = article_number
+                
                 # Zoek artikelnummer op in synoniemenlijst
                 article_number = synonym_dict.get(article_number, article_number)
 
@@ -1174,10 +1177,16 @@ def handle_gpt_chat():
             else:
                 # Bestaande logica voor het extraheren van aantal, breedte, hoogte, etc.
                 quantity, width, height, article_number = extract_all_details(line)
+              
+                # Gebruik het laatst gevonden artikelnummer als geen artikelnummer wordt gevonden
+                if not article_number and current_article_number:
+                    article_number = current_article_number
+                
                 if article_number:
                     # Zoek artikelnummer op in synoniemenlijst
                     article_number = synonym_dict.get(article_number, article_number)
                     description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
+                    
                     if description:
                         # Bepaal de spacer waarde
                         spacer = determine_spacer(line)
