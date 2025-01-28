@@ -1121,6 +1121,8 @@ def handle_gpt_chat():
     if customer_input:
         lines = customer_input.splitlines()
         data = []
+        current_article_number = None  # Huidig artikelnummer onthouden
+        
         for line in lines:
             # Nieuwe regex voor herkenning van patronen zoals "400m2 van 4-4" of "4-4 400m2"
             m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
@@ -1172,77 +1174,79 @@ def handle_gpt_chat():
             else:
                 # Bestaande logica voor het extraheren van aantal, breedte, hoogte, etc.
                 quantity, width, height, article_number = extract_all_details(line)
-                if article_number:
-                    # Zoek artikelnummer op in synoniemenlijst
-                    article_number = synonym_dict.get(article_number, article_number)
-                    description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
-                    if description:
-                        # Bepaal de spacer waarde
-                        spacer = determine_spacer(line)
-                        # Rest van de bestaande verwerking voor als er geen specifieke m2 is
-                        recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                        m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
-                        m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
-
-                        verkoopprijs = None
-                        prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
-
-                        data.append([
-                            None,  # Placeholder voor Offertenummer
-                            description,
-                            article_number,
-                            spacer,
-                            width,
-                            height,
-                            quantity,
-                            f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
-                            f"{m2_total:.2f}" if m2_total is not None else None,
-                            f"{recommended_price:.2f}" if recommended_price is not None else 0,
-                            min_price,
-                            None, # Handmatige prijs is leeg
-                            max_price,
-                            None, # SAP Prijs wordt gevuld
-                            verkoopprijs,
-                            prijs_backend,
-                            source,
-                            fuzzy_match,  # Vul fuzzy_match kolom
-                            original_article_number  # Vul original_article_number kolom
-                        ])
+                if current_article_number and not article_number:
+                    article_number = current_article_number
+                    if article_number:
+                        # Zoek artikelnummer op in synoniemenlijst
+                        article_number = synonym_dict.get(article_number, article_number)
+                        description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
+                        if description:
+                            # Bepaal de spacer waarde
+                            spacer = determine_spacer(line)
+                            # Rest van de bestaande verwerking voor als er geen specifieke m2 is
+                            recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                            m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
+                            m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
+    
+                            verkoopprijs = None
+                            prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+    
+                            data.append([
+                                None,  # Placeholder voor Offertenummer
+                                description,
+                                article_number,
+                                spacer,
+                                width,
+                                height,
+                                quantity,
+                                f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
+                                f"{m2_total:.2f}" if m2_total is not None else None,
+                                f"{recommended_price:.2f}" if recommended_price is not None else 0,
+                                min_price,
+                                None, # Handmatige prijs is leeg
+                                max_price,
+                                None, # SAP Prijs wordt gevuld
+                                verkoopprijs,
+                                prijs_backend,
+                                source,
+                                fuzzy_match,  # Vul fuzzy_match kolom
+                                original_article_number  # Vul original_article_number kolom
+                            ])
+                        else:
+                            st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
                     else:
-                        st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
-                else:
-                    st.sidebar.warning("Geen artikelen gevonden in de invoer.")
-
-        if data:
-            new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "M2 p/s", "M2 totaal", "RSP", "SAP Prijs", "Handmatige Prijs", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
-            
-            # Voeg regelnummers toe
-            new_df.insert(0, 'Rijnummer', new_df.index + 1)
-
-            # Update de sessie state met de nieuwe gegevens
-            st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
-            
-            # Update de waarden direct om de RSP en andere kolommen te berekenen
-            st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Update de tabel na toevoegen van nieuwe data
-                       
-            # Update de RSP voor alle regels op basis van de nieuwe prijsscherpte
-            st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
-
-            # Trigger update via een verborgen knop of simulatie
-            st.session_state["trigger_update"] = True
-
-            # Reset de Rijnummer-kolom na verwijderen
-            st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-
-            # Vernieuw de AgGrid
-            st.rerun()
-
+                        st.sidebar.warning("Geen artikelen gevonden in de invoer.")
+    
+            if data:
+                new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "M2 p/s", "M2 totaal", "RSP", "SAP Prijs", "Handmatige Prijs", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
+                
+                # Voeg regelnummers toe
+                new_df.insert(0, 'Rijnummer', new_df.index + 1)
+    
+                # Update de sessie state met de nieuwe gegevens
+                st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
+                
+                # Update de waarden direct om de RSP en andere kolommen te berekenen
+                st.session_state.offer_df = update_offer_data(st.session_state.offer_df)  # Update de tabel na toevoegen van nieuwe data
+                           
+                # Update de RSP voor alle regels op basis van de nieuwe prijsscherpte
+                st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
+    
+                # Trigger update via een verborgen knop of simulatie
+                st.session_state["trigger_update"] = True
+    
+                # Reset de Rijnummer-kolom na verwijderen
+                st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+    
+                # Vernieuw de AgGrid
+                st.rerun()
+    
+            else:
+                st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
+        elif customer_file:
+            handle_file_upload(customer_file)
         else:
-            st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
-    elif customer_file:
-        handle_file_upload(customer_file)
-    else:
-        st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+            st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
 
 
 # Functie voor het verwerken van e-mailinhoud naar offerte
