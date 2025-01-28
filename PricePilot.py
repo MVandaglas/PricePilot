@@ -1942,7 +1942,7 @@ with tab2:
         selected_offerte = st.selectbox("Selecteer een offerte om te laden", offerte_options)
        
         # Knoppen voor verwijdering en vernieuwen
-        col1, col2, col3, col4, col5, col6 = st.columns(6)
+        col1, col2 = st.columns(2)
 
         with col1:
             if st.button("Laad offerte"):
