@@ -973,8 +973,11 @@ with tab1:
     if st.button("Update tabel"):
         updated_df = pd.DataFrame(edited_df_response['data'])        
         update_tabel()
-        update_rsp_for_all_rows(updated_df, prijsscherpte)
-
+        if "offer_df" in st.session_state:
+            # Herschrijf de RSP op basis van de nieuwe prijsscherpte
+            st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
+            st.success("RSP is opnieuw berekend voor alle regels!")
+            st.rerun()  # Herlaad de Streamlit app
  
     # Update de DataFrame na elke wijziging
     updated_df = edited_df_response['data']
