@@ -1990,34 +1990,35 @@ with tab2:
 # Knoppen voor verwijdering en vernieuwen
 col1, col2, col3 = st.columns(3)
 
-with col1:
-    # Voeg een tabel toe met de kolommen voor "Verwerk in SAP"
-    st.subheader("Verwerk in SAP")
-    if "loaded_offer_df" in st.session_state:
-        sap_columns = ["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]
-        if all(col in st.session_state.loaded_offer_df.columns for col in sap_columns):
-            sap_table = st.session_state.loaded_offer_df[sap_columns]
-            st.dataframe(sap_table, use_container_width=True)
+with st.expander("Kopieer tabel en verwerk in SAP", expanded=False):
+    with col1:
+        # Voeg een tabel toe met de kolommen voor "Verwerk in SAP"
+        st.subheader("Verwerk in SAP")
+        if "loaded_offer_df" in st.session_state:
+            sap_columns = ["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]
+            if all(col in st.session_state.loaded_offer_df.columns for col in sap_columns):
+                sap_table = st.session_state.loaded_offer_df[sap_columns]
+                st.dataframe(sap_table, use_container_width=True)
+            else:
+                st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
         else:
-            st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
-    else:
-        st.warning("Laad een offerte om de gegevens te verwerken.")
-
-with col2:
-    st.write("")
-    st.write("")
-    st.write("")
-    if "loaded_offer_df" in st.session_state:
-        sap_columns = ["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]
-        if all(col in st.session_state.loaded_offer_df.columns for col in sap_columns):
-            sap_table = st.session_state.loaded_offer_df[sap_columns]
-
-            # Knop om de inhoud van de tabel te kopiëren
-            if st.button("Kopieer tabel"):
-                # Kopieer alleen de inhoud (geen headers en rijnummers)
-                content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
-                st.write("Tabelinhoud gekopieerd naar het klembord!")
-                
+            st.warning("Laad een offerte om de gegevens te verwerken.")
+    
+    with col2:
+        st.write("")
+        st.write("")
+        st.write("")
+        if "loaded_offer_df" in st.session_state:
+            sap_columns = ["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]
+            if all(col in st.session_state.loaded_offer_df.columns for col in sap_columns):
+                sap_table = st.session_state.loaded_offer_df[sap_columns]
+    
+                # Knop om de inhoud van de tabel te kopiëren
+                if st.button("Kopieer tabel"):
+                    # Kopieer alleen de inhoud (geen headers en rijnummers)
+                    content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
+                    st.write("Tabelinhoud gekopieerd naar het klembord!")
+                    
 
 
 
