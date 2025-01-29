@@ -1522,41 +1522,54 @@ def process_attachment(attachment, attachment_name):
             doc = Document(BytesIO(attachment))
             st.write(f"DOCX-bestand '{attachment_name}' ingelezen:")
 
-            # Lees de tekst van het bestand (indien nodig)
-            paragraphs = [paragraph.text for paragraph in doc.paragraphs if paragraph.text.strip()]
-            st.write("Inhoud van het DOCX-bestand:")
-            st.text("\n".join(paragraphs))
-
-            # Extract tabellen
+            # Extract tabellen uit het DOCX-bestand
             tables = extract_table_from_docx(doc)
-            if tables:
-                for idx, table in enumerate(tables):
-                    st.write(f"Tabel {idx + 1}:")
-                    st.dataframe(table)
-
-                    if st.button(f"Map kolommen voor Tabel {idx + 1}", key=f"map_table_{idx + 1}"):
-                        # Handmatige mapping uitvoeren
-                        mapped_columns = manual_column_mapping(table)
-
-                        # Verwerk alleen relevante kolommen
-                        if mapped_columns:
-                            relevant_data = table[[mapped_columns[key] for key in mapped_columns]]
-                            relevant_data.columns = mapped_columns.keys()
-
-                            st.write("Gemapte data:")
-                            st.dataframe(relevant_data)
-
-                            if st.button("Verwerk tabel naar offerte", key=f"process_table_{idx + 1}"):
-                                handle_mapped_data_to_offer(relevant_data)
-                        else:
-                            st.warning("Geen kolommen gemapped. Controleer de mapping.")
-            else:
+            if not tables:
                 st.warning("Geen tabellen gevonden in het DOCX-bestand.")
+                return None
+
+            # Gebruik de eerste tabel (of laat de gebruiker selecteren als er meerdere zijn)
+            st.write("Selecteer de tabel om te verwerken:")
+            selected_table_idx = st.sidebar.selectbox(
+                "Kies een tabel:", options=list(range(len(tables))), format_func=lambda x: f"Tabel {x + 1}"
+            )
+            table = tables[selected_table_idx]
+
+            st.write(f"Inhoud van Tabel {selected_table_idx + 1}:")
+            st.dataframe(table)
+
+            # Detecteer relevante kolommen
+            detected_columns = detect_relevant_columns(table)
+            mapped_columns = manual_column_mapping(table, detected_columns)
+
+            # Validatie voor mapped_columns
+            if not isinstance(mapped_columns, dict):
+                st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
+                return None
+
+            if mapped_columns:
+                # Selecteer en hernoem relevante kolommen
+                relevant_data = table[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()
+
+                # Filter relevante data op rijen
+                start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(table)-1, value=0)
+                end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(table)-1, value=len(table)-1)
+                relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
+
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
+
+                if not relevant_data.empty:
+                    if st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                else:
+                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de tabel.")
+            else:
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de DOCX-bijlage: {e}")
 
-    else:
-        st.error("Ongeldig bestandstype. Alleen .xlsx, .pdf, en .docx worden ondersteund.")
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid  
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
