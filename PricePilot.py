@@ -2282,7 +2282,7 @@ with col2:
         synonyms_data = pd.DataFrame(columns=["Artikelnummer", "Synoniem"])
     
         # Data voor tabblad 2
-        articles_data = pd.DataFrame(article_table)  # Zet de geïmporteerde articles-lijst om naar een DataFrame
+        articles_data = pd.DataFrame(article_table)[["Material", "Description"]]   # Zet de geïmporteerde articles-lijst om naar een DataFrame
     
         # Schrijf naar een Excel-bestand met twee tabbladen
         output = BytesIO()
@@ -2294,7 +2294,7 @@ with col2:
         return output
     
     # Streamlit-interface
-    st.title("Download Excel voor synoniemen opvoer")
+    st.markdown("### Download Excel voor synoniemen opvoer ⬇️")        
     
     if st.button("Download Excel"):
         excel_file = generate_excel()
