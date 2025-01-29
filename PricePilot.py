@@ -35,19 +35,26 @@ SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
 SP_PASSWORD = st.secrets.get("SP_PASSWORD")
 
-# Test authenticatie
-username = SP_USERNAME
-password = SP_PASSWORD
+# API-endpoint URL
+url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
 
-response = requests.get(
-    "https://glassolutionsbv.sharepoint.com/_api/web",
-    auth=(username, password)
-)
+# Authenticeer met NTLM (gebruikersnaam en wachtwoord)
+session = requests.Session()
+session.auth = HttpNtlmAuth(SP_USERNAME, SP_PASSWORD)
+
+# Headers instellen
+headers = {
+    "Accept": "application/json;odata=verbose"
+}
+
+# Voer de API-aanroep uit
+response = session.get(url, headers=headers)
 
 if response.status_code == 200:
-    st.write("✅ Verbinding gelukt!")
+    st.success("✅ Verbonden met SharePoint!")
+    st.json(response.json())  # Toon de inhoud van de lijst
 else:
-    st.write(f"❌ Fout: {response.status_code}, {response.text}")
+    st.error(f"❌ Fout: {response.status_code}, {response.text}")
 
 
 
