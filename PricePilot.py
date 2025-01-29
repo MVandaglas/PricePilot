@@ -26,7 +26,7 @@ import time
 from docx import Document
 import xlsxwriter
 import getpass
-import subproces
+import subprocess
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
