@@ -26,6 +26,7 @@ import time
 from docx import Document
 import xlsxwriter
 import getpass
+import requests
 
 
 # SHAREPOINT CREDENTIALS
