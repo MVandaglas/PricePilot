@@ -50,27 +50,6 @@ else:
     print(f"❌ Fout: {response.status_code}, {response.text}")
 
 
-# Headers voor de API-aanroep
-headers = {
-    "Accept": "application/json;odata=verbose"
-}
-
-# Maak een sessie
-session = requests.Session()
-session.auth = (SP_USERNAME, SP_PASSWORD)
-
-# URL voor API-aanroep (lijst ophalen)
-url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
-
-# API-aanroep
-response = session.get(url, headers=headers)
-
-if response.status_code == 200:
-    st.success("✅ Verbonden met SharePoint!")
-    st.json(response.json())  # Toon de inhoud van de lijst
-else:
-    st.error(f"❌ Fout: {response.status_code}, {response.text}")
-
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
