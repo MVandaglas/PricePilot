@@ -699,17 +699,14 @@ def calculate_m2_per_piece(width, height):
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
 def determine_spacer(term, default_value="15 - alu"):
     if term and isinstance(term, str):
-        st.write(f"🟢 **Functie gestart met input:** {term}")
 
         # Regex: Zoek alleen naar getallen tussen `-` en `-`
         matches = re.findall(r'-(\d+)-', term)
         values = list(map(int, matches))  # Converteer de gevonden matches naar integers
-        st.write(f"📌 **Gevonden getallen tussen '-':** {values}")
 
         # Controleer of er minimaal één getal is gevonden
         if len(values) >= 1:
             spacer_value = values[0]  # Pak de eerste gevonden waarde
-            st.write(f"🔢 **Geselecteerde spacer:** {spacer_value}")
 
             # Controleer of de waarde binnen de juiste range ligt
             if 3 < spacer_value < 30:
@@ -717,14 +714,9 @@ def determine_spacer(term, default_value="15 - alu"):
                     result = f"{spacer_value} - warm edge"
                 else:
                     result = f"{spacer_value} - alu"
-
-                st.write(f"✅ **Teruggegeven waarde:** {result}")
                 return result
-
-    st.write(f"⚠️ **Geen geldige spacer gevonden, standaardwaarde gebruikt:** {default_value}")
     return default_value
 
-st.write("🔍 Test: ", determine_spacer("4-18-4"))  # Verwachte output: "18 - alu"
 
 # Voorbeeld van hoe de waarde wordt opgeslagen in de state
 def update_spacer_state(user_input, app_state):
