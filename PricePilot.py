@@ -43,7 +43,7 @@ url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
 
 # Authenticeer met NTLM (gebruikersnaam en wachtwoord)
 session = requests.Session()
-session.auth = HttpNtlmAuth(SP_USERNAME, SP_PASSWORD)
+session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
 
 # Headers instellen
 headers = {
