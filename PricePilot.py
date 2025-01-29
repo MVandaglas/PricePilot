@@ -2202,7 +2202,47 @@ with tab3:
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
 
-
+        # Sectie voor het uploaden van synoniemen via een Excel-bestand in een expander
+        with st.expander("Upload Synoniemen via Excel ✨"):
+            st.markdown("Upload een Excel-bestand met twee kolommen: **Artikelnummer** en **Synoniem**.")
+        
+            uploaded_file = st.file_uploader("Upload een Excel-bestand", type=["xlsx"])
+            if uploaded_file is not None:
+                try:
+                    # Lees de geüploade Excel-bestand
+                    df_synoniemen = pd.read_excel(uploaded_file)
+                    st.write("Inhoud van geüploade Excel-bestand:")
+                    st.dataframe(df_synoniemen)
+        
+                    # Controleer of het bestand de juiste kolommen heeft
+                    if "Artikelnummer" in df_synoniemen.columns and "Synoniem" in df_synoniemen.columns:
+                        conn = create_connection()
+                        cursor = conn.cursor()
+        
+                        try:
+                            # Verwerk elke rij in het bestand
+                            for _, row in df_synoniemen.iterrows():
+                                artikelnummer = str(row["Artikelnummer"]).strip()
+                                synoniem = str(row["Synoniem"]).strip()
+        
+                                # Voeg het synoniem toe aan de database
+                                cursor.execute("""
+                                INSERT OR IGNORE INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
+                                VALUES (?, ?, ?, ?, ?);
+                                """, (synoniem, artikelnummer, None, None, "Excel Upload"))
+                                st.success(f"Synoniem '{synoniem}' -> '{artikelnummer}' is toegevoegd!")
+        
+                            # Commit wijzigingen naar de database
+                            conn.commit()
+                        except Exception as e:
+                            st.error(f"Fout bij het verwerken van synoniemen: {e}")
+                        finally:
+                            conn.close()
+                    else:
+                        st.error("Het bestand moet de kolommen **'Artikelnummer'** en **'Synoniem'** bevatten.")
+                except Exception as e:
+                    st.error(f"Fout bij het lezen van het bestand: {e}")
+        
 
 
 with tab4:
