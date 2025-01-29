@@ -2041,13 +2041,13 @@ with tab1:
 
 
     windows_user = getpass.getuser() if getpass.getuser() else "Onbekende gebruiker"
-    St.write(f"De Windows-gebruiker is: {windows_user}")
+    st.write(f"De Windows-gebruiker is: {windows_user}")
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
 
     windows_user = getpass.getuser() if getpass.getuser() else "Onbekende gebruiker"
-    St.write(f"De Windows-gebruiker is: {windows_user}")
+    st.write(f"De Windows-gebruiker is: {windows_user}")
 
     # Verbinding maken met de database en offertes ophalen
     conn = create_connection()
