@@ -24,8 +24,7 @@ from http.cookies import SimpleCookie
 from simple_salesforce import Salesforce, SalesforceLogin
 import time
 from docx import Document
-
-print("🚀 Script gestart!")  # Dit moet als eerste verschijnen in de console
+import xlsxwriter
 
 
 # Importeer prijsscherpte
