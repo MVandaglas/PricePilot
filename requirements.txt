@@ -13,3 +13,4 @@ extract_msg
 openpyxl
 pdfplumber
 simple-salesforce
+python-docx
