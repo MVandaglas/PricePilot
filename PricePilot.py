@@ -2361,40 +2361,40 @@ with col2:
     # combined_source_text = "\n".join(sources)
     
     # Initialiseer chatgeschiedenis in sessiestatus
-    if "chat_history" not in st.session_state:
-        st.session_state["chat_history"] = [{"role": "assistant", "content": "Hoe kan ik je helpen met glasadvies?"}]
+    # if "chat_history" not in st.session_state:
+    #     st.session_state["chat_history"] = [{"role": "assistant", "content": "Hoe kan ik je helpen met glasadvies?"}]
     
-    st.title("💬 Glasadvies Chatbot")
+    # st.title("💬 Glasadvies Chatbot")
     
-    # Toon chatgeschiedenis
-    for msg in st.session_state["chat_history"]:
-        st.chat_message(msg["role"]).write(msg["content"])
+    # # Toon chatgeschiedenis
+    # for msg in st.session_state["chat_history"]:
+    #     st.chat_message(msg["role"]).write(msg["content"])
     
-    # Inputveld voor gebruikersvraag
-    user_query = st.chat_input("Stel je vraag hier:")
+    # # Inputveld voor gebruikersvraag
+    # user_query = st.chat_input("Stel je vraag hier:")
     
-    if user_query:
-        st.chat_message("user").write(user_query)  # Toon de gebruikersvraag
-        st.session_state["chat_history"].append({"role": "user", "content": user_query})
+    # if user_query:
+    #     st.chat_message("user").write(user_query)  # Toon de gebruikersvraag
+    #     st.session_state["chat_history"].append({"role": "user", "content": user_query})
     
-        try:
-            # # Verstuur de vraag naar OpenAI met de opgehaalde documentatie
-            # response = openai.chat.completions.create(
-            #     model="gpt-4",
-            #     messages=[
-            #         {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie. Geef kort en helder advies."},
-            #         {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
-            #     ],
-            #     max_tokens=300,
-            #     temperature=0.7
-            # )
+    #     try:
+    #         # # Verstuur de vraag naar OpenAI met de opgehaalde documentatie
+    #         # response = openai.chat.completions.create(
+    #         #     model="gpt-4",
+    #         #     messages=[
+    #         #         {"role": "system", "content": "Je bent een glasadvies assistent die technisch advies geeft op basis van de gegeven documentatie. Geef kort en helder advies."},
+    #         #         {"role": "user", "content": f"Documentatie:\n{combined_source_text}\n\nVraag: {user_query}"}
+    #         #     ],
+    #         #     max_tokens=300,
+    #         #     temperature=0.7
+    #         # )
 
-            # # Toon het antwoord van OpenAI
-            # ai_response = response.choices[0].message.content
-            # st.chat_message("assistant").write(ai_response)
-            # st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
-            pass  # Deze logica wordt niet uitgevoerd
-        except Exception as e:
-            st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
+    #         # # Toon het antwoord van OpenAI
+    #         # ai_response = response.choices[0].message.content
+    #         # st.chat_message("assistant").write(ai_response)
+    #         # st.session_state["chat_history"].append({"role": "assistant", "content": ai_response})
+    #         pass  # Deze logica wordt niet uitgevoerd
+    #     except Exception as e:
+    #         st.error(f"Er is een fout opgetreden bij het raadplegen van OpenAI: {e}")
 
             
