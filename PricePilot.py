@@ -554,7 +554,7 @@ with col2:
         # Toon klantinformatie als metrics
         st.metric("Omzet klant", omzet_klant)
         st.metric("Klantgrootte", klantgrootte)
-        st.metric("Prijsscherpte", prijsscherpte)
+        # st.metric("Prijsscherpte", prijsscherpte) == prijsscherpte nu eruit gehaald, maar kan getoond worden.
 
 # Functie om synoniemen te vervangen in invoertekst
 def replace_synonyms(input_text, synonyms):
