@@ -696,20 +696,21 @@ def calculate_m2_per_piece(width, height):
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
 def determine_spacer(term, default_value="15 - alu"):
     if term and isinstance(term, str):
-        parts = term.split("-")
-        if len(parts) >= 2:
-            try:
-                values = [int(part) for part in parts if part.isdigit()]
-                if len(values) > 1:
-                    spacer_value = values[1]
-                    if 3 < spacer_value < 30:
-                        if any(keyword in term.lower() for keyword in ["we", "warmedge", "warm edge"]):
-                            return f"{spacer_value} - warm edge"
-                        else:
-                            return f"{spacer_value} - alu"
-            except ValueError:
-                pass
-    return default_value
+        # Vind alle getallen in de term
+        values = [int(part) for part in term.split("-") if part.isdigit()]
+
+        # Controleer of er minimaal twee getallen zijn
+        if len(values) >= 2:
+            spacer_value = values[1]  # Pak de tweede waarde (de spacer)
+
+            # Controleer of de spacerwaarde binnen de juiste range valt
+            if 3 < spacer_value < 30:
+                if any(keyword in term.lower() for keyword in ["we", "warmedge", "warm edge"]):
+                    return f"{spacer_value} - warm edge"
+                else:
+                    return f"{spacer_value} - alu"
+
+    return default_value  # Gebruik de standaardwaarde als er geen geldige waarde is gevonden
 
 # Voorbeeld van hoe de waarde wordt opgeslagen in de state
 def update_spacer_state(user_input, app_state):
