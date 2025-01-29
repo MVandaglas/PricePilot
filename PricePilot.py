@@ -1414,7 +1414,7 @@ def extract_latest_email(body):
 
 def process_attachment(attachment, attachment_name):
     """
-    Analyzes and processes an attachment based on its file type (PDF or Excel).
+    Analyzes and processes an attachment based on its file type (Excel, PDF, or DOCX).
     """
     if attachment_name.endswith(".xlsx"):
         try:
@@ -1431,7 +1431,6 @@ def process_attachment(attachment, attachment_name):
                 return None
 
             if mapped_columns:
-
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
 
@@ -1493,9 +1492,34 @@ def process_attachment(attachment, attachment_name):
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
-    else:
-        pass
 
+    elif attachment_name.endswith(".docx"):
+        try:
+            doc = Document(BytesIO(attachment))
+            st.write(f"DOCX-bestand '{attachment_name}' ingelezen:")
+            
+            # Lees de tekst van alle paragrafen
+            paragraphs = [paragraph.text for paragraph in doc.paragraphs if paragraph.text.strip()]
+            content = "\n".join(paragraphs)
+
+            st.write("Inhoud van het DOCX-bestand:")
+            st.text(content)
+
+            # Verwerk inhoud verder naar een DataFrame als relevant
+            detected_data = extract_relevant_data_from_docx(content)  # Schrijf een functie om relevante data te extraheren
+            if detected_data is not None:
+                st.write("Geëxtraheerde gegevens:")
+                st.dataframe(detected_data)
+
+                if st.button("Verwerk gegevens naar offerte"):
+                    handle_mapped_data_to_offer(detected_data)
+            else:
+                st.warning("Geen relevante gegevens gevonden in het DOCX-bestand.")
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de DOCX-bijlage: {e}")
+
+    else:
+        st.error("Ongeldig bestandstype. Alleen .xlsx, .pdf, en .docx worden ondersteund.")
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid  
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
