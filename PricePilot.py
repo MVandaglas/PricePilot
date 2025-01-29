@@ -26,7 +26,7 @@ import time
 from docx import Document
 import xlsxwriter
 import getpass
-
+import platform
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
@@ -2047,6 +2047,12 @@ with tab1:
     st.write(f"os.getenv('USERNAME'): {os.getenv('USERNAME')}")
     st.write(f"os.getenv('USER'): {os.getenv('USER')}")
     st.write(f"getpass.getuser(): {getpass.getuser()}")
+    if platform.system() == "Windows":
+    try:
+        import win32api
+        st.write(f"win32api.GetUserName(): {win32api.GetUserName()}")
+    except ImportError:
+        st.write("win32api niet geïnstalleerd.")
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
