@@ -2372,6 +2372,21 @@ with col2:
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
 with col2:
+    # API-endpoints
+    list_items_url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
+    add_item_url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
+    
+    # Authenticeer met NTLM (gebruikersnaam en wachtwoord)
+    session = requests.Session()
+    session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
+    
+    # Headers instellen
+    headers = {
+        "Accept": "application/json;odata=verbose",
+        "Content-Type": "application/json;odata=verbose"
+    }
+
+    
     # Ophalen van gegevens
     if st.button("Haal gegevens op"):
         response = session.get(list_items_url, headers=headers)
