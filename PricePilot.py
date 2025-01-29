@@ -2403,27 +2403,6 @@ with col2:
         else:
             st.error(f"❌ Fout bij ophalen van gegevens: {response.status_code}, {response.text}")
     
-    # Toevoegen van gegevens
-    st.subheader("Voeg een nieuw synoniem toe")
-    article_number = st.text_input("Artikelnummer")
-    synonym = st.text_input("Synoniem")
-    
-    if st.button("Voeg toe"):
-        if article_number and synonym:
-            payload = {
-                "__metadata": {"type": "SP.Data.SynoniemenDatabaseListItem"},
-                "Artikelnummer": article_number,
-                "Synoniem": synonym
-            }
-            response = session.post(add_item_url, headers=headers, data=json.dumps(payload))
-            if response.status_code == 201:
-                st.success("✅ Synoniem succesvol toegevoegd!")
-            else:
-                st.error(f"❌ Fout bij toevoegen van gegevens: {response.status_code}, {response.text}")
-        else:
-            st.warning("⚠️ Vul zowel Artikelnummer als Synoniem in.")
-
-
 # with tab5:
 #     st.subheader("💬 Glasadvies Chatbot")
 #     st.info("Stel je vraag over glas en krijg advies van AI op basis van beschikbare bronnen.")
