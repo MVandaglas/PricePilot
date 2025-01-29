@@ -1135,11 +1135,17 @@ def handle_gpt_chat():
         data = []
         current_article_number = None  # Huidig artikelnummer onthouden
         
-        for line in lines:
+        st.sidebar.write("### Debugging informatie")
+        
+        for i, line in enumerate(lines):
+            st.sidebar.write(f"**Regel {i+1}:** {line}")
+
             # Probeer artikelnummer en andere details te herkennen
             m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
             quantity, width, height, article_number = extract_all_details(line)
-            
+
+            st.sidebar.write(f"  - **Extracted values** -> Aantal: {quantity}, Breedte: {width}, Hoogte: {height}, Artikelnummer: {article_number}")
+
             if m2_match:
                 if m2_match.group(1):
                     m2_total = int(m2_match.group(1))
@@ -1147,11 +1153,11 @@ def handle_gpt_chat():
                 else:
                     article_number = m2_match.group(3)
                     m2_total = int(m2_match.group(4))
-                    st.sidebar.write(article_number)
-                    st.sidebar.write(current_article_number)
                     
                 # Update `current_article_number` met het gevonden artikelnummer
                 current_article_number = synonym_dict.get(article_number, article_number)
+                
+                st.sidebar.write(f"  - **Gevonden M2-artikelnummer:** {current_article_number}")
 
                 # Zoek artikelgegevens op
                 description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(current_article_number)
@@ -1188,11 +1194,15 @@ def handle_gpt_chat():
                 # Gebruik `current_article_number` als geen artikelnummer gevonden is
                 if not article_number and current_article_number:
                     article_number = current_article_number
-    
+                    st.sidebar.write(f"  - **Geen nieuw artikelnummer gevonden, gebruik vorige:** {current_article_number}")
+                elif article_number:
+                    current_article_number = article_number  # Update voor toekomstige regels zonder artikelnummer
+                    st.sidebar.write(f"  - **Nieuw artikelnummer gevonden:** {article_number}")
 
                 # Zoek artikelgegevens op
                 article_number = synonym_dict.get(article_number, article_number)
                 description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
+
                 if description:
                     spacer = determine_spacer(line)
                     m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
@@ -1238,13 +1248,13 @@ def handle_gpt_chat():
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state["trigger_update"] = True
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            #st.rerun()
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 # Functie voor het verwerken van e-mailinhoud naar offerte
