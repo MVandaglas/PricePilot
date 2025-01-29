@@ -30,9 +30,9 @@ import getpass
 
 # Gebruik st.secrets
 SHAREPOINT_SITE = os.getenv("SHAREPOINT_SITE")
-SHAREPOINT_LIST = st.secrets["SHAREPOINT_LIST"]
-SHAREPOINT_USERNAME = st.secrets["SHAREPOINT_USERNAME"]
-SHAREPOINT_PASSWORD = st.secrets["SHAREPOINT_PASSWORD"]
+SHAREPOINT_LIST = os.getenv("SHAREPOINT_LIST")
+SHAREPOINT_USERNAME = os.getenv("SHAREPOINT_USERNAME")
+SHAREPOINT_PASSWORD = os.getenv("SHAREPOINT_PASSWORD")
 
 st.write("🔹 Secrets geladen:")
 st.write(st.secrets)
