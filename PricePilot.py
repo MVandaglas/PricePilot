@@ -2083,8 +2083,11 @@ with tab2:
 
 
 
+# Importeer de artikelgegevens vanuit Articles.py
+from Articles import article_table
+
 # Genereer een mapping van artikelnamen naar artikelnummers
-article_mapping = article_table.set_index("Description")["Material"].to_dict()
+article_mapping = {article["Description"]: article["Material"] for article in article_table}
 
 with tab3:
     st.markdown("### Beoordeel output AI ✨")
@@ -2112,31 +2115,44 @@ with tab3:
             "original_article_number": "Input"
         }, inplace=True)
 
-        # Voeg dynamische dropdown toe voor artikelnaam
-        for index, row in beoordeling_tabel.iterrows():
-            selected_article = st.selectbox(
-                f"Selecteer artikel voor rij {index + 1}:",
-                options=list(article_mapping.keys()),
-                index=list(article_mapping.keys()).index(row["Artikelnaam"]) if row["Artikelnaam"] in article_mapping else 0,
-                key=f"dropdown_{index}"
-            )
-            # Werk artikelnummer bij op basis van selectie
-            beoordeling_tabel.at[index, "Artikelnaam"] = selected_article
-            beoordeling_tabel.at[index, "Artikelnummer"] = article_mapping[selected_article]
-
-        # Gebruik AgGrid om de tabel te renderen
+        # Configureren van de AgGrid-tabel
         gb = GridOptionsBuilder.from_dataframe(beoordeling_tabel)
+        
+        # Instellen van een dropdown voor de kolom "Artikelnaam"
+        gb.configure_column(
+            "Artikelnaam",
+            editable=True,
+            cellEditor="agSelectCellEditor",
+            cellEditorParams={"values": list(article_mapping.keys())},  # Voeg artikelnamen toe als opties
+        )
+        
+        # Configureren van de overige kolommen
+        gb.configure_column("Artikelnummer", editable=False)  # Artikelnummer is niet direct bewerkbaar
+        gb.configure_column("Gematcht op", editable=False)
+        gb.configure_column("Input", editable=False)
+        
         gb.configure_selection(selection_mode="multiple", use_checkbox=True)
-        gb.configure_default_column(editable=True)
         grid_options = gb.build()
 
+        # Render de AgGrid-tabel
         response = AgGrid(
             beoordeling_tabel,
             gridOptions=grid_options,
-            update_mode=GridUpdateMode.SELECTION_CHANGED,
+            update_mode=GridUpdateMode.VALUE_CHANGED,
             fit_columns_on_grid_load=True,
             theme="material"
         )
+
+        # Verwerken van wijzigingen in de tabel
+        updated_rows = response["data"]  # Haal de bijgewerkte data op
+        for index, row in updated_rows.iterrows():
+            # Bijwerken van het artikelnummer op basis van de geselecteerde artikelnaam
+            if row["Artikelnaam"] in article_mapping:
+                updated_rows.at[index, "Artikelnummer"] = article_mapping[row["Artikelnaam"]]
+
+        # Weergeven van de bijgewerkte tabel
+        st.write("Bijgewerkte beoordelingstabel:")
+        st.dataframe(updated_rows)
 
         # Knop voor accordering
         if st.button("Accordeer synoniem"):
@@ -2189,6 +2205,7 @@ with tab3:
                     conn.close()
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
+
 
 
 
