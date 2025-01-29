@@ -2083,6 +2083,12 @@ with tab2:
 
 
 
+# Importeer artikelen vanuit articles.py
+from articles import articles
+
+# Genereer een mapping van artikelnamen naar artikelnummers
+article_mapping = {article["Description"]: article["Material"] for article in articles}
+
 with tab3:
     st.markdown("### Beoordeel output AI ✨")
 
@@ -2090,7 +2096,7 @@ with tab3:
     if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
         # Filter regels met "Source" = "interpretatie" en "GPT"
         interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"].isin(["GPT", "interpretatie"])]
-        
+
         # Houd alleen unieke rijen op basis van combinatie van kolommen
         interpretatie_rows = interpretatie_rows.drop_duplicates(subset=["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"])
     else:
@@ -2109,6 +2115,19 @@ with tab3:
             "original_article_number": "Input"
         }, inplace=True)
 
+        # Voeg dynamische dropdown toe voor artikelnaam
+        for index, row in beoordeling_tabel.iterrows():
+            selected_article = st.selectbox(
+                f"Selecteer artikel voor rij {index + 1}:",
+                options=list(article_mapping.keys()),
+                index=list(article_mapping.keys()).index(row["Artikelnaam"]) if row["Artikelnaam"] in article_mapping else 0,
+                key=f"dropdown_{index}"
+            )
+            # Werk artikelnummer bij op basis van selectie
+            beoordeling_tabel.at[index, "Artikelnaam"] = selected_article
+            beoordeling_tabel.at[index, "Artikelnummer"] = article_mapping[selected_article]
+
+        # Gebruik AgGrid om de tabel te renderen
         gb = GridOptionsBuilder.from_dataframe(beoordeling_tabel)
         gb.configure_selection(selection_mode="multiple", use_checkbox=True)
         gb.configure_default_column(editable=True)
@@ -2125,17 +2144,17 @@ with tab3:
         # Knop voor accordering
         if st.button("Accordeer synoniem"):
             geselecteerde_rijen = response.get("selected_rows", pd.DataFrame())  # Haal geselecteerde rijen op als DataFrame
-        
+
             # Controleer of de DataFrame niet leeg is
             if not geselecteerde_rijen.empty:
                 # Converteer de DataFrame naar een lijst van dictionaries
                 geselecteerde_rijen_lijst = geselecteerde_rijen.to_dict("records")
                 st.write("Geconverteerde geselecteerde rijen:", geselecteerde_rijen_lijst)  # Debug output
-        
+
                 # Maak databaseverbinding
                 conn = create_connection()
                 cursor = conn.cursor()
-        
+
                 try:
                     # Zorg dat de tabel SynoniemenAI bestaat
                     cursor.execute("""
@@ -2148,31 +2167,32 @@ with tab3:
                         Datum TEXT DEFAULT CURRENT_TIMESTAMP
                     );
                     """)
-        
+
                     # Verwerk elke rij in de lijst
                     for rij in geselecteerde_rijen_lijst:
                         input_waarde = rij.get("Input", "")
                         artikelnummer = rij.get("Artikelnummer", "")
                         artikelnaam = rij.get("Artikelnaam", "")
-        
+
                         if input_waarde and artikelnummer:
                             cursor.execute("""
                             INSERT OR IGNORE INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
                             VALUES (?, ?, ?, ?, ?);
                             """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
                             st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
-        
+
                     # Commit wijzigingen naar de database
                     conn.commit()
-        
+
                 except Exception as e:
                     st.error(f"Fout bij het opslaan: {e}")
-        
+
                 finally:
                     # Sluit de verbinding
                     conn.close()
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
+
 
 
 
