@@ -25,6 +25,9 @@ from simple_salesforce import Salesforce, SalesforceLogin
 import time
 from docx import Document
 
+print("🚀 Script gestart!")  # Dit moet als eerste verschijnen in de console
+
+
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
     # Initialiseer de matrix met standaardwaarden
