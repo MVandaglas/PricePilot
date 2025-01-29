@@ -26,8 +26,7 @@ import time
 from docx import Document
 import xlsxwriter
 import getpass
-from office365.sharepoint.client_context import ClientContext
-from office365.runtime.auth.client_credential import ClientCredential
+
 
 # Haal de secrets op vanuit omgevingsvariabelen (zoals bij Salesforce)
 SHAREPOINT_SITE = os.getenv("SHAREPOINT_SITE")
