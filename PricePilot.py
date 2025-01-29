@@ -2084,7 +2084,7 @@ with tab2:
 
 
 # Genereer een mapping van artikelnamen naar artikelnummers
-article_mapping = {article["Description"]: article["Material"] for article in articles}
+article_mapping = {article["Description"]: article["Material"] for article in article_table}
 
 with tab3:
     st.markdown("### Beoordeel output AI ✨")
@@ -2189,7 +2189,6 @@ with tab3:
                     conn.close()
             else:
                 st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
-
 
 
 
