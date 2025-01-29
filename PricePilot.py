@@ -27,7 +27,7 @@ from docx import Document
 import xlsxwriter
 import getpass
 import requests
-from requests.auth import HTTPBasicAut
+from requests.auth import HTTPBasicAuth
 
 
 # SHAREPOINT CREDENTIALS
