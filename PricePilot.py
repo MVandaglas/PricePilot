@@ -1190,7 +1190,7 @@ def handle_gpt_chat():
                     data.append([
                         None,
                         description,
-                        current_article_number,
+                        if current_article_number is not None else article_number,
                         spacer,
                         width,
                         height,
