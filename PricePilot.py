@@ -28,11 +28,11 @@ import xlsxwriter
 import getpass
 
 
-# Gebruik st.secrets
-SHAREPOINT_SITE = os.getenv("SHAREPOINT_SITE")
-SHAREPOINT_LIST = os.getenv("SHAREPOINT_LIST")
-SHAREPOINT_USERNAME = os.getenv("SHAREPOINT_USERNAME")
-SHAREPOINT_PASSWORD = os.getenv("SHAREPOINT_PASSWORD")
+# SHAREPOINT CREDENTIALS
+SP_SITE = os.getenv("SHAREPOINT_SITE")
+SP_LIST = os.getenv("SHAREPOINT_LIST")
+SP_USERNAME = os.getenv("SHAREPOINT_USERNAME")
+SP_PASSWORD = os.getenv("SHAREPOINT_PASSWORD")
 
 st.write("🔹 Secrets geladen:")
 st.write(st.secrets)
@@ -43,9 +43,10 @@ st.write(st.secrets)
 
 
 # Controleer of de waarden correct zijn opgehaald
-st.write(f"🔹 SHAREPOINT_SITE: {SHAREPOINT_SITE}")
-st.write(f"🔹 SHAREPOINT_LIST: {SHAREPOINT_LIST}")
-st.write(f"🔹 SHAREPOINT_USERNAME: {SHAREPOINT_USERNAME}")
+st.write(f"🔹 SHAREPOINT_SITE: {SP_SITE}")
+st.write(f"🔹 SHAREPOINT_LIST: {SP_LIST}")
+st.write(f"🔹 SHAREPOINT_USERNAME: {SP_USERNAME}")
+
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
     # Initialiseer de matrix met standaardwaarden
