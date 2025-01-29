@@ -1135,34 +1135,78 @@ def handle_gpt_chat():
         data = []
         current_article_number = None  # Huidig artikelnummer onthouden
         
-        st.sidebar.write("### Debugging informatie")
-        
-        for i, line in enumerate(lines):
-            st.sidebar.write(f"**Regel {i+1}:** {line}")
+        for line in lines:
+            # Controleer of er een artikelnummer in de regel staat
+            detected_article_number = re.search(r'(\d+[./-]?\d*[-*#]\d+[./-]?\d*)', line)
+            if detected_article_number:
+                current_article_number = detected_article_number.group(0)  # Update huidig artikelnummer
+                st.sidebar.info(f"Nieuw artikelnummer gevonden: {current_article_number}")
 
-            # Probeer artikelnummer en andere details te herkennen
+            # Probeer m2-formaat en artikelnummer te detecteren
             m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
+
+            # Extract details zoals aantal, breedte en hoogte
             quantity, width, height, article_number = extract_all_details(line)
 
-            st.sidebar.write(f"  - **Extracted values** -> Aantal: {quantity}, Breedte: {width}, Hoogte: {height}, Artikelnummer: {article_number}")
-
-            # Als geen artikelnummer wordt gevonden, gebruik het vorige
+            # Als er geen artikelnummer in deze regel staat, gebruik de vorige (indien beschikbaar)
             if not article_number and current_article_number:
                 article_number = current_article_number
-                st.sidebar.write(f"  - **Geen nieuw artikelnummer gevonden, gebruik vorige:** {current_article_number}")
+                st.sidebar.info(f"Geen nieuw artikelnummer gevonden, gebruik vorige: {article_number}")
 
-            # Controleer of de breedte en hoogte correct zijn ingelezen
-            if quantity and (width and height):  # Zorg ervoor dat beide waarden beschikbaar zijn
-                current_article_number = article_number  # Update het huidige artikelnummer
+            # Verwerking als er een m2-match is
+            if m2_match:
+                if m2_match.group(1):
+                    m2_total = int(m2_match.group(1))
+                    article_number = m2_match.group(2)
+                else:
+                    article_number = m2_match.group(3)
+                    m2_total = int(m2_match.group(4))
 
+                # Gebruik het synoniemenwoordenboek
+                article_number = synonym_dict.get(article_number, article_number)
+
+                # Zoek artikelgegevens op
+                description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
+
+                if description:
+                    recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                    verkoopprijs = None
+                    prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+
+                    data.append([
+                        None,
+                        description,
+                        article_number,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                        f"{m2_total:.2f}" if m2_total is not None else None,
+                        f"{recommended_price:.2f}" if recommended_price is not None else 0,
+                        None,
+                        None,
+                        min_price,
+                        max_price,
+                        verkoopprijs,
+                        prijs_backend,
+                        source,
+                        fuzzy_match,
+                        original_article_number
+                    ])
+                else:
+                    st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
+
+            # Verwerking als er een aantal + breedte/hoogte is
+            elif quantity and (width and height):
                 # Zoek artikelgegevens op
                 article_number = synonym_dict.get(article_number, article_number)
                 description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
 
                 if description:
                     spacer = determine_spacer(line)
-                    m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
-                    m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
+                    m2_per_piece = round(calculate_m2_per_piece(width, height), 2)
+                    m2_total = round(float(quantity) * m2_per_piece, 2)
 
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                     verkoopprijs = None
@@ -1192,7 +1236,7 @@ def handle_gpt_chat():
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
             else:
-                st.sidebar.warning(f"**Regel {i+1} genegeerd:** geen geldige breedte, hoogte of aantal gevonden.")
+                st.sidebar.warning("Regel genegeerd: geen geldige breedte, hoogte of aantal gevonden.")
 
         # Als data is verzameld, voeg het toe aan de offerte-overzichtstabel
         if data:
@@ -1210,7 +1254,6 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
-
 
 
 
