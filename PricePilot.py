@@ -2208,7 +2208,8 @@ with tab3:
     
     # Rechterkolom: Excel-file uploader in een expander
     with col2:
-        st.markdown("###Upload synoniemen 🧍‍♂⬌🧍‍♂️")
+        st.markdown("### Upload synoniemen 🧍‍♂⬌🧍‍♂️")
+       
         with st.expander("Upload Synoniemen via Excel ✨"):
             st.markdown("Upload een Excel-bestand met twee kolommen: **Artikelnummer** en **Synoniem**.")
     
