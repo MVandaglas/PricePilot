@@ -2307,8 +2307,7 @@ with col2:
             try:
                 # Lees de geüploade Excel-bestand
                 df_synoniemen = pd.read_excel(uploaded_file)
-                st.dataframe(df_synoniemen)
-
+  
                 # Controleer of het bestand de juiste kolommen heeft
                 if "Artikelnummer" in df_synoniemen.columns and "Synoniem" in df_synoniemen.columns:
                     if st.button("Upload🔥"):
