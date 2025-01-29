@@ -1186,8 +1186,6 @@ def handle_gpt_chat():
                 # Gebruik `current_article_number` als geen artikelnummer gevonden is
                 if not article_number and current_article_number:
                     article_number = current_article_number
-                elif article_number:
-                    current_article_number = article_number  # Update voor toekomstige regels zonder artikelnummer
     
 
                 # Zoek artikelgegevens op
