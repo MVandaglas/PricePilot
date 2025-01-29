@@ -28,12 +28,15 @@ import xlsxwriter
 import getpass
 
 
-# Haal de secrets op vanuit omgevingsvariabelen (zoals bij Salesforce)
-SHAREPOINT_SITE = os.getenv("SHAREPOINT_SITE")
-SHAREPOINT_LIST = os.getenv("SHAREPOINT_LIST")
-SHAREPOINT_USERNAME = os.getenv("SHAREPOINT_USERNAME")
-SHAREPOINT_PASSWORD = os.getenv("SHAREPOINT_PASSWORD")
+# Gebruik st.secrets in plaats van os.getenv()
+SHAREPOINT_SITE = st.secrets["SHAREPOINT_SITE"]
+SHAREPOINT_LIST = st.secrets["SHAREPOINT_LIST"]
+SHAREPOINT_USERNAME = st.secrets["SHAREPOINT_USERNAME"]
+SHAREPOINT_PASSWORD = st.secrets["SHAREPOINT_PASSWORD"]
 
+st.write(f"🔹 SHAREPOINT_SITE: {SHAREPOINT_SITE}")
+st.write(f"🔹 SHAREPOINT_LIST: {SHAREPOINT_LIST}")
+st.write(f"🔹 SHAREPOINT_USERNAME: {SHAREPOINT_USERNAME}")
 
 
 
