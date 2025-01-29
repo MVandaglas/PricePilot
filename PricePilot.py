@@ -30,6 +30,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 
+
 # SHAREPOINT CREDENTIALS
 SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
