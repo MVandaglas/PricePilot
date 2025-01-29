@@ -2042,9 +2042,6 @@ with tab1:
 
 with tab2:
 
-    windows_user = getpass.getuser() if getpass.getuser() else "Onbekende gebruiker"
-    st.write(f"De Windows-gebruiker is: {windows_user}")
-
     # Verbinding maken met de database en offertes ophalen
     conn = create_connection()
     cursor = conn.cursor()
