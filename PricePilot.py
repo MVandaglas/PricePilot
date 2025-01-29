@@ -2272,6 +2272,40 @@ with tab3:
                 except Exception as e:
                     st.error(f"Fout bij het lezen van het bestand: {e}")
 
+with col2:
+    def generate_excel():
+        """
+        Genereer een Excel-bestand met twee tabbladen:
+        1. "Synoniemen" met kolommen "Artikelnummer" en "Synoniem"
+        2. "Bekende Artikelen" met de volledige artikelenlijst uit Articles.py
+        """
+        # Data voor tabblad 1
+        synonyms_data = pd.DataFrame(columns=["Artikelnummer", "Synoniem"])
+    
+        # Data voor tabblad 2
+        articles_data = pd.DataFrame(articles)  # Zet de geïmporteerde articles-lijst om naar een DataFrame
+    
+        # Schrijf naar een Excel-bestand met twee tabbladen
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            synonyms_data.to_excel(writer, sheet_name="Synoniemen", index=False)
+            articles_data.to_excel(writer, sheet_name="Bekende Artikelen", index=False)
+        
+        output.seek(0)
+        return output
+    
+    # Streamlit-interface
+    st.title("Excel Generator")
+    
+    if st.button("Genereer Excel"):
+        excel_file = generate_excel()
+        st.download_button(
+            label="Download Excel",
+            data=excel_file,
+            file_name="Artikelen.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
 
 with tab4:
     st.subheader("💬 Glasadvies Chatbot")
