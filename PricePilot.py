@@ -699,16 +699,16 @@ def calculate_m2_per_piece(width, height):
 # Functie om determine_spacer waarde te bepalen uit samenstellingstekst
 def determine_spacer(term, default_value="15 - alu"):
     if term and isinstance(term, str):
-        print(f"🟢 Input ontvangen: {term}")  # Debug print
+        st.write(f"🟢 **Functie gestart met input:** {term}")
 
-        # Zoek alle getallen in de term
+        # Vind alle getallen in de term
         values = [int(part) for part in term.split("-") if part.isdigit()]
-        print(f"📌 Gevonden getallen: {values}")  # Debug print
+        st.write(f"📌 **Gevonden getallen:** {values}")
 
         # Controleer of er minimaal twee getallen zijn
         if len(values) >= 2:
             spacer_value = values[1]  # Pak de tweede waarde (de spacer)
-            print(f"🔢 Geselecteerde spacer: {spacer_value}")  # Debug print
+            st.write(f"🔢 **Geselecteerde spacer:** {spacer_value}")
 
             # Controleer of de waarde binnen de juiste range ligt
             if 3 < spacer_value < 30:
@@ -717,13 +717,13 @@ def determine_spacer(term, default_value="15 - alu"):
                 else:
                     result = f"{spacer_value} - alu"
 
-                print(f"✅ Teruggegeven waarde: {result}")  # Debug print
+                st.write(f"✅ **Teruggegeven waarde:** {result}")
                 return result
 
-    print(f"⚠️ Geen geldige spacer gevonden, standaardwaarde gebruikt: {default_value}")  # Debug print
+    st.write(f"⚠️ **Geen geldige spacer gevonden, standaardwaarde gebruikt:** {default_value}")
     return default_value
 
-print("🔍 Test: ", determine_spacer("4-18-4"))  # Verwachte output: "18 - alu"
+st.write("🔍 Test: ", determine_spacer("4-18-4"))  # Verwachte output: "18 - alu"
 
 # Voorbeeld van hoe de waarde wordt opgeslagen in de state
 def update_spacer_state(user_input, app_state):
