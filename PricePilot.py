@@ -2110,8 +2110,8 @@ with tab3:
         beoordeling_tabel.rename(columns={
             "Artikelnaam": "Artikelnaam",
             "Artikelnummer": "Artikelnummer",
-            "original_article_number": "Jouw input"
-            "fuzzy_match": "Gematcht op",
+            "original_article_number": "Jouw input",
+            "fuzzy_match": "Gematcht op"
         }, inplace=True)
 
         # Configureren van de AgGrid-tabel
