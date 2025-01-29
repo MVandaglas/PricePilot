@@ -16,3 +16,4 @@ simple-salesforce
 python-docx
 xlsxwriter
 requests
+requests-ntlm
