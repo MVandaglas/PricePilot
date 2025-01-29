@@ -26,8 +26,24 @@ import time
 from docx import Document
 import xlsxwriter
 import getpass
-import subprocess
+from office365.sharepoint.client_context import ClientContext
+from office365.runtime.auth.client_credential import ClientCredential
 
+# Haal de secrets op vanuit omgevingsvariabelen (zoals bij Salesforce)
+SHAREPOINT_SITE = os.getenv("SHAREPOINT_SITE")
+SHAREPOINT_LIST = os.getenv("SHAREPOINT_LIST")
+SHAREPOINT_USERNAME = os.getenv("SHAREPOINT_USERNAME")
+SHAREPOINT_PASSWORD = os.getenv("SHAREPOINT_PASSWORD")
+
+
+
+
+
+
+# Controleer of de waarden correct zijn opgehaald
+st.write(f"🔹 SHAREPOINT_SITE: {SHAREPOINT_SITE}")
+st.write(f"🔹 SHAREPOINT_LIST: {SHAREPOINT_LIST}")
+st.write(f"🔹 SHAREPOINT_USERNAME: {SHAREPOINT_USERNAME}")
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
     # Initialiseer de matrix met standaardwaarden
