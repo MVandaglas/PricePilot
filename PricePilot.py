@@ -2083,9 +2083,6 @@ with tab2:
 
 
 
-# Importeer artikelen vanuit articles.py
-from articles import articles
-
 # Genereer een mapping van artikelnamen naar artikelnummers
 article_mapping = {article["Description"]: article["Material"] for article in articles}
 
