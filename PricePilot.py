@@ -1147,8 +1147,9 @@ def handle_gpt_chat():
                 else:
                     article_number = m2_match.group(3)
                     m2_total = int(m2_match.group(4))
-                    st.write(article_number)
-                
+                    st.sidebar.warning(article_number)
+                    st.sidebar.warning(current_article_number)
+                    
                 # Update `current_article_number` met het gevonden artikelnummer
                 current_article_number = synonym_dict.get(article_number, article_number)
 
