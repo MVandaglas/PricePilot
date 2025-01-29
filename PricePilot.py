@@ -1386,7 +1386,6 @@ def manual_column_mapping(df, detected_columns):
         if key in mapped_columns:
             try:
                 df[mapped_columns[key]] = pd.to_numeric(df[mapped_columns[key]], errors="coerce").fillna(0)
-                st.write(f"Kolom '{mapped_columns[key]}' is geconverteerd naar numeriek voor '{key}'.")
             except Exception as e:
                 st.error(f"Er is een fout opgetreden bij het converteren van '{mapped_columns[key]}' naar numeriek: {e}")
 
