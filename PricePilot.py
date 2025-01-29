@@ -29,10 +29,10 @@ import getpass
 
 
 # SHAREPOINT CREDENTIALS
-SP_SITE = st.secrets.get("SHAREPOINT_SITE")
-SP_LIST = st.secrets.get("SHAREPOINT_LIST")
-SP_USERNAME = st.secrets.get("SHAREPOINT_USERNAME")
-SP_PASSWORD = st.secrets.get("SHAREPOINT_PASSWORD")
+SP_SITE = st.secrets.get("SP_SITE")
+SP_LIST = st.secrets.get("SP_LIST")
+SP_USERNAME = st.secrets.get("SP_USERNAME")
+SP_PASSWORD = st.secrets.get("SP_PASSWORD")
 
 st.write("🔹 Secrets geladen:")
 st.write(st.secrets)
