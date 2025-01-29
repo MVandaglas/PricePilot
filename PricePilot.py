@@ -466,18 +466,22 @@ with tab3:
         Detecteert de relevante kolommen (Artikelnaam, Hoogte, Breedte, Aantal) in een DataFrame.
         """
         column_mapping = {
-            "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "Artikel", "Artikelnaam", "Product", "Samenstelling", "Article", "article", "Type", "type"],
-            "Hoogte": ["hoogte", "h", "height", "lengte", "Lengte", "Height", "H", "Hoogte"],
-            "Breedte": ["breedte", "b", "width", "Breedte", "B", "Width"],
-            "Aantal": ["aantal", "quantity", "qty", "stuks", "Aantal", "Quantity", "QTY", "Stuks", "Qty"]
+            "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "type", "article"],
+            "Hoogte": ["hoogte", "h", "height", "lengte"],
+            "Breedte": ["breedte", "b", "width"],
+            "Aantal": ["aantal", "quantity", "qty", "stuks"]
         }
         detected_columns = {}
     
+        # Standaardiseer kolomnamen in de DataFrame (trim en lower)
+        standardized_columns = {col: col.strip().lower() for col in df.columns}
+    
         for key, patterns in column_mapping.items():
             for pattern in patterns:
-                for col in df.columns:
-                    if re.search(pattern, col, re.IGNORECASE):
-                        detected_columns[key] = col
+                for original_col, std_col in standardized_columns.items():
+                    # Gebruik `re.fullmatch` voor een betere controle op exacte matches
+                    if re.search(rf"\b{pattern}\b", std_col, re.IGNORECASE):
+                        detected_columns[key] = original_col  # Bewaar de originele kolomnaam
                         break
                 if key in detected_columns:
                     break
