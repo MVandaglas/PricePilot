@@ -2128,7 +2128,7 @@ with tab3:
         # Configureren van de overige kolommen
         gb.configure_column("Artikelnummer", editable=False, hide=True) 
         gb.configure_column("Gematcht op", editable=False)
-        gb.configure_column("Input", editable=False)
+        gb.configure_column("Jouw Input", editable=False)
         
         gb.configure_selection(selection_mode="multiple", use_checkbox=True)
         grid_options = gb.build()
