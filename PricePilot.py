@@ -2307,7 +2307,6 @@ with col2:
             try:
                 # Lees de geüploade Excel-bestand
                 df_synoniemen = pd.read_excel(uploaded_file)
-                st.write("Inhoud van geüploade Excel-bestand:")
                 st.dataframe(df_synoniemen)
 
                 # Controleer of het bestand de juiste kolommen heeft
