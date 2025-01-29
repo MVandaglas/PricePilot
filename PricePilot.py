@@ -25,6 +25,7 @@ from simple_salesforce import Salesforce, SalesforceLogin
 import time
 from docx import Document
 import xlsxwriter
+import getpass
 
 
 # Importeer prijsscherpte
@@ -1919,7 +1920,7 @@ with tab1:
             try:
                 # Haal de ingelogde Windows-gebruikersnaam op
                 import os
-                windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
+                windows_user = getpass.getuser() if getpass.getuser() else "Onbekende gebruiker"
         
                 # Zoek het hoogste offertenummer
                 if not st.session_state.saved_offers.empty:
@@ -2039,14 +2040,14 @@ with tab1:
 
 
 
-    windows_user = os.getenv("USERNAME") or os.getenv("USER", "Onbekende gebruiker")
-    print(f"De Windows-gebruiker is: {windows_user}")
+    windows_user = getpass.getuser() if getpass.getuser() else "Onbekende gebruiker"
+    St.write(f"De Windows-gebruiker is: {windows_user}")
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
 
-    username = os.getlogin()
-    st.write(f"Windows-gebruikersnaam: {username}")
+    windows_user = getpass.getuser() if getpass.getuser() else "Onbekende gebruiker"
+    St.write(f"De Windows-gebruiker is: {windows_user}")
 
     # Verbinding maken met de database en offertes ophalen
     conn = create_connection()
