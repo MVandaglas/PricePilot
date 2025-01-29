@@ -14,3 +14,4 @@ openpyxl
 pdfplumber
 simple-salesforce
 python-docx
+xlsxwriter
