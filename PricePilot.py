@@ -848,7 +848,7 @@ gb.configure_column("Spacer", editable=True, cellEditor='agSelectCellEditor', ce
 gb.configure_column("Rijnummer", type=["numericColumn"], editable=False, cellStyle={"backgroundColor": "#e0e0e0"}, cellRenderer=cell_renderer_js)
 gb.configure_column("Artikelnaam", width=600)
 gb.configure_column("Offertenummer", hide=True)
-gb.configure_column("Prijs_backend", hide=False)
+gb.configure_column("Prijs_backend", hide=True)
 gb.configure_column("Min_prijs", hide=True)
 gb.configure_column("Artikelnummer", hide=False)
 gb.configure_column("Prijskwaliteit", hide=True)
@@ -862,7 +862,7 @@ gb.configure_column("Verkoopprijs", editable=True, type=["numericColumn"], cellS
 gb.configure_column("M2 p/s", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("M2 totaal", editable=False, type=["numericColumn"], cellStyle={"backgroundColor": "#e0e0e0"}, valueFormatter="x.toFixed(2)")
 gb.configure_column("SAP Prijs", editable=False, type=["numericColumn"], valueFormatter="x.toFixed(2)", cellStyle=cell_style_js)
-gb.configure_column("Source", hide=False)
+gb.configure_column("Source", hide=True)
 
 
 # Configuratie voor selectie, inclusief checkbox in de header voor "select all"
