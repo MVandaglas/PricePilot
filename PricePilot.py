@@ -45,9 +45,9 @@ response = requests.get(
 )
 
 if response.status_code == 200:
-    print("✅ Verbinding gelukt!")
+    st.write("✅ Verbinding gelukt!")
 else:
-    print(f"❌ Fout: {response.status_code}, {response.text}")
+    st.write(f"❌ Fout: {response.status_code}, {response.text}")
 
 
 
