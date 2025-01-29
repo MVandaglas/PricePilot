@@ -720,6 +720,7 @@ def determine_spacer(term, default_value="15 - alu"):
     print(f"⚠️ Geen geldige spacer gevonden, standaardwaarde gebruikt: {default_value}")  # Debug print
     return default_value
 
+print("🔍 Test: ", determine_spacer("4-18-4"))  # Verwachte output: "18 - alu"
 
 # Voorbeeld van hoe de waarde wordt opgeslagen in de state
 def update_spacer_state(user_input, app_state):
@@ -851,7 +852,6 @@ function onCellEditingStopped(params) {
 }
 ''')
 
-print("Hello World")  # Verwachte output: "18 - alu"
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
@@ -957,7 +957,7 @@ with tab1:
     if st.button("Update tabel"):
         update_tabel()
     
-    print("🔍 Test: ", determine_spacer("4-18-4"))  # Verwachte output: "18 - alu"
+ 
 
  
     # Update de DataFrame na elke wijziging
