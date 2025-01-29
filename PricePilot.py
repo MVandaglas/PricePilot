@@ -2110,8 +2110,8 @@ with tab3:
         beoordeling_tabel.rename(columns={
             "Artikelnaam": "Artikelnaam",
             "Artikelnummer": "Artikelnummer",
+            "original_article_number": "Jouw input"
             "fuzzy_match": "Gematcht op",
-            "original_article_number": "Input"
         }, inplace=True)
 
         # Configureren van de AgGrid-tabel
@@ -2126,7 +2126,7 @@ with tab3:
         )
         
         # Configureren van de overige kolommen
-        gb.configure_column("Artikelnummer", editable=False)  # Artikelnummer is niet direct bewerkbaar
+        gb.configure_column("Artikelnummer", editable=False, hide=True) 
         gb.configure_column("Gematcht op", editable=False)
         gb.configure_column("Input", editable=False)
         
@@ -2149,9 +2149,6 @@ with tab3:
             if row["Artikelnaam"] in article_mapping:
                 updated_rows.at[index, "Artikelnummer"] = article_mapping[row["Artikelnaam"]]
 
-        # Weergeven van de bijgewerkte tabel
-        st.write("Bijgewerkte beoordelingstabel:")
-        st.dataframe(updated_rows)
 
         # Knop voor accordering
         if st.button("Accordeer synoniem"):
