@@ -1363,7 +1363,8 @@ def handle_mapped_data_to_offer(df):
 
 def manual_column_mapping(df, detected_columns):
     """
-    Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen.
+    Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen
+    en zorgt ervoor dat de kolommen 'Aantal', 'Hoogte' en 'Breedte' numeriek worden gemaakt.
     """
     all_columns = list(df.columns)
     mapped_columns = detected_columns.copy()
@@ -1374,11 +1375,20 @@ def manual_column_mapping(df, detected_columns):
         mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'", 
             options=["Geen"] + all_columns,
-            index=all_columns.index(detected_columns[key]) if key in detected_columns else 0
+            index=all_columns.index(detected_columns[key]) if key in detected_columns and detected_columns[key] in all_columns else 0
         )
 
     # Filter de mapping om alleen daadwerkelijke selecties te behouden
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
+
+    # Converteer de kolommen 'Hoogte', 'Breedte' en 'Aantal' naar numeriek als ze zijn geselecteerd
+    for key in ["Hoogte", "Breedte", "Aantal"]:
+        if key in mapped_columns:
+            try:
+                df[mapped_columns[key]] = pd.to_numeric(df[mapped_columns[key]], errors="coerce").fillna(0)
+                st.write(f"Kolom '{mapped_columns[key]}' is geconverteerd naar numeriek voor '{key}'.")
+            except Exception as e:
+                st.error(f"Er is een fout opgetreden bij het converteren van '{mapped_columns[key]}' naar numeriek: {e}")
 
     return mapped_columns
 
