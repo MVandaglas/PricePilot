@@ -36,11 +36,11 @@ SP_USERNAME = st.secrets.get("SP_USERNAME")
 SP_PASSWORD = st.secrets.get("SP_PASSWORD")
 
 # Test authenticatie
-username = "je_gebruikersnaam@bedrijf.com"
-password = "je_wachtwoord"
+username = SP_USERNAME
+password = SP_PASSWORD
 
 response = requests.get(
-    "https://glassolutions.sharepoint.com/_api/web",
+    "https://glassolutionsbv.sharepoint.com/_api/web",
     auth=(username, password)
 )
 
