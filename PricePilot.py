@@ -1146,58 +1146,14 @@ def handle_gpt_chat():
 
             st.sidebar.write(f"  - **Extracted values** -> Aantal: {quantity}, Breedte: {width}, Hoogte: {height}, Artikelnummer: {article_number}")
 
-            if m2_match:
-                if m2_match.group(1):
-                    m2_total = int(m2_match.group(1))
-                    article_number = m2_match.group(2)
-                else:
-                    article_number = m2_match.group(3)
-                    m2_total = int(m2_match.group(4))
-                    
-                # Update `current_article_number` met het gevonden artikelnummer
-                current_article_number = synonym_dict.get(article_number, article_number)
-                
-                st.sidebar.write(f"  - **Gevonden M2-artikelnummer:** {current_article_number}")
+            # Als geen artikelnummer wordt gevonden, gebruik het vorige
+            if not article_number and current_article_number:
+                article_number = current_article_number
+                st.sidebar.write(f"  - **Geen nieuw artikelnummer gevonden, gebruik vorige:** {current_article_number}")
 
-                # Zoek artikelgegevens op
-                description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(current_article_number)
-                if description:
-                    recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                    verkoopprijs = None
-                    prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
-
-                    data.append([
-                        None,
-                        description,
-                        current_article_number,
-                        None,
-                        None,
-                        None,
-                        None,
-                        None,
-                        f"{m2_total:.2f}" if m2_total is not None else None,
-                        f"{recommended_price:.2f}" if recommended_price is not None else 0,
-                        None,
-                        None,
-                        min_price,
-                        max_price,
-                        verkoopprijs,
-                        prijs_backend,
-                        source,
-                        fuzzy_match,
-                        original_article_number
-                    ])
-                else:
-                    st.sidebar.warning(f"Artikelnummer '{current_article_number}' niet gevonden in de artikelentabel.")
-
-            elif quantity and (width or height):
-                # Gebruik `current_article_number` als geen artikelnummer gevonden is
-                if not article_number and current_article_number:
-                    article_number = current_article_number
-                    st.sidebar.write(f"  - **Geen nieuw artikelnummer gevonden, gebruik vorige:** {current_article_number}")
-                elif article_number:
-                    current_article_number = article_number  # Update voor toekomstige regels zonder artikelnummer
-                    st.sidebar.write(f"  - **Nieuw artikelnummer gevonden:** {article_number}")
+            # Controleer of de breedte en hoogte correct zijn ingelezen
+            if quantity and (width and height):  # Zorg ervoor dat beide waarden beschikbaar zijn
+                current_article_number = article_number  # Update het huidige artikelnummer
 
                 # Zoek artikelgegevens op
                 article_number = synonym_dict.get(article_number, article_number)
@@ -1215,7 +1171,7 @@ def handle_gpt_chat():
                     data.append([
                         None,
                         description,
-                        current_article_number if current_article_number is not None else article_number,
+                        article_number,
                         spacer,
                         width,
                         height,
@@ -1236,7 +1192,7 @@ def handle_gpt_chat():
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
             else:
-                st.sidebar.warning("Geen gegevens gevonden in de invoer.")
+                st.sidebar.warning(f"**Regel {i+1} genegeerd:** geen geldige breedte, hoogte of aantal gevonden.")
 
         # Als data is verzameld, voeg het toe aan de offerte-overzichtstabel
         if data:
@@ -1254,6 +1210,7 @@ def handle_gpt_chat():
         handle_file_upload(customer_file)
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
+
 
 
 
