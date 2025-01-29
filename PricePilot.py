@@ -2089,123 +2089,128 @@ article_mapping = article_table.set_index("Description")["Material"].to_dict()
 
 
 with tab3:
-    st.markdown("### Beoordeel output AI ✨")
-
-    # Controleer of offer_df beschikbaar is in sessiestatus
-    if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
-        # Filter regels met "Source" = "interpretatie" en "GPT"
-        interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"].isin(["GPT", "interpretatie"])]
-
-        # Houd alleen unieke rijen op basis van combinatie van kolommen
-        interpretatie_rows = interpretatie_rows.drop_duplicates(subset=["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"])
-    else:
-        interpretatie_rows = pd.DataFrame()  # Lege DataFrame als fallback
-
-    if interpretatie_rows.empty:
-        st.info("Er zijn geen AI regels om te beoordelen.")
-    else:
-        # Maak een tabel met de correcte input en gematchte waarden
-        beoordeling_tabel = interpretatie_rows.copy()
-        beoordeling_tabel = beoordeling_tabel[["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"]].fillna("")
-        beoordeling_tabel.rename(columns={
-            "Artikelnaam": "Artikelnaam",
-            "Artikelnummer": "Artikelnummer",
-            "original_article_number": "Jouw input",
-            "fuzzy_match": "Gematcht op"
-        }, inplace=True)
-
-        # Configureren van de AgGrid-tabel
-        gb = GridOptionsBuilder.from_dataframe(beoordeling_tabel)
-        
-        # Instellen van een dropdown voor de kolom "Artikelnaam"
-        gb.configure_column(
-            "Artikelnaam",
-            editable=True,
-            cellEditor="agSelectCellEditor",
-            cellEditorParams={"values": list(article_mapping.keys())},  # Voeg artikelnamen toe als opties
-        )
-        
-        # Configureren van de overige kolommen
-        gb.configure_column("Artikelnummer", editable=False, hide=True) 
-        gb.configure_column("Gematcht op", editable=False)
-        gb.configure_column("Jouw input", editable=False)
-        
-        gb.configure_selection(selection_mode="multiple", use_checkbox=True)
-        grid_options = gb.build()
-
-        # Render de AgGrid-tabel
-        response = AgGrid(
-            beoordeling_tabel,
-            gridOptions=grid_options,
-            update_mode=GridUpdateMode.VALUE_CHANGED,
-            fit_columns_on_grid_load=True,
-            theme="material"
-        )
-
-        # Verwerken van wijzigingen in de tabel
-        updated_rows = response["data"]  # Haal de bijgewerkte data op
-        for index, row in updated_rows.iterrows():
-            # Bijwerken van het artikelnummer op basis van de geselecteerde artikelnaam
-            if row["Artikelnaam"] in article_mapping:
-                updated_rows.at[index, "Artikelnummer"] = article_mapping[row["Artikelnaam"]]
-
-
-        # Knop voor accordering
-        if st.button("Accordeer synoniem"):
-            geselecteerde_rijen = response.get("selected_rows", pd.DataFrame())  # Haal geselecteerde rijen op als DataFrame
-
-            # Controleer of de DataFrame niet leeg is
-            if not geselecteerde_rijen.empty:
-                # Converteer de DataFrame naar een lijst van dictionaries
-                geselecteerde_rijen_lijst = geselecteerde_rijen.to_dict("records")
-                st.write("Geconverteerde geselecteerde rijen:", geselecteerde_rijen_lijst)  # Debug output
-
-                # Maak databaseverbinding
-                conn = create_connection()
-                cursor = conn.cursor()
-
-                try:
-                    # Zorg dat de tabel SynoniemenAI bestaat
-                    cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS SynoniemenAI (
-                        Synoniem TEXT PRIMARY KEY,
-                        Artikelnummer TEXT NOT NULL,
-                        Artikelnaam TEXT,
-                        Input TEXT,
-                        Bron TEXT,
-                        Datum TEXT DEFAULT CURRENT_TIMESTAMP
-                    );
-                    """)
-
-                    # Verwerk elke rij in de lijst
-                    for rij in geselecteerde_rijen_lijst:
-                        input_waarde = rij.get("Input", "")
-                        artikelnummer = rij.get("Artikelnummer", "")
-                        artikelnaam = rij.get("Artikelnaam", "")
-
-                        if input_waarde and artikelnummer:
-                            cursor.execute("""
-                            INSERT OR IGNORE INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
-                            VALUES (?, ?, ?, ?, ?);
-                            """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
-                            st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
-
-                    # Commit wijzigingen naar de database
-                    conn.commit()
-
-                except Exception as e:
-                    st.error(f"Fout bij het opslaan: {e}")
-
-                finally:
-                    # Sluit de verbinding
-                    conn.close()
-            else:
-                st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
-
-        # Sectie voor het uploaden van synoniemen via een Excel-bestand in een expander
+    # Layout met twee kolommen
+    col1, col2 = st.columns(2)
+    
+    # Linkerkolom: Tabel met synoniemen beoordelen
+    with col1:
+        st.markdown("### Beoordeel output AI ✨")
+    
+        # Controleer of offer_df beschikbaar is in sessiestatus
+        if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
+            # Filter regels met "Source" = "interpretatie" en "GPT"
+            interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"].isin(["GPT", "interpretatie"])]
+    
+            # Houd alleen unieke rijen op basis van combinatie van kolommen
+            interpretatie_rows = interpretatie_rows.drop_duplicates(subset=["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"])
+        else:
+            interpretatie_rows = pd.DataFrame()  # Lege DataFrame als fallback
+    
+        if interpretatie_rows.empty:
+            st.info("Er zijn geen AI regels om te beoordelen.")
+        else:
+            # Maak een tabel met de correcte input en gematchte waarden
+            beoordeling_tabel = interpretatie_rows.copy()
+            beoordeling_tabel = beoordeling_tabel[["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"]].fillna("")
+            beoordeling_tabel.rename(columns={
+                "Artikelnaam": "Artikelnaam",
+                "Artikelnummer": "Artikelnummer",
+                "original_article_number": "Jouw input",
+                "fuzzy_match": "Gematcht op"
+            }, inplace=True)
+    
+            # Configureren van de AgGrid-tabel
+            gb = GridOptionsBuilder.from_dataframe(beoordeling_tabel)
+            
+            # Instellen van een dropdown voor de kolom "Artikelnaam"
+            gb.configure_column(
+                "Artikelnaam",
+                editable=True,
+                cellEditor="agSelectCellEditor",
+                cellEditorParams={"values": list(article_mapping.keys())},  # Voeg artikelnamen toe als opties
+            )
+            
+            # Configureren van de overige kolommen
+            gb.configure_column("Artikelnummer", editable=False, hide=True)
+            gb.configure_column("Gematcht op", editable=False)
+            gb.configure_column("Jouw input", editable=False)
+            
+            gb.configure_selection(selection_mode="multiple", use_checkbox=True)
+            grid_options = gb.build()
+    
+            # Render de AgGrid-tabel
+            response = AgGrid(
+                beoordeling_tabel,
+                gridOptions=grid_options,
+                update_mode=GridUpdateMode.VALUE_CHANGED,
+                fit_columns_on_grid_load=True,
+                theme="material"
+            )
+    
+            # Verwerken van wijzigingen in de tabel
+            updated_rows = response["data"]  # Haal de bijgewerkte data op
+            for index, row in updated_rows.iterrows():
+                # Bijwerken van het artikelnummer op basis van de geselecteerde artikelnaam
+                if row["Artikelnaam"] in article_mapping:
+                    updated_rows.at[index, "Artikelnummer"] = article_mapping[row["Artikelnaam"]]
+    
+            # Knop voor accordering
+            if st.button("Accordeer synoniem"):
+                geselecteerde_rijen = response.get("selected_rows", pd.DataFrame())  # Haal geselecteerde rijen op als DataFrame
+    
+                # Controleer of de DataFrame niet leeg is
+                if not geselecteerde_rijen.empty:
+                    # Converteer de DataFrame naar een lijst van dictionaries
+                    geselecteerde_rijen_lijst = geselecteerde_rijen.to_dict("records")
+                    st.write("Geconverteerde geselecteerde rijen:", geselecteerde_rijen_lijst)  # Debug output
+    
+                    # Maak databaseverbinding
+                    conn = create_connection()
+                    cursor = conn.cursor()
+    
+                    try:
+                        # Zorg dat de tabel SynoniemenAI bestaat
+                        cursor.execute("""
+                        CREATE TABLE IF NOT EXISTS SynoniemenAI (
+                            Synoniem TEXT PRIMARY KEY,
+                            Artikelnummer TEXT NOT NULL,
+                            Artikelnaam TEXT,
+                            Input TEXT,
+                            Bron TEXT,
+                            Datum TEXT DEFAULT CURRENT_TIMESTAMP
+                        );
+                        """)
+    
+                        # Verwerk elke rij in de lijst
+                        for rij in geselecteerde_rijen_lijst:
+                            input_waarde = rij.get("Jouw input", "")
+                            artikelnummer = rij.get("Artikelnummer", "")
+                            artikelnaam = rij.get("Artikelnaam", "")
+    
+                            if input_waarde and artikelnummer:
+                                cursor.execute("""
+                                INSERT OR IGNORE INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
+                                VALUES (?, ?, ?, ?, ?);
+                                """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
+                                st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
+    
+                        # Commit wijzigingen naar de database
+                        conn.commit()
+    
+                    except Exception as e:
+                        st.error(f"Fout bij het opslaan: {e}")
+    
+                    finally:
+                        # Sluit de verbinding
+                        conn.close()
+                else:
+                    st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
+    
+    # Rechterkolom: Excel-file uploader in een expander
+    with col2:
         with st.expander("Upload Synoniemen via Excel ✨"):
             st.markdown("Upload een Excel-bestand met twee kolommen: **Artikelnummer** en **Synoniem**.")
-        
+    
             uploaded_file = st.file_uploader("Upload een Excel-bestand", type=["xlsx"])
             if uploaded_file is not None:
                 try:
@@ -2213,25 +2218,25 @@ with tab3:
                     df_synoniemen = pd.read_excel(uploaded_file)
                     st.write("Inhoud van geüploade Excel-bestand:")
                     st.dataframe(df_synoniemen)
-        
+    
                     # Controleer of het bestand de juiste kolommen heeft
                     if "Artikelnummer" in df_synoniemen.columns and "Synoniem" in df_synoniemen.columns:
                         conn = create_connection()
                         cursor = conn.cursor()
-        
+    
                         try:
                             # Verwerk elke rij in het bestand
                             for _, row in df_synoniemen.iterrows():
                                 artikelnummer = str(row["Artikelnummer"]).strip()
                                 synoniem = str(row["Synoniem"]).strip()
-        
+    
                                 # Voeg het synoniem toe aan de database
                                 cursor.execute("""
                                 INSERT OR IGNORE INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
                                 VALUES (?, ?, ?, ?, ?);
                                 """, (synoniem, artikelnummer, None, None, "Excel Upload"))
                                 st.success(f"Synoniem '{synoniem}' -> '{artikelnummer}' is toegevoegd!")
-        
+    
                             # Commit wijzigingen naar de database
                             conn.commit()
                         except Exception as e:
@@ -2242,7 +2247,6 @@ with tab3:
                         st.error("Het bestand moet de kolommen **'Artikelnummer'** en **'Synoniem'** bevatten.")
                 except Exception as e:
                     st.error(f"Fout bij het lezen van het bestand: {e}")
-        
 
 
 with tab4:
