@@ -701,13 +701,14 @@ def determine_spacer(term, default_value="15 - alu"):
     if term and isinstance(term, str):
         st.write(f"🟢 **Functie gestart met input:** {term}")
 
-        # Vind ALLE getallen in de term (niet alleen via "-")
-        values = list(map(int, re.findall(r'\d+', term)))
-        st.write(f"📌 **Gevonden getallen via regex:** {values}")
+        # Regex: Zoek alleen naar getallen tussen `-` en `-`
+        matches = re.findall(r'-(\d+)-', term)
+        values = list(map(int, matches))  # Converteer de gevonden matches naar integers
+        st.write(f"📌 **Gevonden getallen tussen '-':** {values}")
 
-        # Controleer of er minimaal twee getallen zijn
-        if len(values) >= 2:
-            spacer_value = values[1]  # Pak de TWEEDE waarde als spacer
+        # Controleer of er minimaal één getal is gevonden
+        if len(values) >= 1:
+            spacer_value = values[0]  # Pak de eerste gevonden waarde
             st.write(f"🔢 **Geselecteerde spacer:** {spacer_value}")
 
             # Controleer of de waarde binnen de juiste range ligt
