@@ -35,6 +35,20 @@ SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
 SP_PASSWORD = st.secrets.get("SP_PASSWORD")
 
+# Test authenticatie
+username = "je_gebruikersnaam@bedrijf.com"
+password = "je_wachtwoord"
+
+response = requests.get(
+    "https://glassolutions.sharepoint.com/_api/web",
+    auth=(username, password)
+)
+
+if response.status_code == 200:
+    print("✅ Verbinding gelukt!")
+else:
+    print(f"❌ Fout: {response.status_code}, {response.text}")
+
 
 # Headers voor de API-aanroep
 headers = {
