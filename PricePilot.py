@@ -851,7 +851,7 @@ function onCellEditingStopped(params) {
 }
 ''')
 
-print(determine_spacer("4-18-4"))  # Verwachte output: "18 - alu"
+print("Hello World")  # Verwachte output: "18 - alu"
 
 # Maak grid-opties aan voor AgGrid met gebruik van een "select all" checkbox in de header
 gb = GridOptionsBuilder.from_dataframe(st.session_state.offer_df)
