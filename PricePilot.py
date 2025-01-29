@@ -2040,16 +2040,6 @@ with tab1:
 
 
 
-
-
-    try:
-        windows_user = subprocess.check_output("whoami", shell=True).decode().strip()
-    except Exception:
-        windows_user = "Onbekende gebruiker"
-    
-    st.write(f"De echte Windows-gebruiker is: {windows_user}")
-
-# Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
 
     windows_user = getpass.getuser() if getpass.getuser() else "Onbekende gebruiker"
