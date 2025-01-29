@@ -1284,8 +1284,8 @@ def handle_email_to_offer(email_body):
 
                     data.append([
                         None, description, article_number, None, None, None, None,
-                        f"{recommended_price:.2f}" if recommended_price is not None else 0,
-                        None, f"{m2_total:.2f}", None, None, min_price, max_price, verkoopprijs, prijs_backend,
+                        None, f"{m2_total:.2f}",
+                        f"{recommended_price:.2f}" if recommended_price is not None else 0, None, None, min_price, max_price, verkoopprijs, prijs_backend,
                         source, fuzzy_match, original_article_number
                     ])
                 else:
