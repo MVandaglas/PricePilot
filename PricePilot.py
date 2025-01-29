@@ -28,6 +28,7 @@ import xlsxwriter
 import getpass
 import requests
 from requests.auth import HTTPBasicAuth
+from requests_ntlm import HttpNtlmAuth 
 
 
 
