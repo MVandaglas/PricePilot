@@ -2408,21 +2408,21 @@ with col2:
     }
 
     
-    # Ophalen van gegevens
-    if st.button("Haal gegevens op"):
-        response = session.get(list_items_url, headers=headers)
-        if response.status_code == 200:
-            st.success("✅ Gegevens succesvol opgehaald!")
-            data = response.json()
-            # Toon de gegevens in een tabel
-            if "d" in data and "results" in data["d"]:
-                items = data["d"]["results"]
-                for item in items:
-                    st.write(f"ID: {item['Id']}, Synoniem: {item.get('Synoniem', 'N/A')}")
-            else:
-                st.warning("⚠️ Geen gegevens gevonden.")
-        else:
-            st.error(f"❌ Fout bij ophalen van gegevens: {response.status_code}, {response.text}")
+    # # Ophalen van gegevens
+    # if st.button("Haal gegevens op"):
+    #     response = session.get(list_items_url, headers=headers)
+    #     if response.status_code == 200:
+    #         st.success("✅ Gegevens succesvol opgehaald!")
+    #         data = response.json()
+    #         # Toon de gegevens in een tabel
+    #         if "d" in data and "results" in data["d"]:
+    #             items = data["d"]["results"]
+    #             for item in items:
+    #                 st.write(f"ID: {item['Id']}, Synoniem: {item.get('Synoniem', 'N/A')}")
+    #         else:
+    #             st.warning("⚠️ Geen gegevens gevonden.")
+    #     else:
+    #         st.error(f"❌ Fout bij ophalen van gegevens: {response.status_code}, {response.text}")
     
 # with tab5:
 #     st.subheader("💬 Glasadvies Chatbot")
