@@ -2084,7 +2084,7 @@ with tab2:
 
 
 # Genereer een mapping van artikelnamen naar artikelnummers
-article_mapping = {article["Description"]: article["Material"] for article in article_table}
+article_mapping = article_table.set_index("Description")["Material"].to_dict()
 
 with tab3:
     st.markdown("### Beoordeel output AI ✨")
