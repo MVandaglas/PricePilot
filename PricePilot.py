@@ -2371,6 +2371,42 @@ with col2:
             file_name="Artikelen.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+with col2:
+    # Ophalen van gegevens
+    if st.button("Haal gegevens op"):
+        response = session.get(list_items_url, headers=headers)
+        if response.status_code == 200:
+            st.success("✅ Gegevens succesvol opgehaald!")
+            data = response.json()
+            # Toon de gegevens in een tabel
+            if "d" in data and "results" in data["d"]:
+                items = data["d"]["results"]
+                for item in items:
+                    st.write(f"ID: {item['Id']}, Synoniem: {item.get('Synoniem', 'N/A')}")
+            else:
+                st.warning("⚠️ Geen gegevens gevonden.")
+        else:
+            st.error(f"❌ Fout bij ophalen van gegevens: {response.status_code}, {response.text}")
+    
+    # Toevoegen van gegevens
+    st.subheader("Voeg een nieuw synoniem toe")
+    article_number = st.text_input("Artikelnummer")
+    synonym = st.text_input("Synoniem")
+    
+    if st.button("Voeg toe"):
+        if article_number and synonym:
+            payload = {
+                "__metadata": {"type": "SP.Data.SynoniemenDatabaseListItem"},
+                "Artikelnummer": article_number,
+                "Synoniem": synonym
+            }
+            response = session.post(add_item_url, headers=headers, data=json.dumps(payload))
+            if response.status_code == 201:
+                st.success("✅ Synoniem succesvol toegevoegd!")
+            else:
+                st.error(f"❌ Fout bij toevoegen van gegevens: {response.status_code}, {response.text}")
+        else:
+            st.warning("⚠️ Vul zowel Artikelnummer als Synoniem in.")
 
 
 # with tab5:
