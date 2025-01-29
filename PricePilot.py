@@ -26,7 +26,7 @@ import time
 from docx import Document
 import xlsxwriter
 import getpass
-import platform
+import subproces
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
@@ -2040,26 +2040,14 @@ with tab1:
 
 
 
-    # Methode 1: getpass.getuser()
-    windows_user = getpass.getuser() if getpass.getuser() else "Onbekende gebruiker"
-    st.write(f"De Windows-gebruiker is: {windows_user}")
+
+
+    try:
+        windows_user = subprocess.check_output("whoami", shell=True).decode().strip()
+    except Exception:
+        windows_user = "Onbekende gebruiker"
     
-    # Methode 2: os.getenv
-    windows_user2 = os.getenv("USERNAME") or os.getenv("USER") or "Onbekende gebruiker"
-    st.write(f"De Windows-gebruiker is: {windows_user2}")
-    
-    # Debugging van omgevingsvariabelen
-    st.write(f"os.getenv('USERNAME'): {os.getenv('USERNAME')}")
-    st.write(f"os.getenv('USER'): {os.getenv('USER')}")
-    st.write(f"getpass.getuser(): {getpass.getuser()}")
-    
-    # Methode 3: win32api (alleen op Windows)
-    if platform.system() == "Windows":
-        try:
-            import win32api
-            st.write(f"win32api.GetUserName(): {win32api.GetUserName()}")
-        except ImportError:
-            st.write("win32api niet geïnstalleerd.")
+    st.write(f"De echte Windows-gebruiker is: {windows_user}")
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
