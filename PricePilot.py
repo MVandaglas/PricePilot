@@ -2294,6 +2294,7 @@ with tab3:
                 else:
                     st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
     
+
 # Rechterkolom: Excel-file uploader in een expander
 with col2:
     st.markdown("### Upload synoniemen 🧍‍♂⬌🧍‍♂️")
@@ -2311,55 +2312,54 @@ with col2:
 
                 # Controleer of het bestand de juiste kolommen heeft
                 if "Artikelnummer" in df_synoniemen.columns and "Synoniem" in df_synoniemen.columns:
-                    # Maak een sessie aan voor SharePoint
-                    session = requests.Session()
-                    session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
-                    
-                    headers = {
-                        "Accept": "application/json;odata=verbose",
-                        "Content-Type": "application/json"
-                    }
-                    
-                    success_count = 0
-                    error_count = 0
-
-                    # Verwerk elke rij in het bestand
-                    for _, row in df_synoniemen.iterrows():
-                        artikelnummer = str(row["Artikelnummer"]).strip()
-                        synoniem = str(row["Synoniem"]).strip()
-                        gebruiker = SP_USERNAME
-                        datum = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+                    if st.button("Upload🔥"):
+                        # Maak een sessie aan voor SharePoint
+                        session = requests.Session()
+                        session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
                         
-                        # Data payload om naar SharePoint te sturen
-                        data = {
-                            "__metadata": {"type": "SP.Data.SynoniemenDatabaseListItem"},  # Vervang 'SynoniemenDatabaseListItem' door je juiste lijst type
-                            "Artikelnummer": artikelnummer,
-                            "Synoniem": synoniem,
-                            "Gebruiker": gebruiker,
-                            "Datum": datum
+                        headers = {
+                            "Accept": "application/json;odata=verbose",
+                            "Content-Type": "application/json"
                         }
                         
-                        try:
-                            # URL voor het toevoegen van items aan de lijst
-                            post_url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
-                            response = session.post(post_url, headers=headers, json=data)
+                        success_count = 0
+                        error_count = 0
+
+                        # Verwerk elke rij in het bestand
+                        for _, row in df_synoniemen.iterrows():
+                            artikelnummer = str(row["Artikelnummer"]).strip()
+                            synoniem = str(row["Synoniem"]).strip()
+                            gebruiker = SP_USERNAME
+                            datum = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
                             
-                            if response.status_code == 201:
-                                st.success(f"✅ Synoniem '{synoniem}' -> '{artikelnummer}' is toegevoegd!")
-                                success_count += 1
-                            else:
-                                st.error(f"❌ Fout bij toevoegen van '{synoniem}' -> '{artikelnummer}': {response.text}")
+                            # Data payload om naar SharePoint te sturen
+                            data = {
+                                "__metadata": {"type": "SP.Data.SynoniemenDatabaseListItem"},  # Vervang 'SynoniemenDatabaseListItem' door je juiste lijst type
+                                "Artikelnummer": artikelnummer,
+                                "Synoniem": synoniem,
+                                "Gebruiker": gebruiker,
+                                "Datum": datum
+                            }
+                            
+                            try:
+                                # URL voor het toevoegen van items aan de lijst
+                                post_url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
+                                response = session.post(post_url, headers=headers, json=data)
+                                
+                                if response.status_code == 201:
+                                    success_count += 1
+                                else:
+                                    error_count += 1
+                            except Exception as e:
                                 error_count += 1
-                        except Exception as e:
-                            st.error(f"❌ Fout bij het verwerken van synoniem '{synoniem}': {e}")
-                            error_count += 1
-                    
-                    st.write(f"✅ Succesvol toegevoegd: {success_count}")
-                    st.write(f"❌ Fouten bij toevoegen: {error_count}")
+                        
+                        st.write(f"✅ Succesvol toegevoegd: {success_count}")
+                        st.write(f"❌ Fouten bij toevoegen: {error_count}")
                 else:
                     st.error("Het bestand moet de kolommen **'Artikelnummer'** en **'Synoniem'** bevatten.")
             except Exception as e:
                 st.error(f"Fout bij het lezen van het bestand: {e}")
+
 
 with col2:
     def generate_excel():
