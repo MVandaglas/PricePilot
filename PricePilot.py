@@ -2045,6 +2045,9 @@ with tab1:
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
 
+    username = os.getlogin()
+    st.write(f"Windows-gebruikersnaam: {username}")
+
     # Verbinding maken met de database en offertes ophalen
     conn = create_connection()
     cursor = conn.cursor()
