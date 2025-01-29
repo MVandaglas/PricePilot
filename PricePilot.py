@@ -1500,7 +1500,7 @@ st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=False):
     # Bestand uploaden
-    uploaded_file = st.file_uploader("Upload een Outlook, PDF of Excel bestand", type=["msg", "pdf", "xlsx"])
+    uploaded_file = st.file_uploader("Upload een Outlook, PDF of Excel bestand", type=["msg", "pdf", "xlsx", "doc"])
     
     # Controleren of er een bestand is geüpload
     if uploaded_file:
