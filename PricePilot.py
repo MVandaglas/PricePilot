@@ -128,9 +128,9 @@ article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
 # Maak de tabs aan
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "🤖 Glasbot", "⚙️ Beheer"])
+tab1, tab2, tab3, tab4 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "⚙️ Beheer"])
 
-with tab5:
+with tab4:
     st.subheader("Beheer")
     
     # Wachtwoordbeveiliging
@@ -2306,9 +2306,9 @@ with col2:
         )
 
 
-with tab4:
-    st.subheader("💬 Glasadvies Chatbot")
-    st.info("Stel je vraag over glas en krijg advies van AI op basis van beschikbare bronnen.")
+# with tab5:
+#     st.subheader("💬 Glasadvies Chatbot")
+#     st.info("Stel je vraag over glas en krijg advies van AI op basis van beschikbare bronnen.")
 
     # # Functie om website content en subpagina's op te halen
     # def fetch_website_and_subpages(base_url, max_depth=0):
