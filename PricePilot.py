@@ -2363,14 +2363,14 @@ with col2:
     # Streamlit-interface
     st.markdown("### Download Excel voor synoniemen opvoer ⬇️")        
     
-    if st.button("Download Excel"):
-        excel_file = generate_excel()
-        st.download_button(
-            label="Download Excel",
-            data=excel_file,
-            file_name="Artikelen.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    # Maak het Excel-bestand beschikbaar voor download
+    excel_file = generate_excel()
+    st.download_button(
+        label="Download Excel",
+        data=excel_file,
+        file_name="Artikelen.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 with col2:
     # API-endpoints
     list_items_url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
