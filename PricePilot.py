@@ -1411,6 +1411,30 @@ def extract_latest_email(body):
     else:
         return body.strip()
 
+def extract_table_from_docx(doc):
+    """
+    Extract tables from a DOCX document and convert them to a DataFrame.
+    """
+    tables = doc.tables
+    all_dataframes = []
+
+    for table in tables:
+        # Verwerk elke rij in de tabel
+        rows = []
+        for row in table.rows:
+            cells = [cell.text.strip() for cell in row.cells]
+            rows.append(cells)
+
+        # Zet de tabel om naar een DataFrame
+        if rows:
+            df = pd.DataFrame(rows)
+
+            # Neem de eerste rij als header als er kolomnamen zijn
+            df.columns = df.iloc[0]  # Eerste rij als kolomnamen
+            df = df[1:]  # Verwijder de header-rij uit de data
+            all_dataframes.append(df)
+
+    return all_dataframes  # Return een lijst van DataFrames
 
 def process_attachment(attachment, attachment_name):
     """
@@ -1497,24 +1521,24 @@ def process_attachment(attachment, attachment_name):
         try:
             doc = Document(BytesIO(attachment))
             st.write(f"DOCX-bestand '{attachment_name}' ingelezen:")
-            
-            # Lees de tekst van alle paragrafen
+
+            # Lees de tekst van het bestand (indien nodig)
             paragraphs = [paragraph.text for paragraph in doc.paragraphs if paragraph.text.strip()]
-            content = "\n".join(paragraphs)
-
             st.write("Inhoud van het DOCX-bestand:")
-            st.text(content)
+            st.text("\n".join(paragraphs))
 
-            # Verwerk inhoud verder naar een DataFrame als relevant
-            detected_data = extract_relevant_data_from_docx(content)  # Schrijf een functie om relevante data te extraheren
-            if detected_data is not None:
-                st.write("Geëxtraheerde gegevens:")
-                st.dataframe(detected_data)
+            # Extract tabellen
+            tables = extract_table_from_docx(doc)
+            if tables:
+                for idx, table in enumerate(tables):
+                    st.write(f"Tabel {idx + 1}:")
+                    st.dataframe(table)
 
-                if st.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(detected_data)
+                if st.button("Verwerk tabel naar offerte"):
+                    # Gebruik alleen de eerste tabel voor verwerking als voorbeeld
+                    handle_mapped_data_to_offer(tables[0])
             else:
-                st.warning("Geen relevante gegevens gevonden in het DOCX-bestand.")
+                st.warning("Geen tabellen gevonden in het DOCX-bestand.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de DOCX-bijlage: {e}")
 
