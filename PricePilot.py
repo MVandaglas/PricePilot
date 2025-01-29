@@ -956,6 +956,8 @@ with tab1:
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
         update_tabel()
+    
+    print("🔍 Test: ", determine_spacer("4-18-4"))  # Verwachte output: "18 - alu"
 
  
     # Update de DataFrame na elke wijziging
