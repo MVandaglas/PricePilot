@@ -2044,6 +2044,9 @@ with tab1:
     st.write(f"De Windows-gebruiker is: {windows_user}")
     windows_user2 = os.getenv("USERNAME") or os.getenv("USER") or "Onbekende gebruiker"
     st.write(f"De Windows-gebruiker is: {windows_user2}")
+    st.write(f"os.getenv('USERNAME'): {os.getenv('USERNAME')}")
+    st.write(f"os.getenv('USER'): {os.getenv('USER')}")
+    st.write(f"getpass.getuser(): {getpass.getuser()}")
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
