@@ -1534,28 +1534,22 @@ def process_attachment(attachment, attachment_name):
                     st.write(f"Tabel {idx + 1}:")
                     st.dataframe(table)
 
-                    # Automatische detectie van kolommen (voorbeeld)
-                    detected_columns = {
-                        "Artikelnaam": "Omschrijving",  # Mogelijke standaardkolom
-                        "Aantal": "Aantal",
-                        "Breedte": "Breedte",
-                        "Hoogte": "Hoogte"
-                    }
+                    if st.button(f"Map kolommen voor Tabel {idx + 1}", key=f"map_table_{idx + 1}"):
+                        # Handmatige mapping uitvoeren
+                        mapped_columns = manual_column_mapping(table)
 
-                    # Laat gebruiker kolommen mappen
-                    mapped_columns = manual_column_mapping(table, detected_columns)
+                        # Verwerk alleen relevante kolommen
+                        if mapped_columns:
+                            relevant_data = table[[mapped_columns[key] for key in mapped_columns]]
+                            relevant_data.columns = mapped_columns.keys()
 
-                    if mapped_columns:
-                        relevant_data = table[[mapped_columns[key] for key in mapped_columns]]
-                        relevant_data.columns = mapped_columns.keys()
+                            st.write("Gemapte data:")
+                            st.dataframe(relevant_data)
 
-                        st.write("Gemapte data:")
-                        st.dataframe(relevant_data)
-
-                        if st.button(f"Verwerk tabel {idx + 1} naar offerte", key=f"process_table_{idx + 1}"):
-                            handle_mapped_data_to_offer(relevant_data)
-                    else:
-                        st.warning("Geen kolommen gemapped. Controleer de mapping.")
+                            if st.button("Verwerk tabel naar offerte", key=f"process_table_{idx + 1}"):
+                                handle_mapped_data_to_offer(relevant_data)
+                        else:
+                            st.warning("Geen kolommen gemapped. Controleer de mapping.")
             else:
                 st.warning("Geen tabellen gevonden in het DOCX-bestand.")
         except Exception as e:
