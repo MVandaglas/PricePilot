@@ -1262,9 +1262,27 @@ def handle_email_to_offer(email_body):
     if email_body:
         lines = email_body.splitlines()
         data = []
+        current_article_number = None  # Huidig artikelnummer onthouden
+        
         for line in lines:
-            # Verwerking voor specifieke m2-patronen
+            # Controleer of er een artikelnummer in de regel staat
+            detected_article_number = re.search(r'(\d+[./-]?\d*[-*#]\d+[./-]?\d*)', line)
+            if detected_article_number:
+                current_article_number = detected_article_number.group(0)  # Update huidig artikelnummer
+                st.sidebar.info(f"Nieuw artikelnummer gevonden: {current_article_number}")
+
+            # Probeer m²-formaat en artikelnummer te detecteren
             m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
+
+            # Extract details zoals aantal, breedte en hoogte
+            quantity, width, height, article_number = extract_all_details(line)
+
+            # Als er geen artikelnummer in deze regel staat, gebruik de vorige (indien beschikbaar)
+            if not article_number and current_article_number:
+                article_number = current_article_number
+                st.sidebar.info(f"Geen nieuw artikelnummer gevonden, gebruik vorige: {article_number}")
+
+            # Verwerking als er een m²-match is
             if m2_match:
                 if m2_match.group(1):
                     m2_total = int(m2_match.group(1))
@@ -1272,11 +1290,13 @@ def handle_email_to_offer(email_body):
                 else:
                     article_number = m2_match.group(3)
                     m2_total = int(m2_match.group(4))
-                
-                # Synoniem lookup en artikelgegevens ophalen
+
+                # Gebruik het synoniemenwoordenboek
                 article_number = synonym_dict.get(article_number, article_number)
+
+                # Zoek artikelgegevens op
                 description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
-                
+
                 if description:
                     recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
                     verkoopprijs = None
@@ -1285,38 +1305,42 @@ def handle_email_to_offer(email_body):
                     data.append([
                         None, description, article_number, None, None, None, None,
                         None, f"{m2_total:.2f}",
-                        f"{recommended_price:.2f}" if recommended_price is not None else 0, None, None, min_price, max_price, verkoopprijs, prijs_backend,
+                        f"{recommended_price:.2f}" if recommended_price is not None else 0,
+                        None, None, min_price, max_price, verkoopprijs, prijs_backend,
+                        source, fuzzy_match, original_article_number
+                    ])
+                else:
+                    st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
+
+            # Verwerking als er een aantal + breedte/hoogte is
+            elif quantity and (width and height):
+                # Zoek artikelgegevens op
+                article_number = synonym_dict.get(article_number, article_number)
+                description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
+
+                if description:
+                    spacer = determine_spacer(line)
+                    m2_per_piece = round(calculate_m2_per_piece(width, height), 2)
+                    m2_total = round(float(quantity) * m2_per_piece, 2)
+
+                    recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
+                    verkoopprijs = None
+                    prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
+
+                    data.append([
+                        None, description, article_number, spacer, width, height, quantity,
+                        f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
+                        f"{m2_total:.2f}" if m2_total is not None else None,
+                        f"{recommended_price:.2f}" if recommended_price is not None else 0,
+                        min_price, None, max_price, None, verkoopprijs, prijs_backend,
                         source, fuzzy_match, original_article_number
                     ])
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
             else:
-                # Alternatieve verwerking van regels
-                quantity, width, height, article_number = extract_all_details(line)
-                if article_number:
-                    article_number = synonym_dict.get(article_number, article_number)
-                    description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(article_number)
-                    
-                    if description:
-                        spacer = determine_spacer(line)
-                        recommended_price = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                        m2_per_piece = round(calculate_m2_per_piece(width, height), 2) if width and height else None
-                        m2_total = round(float(quantity) * m2_per_piece, 2) if m2_per_piece and quantity else None
+                st.sidebar.warning("Regel genegeerd: geen geldige breedte, hoogte of aantal gevonden.")
 
-                        verkoopprijs = None
-                        prijs_backend = verkoopprijs if verkoopprijs is not None else recommended_price
-
-                        data.append([
-                            None, description, article_number, spacer, width, height, quantity,
-                            f"{m2_per_piece:.2f}" if m2_per_piece is not None else None,
-                            f"{m2_total:.2f}" if m2_total is not None else None,
-                            f"{recommended_price:.2f}" if recommended_price is not None else 0,
-                            min_price, None, max_price, None, verkoopprijs, prijs_backend,
-                            source, fuzzy_match, original_article_number
-                        ])
-                    else:
-                        st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
-
+        # Als data is verzameld, voeg het toe aan de offerte-overzichtstabel
         if data:
             new_df = pd.DataFrame(data, columns=[
                 "Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", 
