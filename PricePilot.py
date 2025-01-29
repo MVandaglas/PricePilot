@@ -2042,6 +2042,8 @@ with tab1:
 
     windows_user = getpass.getuser() if getpass.getuser() else "Onbekende gebruiker"
     st.write(f"De Windows-gebruiker is: {windows_user}")
+    windows_user2 = os.getenv("USERNAME") or os.getenv("USER") or "Onbekende gebruiker"
+    st.write(f"De Windows-gebruiker is: {windows_user2}")
 
 # Toon geladen offerte in de tab "Opgeslagen Offertes"
 with tab2:
