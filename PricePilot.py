@@ -29,14 +29,21 @@ import getpass
 import requests
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth 
+import base64
 
 
 
 # SHAREPOINT CREDENTIALS
+SP_PASSWORD1 = st.secrets["SP_PASSWORD1"]
+SP_PASSWORD2 = st.secrets["SP_PASSWORD2"]
+SP_PASSWORD3 = st.secrets["SP_PASSWORD3"]
+
 SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
-SP_PASSWORD = st.secrets["SP_PASSWORD1"] + st.secrets["SP_PASSWORD2"] + st.secrets["SP_PASSWORD3"]
+SP_PASSWORD = SP_PASSWORD1 + SP_PASSWORD2 + SP_PASSWORD3
+
+
 
 # API-endpoint URL
 url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
