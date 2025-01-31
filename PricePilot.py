@@ -36,27 +36,27 @@ from office365.sharepoint.client_context import ClientContext
 
 
 
-# SharePoint-gegevens
-SP_SITE = st.secrets.get("SP_SITE")
-client_id = st.secrets.get("SP_CLIENT_ID")
-client_secret = st.secrets.get("SP_CLIENT_SECRET")
+# # SharePoint-gegevens
+# SP_SITE = st.secrets.get("SP_SITE")
+# client_id = st.secrets.get("SP_CLIENT_ID")
+# client_secret = st.secrets.get("SP_CLIENT_SECRET")
 
 
 
-# Authenticatie
-credentials = ClientCredential(client_id, client_secret)
-ctx = ClientContext(SP_SITE).with_credentials(credentials)
+# # Authenticatie
+# credentials = ClientCredential(client_id, client_secret)
+# ctx = ClientContext(SP_SITE).with_credentials(credentials)
 
-# Ophalen van de lijst
-list_title = st.secrets.get("SP_LIST")
-list_obj = ctx.web.lists.get_by_title(list_title)
-items = list_obj.items
-ctx.load(items)
-ctx.execute_query()
+# # Ophalen van de lijst
+# list_title = st.secrets.get("SP_LIST")
+# list_obj = ctx.web.lists.get_by_title(list_title)
+# items = list_obj.items
+# ctx.load(items)
+# ctx.execute_query()
 
-# Toon de opgehaalde items
-for item in items:
-    print(f"Title: {item.properties['Title']}")
+# # Toon de opgehaalde items
+# for item in items:
+#     print(f"Title: {item.properties['Title']}")
 
 
 
