@@ -44,6 +44,8 @@ st.text(SP_PASSWORD)
 # API-endpoint URL
 url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
 
+st.write(url)
+
 # Authenticeer met NTLM (gebruikersnaam en wachtwoord)
 session = requests.Session()
 session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
