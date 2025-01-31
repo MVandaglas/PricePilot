@@ -41,9 +41,11 @@ SP_SITE = st.secrets.get("SP_SITE")
 client_id = st.secrets.get("SP_CLIENT_ID")
 client_secret = st.secrets.get("SP_CLIENT_SECRET")
 
+
+
 # Authenticatie
 credentials = ClientCredential(client_id, client_secret)
-ctx = ClientContext(site_url).with_credentials(credentials)
+ctx = ClientContext(SP_SITE).with_credentials(credentials)
 
 # Ophalen van de lijst
 list_title = st.secrets.get("SP_LIST")
