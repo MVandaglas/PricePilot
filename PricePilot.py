@@ -38,7 +38,7 @@ import base64
 SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
-SP_PASSWORD = st.secrets.get("SP_PASSWORD")
+SP_PASSWORD = st.secrets.get("SP_PASSWORD_PART")+"$t@nL@$P@t@t@$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0."
 
 # API-endpoint URL
 url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
