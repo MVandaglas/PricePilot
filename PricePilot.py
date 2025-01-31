@@ -1175,7 +1175,6 @@ def handle_gpt_chat():
             detected_article_number = re.search(r'(\d+[./-]?\d*[-*#]\d+[./-]?\d*)', line)
             if detected_article_number:
                 current_article_number = detected_article_number.group(0)  # Update huidig artikelnummer
-                st.sidebar.info(f"Nieuw artikelnummer gevonden: {current_article_number}")
 
             # Probeer m2-formaat en artikelnummer te detecteren
             m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
