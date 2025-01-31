@@ -35,7 +35,7 @@ import base64
 
 
 # Haal wachtwoordlijst op
-password_parts = str(st.secrets["SP_PASSWORD_FINAL"])
+password_parts = st.secrets["SP_PASSWORD_FINAL"]
 # Debug: Toon elk deel afzonderlijk
 for i, part in enumerate(password_parts):
     st.write(f"Deel {i+1}: {part}")
