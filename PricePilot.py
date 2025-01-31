@@ -33,8 +33,15 @@ import base64
 
 
 
-# SHAREPOINT CREDENTIALS
-SP_PASSWORD = "".join(st.secrets["SP_PASSWORD_FINAL"])
+
+# Haal wachtwoordlijst op
+password_parts = st.secrets["SP_PASSWORD_FINAL"]
+# Debug: Toon elk deel afzonderlijk
+for i, part in enumerate(password_parts):
+    st.write(f"Deel {i+1}: {part}")
+    # Concatenate en toon lengte van het uiteindelijke wachtwoord
+SP_PASSWORD = "".join(password_parts)
+st.write(f"SP_PASSWORD lengte: {len(SP_PASSWORD)} tekens")
 
 SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
