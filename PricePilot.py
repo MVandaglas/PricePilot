@@ -66,25 +66,23 @@ else:
 st.write(SP_SITE, SP_LIST, SP_USERNAME, SP_PASSWORD)
 
 # Gedefinieerde delen
-part1 = "M3Gu$$$t@nL@"
-part2 = "$$$P@t@t@"
-part3 = "$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0."
+part1 = st.text("M3Gu$$$t@nL@")
+part2 = st.text("$$$P@t@t@")
+part3 = st.text("$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0.")
 
 # Debug: Toon elk deel afzonderlijk met repr()
-st.write(f"Part 1: {repr(part1)}")
-st.write(f"Part 2: {repr(part2)}")
-st.write(f"Part 3: {repr(part3)}")
+st.text(f"Part 1: {repr(part1)}")
+st.text(f"Part 2: {repr(part2)}")
+st.text(f"Part 3: {repr(part3)}")
 
 # Combineer de delen
 combined = part1 + part2 + part3
 
-st.text("$test$$")
-st.text("/$test/$/$")
 
 # Debug: Toon het gecombineerde resultaat
 st.write(f"Combined (repr): {repr(combined)}")
 st.write(f"Combined (normal): {combined}")
-st.write("M3Gu$t@nL@$P@t@t@$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0.")
+st.text("M3Gu$t@nL@$P@t@t@$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0.")
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
