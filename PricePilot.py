@@ -36,18 +36,28 @@ import base64
 
 # Haal wachtwoordlijst op
 password_parts = st.secrets["SP_PASSWORD_FINAL"]
+
+# Controleer of password_parts correct als lijst wordt gelezen
+if isinstance(password_parts, str):
+    # Als het een string is, splits deze handmatig op komma's
+    password_parts = password_parts.strip("[]").replace('"', '').split(", ")
+    st.write("Password_parts handmatig gesplitst:", password_parts)
+
 # Debug: Toon elk deel afzonderlijk
 for i, part in enumerate(password_parts):
-    st.write(f"Deel {i+1}: {part}")
-    # Concatenate en toon lengte van het uiteindelijke wachtwoord
+    st.write(f"Deel {i+1}: {repr(part)}")  # Gebruik repr om speciale tekens te debuggen
+
+# Concatenate de wachtwoorddelen
 SP_PASSWORD = "".join(password_parts)
+
+# Debug: Toon het volledige wachtwoord en de lengte (toon wachtwoord met voorzichtigheid)
 st.write(f"SP_PASSWORD lengte: {len(SP_PASSWORD)} tekens")
 st.write(SP_PASSWORD)
 
+# Andere SharePoint-credentials ophalen
 SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
-
 
 
 
