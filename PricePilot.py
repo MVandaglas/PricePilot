@@ -1186,7 +1186,7 @@ def handle_gpt_chat():
             # Als er geen artikelnummer in deze regel staat, gebruik de vorige (indien beschikbaar)
             if not article_number and current_article_number:
                 article_number = current_article_number
-                st.sidebar.info(f"Geen nieuw artikelnummer gevonden, gebruik vorige: {article_number}")
+
 
             # Verwerking als er een m2-match is
             if m2_match:
@@ -1271,7 +1271,7 @@ def handle_gpt_chat():
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
             else:
-                st.sidebar.warning("Regel genegeerd: geen geldige breedte, hoogte of aantal gevonden.")
+                pass
 
         # Als data is verzameld, voeg het toe aan de offerte-overzichtstabel
         if data:
