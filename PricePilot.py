@@ -41,6 +41,8 @@ SP_SITE = st.secrets.get("SP_SITE")
 client_id = st.secrets.get("SP_CLIENT_ID")
 client_secret = st.secrets.get("SP_CLIENT_SECRET")
 SP_LIST=st.secrets.get("SP_LIST")
+SP_USERNAME=st.secrets.get("SP_USERNAME")
+SP_PASSWORD=st.secrets.get("SP_PASSWORD")
 
 
 # # Authenticatie
