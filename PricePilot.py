@@ -55,7 +55,7 @@ SP_PASSWORD = "".join(cleaned_parts)
 
 # Debug: Toon het volledige wachtwoord en de lengte
 st.write(f"SP_PASSWORD lengte: {len(SP_PASSWORD)} tekens")
-st.write(SP_PASSWORD)
+st.write(SP_PASSWORD_FINAL)
 
 # Andere SharePoint-credentials ophalen
 SP_SITE = st.secrets.get("SP_SITE")
