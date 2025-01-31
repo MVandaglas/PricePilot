@@ -77,6 +77,9 @@ st.write(f"Part 3: {repr(part3)}")
 # Combineer de delen
 combined = part1 + part2 + part3
 
+st.write("$test$$")
+st.write("/$test/$/$")
+
 # Debug: Toon het gecombineerde resultaat
 st.write(f"Combined (repr): {repr(combined)}")
 st.write(f"Combined (normal): {combined}")
