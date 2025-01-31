@@ -42,7 +42,7 @@ for i, part in enumerate(password_parts):
     # Concatenate en toon lengte van het uiteindelijke wachtwoord
 SP_PASSWORD = "".join(password_parts)
 st.write(f"SP_PASSWORD lengte: {len(SP_PASSWORD)} tekens")
-st.write(SP_PASSWORD)
+
 
 SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
