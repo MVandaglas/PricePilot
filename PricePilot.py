@@ -39,18 +39,15 @@ SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
 SP_PASSWORD = "M3Gu$t@nL@$P@t@t@$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0."
-st.text(SP_PASSWORD)
 
 # API-endpoint URL
 url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
-
-st.write(url)
 
 # Authenticeer met NTLM (gebruikersnaam en wachtwoord)
 session = requests.Session()
 session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
 
-# Headers instellen
+# Headers instellen voor JSON-formaat
 headers = {
     "Accept": "application/json;odata=verbose"
 }
@@ -58,9 +55,11 @@ headers = {
 # Voer de API-aanroep uit
 response = session.get(url, headers=headers)
 
+# Controleer of de API-aanroep succesvol was
 if response.status_code == 200:
     st.success("✅ Verbonden met SharePoint!")
-    st.json(response.json())  # Toon de inhoud van de lijst
+    data = response.json()  # Converteer de response naar JSON
+    st.json(data)  # Toon de JSON-gegevens in Streamlit
 else:
     st.error(f"❌ Fout: {response.status_code}, {response.text}")
 
