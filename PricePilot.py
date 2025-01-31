@@ -34,14 +34,12 @@ import base64
 
 
 # SHAREPOINT CREDENTIALS
-SP_PASSWORD1 = st.secrets["SP_PASSWORD1"]
-SP_PASSWORD2 = st.secrets["SP_PASSWORD2"]
-SP_PASSWORD3 = st.secrets["SP_PASSWORD3"]
+SP_PASSWORD_FINAL = "".join(st.secrets["SP_PASSWORD"])
 
 SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
-SP_PASSWORD = SP_PASSWORD1 + SP_PASSWORD2 + SP_PASSWORD3
+
 
 
 
@@ -50,7 +48,7 @@ url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
 
 # Authenticeer met NTLM (gebruikersnaam en wachtwoord)
 session = requests.Session()
-session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
+session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD_FINAL)
 
 # Headers instellen
 headers = {
@@ -66,7 +64,7 @@ if response.status_code == 200:
 else:
     st.error(f"❌ Fout: {response.status_code}, {response.text}")
 
-st.write(SP_SITE, SP_LIST, SP_USERNAME, SP_PASSWORD)
+st.write(SP_SITE, SP_LIST, SP_USERNAME, SP_PASSWORD_FINAL)
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
