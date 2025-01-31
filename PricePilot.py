@@ -43,14 +43,17 @@ if isinstance(password_parts, str):
     password_parts = password_parts.strip("[]").replace('"', '').split(", ")
     st.write("Password_parts handmatig gesplitst:", password_parts)
 
-# Debug: Toon elk deel afzonderlijk
-for i, part in enumerate(password_parts):
-    st.write(f"Deel {i+1}: {repr(part)}")  # Gebruik repr om speciale tekens te debuggen
+# Strip onzichtbare tekens zoals nieuwe regels en whitespaces
+cleaned_parts = [part.strip() for part in password_parts]
 
-# Concatenate de wachtwoorddelen
-SP_PASSWORD = "".join(password_parts)
+# Debug: Toon elk deel na het strippen
+for i, part in enumerate(cleaned_parts):
+    st.write(f"Deel {i+1} (gecorrigeerd): {repr(part)}")
 
-# Debug: Toon het volledige wachtwoord en de lengte (toon wachtwoord met voorzichtigheid)
+# Concatenate de opgeschoonde wachtwoorddelen
+SP_PASSWORD = "".join(cleaned_parts)
+
+# Debug: Toon het volledige wachtwoord en de lengte
 st.write(f"SP_PASSWORD lengte: {len(SP_PASSWORD)} tekens")
 st.write(SP_PASSWORD)
 
