@@ -36,7 +36,7 @@ from requests_ntlm import HttpNtlmAuth
 SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
-SP_PASSWORD = str(st.secrets.get("SP_PASSWORD"))
+SP_PASSWORD = st.secrets["SP_PASSWORD1"] + st.secrets["SP_PASSWORD2"] + st.secrets["SP_PASSWORD3"]
 
 # API-endpoint URL
 url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
