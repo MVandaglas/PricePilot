@@ -30,42 +30,31 @@ import requests
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth 
 import base64
+from office365.runtime.auth.client_credential import ClientCredential
+from office365.sharepoint.client_context import ClientContext
 
 
 
 
-# Andere SharePoint-credentials ophalen
+# SharePoint-gegevens
 SP_SITE = st.secrets.get("SP_SITE")
-SP_LIST = st.secrets.get("SP_LIST")
-SP_USERNAME = st.secrets.get("SP_USERNAME")
-SP_PASSWORD = st.secrets.get("SP_PASSWORD")
+client_id = st.secrets.get("SP_CLIENT_ID")
+client_secret = st.secrets.get("SP_CLIENT_SECRET")
 
+# Authenticatie
+credentials = ClientCredential(client_id, client_secret)
+ctx = ClientContext(site_url).with_credentials(credentials)
 
+# Ophalen van de lijst
+list_title = st.secrets.get("SP_LIST")
+list_obj = ctx.web.lists.get_by_title(list_title)
+items = list_obj.items
+ctx.load(items)
+ctx.execute_query()
 
-# API-endpoint URL
-url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
-
-# Authenticeer met NTLM (gebruikersnaam en wachtwoord)
-session = requests.Session()
-session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
-
-# Headers instellen voor JSON-formaat
-headers = {
-    "Accept": "application/json;odata=verbose"
-}
-
-# Voer de API-aanroep uit
-response = session.get(url, headers=headers)
-
-# Controleer of de API-aanroep succesvol was
-if response.status_code == 200:
-    st.success("✅ Verbonden met SharePoint!")
-    data = response.json()  # Converteer de response naar JSON
-    st.json(data)  # Toon de JSON-gegevens in Streamlit
-else:
-    st.error(f"❌ Fout: {response.status_code}, {response.text}")
-
-
+# Toon de opgehaalde items
+for item in items:
+    print(f"Title: {item.properties['Title']}")
 
 
 
