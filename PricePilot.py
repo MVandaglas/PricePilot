@@ -37,9 +37,9 @@ from office365.sharepoint.client_context import ClientContext
 
 
 # # SharePoint-gegevens
-# SP_SITE = st.secrets.get("SP_SITE")
-# client_id = st.secrets.get("SP_CLIENT_ID")
-# client_secret = st.secrets.get("SP_CLIENT_SECRET")
+SP_SITE = st.secrets.get("SP_SITE")
+client_id = st.secrets.get("SP_CLIENT_ID")
+client_secret = st.secrets.get("SP_CLIENT_SECRET")
 
 
 
