@@ -40,6 +40,8 @@ SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
 SP_PASSWORD = "M3Gu$t@nL@$P@t@t@$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0."
 
+st.text(f"SP_PASSWORD: {repr(SP_PASSWORD)}")
+
 # API-endpoint URL
 url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
 
