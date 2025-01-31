@@ -51,11 +51,11 @@ for i, part in enumerate(cleaned_parts):
     st.write(f"Deel {i+1} (gecorrigeerd): {repr(part)}")
 
 # Concatenate de opgeschoonde wachtwoorddelen
-SP_PASSWORD = "".join(cleaned_parts)
+SP_PASSWORD = password_parts
 
 # Debug: Toon het volledige wachtwoord en de lengte
 st.write(f"SP_PASSWORD lengte: {len(SP_PASSWORD)} tekens")
-st.write(SP_PASSWORD_FINAL)
+st.write(SP_PASSWORD)
 
 # Andere SharePoint-credentials ophalen
 SP_SITE = st.secrets.get("SP_SITE")
