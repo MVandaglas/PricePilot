@@ -65,7 +65,7 @@ else:
     st.error(f"❌ Fout: {response.status_code}, {response.text}")
 
 # Debug: Toon alle parameters
-st.text(SP_SITE, SP_LIST, SP_USERNAME, SP_PASSWORD)
+st.write(SP_SITE, SP_LIST, SP_USERNAME, SP_PASSWORD)
 
 
 
