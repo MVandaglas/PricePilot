@@ -64,6 +64,12 @@ else:
 # Debug: Toon alle parameters
 st.write(SP_SITE, SP_LIST, SP_USERNAME, SP_PASSWORD)
 
+part1 = "M3Gu$t@nL@"
+part2 = "$P@t@t@"
+part3 = "$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0."
+
+st.write(part1 + part2 + part3)
+
 st.write("M3Gu$t@nL@$P@t@t@$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0.")
 
 # Importeer prijsscherpte
