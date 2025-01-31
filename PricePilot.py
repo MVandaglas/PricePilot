@@ -64,6 +64,8 @@ else:
 # Debug: Toon alle parameters
 st.write(SP_SITE, SP_LIST, SP_USERNAME, SP_PASSWORD)
 
+st.write("M3Gu$t@nL@$P@t@t@$Fr1t@sY3lPulp0@l@Br@saS13mpr3YCu@nd03st3b13nP@s@d0.")
+
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
     # Initialiseer de matrix met standaardwaarden
