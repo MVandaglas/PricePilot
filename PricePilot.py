@@ -79,7 +79,7 @@ st.write(f"Part 3: {repr(part3)}")
 combined = part1 + part2 + part3
 
 st.text("$test$$")
-st.text("/"$"test/"$"/$")
+st.text("/$test/$/$")
 
 # Debug: Toon het gecombineerde resultaat
 st.write(f"Combined (repr): {repr(combined)}")
