@@ -33,7 +33,6 @@ import base64
 
 
 
-
 # Haal wachtwoordlijst op
 password_parts = st.secrets["SP_PASSWORD_FINAL"]
 
@@ -43,12 +42,8 @@ if isinstance(password_parts, str):
     password_parts = password_parts.strip("[]").replace('"', '').split(", ")
     st.write("Password_parts handmatig gesplitst:", password_parts)
 
-# Strip onzichtbare tekens zoals nieuwe regels en whitespaces
-cleaned_parts = [part.strip() for part in password_parts]
-
-
 # Concatenate de opgeschoonde wachtwoorddelen
-SP_PASSWORD = password_parts
+SP_PASSWORD = "".join(password_parts)  # Combineer lijst naar string
 
 # Debug: Toon het volledige wachtwoord en de lengte
 st.write(f"SP_PASSWORD lengte: {len(SP_PASSWORD)} tekens")
@@ -58,8 +53,6 @@ st.write(SP_PASSWORD)
 SP_SITE = st.secrets.get("SP_SITE")
 SP_LIST = st.secrets.get("SP_LIST")
 SP_USERNAME = st.secrets.get("SP_USERNAME")
-
-
 
 # API-endpoint URL
 url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
@@ -82,6 +75,7 @@ if response.status_code == 200:
 else:
     st.error(f"❌ Fout: {response.status_code}, {response.text}")
 
+# Debug: Toon alle parameters
 st.write(SP_SITE, SP_LIST, SP_USERNAME, SP_PASSWORD)
 
 # Importeer prijsscherpte
