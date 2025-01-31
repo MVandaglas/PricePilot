@@ -46,9 +46,6 @@ if isinstance(password_parts, str):
 # Strip onzichtbare tekens zoals nieuwe regels en whitespaces
 cleaned_parts = [part.strip() for part in password_parts]
 
-# Debug: Toon elk deel na het strippen
-for i, part in enumerate(cleaned_parts):
-    st.write(f"Deel {i+1} (gecorrigeerd): {repr(part)}")
 
 # Concatenate de opgeschoonde wachtwoorddelen
 SP_PASSWORD = password_parts
