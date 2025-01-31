@@ -59,7 +59,7 @@ if response.status_code == 200:
 else:
     st.error(f"❌ Fout: {response.status_code}, {response.text}")
 
-
+st.write(SP_SITE, SP_LIST)
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
