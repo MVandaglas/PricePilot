@@ -72,35 +72,35 @@ def get_access_token():
     app = msal.ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
     token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
 
-    print(f"Token Response: {token_response}")  # Print volledige respons
+    st.write(f"Token Response: {token_response}")  # Print volledige respons
 
     if "access_token" in token_response:
-        print("✅ Token succesvol ontvangen!")
+        st.write("✅ Token succesvol ontvangen!")
         return token_response["access_token"]
     else:
-        print(f"❌ Fout bij token ophalen: {token_response}")
+        st.write(f"❌ Fout bij token ophalen: {token_response}")
         return None
 
 def get_file_from_sharepoint(file_path):
     access_token = get_access_token()
     if not access_token:
-        print("❌ Geen toegangstoken beschikbaar.")
+        st.write("❌ Geen toegangstoken beschikbaar.")
         return None
 
     headers = {"Authorization": f"Bearer {access_token}"}
     url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drive/root:/{file_path}:/content"
 
-    print(f"🔍 Ophalen van bestand vanaf: {url}")
+    st.write(f"🔍 Ophalen van bestand vanaf: {url}")
 
     response = requests.get(url, headers=headers)
-    print(f"HTTP Status Code: {response.status_code}")
-    print(f"Response Text: {response.text}")
+    st.write(f"HTTP Status Code: {response.status_code}")
+    st.write(f"Response Text: {response.text}")
 
     if response.status_code == 200:
-        print("✅ Bestand succesvol opgehaald!")
+        st.write("✅ Bestand succesvol opgehaald!")
         return response.content
     else:
-        print(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
+        st.write(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
         return None
 
 
