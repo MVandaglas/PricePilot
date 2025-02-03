@@ -29,59 +29,36 @@ import getpass
 import requests
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth 
-import base64
-from office365.runtime.auth.client_credential import ClientCredential
-from office365.sharepoint.client_context import ClientContext
-import msal
 
 
 
-
-# # SharePoint-gegevens
+# SHAREPOINT CREDENTIALS
 SP_SITE = st.secrets.get("SP_SITE")
+SP_LIST = st.secrets.get("SP_LIST")
+SP_USERNAME = st.secrets.get("SP_USERNAME")
+SP_PASSWORD = st.secrets.get("SP_PASSWORD")
 
-SP_LIST=st.secrets.get("SP_LIST")
-SP_USERNAME=st.secrets.get("SP_USERNAME")
-SP_PASSWORD=st.secrets.get("SP_PASSWORD")
+# API-endpoint URL
+url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
 
-TENANT_ID = st.secrets.get("TENANT_ID")
-CLIENT_ID = st.secrets.get("SP_CLIENTID")
-CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
-SP_CSV_TEST=st.secrets.get("SP_CSV_TEST")
+# Authenticeer met NTLM (gebruikersnaam en wachtwoord)
+session = requests.Session()
+session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
 
+# Headers instellen
+headers = {
+    "Accept": "application/json;odata=verbose"
+}
 
-st.write("🔍 Start authenticatie...")
+# Voer de API-aanroep uit
+response = session.get(url, headers=headers)
 
-# Authenticatie instellen
-try:
-    credentials = ClientCredential(CLIENT_ID, CLIENT_SECRET)
-    ctx = ClientContext(SP_SITE).with_credentials(credentials)
-    # Probeer de titel van de site op te halen als test
-    web = ctx.web
-    ctx.load(web)
-    ctx.execute_query()
-    st.write(f"✅ Verbinding succesvol! Site-titel: {web.properties['Title']}")
-except Exception as e:
-    st.write(f"❌ Fout bij verbinden met SharePoint: {e}")
-    exit()
+if response.status_code == 200:
+    st.success("✅ Verbonden met SharePoint!")
+    st.json(response.json())  # Toon de inhoud van de lijst
+else:
+    st.error(f"❌ Fout: {response.status_code}, {response.text}")
 
-# Bestand downloaden
-try:
-    local_file = "./TestSynoniem.csv"
-    st.write(f"⬇️ Downloaden bestand van: {file_path}")
-    response = ctx.web.get_file_by_server_relative_url(file_path).download(local_file).execute_query()
-    st.write(f"✅ Bestand succesvol gedownload: {local_file}")
-except Exception as e:
-    st.write(f"❌ Fout bij downloaden van bestand: {e}")
-    exit()
-
-# Bestand lezen
-try:
-    df = pd.read_csv(local_file)
-    st.write(f"📄 Bestand succesvol geladen. Voorbeeld van data:")
-    st.write(df.head())  # Toon de eerste paar regels van de CSV
-except Exception as e:
-    st.write(f"❌ Fout bij lezen van bestand: {e}")
 
 
 # Importeer prijsscherpte
@@ -1197,6 +1174,7 @@ def handle_gpt_chat():
             detected_article_number = re.search(r'(\d+[./-]?\d*[-*#]\d+[./-]?\d*)', line)
             if detected_article_number:
                 current_article_number = detected_article_number.group(0)  # Update huidig artikelnummer
+                st.sidebar.info(f"Nieuw artikelnummer gevonden: {current_article_number}")
 
             # Probeer m2-formaat en artikelnummer te detecteren
             m2_match = re.search(r'(\d+)\s*m2.*?(\d+-\d+)|^(\d+-\d+).*?(\d+)\s*m2', line, re.IGNORECASE)
@@ -1207,7 +1185,7 @@ def handle_gpt_chat():
             # Als er geen artikelnummer in deze regel staat, gebruik de vorige (indien beschikbaar)
             if not article_number and current_article_number:
                 article_number = current_article_number
-
+                st.sidebar.info(f"Geen nieuw artikelnummer gevonden, gebruik vorige: {article_number}")
 
             # Verwerking als er een m2-match is
             if m2_match:
@@ -1292,7 +1270,7 @@ def handle_gpt_chat():
                 else:
                     st.sidebar.warning(f"Artikelnummer '{article_number}' niet gevonden in de artikelentabel.")
             else:
-                pass
+                st.sidebar.warning("Regel genegeerd: geen geldige breedte, hoogte of aantal gevonden.")
 
         # Als data is verzameld, voeg het toe aan de offerte-overzichtstabel
         if data:
@@ -1304,7 +1282,6 @@ def handle_gpt_chat():
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state["trigger_update"] = True
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            st.rerun()
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
     elif customer_file:
