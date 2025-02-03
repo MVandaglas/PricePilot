@@ -143,7 +143,10 @@ if file_content:
         f.write(file_content)
     print("✅ Bestand gedownload!")
 
-
+st.write(f"TENANT_ID: {TENANT_ID}")
+st.write(f"CLIENT_ID: {CLIENT_ID}")
+st.write(f"CLIENT_SECRET: {CLIENT_SECRET}")
+st.write(f"SP_SITE: {SP_SITE}")
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
