@@ -68,9 +68,11 @@ SP_PASSWORD=st.secrets.get("SP_PASSWORD")
 def connect_to_sharepoint():
     try:
         s = sharepy.connect(SP_SITE, SP_USERNAME, SP_PASSWORD)
+        if s:
+            st.success("✅ Verbinding met SharePoint is succesvol!")
         return s
     except Exception as e:
-        st.error(f"Fout bij verbinden: {e}")
+        st.error(f"❌ Fout bij verbinden met SharePoint: {e}")
         return None
 
 # **Bestand ophalen vanuit SharePoint**
@@ -79,13 +81,24 @@ def get_file_from_sharepoint(file_url):
     if s:
         response = s.get(file_url)
         if response.status_code == 200:
+            st.success(f"✅ Bestand succesvol opgehaald: {file_url}")
             return response.content
         else:
-            st.write(f"Fout bij ophalen bestand: {response.status_code}")
+            st.error(f"❌ Fout bij ophalen bestand. Statuscode: {response.status_code}")
             return None
     else:
-        st.write("Geen verbinding met SharePoint.")
+        st.error("❌ Geen verbinding met SharePoint.")
         return None
+
+# **Streamlit UI**
+st.title("SharePoint File Downloader")
+file_url = st.text_input("Voer de SharePoint-bestandslink in:")
+
+if st.button("Download bestand"):
+    file_content = get_file_from_sharepoint(file_url)
+    if file_content:
+        st.success("✅ Bestand succesvol opgehaald!")
+        st.download_button("Download het bestand", file_content, file_name="TestSynoniem.csv")
 
 
 
