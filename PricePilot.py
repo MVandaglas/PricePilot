@@ -77,6 +77,7 @@ headers = {
 def check_document_libraries():
     list_drives_url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drives"
     response = requests.get(list_drives_url, headers=headers)
+    st.write(f"🔍 URL voor drives: {list_drives_url}")
 
     if response.status_code == 200:
         drives = response.json()
