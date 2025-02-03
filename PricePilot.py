@@ -32,15 +32,15 @@ from requests_ntlm import HttpNtlmAuth
 import base64
 from office365.runtime.auth.client_credential import ClientCredential
 from office365.sharepoint.client_context import ClientContext
-import sharepy
+import msal
+from streamlit.connections import SharepointConnection
 
 
 
 
 # # SharePoint-gegevens
 SP_SITE = st.secrets.get("SP_SITE")
-client_id = st.secrets.get("SP_CLIENT_ID")
-client_secret = st.secrets.get("SP_CLIENT_SECRET")
+
 SP_LIST=st.secrets.get("SP_LIST")
 SP_USERNAME=st.secrets.get("SP_USERNAME")
 SP_PASSWORD=st.secrets.get("SP_PASSWORD")
@@ -62,43 +62,61 @@ SP_PASSWORD=st.secrets.get("SP_PASSWORD")
 #     print(f"Title: {item.properties['Title']}")
 
 
+TENANT_ID = st.secrets.get("TENANT_ID")
+CLIENT_ID = st.secrets.get("SP_CLIENTID")
+CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 
-# **Verbinding maken met SharePoint**
-@st.cache_data
-def connect_to_sharepoint():
-    try:
-        s = sharepy.connect(SP_SITE, SP_USERNAME, SP_PASSWORD)
-        if s:
-            st.success("✅ Verbinding met SharePoint is succesvol!")
-        return s
-    except Exception as e:
-        st.error(f"❌ Fout bij verbinden met SharePoint: {e}")
+conn = st.experimental_connection("sharepoint_data", type=SharepointConnection)
+df = conn.query(SP_SITE)
+
+
+
+import msal
+import requests
+
+# 🔑 Azure AD Configuratie
+
+SHAREPOINT_SITE = SP_SITE  # Vervang met je SharePoint-site URL
+
+# **Token ophalen via MSAL**
+def get_access_token():
+    authority = f"https://login.microsoftonline.com/{TENANT_ID}"
+    app = msal.ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
+    token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
+    
+    if "access_token" in token_response:
+        print("✅ Token succesvol ontvangen!")
+        return token_response["access_token"]
+    else:
+        print(f"❌ Fout bij token ophalen: {token_response}")
         return None
 
 # **Bestand ophalen vanuit SharePoint**
-def get_file_from_sharepoint(file_url):
-    s = connect_to_sharepoint()
-    if s:
-        response = s.get(file_url)
-        if response.status_code == 200:
-            st.success(f"✅ Bestand succesvol opgehaald: {file_url}")
-            return response.content
-        else:
-            st.error(f"❌ Fout bij ophalen bestand. Statuscode: {response.status_code}")
-            return None
-    else:
-        st.error("❌ Geen verbinding met SharePoint.")
+def get_file_from_sharepoint(file_path):
+    access_token = get_access_token()
+    if not access_token:
         return None
 
-# **Streamlit UI**
-st.title("SharePoint File Downloader")
-file_url = st.text_input("Voer de SharePoint-bestandslink in:")
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"https://graph.microsoft.com/v1.0/sites/{SHAREPOINT_SITE}/drive/root:/{file_path}:/content"
 
-if st.button("Download bestand"):
-    file_content = get_file_from_sharepoint(file_url)
-    if file_content:
-        st.success("✅ Bestand succesvol opgehaald!")
-        st.download_button("Download het bestand", file_content, file_name="TestSynoniem.csv")
+    response = requests.get(url, headers=headers)
+
+    if response.status_code == 200:
+        print("✅ Bestand succesvol opgehaald!")
+        return response.content
+    else:
+        print(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
+        return None
+
+# **Test de verbinding**
+file_path = "OffertesRegional/TestSynoniem.csv"  # Geef het pad naar je bestand op
+file_content = get_file_from_sharepoint(file_path)
+
+if file_content:
+    with open("TestSynoniem.csv", "wb") as f:
+        f.write(file_content)
+    print("✅ Bestand gedownload!")
 
 
 
