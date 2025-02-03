@@ -34,16 +34,19 @@ from office365.sharepoint.client_context import ClientContext
 from msal import ConfidentialClientApplication
 import jwt
 
-import requests
-import jwt
-from msal import ConfidentialClientApplication
-import streamlit as st
 
 # 🔑 Configuratie
+import requests
+from msal import ConfidentialClientApplication
+import streamlit as st
+import jwt
+
+# Secrets ophalen
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_SITE = st.secrets.get("SP_SITE")
 TENANT_ID = st.secrets.get("TENANT_ID")
+CSV_PATH = st.secrets.get("SP_CSV_SYN")  # Pad naar TestSynoniem.csv in SharePoint
 
 # 🔑 Access Token ophalen
 def get_access_token():
@@ -73,7 +76,7 @@ headers = {
     "Accept": "application/json"
 }
 
-# 🔍 Controleer beschikbare documentbibliotheken
+# 🔍 Drive ID ophalen voor 'Shared Documents'
 site_id = "glassolutionsbv.sharepoint.com,c1d02038-73b5-4587-bd4c-a9c2da15c252,e559e0e1-fc61-4279-a037-e01b57bca579"
 list_drives_url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drives"
 
@@ -81,32 +84,41 @@ response = requests.get(list_drives_url, headers=headers)
 
 if response.status_code == 200:
     drives = response.json()
-    st.write("✅ Documentbibliotheken opgehaald:", drives)
+    shared_documents_drive_id = None
+
+    # Zoek naar de juiste drive
+    for drive in drives.get("value", []):
+        if drive["name"] == "Shared Documents":
+            shared_documents_drive_id = drive["id"]
+            break
+
+    if not shared_documents_drive_id:
+        st.error("❌ 'Shared Documents' drive niet gevonden!")
+        st.stop()
 else:
     st.error(f"❌ Fout bij ophalen van documentbibliotheken: {response.status_code} - {response.text}")
+    st.stop()
 
-
-  
-
-
-
-def debug_token(token):
-    import jwt
-    decoded_token = jwt.decode(token, options={"verify_signature": False})
-    st.write("🔍 Token claims:", decoded_token)
-
-debug_token(access_token)
-
-
-file_path = "/General/BullsAI/TestSynoniem.csv"
-download_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{file_path}:/content"
+# 🔍 Bestand ophalen
+file_path = CSV_PATH  # Pad opgehaald uit secrets
+download_url = f"https://graph.microsoft.com/v1.0/drives/{shared_documents_drive_id}/root:/{file_path}:/content"
 
 response = requests.get(download_url, headers=headers)
 
 if response.status_code == 200:
+    # Sla het bestand lokaal op
+    with open("TestSynoniem.csv", "wb") as f:
+        f.write(response.content)
     st.write("✅ Bestand succesvol opgehaald!")
 else:
     st.error(f"❌ Fout bij ophalen van bestand: {response.status_code} - {response.text}")
+
+# 🔍 Debug token claims
+def debug_token(token):
+    decoded_token = jwt.decode(token, options={"verify_signature": False})
+    st.write("🔍 Token claims:", decoded_token)
+
+debug_token(access_token)
 
 
 
