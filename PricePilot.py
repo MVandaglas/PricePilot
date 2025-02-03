@@ -29,7 +29,21 @@ import getpass
 import requests
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth 
+from office365.runtime.auth.client_credential import ClientCredential
 
+CLIENT_ID = st.secrets.get("SP_CLIENTID")
+CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
+SP_SITE = st.secrets.get("SP_SITE")
+
+credentials = ClientCredential(CLIENT_ID, CLIENT_SECRET)
+ctx = ClientContext(SP_SITE).with_credentials(credentials)
+try:
+    web = ctx.web
+    ctx.load(web)
+    ctx.execute_query()
+    st.write(f"Verbonden met site: {web.properties['Title']}")
+except Exception as e:
+    st.write(f"Fout: {e}")
 
 
 # Importeer prijsscherpte
