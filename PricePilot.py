@@ -90,11 +90,23 @@ else:
 
 
 
-# 🔍 Debug token claims
-def debug_token():
-    decoded_token = jwt.decode(access_token, options={"verify_signature": False})
+def debug_token(token):
+    import jwt
+    decoded_token = jwt.decode(token, options={"verify_signature": False})
     st.write("🔍 Token claims:", decoded_token)
 
+debug_token(access_token)
+
+
+file_path = "/General/BullsAI/TestSynoniem.csv"
+download_url = f"https://graph.microsoft.com/v1.0/drives/{drive_id}/root:/{file_path}:/content"
+
+response = requests.get(download_url, headers=headers)
+
+if response.status_code == 200:
+    st.write("✅ Bestand succesvol opgehaald!")
+else:
+    st.error(f"❌ Fout bij ophalen van bestand: {response.status_code} - {response.text}")
 
 
 
