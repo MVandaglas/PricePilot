@@ -69,11 +69,11 @@ site_url = SP_SITE
 rel_file_path = SP_CSV_TEST
 
 # Haal het bestandspad op vanuit secrets
-file_path = st.secrets["sharepoint_syn"]["SP_CSV_TEST"]
+file_path = st.secrets{"connections"]["sharepoint_syn"]["SP_CSV_TEST"]
 
 with st.echo():
     # Maak verbinding met SharePoint
-    conn = st.experimental_connection("sharepoint_syn", type="SharepointConnection")
+    conn = st.experimental_connection(["sharepoint_syn", type="SharepointConnection")
     
     # Query het bestand en laad de data
     try:
@@ -83,7 +83,12 @@ with st.echo():
     except Exception as e:
         st.error(f"❌ Fout bij ophalen van bestand: {e}")
 
-
+# Probeer het bestandspad op te halen
+try:
+    file_path = st.secrets["connections"]["sharepoint_syn"]["SP_CSV_TEST"]
+    st.write(f"Bestandspad: {file_path}")
+except KeyError as e:
+    st.error(f"❌ KeyError: {e}")
 
 
 # Importeer prijsscherpte
