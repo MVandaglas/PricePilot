@@ -132,7 +132,7 @@ st.write(f"SP_SITE: {SP_SITE}")
 
 st.write("🔍 Start authenticatie...")
 
-[connections.sharepoint_syn]
+
 type = "SharepointConnection"
 username = SP_USERNAME
 password = SP_PASSWORD
