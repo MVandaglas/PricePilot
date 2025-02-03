@@ -32,7 +32,14 @@ from requests_ntlm import HttpNtlmAuth
 from office365.runtime.auth.client_credential import ClientCredential
 from office365.sharepoint.client_context import ClientContext
 from msal import ConfidentialClientApplication
+import jwt
 
+import requests
+import jwt
+from msal import ConfidentialClientApplication
+import streamlit as st
+
+# 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_SITE = st.secrets.get("SP_SITE")
@@ -40,63 +47,71 @@ TENANT_ID = st.secrets.get("TENANT_ID")
 
 # 🔑 Access Token ophalen
 def get_access_token():
-    from msal import ConfidentialClientApplication
+    try:
+        authority = f"https://login.microsoftonline.com/{TENANT_ID}"
+        app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
 
-     
-    authority = f"https://login.microsoftonline.com/{TENANT_ID}"
-    app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
+        token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
 
-    token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
-
-    if "access_token" in token_response:
-        st.write("✅ Token succesvol ontvangen!")
-        return token_response["access_token"]
-    else:
-        st.write(f"❌ Fout bij token ophalen: {token_response}")
+        if "access_token" in token_response:
+            st.write("✅ Token succesvol ontvangen!")
+            return token_response["access_token"]
+        else:
+            st.write(f"❌ Fout bij token ophalen: {token_response}")
+            return None
+    except Exception as e:
+        st.error(f"❌ Fout bij ophalen access token: {e}")
         return None
 
 # 🛠 Headers aanmaken met de access token
 access_token = get_access_token()
 if not access_token:
-    raise Exception("❌ Geen access token ontvangen! Controleer je credentials en API-machtigingen.")
+    st.stop()  # Stop de app als er geen access token is ontvangen
 
 headers = {
     "Authorization": f"Bearer {access_token}",
     "Accept": "application/json"
 }
 
+# 🔍 Controleer beschikbare documentbibliotheken
+def check_document_libraries():
+    list_drives_url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drives"
+    response = requests.get(list_drives_url, headers=headers)
+
+    if response.status_code == 200:
+        drives = response.json()
+        st.write("✅ Beschikbare documentbibliotheken:", drives)
+        return drives
+    else:
+        st.error(f"❌ Fout bij ophalen van documentbibliotheken: {response.status_code} - {response.text}")
+        return None
+
 # 🔍 Bestand ophalen via SharePoint
-file_path = "General/BullsAI/TestSynoniem.csv"  # Pas dit pad aan naar het juiste bestand
-url = f"https://graph.microsoft.com/v1.0/sites/glassolutionsbv.sharepoint.com:/sites/OffertesRegional:/drive/root:/General/BullsAI/TestSynoniem.csv:/content"
+def get_file(file_path):
+    url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drive/root:/{file_path}:/content"
 
-response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers)
 
-if response.status_code == 200:
-    with open("TestSynoniem.csv", "wb") as f:
-        f.write(response.content)
-    st.write("✅ Bestand succesvol opgehaald!")
-else:
-    st.write(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
+    if response.status_code == 200:
+        with open("TestSynoniem.csv", "wb") as f:
+            f.write(response.content)
+        st.success("✅ Bestand succesvol opgehaald!")
+    else:
+        st.error(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
 
-
-import jwt
-
-access_token = get_access_token()  # Functie die je eerder hebt gebruikt
-if access_token:
+# 🔍 Debug token claims
+def debug_token():
     decoded_token = jwt.decode(access_token, options={"verify_signature": False})
-    st.write("Token claims:", decoded_token)
-else:
-    st.error("❌ Geen token ontvangen.")
+    st.write("🔍 Token claims:", decoded_token)
 
-list_drives_url = "https://graph.microsoft.com/v1.0/sites/glassolutionsbv.sharepoint.com:/sites/OffertesRegional:/drives"
-response = requests.get(list_drives_url, headers=headers)
-
-if response.status_code == 200:
-    drives = response.json()
-    st.write("Beschikbare documentbibliotheken:", drives)
-else:
-    st.error(f"❌ Fout bij ophalen van documentbibliotheken: {response.status_code} - {response.text}")
-
+# 🛠 Test alle stappen
+if access_token:
+    debug_token()  # Inspecteer het token
+    libraries = check_document_libraries()  # Controleer documentbibliotheken
+    if libraries:
+        # Pas het bestandspad aan indien nodig
+        file_path = "General/BullsAI/TestSynoniem.csv"
+        get_file(file_path)  # Probeer het bestand op te halen
 
 
 
