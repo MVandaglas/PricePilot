@@ -49,9 +49,7 @@ TENANT_ID = st.secrets.get("TENANT_ID")
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 
-from office365.runtime.auth.client_credential import ClientCredential
-from office365.sharepoint.client_context import ClientContext
-import streamlit as st
+
 
 # Debug-informatie
 st.write("🔍 Start authenticatie...")
@@ -132,14 +130,17 @@ st.write(f"CLIENT_ID: {CLIENT_ID}")
 st.write(f"CLIENT_SECRET: {CLIENT_SECRET}")
 st.write(f"SP_SITE: {SP_SITE}")
 
+st.write("🔍 Start authenticatie...")
 
-[connections.zillow_prices]
+[connections.sharepoint_syn]
 type = "SharepointConnection"
 username = SP_USERNAME
 password = SP_PASSWORD
 site_url = SP_SITE
 rel_file_path = SP_LIST
 
+conn = st.experimental_connection("sharepoint_syn", type=SharepointConnection)
+df = conn.query(SP_SITE)
 
 
 # Importeer prijsscherpte
