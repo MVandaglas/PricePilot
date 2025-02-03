@@ -67,7 +67,41 @@ CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 
 
+def get_access_token():
+    authority = f"https://login.microsoftonline.com/{TENANT_ID}"
+    app = msal.ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
+    token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
 
+    print(f"Token Response: {token_response}")  # Print volledige respons
+
+    if "access_token" in token_response:
+        print("✅ Token succesvol ontvangen!")
+        return token_response["access_token"]
+    else:
+        print(f"❌ Fout bij token ophalen: {token_response}")
+        return None
+
+def get_file_from_sharepoint(file_path):
+    access_token = get_access_token()
+    if not access_token:
+        print("❌ Geen toegangstoken beschikbaar.")
+        return None
+
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drive/root:/{file_path}:/content"
+
+    print(f"🔍 Ophalen van bestand vanaf: {url}")
+
+    response = requests.get(url, headers=headers)
+    print(f"HTTP Status Code: {response.status_code}")
+    print(f"Response Text: {response.text}")
+
+    if response.status_code == 200:
+        print("✅ Bestand succesvol opgehaald!")
+        return response.content
+    else:
+        print(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
+        return None
 
 
 # Token ophalen via MSAL
