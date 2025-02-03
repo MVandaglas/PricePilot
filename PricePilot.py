@@ -32,6 +32,7 @@ from requests_ntlm import HttpNtlmAuth
 import base64
 from office365.runtime.auth.client_credential import ClientCredential
 from office365.sharepoint.client_context import ClientContext
+import sharepy
 
 
 
@@ -60,6 +61,13 @@ SP_PASSWORD=st.secrets.get("SP_PASSWORD")
 # for item in items:
 #     print(f"Title: {item.properties['Title']}")
 
+
+file_path =  st.secrets.get["SP_CSV_SYN"]
+
+with st.echo():
+    # It's as simple as:
+    conn = st.experimental_connection("zillow_prices", type=SharepointConnection)
+    df = conn.query(file_path)
 
 
 # Importeer prijsscherpte
