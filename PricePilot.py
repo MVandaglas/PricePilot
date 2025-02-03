@@ -47,6 +47,11 @@ SP_SITE = st.secrets.get("SP_SITE")
 TENANT_ID = st.secrets.get("TENANT_ID")
 CSV_PATH = st.secrets.get("SP_CSV_SYN")  # Pad naar TestSynoniem.csv in SharePoint
 
+app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
+token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
+st.write("Nieuw token ontvangen:", token_response)
+
+
 # 🔑 Access Token ophalen
 def get_access_token():
     try:
