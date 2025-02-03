@@ -49,10 +49,10 @@ def get_access_token():
     token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
 
     if "access_token" in token_response:
-        print("✅ Token succesvol ontvangen!")
+        st.write("✅ Token succesvol ontvangen!")
         return token_response["access_token"]
     else:
-        print(f"❌ Fout bij token ophalen: {token_response}")
+        st.write(f"❌ Fout bij token ophalen: {token_response}")
         return None
 
 # 🛠 Headers aanmaken met de access token
