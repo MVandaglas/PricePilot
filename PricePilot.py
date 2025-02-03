@@ -82,6 +82,7 @@ with st.echo():
     except Exception as e:
         st.error(f"❌ Fout bij ophalen van bestand: {e}")
 
+st.write(st.secrets)
 
 
 # Importeer prijsscherpte
