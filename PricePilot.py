@@ -73,7 +73,7 @@ file_path = st.secrets["connections"]["sharepoint_syn"]["SP_CSV_TEST"]
 
 with st.echo():
     # Maak verbinding met SharePoint
-    conn = st.experimental_connection("sharepoint_syn", type="SharepointConnection")
+    conn = st.connection("sharepoint_syn", type="SharepointConnection")
     
     # Query het bestand en laad de data
     try:
