@@ -50,6 +50,18 @@ try:
 except Exception as e:
     st.write(f"❌ Fout: {e}")
 
+file_path = "Documenten/TestSynoniem.csv"
+url = f"https://graph.microsoft.com/v1.0/sites/glassolutionsbv.sharepoint.com:/sites/OffertesRegional:/drive/root:/{file_path}:/content"
+
+response = requests.get(url, headers=headers)
+
+if response.status_code == 200:
+    with open("TestSynoniem.csv", "wb") as f:
+        f.write(response.content)
+    st.write("✅ Bestand succesvol opgehaald!")
+else:
+    st.write(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
+
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
