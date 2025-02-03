@@ -68,7 +68,7 @@ site_url = SP_SITE
 rel_file_path = SP_CSV_TEST
 
 # Haal het bestandspad op vanuit secrets
-file_path = st.secrets.get["connections.sharepoint_syn"]["SP_CSV_TEST"]
+file_path = st.secrets["connections.sharepoint_syn"]["SP_CSV_TEST"]
 
 with st.echo():
     # Maak verbinding met SharePoint
