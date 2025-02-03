@@ -71,14 +71,7 @@ df = conn.query(SP_SITE)
 
 
 
-import msal
-import requests
-
-# 🔑 Azure AD Configuratie
-
-SHAREPOINT_SITE = SP_SITE  # Vervang met je SharePoint-site URL
-
-# **Token ophalen via MSAL**
+# Token ophalen via MSAL
 def get_access_token():
     authority = f"https://login.microsoftonline.com/{TENANT_ID}"
     app = msal.ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
@@ -91,17 +84,16 @@ def get_access_token():
         print(f"❌ Fout bij token ophalen: {token_response}")
         return None
 
-# **Bestand ophalen vanuit SharePoint**
+# Bestand ophalen vanuit SharePoint
 def get_file_from_sharepoint(file_path):
     access_token = get_access_token()
     if not access_token:
         return None
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"https://graph.microsoft.com/v1.0/sites/{SHAREPOINT_SITE}/drive/root:/{file_path}:/content"
+    url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drive/root:/{file_path}:/content"
 
     response = requests.get(url, headers=headers)
-
     if response.status_code == 200:
         print("✅ Bestand succesvol opgehaald!")
         return response.content
@@ -109,15 +101,14 @@ def get_file_from_sharepoint(file_path):
         print(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
         return None
 
-# **Test de verbinding**
-file_path = "OffertesRegional/TestSynoniem.csv"  # Geef het pad naar je bestand op
+# Test de verbinding
+file_path = "OffertesRegional/TestSynoniem.csv"  # Pas aan naar het juiste bestandspad
 file_content = get_file_from_sharepoint(file_path)
 
 if file_content:
     with open("TestSynoniem.csv", "wb") as f:
         f.write(file_content)
     print("✅ Bestand gedownload!")
-
 
 
 
