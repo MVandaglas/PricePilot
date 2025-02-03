@@ -88,18 +88,7 @@ else:
 
   
 
-# 🔍 Bestand ophalen via SharePoint
-def get_file(file_path):
-    url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drive/root:/{file_path}:/content"
 
-    response = requests.get(url, headers=headers)
-
-    if response.status_code == 200:
-        with open("TestSynoniem.csv", "wb") as f:
-            f.write(response.content)
-        st.success("✅ Bestand succesvol opgehaald!")
-    else:
-        st.error(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
 
 # 🔍 Debug token claims
 def debug_token():
