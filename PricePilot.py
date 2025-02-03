@@ -66,7 +66,7 @@ headers = {
 }
 
 # 🔍 Bestand ophalen via SharePoint
-file_path = "Documenten/TestSynoniem.csv"  # Pas dit pad aan naar het juiste bestand
+file_path = "Documenten/General/BullsAI/TestSynoniem.csv"  # Pas dit pad aan naar het juiste bestand
 url = f"https://graph.microsoft.com/v1.0/sites/glassolutionsbv.sharepoint.com:/sites/OffertesRegional:/drive/root:/{file_path}:/content"
 
 response = requests.get(url, headers=headers)
