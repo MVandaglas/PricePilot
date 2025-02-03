@@ -74,9 +74,9 @@ response = requests.get(url, headers=headers)
 if response.status_code == 200:
     with open("TestSynoniem.csv", "wb") as f:
         f.write(response.content)
-    print("✅ Bestand succesvol opgehaald!")
+    st.write("✅ Bestand succesvol opgehaald!")
 else:
-    print(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
+    st.write(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
 
 
 
