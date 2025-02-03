@@ -45,10 +45,10 @@ try:
     web = ctx.web
     ctx.load(web)
     ctx.execute_query()
-    print(f"✅ Verbonden met site: {web.properties['Title']}")
+    st.write(f"✅ Verbonden met site: {web.properties['Title']}")
     
 except Exception as e:
-    print(f"❌ Fout: {e}")
+    st.write(f"❌ Fout: {e}")
 
 
 # Importeer prijsscherpte
