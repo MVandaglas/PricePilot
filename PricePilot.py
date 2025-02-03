@@ -37,7 +37,6 @@ from st_files_connection import FilesConnection
 
 
 
-
 # # SharePoint-gegevens
 SP_SITE = st.secrets.get("SP_SITE")
 
@@ -51,44 +50,38 @@ CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_CSV_TEST=st.secrets.get("SP_CSV_TEST")
 
 
-
-
-st.write(f"TENANT_ID: {TENANT_ID}")
-st.write(f"CLIENT_ID: {CLIENT_ID}")
-st.write(f"CLIENT_SECRET: {CLIENT_SECRET}")
-st.write(f"SP_SITE: {SP_SITE}")
-
 st.write("🔍 Start authenticatie...")
-st.write(st.secrets)
 
-
-type = "SharepointConnection"
-username = SP_USERNAME
-password = SP_PASSWORD
-site_url = SP_SITE
-rel_file_path = SP_CSV_TEST
-
-# Haal het bestandspad op vanuit secrets
-file_path = st.secrets["connections"]["sharepoint_syn"]["SP_CSV_TEST"]
-
-with st.echo():
-    # Maak verbinding met SharePoint
-    conn = st.connection("sharepoint_syn", type="FilesConnection")
-    
-    # Query het bestand en laad de data
-    try:
-        df = conn.query(file_path)
-        st.success("✅ Bestand succesvol geladen!")
-        st.write(df)  # Toon de ingeladen data
-    except Exception as e:
-        st.error(f"❌ Fout bij ophalen van bestand: {e}")
-
-# Probeer het bestandspad op te halen
+# Authenticatie instellen
 try:
-    file_path = st.secrets["connections"]["sharepoint_syn"]["SP_CSV_TEST"]
-    st.write(f"Bestandspad: {file_path}")
-except KeyError as e:
-    st.error(f"❌ KeyError: {e}")
+    credentials = ClientCredential(CLIENT_ID, CLIENT_SECRET)
+    ctx = ClientContext(SP_SITE).with_credentials(credentials)
+    # Probeer de titel van de site op te halen als test
+    web = ctx.web
+    ctx.load(web)
+    ctx.execute_query()
+    st.write(f"✅ Verbinding succesvol! Site-titel: {web.properties['Title']}")
+except Exception as e:
+    st.write(f"❌ Fout bij verbinden met SharePoint: {e}")
+    exit()
+
+# Bestand downloaden
+try:
+    local_file = "./TestSynoniem.csv"
+    st.write(f"⬇️ Downloaden bestand van: {file_path}")
+    response = ctx.web.get_file_by_server_relative_url(file_path).download(local_file).execute_query()
+    st.write(f"✅ Bestand succesvol gedownload: {local_file}")
+except Exception as e:
+    st.write(f"❌ Fout bij downloaden van bestand: {e}")
+    exit()
+
+# Bestand lezen
+try:
+    df = pd.read_csv(local_file)
+    st.write(f"📄 Bestand succesvol geladen. Voorbeeld van data:")
+    st.write(df.head())  # Toon de eerste paar regels van de CSV
+except Exception as e:
+    st.write(f"❌ Fout bij lezen van bestand: {e}")
 
 
 # Importeer prijsscherpte
