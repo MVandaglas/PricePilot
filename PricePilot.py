@@ -125,49 +125,22 @@ def get_file_from_sharepoint(file_path):
         return None
 
 
-# Token ophalen via MSAL
-def get_access_token():
-    authority = f"https://login.microsoftonline.com/{TENANT_ID}"
-    app = msal.ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
-    token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
-    
-    if "access_token" in token_response:
-        print("✅ Token succesvol ontvangen!")
-        return token_response["access_token"]
-    else:
-        print(f"❌ Fout bij token ophalen: {token_response}")
-        return None
 
-# Bestand ophalen vanuit SharePoint
-def get_file_from_sharepoint(file_path):
-    access_token = get_access_token()
-    if not access_token:
-        return None
-
-    headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drive/root:/{file_path}:/content"
-
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        print("✅ Bestand succesvol opgehaald!")
-        return response.content
-    else:
-        print(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
-        return None
-
-# Test de verbinding
-file_path = "OffertesRegional/TestSynoniem.csv"  # Pas aan naar het juiste bestandspad
-file_content = get_file_from_sharepoint(file_path)
-
-if file_content:
-    with open("TestSynoniem.csv", "wb") as f:
-        f.write(file_content)
-    print("✅ Bestand gedownload!")
 
 st.write(f"TENANT_ID: {TENANT_ID}")
 st.write(f"CLIENT_ID: {CLIENT_ID}")
 st.write(f"CLIENT_SECRET: {CLIENT_SECRET}")
 st.write(f"SP_SITE: {SP_SITE}")
+
+
+[connections.zillow_prices]
+type = "SharepointConnection"
+username = SP_USERNAME
+password = SP_PASSWORD
+site_url = SP_SITE
+rel_file_path = SP_LIST
+
+
 
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
