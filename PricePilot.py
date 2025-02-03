@@ -95,14 +95,6 @@ def debug_token():
     decoded_token = jwt.decode(access_token, options={"verify_signature": False})
     st.write("🔍 Token claims:", decoded_token)
 
-# 🛠 Test alle stappen
-if access_token:
-    debug_token()  # Inspecteer het token
-    libraries = check_document_libraries()  # Controleer documentbibliotheken
-    if libraries:
-        # Pas het bestandspad aan indien nodig
-        file_path = "General/BullsAI/TestSynoniem.csv"
-        get_file(file_path)  # Probeer het bestand op te halen
 
 
 
