@@ -36,6 +36,7 @@ CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_SITE = st.secrets.get("SP_SITE")
 
+st.write(secrets)
 
 if not SP_SITE:
     st.error("❌ Fout: SP_SITE is niet correct geladen! Controleer je Streamlit secrets.")
