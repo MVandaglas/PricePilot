@@ -2363,8 +2363,6 @@ with col2:
         file_name="Artikelen.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-with col2:
-
     
     # # Ophalen van gegevens
     # if st.button("Haal gegevens op"):
