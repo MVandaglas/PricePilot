@@ -88,6 +88,16 @@ if access_token:
 else:
     st.error("❌ Geen token ontvangen.")
 
+list_drives_url = "https://graph.microsoft.com/v1.0/sites/glassolutionsbv.sharepoint.com:/sites/OffertesRegional:/drives"
+response = requests.get(list_drives_url, headers=headers)
+
+if response.status_code == 200:
+    drives = response.json()
+    st.write("Beschikbare documentbibliotheken:", drives)
+else:
+    st.error(f"❌ Fout bij ophalen van documentbibliotheken: {response.status_code} - {response.text}")
+
+
 
 
 # Importeer prijsscherpte
