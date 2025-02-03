@@ -45,26 +45,47 @@ SP_LIST=st.secrets.get("SP_LIST")
 SP_USERNAME=st.secrets.get("SP_USERNAME")
 SP_PASSWORD=st.secrets.get("SP_PASSWORD")
 
-
-# # Authenticatie
-# credentials = ClientCredential(client_id, client_secret)
-# ctx = ClientContext(SP_SITE).with_credentials(credentials)
-
-# # Ophalen van de lijst
-# list_title = st.secrets.get("SP_LIST")
-# list_obj = ctx.web.lists.get_by_title(list_title)
-# items = list_obj.items
-# ctx.load(items)
-# ctx.execute_query()
-
-# # Toon de opgehaalde items
-# for item in items:
-#     print(f"Title: {item.properties['Title']}")
-
-
 TENANT_ID = st.secrets.get("TENANT_ID")
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
+
+from office365.runtime.auth.client_credential import ClientCredential
+from office365.sharepoint.client_context import ClientContext
+import streamlit as st
+
+# Debug-informatie
+st.write("🔍 Start authenticatie...")
+
+try:
+    # Authenticatie
+    credentials = ClientCredential(CLIENT_ID, CLIENT_SECRET)
+    ctx = ClientContext(SP_SITE).with_credentials(credentials)
+
+    # Controleer of de verbinding werkt
+    web = ctx.web
+    ctx.load(web)
+    ctx.execute_query()
+    st.success("✅ Authenticatie gelukt! Verbonden met de site:")
+    st.write(f"Site Title: {web.properties['Title']}")
+
+    # Ophalen van de lijst
+    st.write("🔍 Ophalen van lijstitems...")
+    list_title = st.secrets.get("SP_LIST")
+    list_obj = ctx.web.lists.get_by_title(list_title)
+    items = list_obj.items
+    ctx.load(items)
+    ctx.execute_query()
+
+    # Toon de opgehaalde items
+    if items:
+        st.success("✅ Items succesvol opgehaald!")
+        for item in items:
+            st.write(f"Title: {item.properties['Title']}")
+    else:
+        st.warning("⚠️ Geen items gevonden in de lijst.")
+
+except Exception as e:
+    st.error(f"❌ Fout bij authenticatie of data ophalen: {e}")
 
 
 def get_access_token():
