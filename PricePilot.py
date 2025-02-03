@@ -66,8 +66,7 @@ TENANT_ID = st.secrets.get("TENANT_ID")
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 
-conn = st.experimental_connection("sharepoint_data", type=SharepointConnection)
-df = conn.query(SP_SITE)
+
 
 
 
