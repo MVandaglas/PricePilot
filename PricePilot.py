@@ -62,12 +62,32 @@ SP_PASSWORD=st.secrets.get("SP_PASSWORD")
 #     print(f"Title: {item.properties['Title']}")
 
 
-file_path =  st.secrets.get["SP_CSV_SYN"]
 
-with st.echo():
-    # It's as simple as:
-    conn = st.experimental_connection("zillow_prices", type=SharepointConnection)
-    df = conn.query(file_path)
+# **Verbinding maken met SharePoint**
+@st.cache_data
+def connect_to_sharepoint():
+    try:
+        s = sharepy.connect(SP_SITE, SP_USERNAME, SP_PASSWORD)
+        return s
+    except Exception as e:
+        st.error(f"Fout bij verbinden: {e}")
+        return None
+
+# **Bestand ophalen vanuit SharePoint**
+def get_file_from_sharepoint(file_url):
+    s = connect_to_sharepoint()
+    if s:
+        response = s.get(file_url)
+        if response.status_code == 200:
+            return response.content
+        else:
+            st.error(f"Fout bij ophalen bestand: {response.status_code}")
+            return None
+    else:
+        st.error("Geen verbinding met SharePoint.")
+        return None
+
+
 
 
 # Importeer prijsscherpte
