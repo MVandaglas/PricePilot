@@ -81,10 +81,10 @@ def get_file_from_sharepoint(file_url):
         if response.status_code == 200:
             return response.content
         else:
-            st.error(f"Fout bij ophalen bestand: {response.status_code}")
+            st.write(f"Fout bij ophalen bestand: {response.status_code}")
             return None
     else:
-        st.error("Geen verbinding met SharePoint.")
+        st.write("Geen verbinding met SharePoint.")
         return None
 
 
