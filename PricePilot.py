@@ -32,35 +32,6 @@ from requests_ntlm import HttpNtlmAuth
 
 
 
-# SHAREPOINT CREDENTIALS
-SP_SITE = st.secrets.get("SP_SITE")
-SP_LIST = st.secrets.get("SP_LIST")
-SP_USERNAME = st.secrets.get("SP_USERNAME")
-SP_PASSWORD = st.secrets.get("SP_PASSWORD")
-
-# API-endpoint URL
-url = f"{SP_SITE}/_api/web/lists/getbytitle('{SP_LIST}')/items"
-
-# Authenticeer met NTLM (gebruikersnaam en wachtwoord)
-session = requests.Session()
-session.auth = HTTPBasicAuth(SP_USERNAME, SP_PASSWORD)
-
-# Headers instellen
-headers = {
-    "Accept": "application/json;odata=verbose"
-}
-
-# Voer de API-aanroep uit
-response = session.get(url, headers=headers)
-
-if response.status_code == 200:
-    st.success("✅ Verbonden met SharePoint!")
-    st.json(response.json())  # Toon de inhoud van de lijst
-else:
-    st.error(f"❌ Fout: {response.status_code}, {response.text}")
-
-
-
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
     # Initialiseer de matrix met standaardwaarden
