@@ -36,16 +36,13 @@ from msal import ConfidentialClientApplication
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_SITE = st.secrets.get("SP_SITE")
-
+TENANT_ID = st.secrets.get("TENANT_ID")
 
 # 🔑 Access Token ophalen
 def get_access_token():
     from msal import ConfidentialClientApplication
 
-    TENANT_ID = "jouw-tenant-id"
-    CLIENT_ID = "jouw-client-id"
-    CLIENT_SECRET = "jouw-client-secret"
-
+     
     authority = f"https://login.microsoftonline.com/{TENANT_ID}"
     app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
 
