@@ -34,7 +34,6 @@ from office365.sharepoint.client_context import ClientContext
 from msal import ConfidentialClientApplication
 import jwt
 
-
 # 🔑 Configuratie
 import requests
 from msal import ConfidentialClientApplication
@@ -119,6 +118,7 @@ def debug_token(token):
     st.write("🔍 Token claims:", decoded_token)
 
 debug_token(access_token)
+
 
 
 
