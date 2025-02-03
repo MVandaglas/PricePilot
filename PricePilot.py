@@ -74,11 +74,19 @@ headers = {
 }
 
 # 🔍 Controleer beschikbare documentbibliotheken
-def check_document_libraries():
-    list_drives_url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drives"
-    response = requests.get(list_drives_url, headers=headers)
-    st.write(f"🔍 URL voor drives: {list_drives_url}")
+site_id = "glassolutionsbv.sharepoint.com,c1d02038-73b5-4587-bd4c-a9c2da15c252,e559e0e1-fc61-4279-a037-e01b57bca579"
+list_drives_url = f"https://graph.microsoft.com/v1.0/sites/{site_id}/drives"
 
+response = requests.get(list_drives_url, headers=headers)
+
+if response.status_code == 200:
+    drives = response.json()
+    st.write("✅ Documentbibliotheken opgehaald:", drives)
+else:
+    st.error(f"❌ Fout bij ophalen van documentbibliotheken: {response.status_code} - {response.text}")
+
+
+    
     if response.status_code == 200:
         drives = response.json()
         st.write("✅ Beschikbare documentbibliotheken:", drives)
