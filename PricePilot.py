@@ -86,14 +86,7 @@ else:
     st.error(f"❌ Fout bij ophalen van documentbibliotheken: {response.status_code} - {response.text}")
 
 
-    
-    if response.status_code == 200:
-        drives = response.json()
-        st.write("✅ Beschikbare documentbibliotheken:", drives)
-        return drives
-    else:
-        st.error(f"❌ Fout bij ophalen van documentbibliotheken: {response.status_code} - {response.text}")
-        return None
+  
 
 # 🔍 Bestand ophalen via SharePoint
 def get_file(file_path):
