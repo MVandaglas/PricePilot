@@ -36,21 +36,40 @@ CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_SITE = st.secrets.get("SP_SITE")
 
-try:
-    print("🔍 Probeer verbinding te maken met SharePoint...")
-    credentials = ClientCredential(CLIENT_ID, CLIENT_SECRET)
-    ctx = ClientContext(SP_SITE).with_credentials(credentials)
-    
-    # Test basisverbinding
-    web = ctx.web
-    ctx.load(web)
-    ctx.execute_query()
-    st.write(f"✅ Verbonden met site: {web.properties['Title']}")
-    
-except Exception as e:
-    st.write(f"❌ Fout: {e}")
+import requests
 
-file_path = "Documenten/TestSynoniem.csv"
+# 🔑 Access Token ophalen
+def get_access_token():
+    from msal import ConfidentialClientApplication
+
+    TENANT_ID = "jouw-tenant-id"
+    CLIENT_ID = "jouw-client-id"
+    CLIENT_SECRET = "jouw-client-secret"
+
+    authority = f"https://login.microsoftonline.com/{TENANT_ID}"
+    app = ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
+
+    token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
+
+    if "access_token" in token_response:
+        print("✅ Token succesvol ontvangen!")
+        return token_response["access_token"]
+    else:
+        print(f"❌ Fout bij token ophalen: {token_response}")
+        return None
+
+# 🛠 Headers aanmaken met de access token
+access_token = get_access_token()
+if not access_token:
+    raise Exception("❌ Geen access token ontvangen! Controleer je credentials en API-machtigingen.")
+
+headers = {
+    "Authorization": f"Bearer {access_token}",
+    "Accept": "application/json"
+}
+
+# 🔍 Bestand ophalen via SharePoint
+file_path = "Documenten/TestSynoniem.csv"  # Pas dit pad aan naar het juiste bestand
 url = f"https://graph.microsoft.com/v1.0/sites/glassolutionsbv.sharepoint.com:/sites/OffertesRegional:/drive/root:/{file_path}:/content"
 
 response = requests.get(url, headers=headers)
@@ -58,9 +77,10 @@ response = requests.get(url, headers=headers)
 if response.status_code == 200:
     with open("TestSynoniem.csv", "wb") as f:
         f.write(response.content)
-    st.write("✅ Bestand succesvol opgehaald!")
+    print("✅ Bestand succesvol opgehaald!")
 else:
-    st.write(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
+    print(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
+
 
 
 # Importeer prijsscherpte
