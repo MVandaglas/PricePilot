@@ -36,21 +36,19 @@ CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_SITE = st.secrets.get("SP_SITE")
 
-st.write(st.secrets)
-
-if not SP_SITE:
-    st.error("❌ Fout: SP_SITE is niet correct geladen! Controleer je Streamlit secrets.")
-
-
-credentials = ClientCredential(CLIENT_ID, CLIENT_SECRET)
-ctx = ClientContext(SP_SITE).with_credentials(credentials)
 try:
+    print("🔍 Probeer verbinding te maken met SharePoint...")
+    credentials = ClientCredential(CLIENT_ID, CLIENT_SECRET)
+    ctx = ClientContext(SP_SITE).with_credentials(credentials)
+    
+    # Test basisverbinding
     web = ctx.web
     ctx.load(web)
     ctx.execute_query()
-    st.write(f"Verbonden met site: {web.properties['Title']}")
+    print(f"✅ Verbonden met site: {web.properties['Title']}")
+    
 except Exception as e:
-    st.write(f"Fout: {e}")
+    print(f"❌ Fout: {e}")
 
 
 # Importeer prijsscherpte
