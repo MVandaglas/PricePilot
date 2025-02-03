@@ -79,14 +79,14 @@ else:
     st.write(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
 
 
-list_drives_url = "https://graph.microsoft.com/v1.0/sites/glassolutionsbv.sharepoint.com:/sites/OffertesRegional:/drives"
-response = requests.get(list_drives_url, headers=headers)
+import jwt
 
-if response.status_code == 200:
-    drives = response.json()
-    st.write("Beschikbare documentbibliotheken:", drives)
+access_token = get_access_token()  # Functie die je eerder hebt gebruikt
+if access_token:
+    decoded_token = jwt.decode(access_token, options={"verify_signature": False})
+    st.write("Token claims:", decoded_token)
 else:
-    st.write(f"❌ Fout bij ophalen van documentbibliotheken: {response.status_code} - {response.text}")
+    st.error("❌ Geen token ontvangen.")
 
 
 
