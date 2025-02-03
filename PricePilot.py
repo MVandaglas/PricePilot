@@ -51,78 +51,6 @@ CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_CSV_TEST=st.secrets.get("SP_CSV_TEST")
 
 
-# Debug-informatie
-st.write("🔍 Start authenticatie...")
-
-try:
-    # Authenticatie
-    credentials = ClientCredential(CLIENT_ID, CLIENT_SECRET)
-    ctx = ClientContext(SP_SITE).with_credentials(credentials)
-
-    # Controleer of de verbinding werkt
-    web = ctx.web
-    ctx.load(web)
-    ctx.execute_query()
-    st.success("✅ Authenticatie gelukt! Verbonden met de site:")
-    st.write(f"Site Title: {web.properties['Title']}")
-
-    # Ophalen van de lijst
-    st.write("🔍 Ophalen van lijstitems...")
-    list_title = st.secrets.get("SP_LIST")
-    list_obj = ctx.web.lists.get_by_title(list_title)
-    items = list_obj.items
-    ctx.load(items)
-    ctx.execute_query()
-
-    # Toon de opgehaalde items
-    if items:
-        st.success("✅ Items succesvol opgehaald!")
-        for item in items:
-            st.write(f"Title: {item.properties['Title']}")
-    else:
-        st.warning("⚠️ Geen items gevonden in de lijst.")
-
-except Exception as e:
-    st.error(f"❌ Fout bij authenticatie of data ophalen: {e}")
-
-
-def get_access_token():
-    authority = f"https://login.microsoftonline.com/{TENANT_ID}"
-    app = msal.ConfidentialClientApplication(CLIENT_ID, CLIENT_SECRET, authority=authority)
-    token_response = app.acquire_token_for_client(scopes=["https://graph.microsoft.com/.default"])
-
-    st.write(f"Token Response: {token_response}")  # Print volledige respons
-
-    if "access_token" in token_response:
-        st.write("✅ Token succesvol ontvangen!")
-        return token_response["access_token"]
-    else:
-        st.write(f"❌ Fout bij token ophalen: {token_response}")
-        return None
-
-def get_file_from_sharepoint(file_path):
-    access_token = get_access_token()
-    if not access_token:
-        st.write("❌ Geen toegangstoken beschikbaar.")
-        return None
-
-    headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"https://graph.microsoft.com/v1.0/sites/{SP_SITE}/drive/root:/{file_path}:/content"
-
-    st.write(f"🔍 Ophalen van bestand vanaf: {url}")
-
-    response = requests.get(url, headers=headers)
-    st.write(f"HTTP Status Code: {response.status_code}")
-    st.write(f"Response Text: {response.text}")
-
-    if response.status_code == 200:
-        st.write("✅ Bestand succesvol opgehaald!")
-        return response.content
-    else:
-        st.write(f"❌ Fout bij bestand ophalen: {response.status_code} - {response.text}")
-        return None
-
-
 
 
 st.write(f"TENANT_ID: {TENANT_ID}")
@@ -140,7 +68,7 @@ site_url = SP_SITE
 rel_file_path = SP_CSV_TEST
 
 # Haal het bestandspad op vanuit secrets
-file_path = st.secrets["connections.sharepoint_syn"]["SP_CSV_TEST"]
+file_path = st.secrets.get["connections.sharepoint_syn"]["SP_CSV_TEST"]
 
 with st.echo():
     # Maak verbinding met SharePoint
