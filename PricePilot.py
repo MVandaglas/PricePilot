@@ -48,7 +48,7 @@ SP_PASSWORD=st.secrets.get("SP_PASSWORD")
 TENANT_ID = st.secrets.get("TENANT_ID")
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
-
+SP_CSV_TEST=st.secrets.get("SP_CSV_TEST")
 
 
 # Debug-informatie
@@ -137,10 +137,23 @@ type = "SharepointConnection"
 username = SP_USERNAME
 password = SP_PASSWORD
 site_url = SP_SITE
-rel_file_path = SP_LIST
+rel_file_path = SP_CSV_TEST
 
-conn = st.experimental_connection("sharepoint_syn", type=SharepointConnection)
-df = conn.query(SP_SITE)
+# Haal het bestandspad op vanuit secrets
+file_path = st.secrets.get["connections.sharepoint_syn"]["SP_CSV_TEST"]
+
+with st.echo():
+    # Maak verbinding met SharePoint
+    conn = st.experimental_connection("connecntion.sharepoint_syn", type="SharepointConnection")
+    
+    # Query het bestand en laad de data
+    try:
+        df = conn.query(file_path)
+        st.success("✅ Bestand succesvol geladen!")
+        st.write(df)  # Toon de ingeladen data
+    except Exception as e:
+        st.error(f"❌ Fout bij ophalen van bestand: {e}")
+
 
 
 # Importeer prijsscherpte
