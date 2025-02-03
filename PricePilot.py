@@ -31,12 +31,12 @@ from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth 
 from office365.runtime.auth.client_credential import ClientCredential
 from office365.sharepoint.client_context import ClientContext
+from msal import ConfidentialClientApplication
 
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_SITE = st.secrets.get("SP_SITE")
 
-import requests
 
 # 🔑 Access Token ophalen
 def get_access_token():
