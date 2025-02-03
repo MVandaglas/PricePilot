@@ -59,6 +59,7 @@ st.write(f"CLIENT_SECRET: {CLIENT_SECRET}")
 st.write(f"SP_SITE: {SP_SITE}")
 
 st.write("🔍 Start authenticatie...")
+st.write(st.secrets)
 
 
 type = "SharepointConnection"
@@ -82,7 +83,7 @@ with st.echo():
     except Exception as e:
         st.error(f"❌ Fout bij ophalen van bestand: {e}")
 
-st.write(st.secrets)
+
 
 
 # Importeer prijsscherpte
