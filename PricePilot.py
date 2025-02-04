@@ -389,7 +389,6 @@ with tab1:
 
 # Offerte Genereren tab
 with tab1:
-    # Functie om berekeningen uit te voeren op de DataFrame
     def bereken_prijs_backend(df):
         """
         Voert backend-berekeningen uit op de DataFrame.
@@ -398,9 +397,19 @@ with tab1:
             st.warning("De DataFrame is leeg of ongeldig. Prijs_backend kan niet worden berekend.")
             return pd.DataFrame()  # Retourneer een lege DataFrame als fallback
     
-        # Voorbeeldberekeningen (pas aan op basis van je logica)
-        df['Prijs_totaal'] = df.get('RSP', 0) * df.get('Aantal', 0)
+        st.write("DataFrame ontvangen in bereken_prijs_backend:")
+        st.dataframe(df)
+    
+        # Voorbeeldberekening
+        if "RSP" in df.columns and "Aantal" in df.columns:
+            df['Prijs_totaal'] = df.get('RSP', 0) * df.get('Aantal', 0)
+            st.write("DataFrame na berekening in bereken_prijs_backend:")
+            st.dataframe(df)
+        else:
+            st.warning("Kolommen 'RSP' en/of 'Aantal' ontbreken in de DataFrame.")
+    
         return df
+
 
         try:
             # Controleer of de DataFrame geldig is
@@ -816,19 +825,22 @@ def update_prijs_backend():
     Update de sessievariabele offer_df met berekeningen van prijs_backend.
     """
     if "offer_df" in st.session_state and isinstance(st.session_state.offer_df, pd.DataFrame):
+        st.write("Huidige DataFrame vóór update:")
+        st.dataframe(st.session_state.offer_df)
+        
         updated_df = bereken_prijs_backend(st.session_state.offer_df)
+        
         if not updated_df.empty:
             st.session_state.offer_df = updated_df
             st.success("Prijs_backend succesvol bijgewerkt.")
         else:
             st.error("Er is een probleem opgetreden bij het updaten van Prijs_backend.")
+        
+        st.write("Huidige DataFrame na update:")
+        st.dataframe(st.session_state.offer_df)
     else:
         st.warning("De DataFrame 'offer_df' bestaat niet of is ongeldig.")
 
-def reset_rijnummers(df):
-    if not df.empty:
-        df['Rijnummer'] = range(1, len(df) + 1)
-    return df
 
 # JavaScript-code voor conditionele opmaak
 cell_style_js = JsCode("""
