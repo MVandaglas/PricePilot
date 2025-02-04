@@ -1524,33 +1524,63 @@ def extract_table_from_docx(doc):
 
     return all_dataframes  # Return een lijst van DataFrames
 
+import pandas as pd
+import streamlit as st
+from io import BytesIO
+
 def process_attachment(attachment, attachment_name):
     """
     Analyzes and processes an attachment based on its file type (Excel, PDF, or DOCX).
     """
     if attachment_name.endswith(".xlsx"):
         try:
-            df = pd.read_excel(BytesIO(attachment))
+            # Stap 1: Lees de Excel in en detecteer automatisch het begin van de tabel
+            raw_df = pd.read_excel(BytesIO(attachment), header=None)  # Header handmatig bepalen later
             st.write("Bijlage ingelezen als DataFrame:")
+            st.dataframe(raw_df)
+
+            # Zoek de rij waar de kolomnamen staan (bijvoorbeeld rij 20 in jouw voorbeeld)
+            header_row = 19  # Beginindex voor headers
+            data_start_row = header_row + 1  # Data begint een rij onder de headers
+
+            # Lees de data opnieuw in vanaf de gevonden header
+            df = pd.read_excel(BytesIO(attachment), skiprows=header_row, header=0)
+            st.write("Geverifieerde tabel met headers:")
             st.dataframe(df)
 
+            # Stap 2: Detecteer kolommen en doe de mapping
             detected_columns = detect_relevant_columns(df)
             mapped_columns = manual_column_mapping(df, detected_columns)
 
-            # Validatie voor mapped_columns
+            # Validatie van kolommapping
             if not isinstance(mapped_columns, dict):
                 st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
                 return None
 
             if mapped_columns:
+                # Filter relevante kolommen
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
 
-                # Filter relevant data based on start_row and end_row
-                start_row = st.sidebar.number_input("Beginrij data (niet de header):", min_value=0, max_value=len(df)-1, value=0)
-                end_row = st.sidebar.number_input("Eindrij data:", min_value=0, max_value=len(df)-1, value=len(df)-1)
+                # Automatische detectie van eindrij
+                end_row = len(relevant_data.dropna(how="all")) - 1
+
+                # Laat de gebruiker de data filteren op rijen indien nodig
+                start_row = st.sidebar.number_input(
+                    "Beginrij data (niet de header):", 
+                    min_value=0, 
+                    max_value=end_row, 
+                    value=0
+                )
+                end_row = st.sidebar.number_input(
+                    "Eindrij data:", 
+                    min_value=0, 
+                    max_value=end_row, 
+                    value=end_row
+                )
                 relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
 
+                # Toon relevante data
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
 
@@ -1562,6 +1592,8 @@ def process_attachment(attachment, attachment_name):
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
             return None
+
+
 
     elif attachment_name.endswith(".pdf"):
         try:
