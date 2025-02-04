@@ -791,14 +791,21 @@ def update_offer_data(df):
 def update_rsp_for_all_rows(df, prijsscherpte):
     # Controleer of prijsscherpte geldig is
     if prijsscherpte:
-        for index, row in df.iterrows():
-            min_price, max_price = row.get('Min_prijs', None), row.get('Max_prijs', None)
+        def calculate_rsp(row):
+            min_price = row.get('Min_prijs', None)
+            max_price = row.get('Max_prijs', None)
             if pd.notna(min_price) and pd.notna(max_price):
                 rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                # Rond RSP af naar de dichtstbijzijnde 5 cent en zorg voor 2 decimalen
-                df.at[index, 'RSP'] = round(rsp_value * 20) / 20
+                return round(rsp_value * 20) / 20  # Rond af naar dichtstbijzijnde 5 cent
+            return row.get('RSP', None)  # Behoud huidige waarde als RSP niet kan worden berekend
+
+        # Update RSP voor alle regels
+        df['RSP'] = df.apply(calculate_rsp, axis=1)
+
+        # Pas backend-berekeningen toe
         df = bereken_prijs_backend(df)
     return df
+
 
 
 
