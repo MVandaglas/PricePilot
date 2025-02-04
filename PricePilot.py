@@ -480,6 +480,9 @@ with tab3:
         """
         Detecteert de relevante kolommen (Artikelnaam, Hoogte, Breedte, Aantal) in een DataFrame.
         """
+        # Standaardiseer kolomnamen in de DataFrame (trim en lower)
+        standardized_columns = {col: col.strip().lower() for col in df.columns}
+        
         column_mapping = {
             "Artikelnaam": ["artikelnaam", "artikel", "product", "type", "article"],
             "Hoogte": ["hoogte", "height", "h"],
@@ -488,8 +491,7 @@ with tab3:
         }
         detected_columns = {}
     
-        # Standaardiseer kolomnamen in de DataFrame (trim en lower)
-        standardized_columns = {col: col.strip().lower() for col in df.columns}
+
     
         for key, patterns in column_mapping.items():
             for pattern in patterns:
