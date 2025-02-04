@@ -789,21 +789,30 @@ def update_offer_data(df):
 
 # Functie om de RSP voor alle regels te updaten
 def update_rsp_for_all_rows(df, prijsscherpte):
-    # Controleer of prijsscherpte geldig is
     if prijsscherpte:
+        st.write("DataFrame vóór RSP-update:")
+        st.dataframe(df)
+
         def calculate_rsp(row):
             min_price = row.get('Min_prijs', None)
             max_price = row.get('Max_prijs', None)
             if pd.notna(min_price) and pd.notna(max_price):
                 rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                return round(rsp_value * 20) / 20  # Rond af naar dichtstbijzijnde 5 cent
-            return row.get('RSP', None)  # Behoud huidige waarde als RSP niet kan worden berekend
+                st.write(f"RSP voor rij {row.name}: {round(rsp_value * 20) / 20}")
+                return round(rsp_value * 20) / 20
+            return row.get('RSP', None)
 
-        # Update RSP voor alle regels
         df['RSP'] = df.apply(calculate_rsp, axis=1)
+
+        st.write("DataFrame na RSP-update:")
+        st.dataframe(df)
 
         # Pas backend-berekeningen toe
         df = bereken_prijs_backend(df)
+
+        st.write("DataFrame na bereken_prijs_backend:")
+        st.dataframe(df)
+
     return df
 
 
