@@ -1524,9 +1524,6 @@ def extract_table_from_docx(doc):
 
     return all_dataframes  # Return een lijst van DataFrames
 
-import pandas as pd
-import streamlit as st
-from io import BytesIO
 
 def process_attachment(attachment, attachment_name):
     """
@@ -1728,18 +1725,9 @@ with st.sidebar.expander("Upload document", expanded=False):
                 except Exception as e:
                     st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
 
-
-            
-            # Resultaten weergeven
-            st.subheader("Berichtinformatie")
-            st.write(f"**Onderwerp:** {msg_subject}")
-            st.write(f"**Afzender:** {msg_sender}")
-            st.write("**Inhoud van het bericht:**")
-            st.text(msg_body)
-            
-            # Verwerk bijlagen
-            st.subheader("Bijlagen:")
+            # **Eerst bijlagen weergeven (indien aanwezig)**
             if msg.attachments:
+                st.subheader("Bijlagen:")
                 for attachment in msg.attachments:
                     attachment_name = attachment.longFilename or attachment.shortFilename
                     attachment_data = attachment.data
@@ -1749,13 +1737,23 @@ with st.sidebar.expander("Upload document", expanded=False):
     
                     # Verwerk de bijlage
                     process_attachment(attachment_data, attachment_name)
-            else:
+            
+            # **Dan de berichtinformatie weergeven**
+            st.subheader("Berichtinformatie")
+            st.write(f"**Onderwerp:** {msg_subject}")
+            st.write(f"**Afzender:** {msg_sender}")
+            st.write("**Inhoud van het bericht:**")
+            st.text(msg_body)
+
+            # Als er geen bijlagen zijn, meld dit in de bijlagensectie
+            if not msg.attachments:
                 st.write("Geen bijlagen gevonden.")
         
         except Exception as e:
             st.error(f"Fout bij het verwerken van het bestand: {e}")
     else:
-        st.info("Upload een .msg-bestand om verder te gaan.")    
+        st.info("Upload een .msg-bestand om verder te gaan.")
+
 
 # Gebruikersinvoer
 customer_input = st.sidebar.text_area("Voer hier handmatig het klantverzoek in.")
