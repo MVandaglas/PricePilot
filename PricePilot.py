@@ -1423,15 +1423,22 @@ def manual_column_mapping(df, detected_columns):
     en zorgt ervoor dat de kolommen 'Aantal', 'Hoogte' en 'Breedte' numeriek worden gemaakt.
     """
     all_columns = list(df.columns)
-    mapped_columns = detected_columns.copy()
+    mapped_columns = {k: v for k, v in detected_columns.items() if v in all_columns}
 
     st.write("Controleer of de kolommen correct zijn gedetecteerd. Indien niet, selecteer de juiste kolom.")
 
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
+        # Bepaal standaardindex veilig
+        try:
+            default_index = all_columns.index(mapped_columns[key]) + 1  # +1 vanwege "Geen" als extra optie
+        except (KeyError, ValueError):
+            default_index = 0
+
+        # Toon selectbox aan gebruiker
         mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'", 
             options=["Geen"] + all_columns,
-            index=all_columns.index(detected_columns[key]) if key in detected_columns and detected_columns[key] in all_columns else 0
+            index=default_index
         )
 
     # Filter de mapping om alleen daadwerkelijke selecties te behouden
@@ -1440,10 +1447,16 @@ def manual_column_mapping(df, detected_columns):
     # Converteer de kolommen 'Hoogte', 'Breedte' en 'Aantal' naar numeriek als ze zijn geselecteerd
     for key in ["Hoogte", "Breedte", "Aantal"]:
         if key in mapped_columns:
-            try:
-                df[mapped_columns[key]] = pd.to_numeric(df[mapped_columns[key]], errors="coerce").fillna(0)
-            except Exception as e:
-                st.error(f"Er is een fout opgetreden bij het converteren van '{mapped_columns[key]}' naar numeriek: {e}")
+            if df[mapped_columns[key]].dtype not in [np.float64, np.int64]:
+                try:
+                    df[mapped_columns[key]] = pd.to_numeric(df[mapped_columns[key]], errors="coerce").fillna(0)
+                except Exception as e:
+                    st.error(f"Fout bij conversie van '{mapped_columns[key]}' naar numeriek: {e}")
+
+    # Toon een waarschuwing voor niet-gemapte kolommen
+    for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
+        if key not in mapped_columns:
+            st.warning(f"'{key}' is niet gemapt.")
 
     return mapped_columns
 
