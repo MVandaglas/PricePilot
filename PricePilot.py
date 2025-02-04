@@ -481,9 +481,9 @@ with tab3:
         Detecteert de relevante kolommen (Artikelnaam, Hoogte, Breedte, Aantal) in een DataFrame.
         """
         column_mapping = {
-            "Artikelnaam": ["artikelnaam", "artikel", "product", "samenstelling", "type", "article"],
-            "Hoogte": ["hoogte", "h", "height", "lengte"],
-            "Breedte": ["breedte", "b", "width"],
+            "Artikelnaam": ["artikelnaam", "artikel", "product", "type", "article"],
+            "Hoogte": ["hoogte", "height", "h"],
+            "Breedte": ["breedte", "width", "b"],
             "Aantal": ["aantal", "quantity", "qty", "stuks"]
         }
         detected_columns = {}
@@ -493,12 +493,9 @@ with tab3:
     
         for key, patterns in column_mapping.items():
             for pattern in patterns:
-                for original_col, std_col in standardized_columns.items():
-                    # Gebruik `re.fullmatch` voor een betere controle op exacte matches
-                    if re.search(rf"\b{pattern}\b", std_col, re.IGNORECASE):
-                        detected_columns[key] = original_col  # Bewaar de originele kolomnaam
-                        break
-                if key in detected_columns:
+                match = [original_col for original_col, std_col in standardized_columns.items() if std_col == pattern]
+                if match:
+                    detected_columns[key] = match[0]
                     break
     
         return detected_columns
