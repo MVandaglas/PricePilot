@@ -981,6 +981,9 @@ def update_tabel():
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
+    st.session_state.offer_df = calculate_recommended_price(st.session_state.offer_df)
+    st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df)
+
 
 # Offerte Genereren tab
 with tab1:
@@ -1281,6 +1284,7 @@ def handle_gpt_chat():
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state["trigger_update"] = True
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            update_tabel()
             st.rerun()
         else:
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
