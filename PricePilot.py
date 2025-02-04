@@ -1257,6 +1257,7 @@ def handle_gpt_chat():
                         f"{m2_total:.2f}" if m2_total is not None else None,
                         f"{recommended_price:.2f}" if recommended_price is not None else 0,
                         None,
+                        None,
                         min_price,
                         max_price,
                         verkoopprijs,
