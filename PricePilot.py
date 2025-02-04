@@ -981,7 +981,6 @@ def update_tabel():
     st.session_state.offer_df = updated_df
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
-    st.session_state.offer_df = calculate_recommended_price(st.session_state.offer_df)
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df)
 
 
