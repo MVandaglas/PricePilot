@@ -114,7 +114,7 @@ if not api_key:
     st.error("OpenAI API-sleutel ontbreekt. Stel de OPENAI_API_KEY omgevingsvariabele in de Streamlit Cloud-instellingen in.")
 else:
     openai.api_key = api_key  # Initialize OpenAI ChatCompletion client
-    print("API-sleutel is ingesteld.")  # Bevestiging dat de sleutel is ingesteld
+
 
 # Zorg ervoor dat de database bij opstarten correct is
 setup_database()
@@ -777,11 +777,9 @@ def update_spacer_state(user_input, app_state):
 def preserve_existing_spacers(df):
     for index, row in df.iterrows():
         if pd.notna(row.get("Spacer")):
-            print(f"Spacer behouden op rij {index}: {row['Spacer']}")  # Debugging
             continue  # Behoud bestaande waarde
         # Alleen waarden aanpassen als deze niet bestaan of leeg zijn
         df.at[index, "Spacer"] = determine_spacer(row.get("Spacer", "15 - alu"))
-        print(f"Spacer bijgewerkt op rij {index}: {df.at[index, 'Spacer']}")  # Debugging
     return df
 
 
