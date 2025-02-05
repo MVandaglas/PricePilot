@@ -972,8 +972,7 @@ def update_tabel():
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
     new_df = st.session_state.offer_df
-    new_df.insert(0, 'Rijnummer', new_df.index + 1)
-    
+      
     st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
     st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
     st.session_state["trigger_update"] = True
