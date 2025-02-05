@@ -2331,6 +2331,7 @@ with tab3:
                     st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
     
 update_tabel()
+st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
 
 # Rechterkolom: Excel-file uploader in een expander
 with col2:
