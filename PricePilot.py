@@ -1058,8 +1058,8 @@ with tab1:
         if st.button("Voeg rij toe"):
             # Voeg een lege rij toe aan het DataFrame
             new_row = pd.DataFrame({
-                "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [""], "Hoogte": [""],
-                "Aantal": [""], "RSP": [None], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [None], "Max_prijs": [None], "Verkoopprijs": [1000]
+                "Offertenummer": [None], "Artikelnaam": [""], "Artikelnummer": [""], "Spacer": ["15 - alu"], "Breedte": [0], "Hoogte": [0],
+                "Aantal": [0], "RSP": [None], "M2 p/s": [0], "M2 totaal": [0], "Min_prijs": [None], "Max_prijs": [None], "Verkoopprijs": [1000]
             })
             st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_row], ignore_index=True)
             st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
