@@ -1325,6 +1325,19 @@ def handle_gpt_chat():
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
 
 
+# Update SAP Prijs alleen als het artikelnummer bestaat
+for index, row in df.iterrows():
+    artikelnummer = row.get('Artikelnummer')
+
+    if artikelnummer and st.session_state.customer_number in sap_prices:
+        df.at[index, 'SAP Prijs'] = sap_prices[st.session_state.customer_number].get(artikelnummer, None)
+    else:
+        df.at[index, 'SAP Prijs'] = None
+
+# Herbereken de prijs
+st.session_state.offer_df = bereken_prijs_backend(df)
+return st.session_state.offer_df
+
 
 # Functie voor het verwerken van e-mailinhoud naar offerte
 def handle_email_to_offer(email_body):
@@ -1424,18 +1437,7 @@ def handle_email_to_offer(email_body):
             st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
 
 
-# Update SAP Prijs alleen als het artikelnummer bestaat
-for index, row in df.iterrows():
-    artikelnummer = row.get('Artikelnummer')
 
-    if artikelnummer and st.session_state.customer_number in sap_prices:
-        df.at[index, 'SAP Prijs'] = sap_prices[st.session_state.customer_number].get(artikelnummer, None)
-    else:
-        df.at[index, 'SAP Prijs'] = None
-
-# Herbereken de prijs
-df = bereken_prijs_backend(df)
-return df
 
 
 def handle_mapped_data_to_offer(df):
