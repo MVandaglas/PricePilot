@@ -104,7 +104,7 @@ if accounts:
     accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
     accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
 else:
-    accounts_df = pd.(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
+    accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
 
 
 
