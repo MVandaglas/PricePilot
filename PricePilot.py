@@ -1594,16 +1594,14 @@ def extract_table_from_docx(doc):
 
     
 
-   elif attachment_name.endswith(".pdf"):
+def process_attachment(attachment, attachment_name):
+    """
+    Analyzes and processes an attachment based on its file type (Excel, PDF, or DOCX).
+    """
+    if attachment_name.endswith(".xlsx"):
         try:
-            pdf_reader = BytesIO(attachment)
-            st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
-
-            excel_path = "converted_file.xlsx"
-            pdf_to_excel(pdf_reader, excel_path)
-
-            df = pd.read_excel(excel_path, engine='openpyxl')
-            st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
+            df = pd.read_excel(BytesIO(attachment))
+            st.write("Bijlage ingelezen als DataFrame:")
             st.dataframe(df)
 
             detected_columns = detect_relevant_columns(df)
@@ -1619,27 +1617,23 @@ def extract_table_from_docx(doc):
                 relevant_data.columns = mapped_columns.keys()
 
                 # Filter relevant data based on start_row and end_row
-                start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(df)-1, value=0)
-                end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(df)-1, value=len(df)-1)
+                start_row = st.sidebar.number_input("Beginrij data (niet de header):", min_value=0, max_value=len(df)-1, value=0)
+                end_row = st.sidebar.number_input("Eindrij data:", min_value=0, max_value=len(df)-1, value=len(df)-1)
                 relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
 
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
 
-                if not relevant_data.empty:
-                    if st.button("Verwerk gegevens naar offerte"):
-                        handle_mapped_data_to_offer(relevant_data)
-                else:
-                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+                if st.sidebar.button("Verwerk gegevens naar offerte"):
+                    handle_mapped_data_to_offer(relevant_data)
             else:
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
+                return None
         except Exception as e:
-            st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
+            st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
+            return None
 
-    
-
-
-    elif attachment_name.endswith(".pdf"):
+   elif attachment_name.endswith(".pdf"):
         try:
             pdf_reader = BytesIO(attachment)
             st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
@@ -1733,6 +1727,7 @@ def extract_table_from_docx(doc):
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de DOCX-bijlage: {e}")
+
 
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid  
 
