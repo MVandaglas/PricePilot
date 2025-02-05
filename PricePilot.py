@@ -1633,7 +1633,7 @@ def process_attachment(attachment, attachment_name):
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
             return None
 
-        elif attachment_name.endswith(".pdf"):
+    elif attachment_name.endswith(".pdf"):
         try:
             pdf_reader = BytesIO(attachment)
             st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
