@@ -102,6 +102,7 @@ synonym_dict = {
     "10-8 HR++": "1006450",
     "4-15-4": "1006350",
     "4-16-4": "1006350",
-    "Pyroguard impact 7mm": "1006450"
+    "Pyroguard impact 7mm": "1006450",
+    "IP ThermControl 33/1 - 33/1LE1.1": "1006351"
      # Voeg hier alle andere benodigde synoniemen toe
 }
