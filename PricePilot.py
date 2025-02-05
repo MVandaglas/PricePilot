@@ -1593,70 +1593,79 @@ def extract_table_from_docx(doc):
     return all_dataframes  # Return een lijst van DataFrames
 
 
-def process_attachment(attachment, attachment_name):
-    """
-    Analyzes and processes an attachment based on its file type (Excel, PDF, or DOCX).
-    """
-    if attachment_name.endswith(".xlsx"):
-        try:
-            # Stap 1: Lees de Excel in en detecteer automatisch het begin van de tabel
-            raw_df = pd.read_excel(BytesIO(attachment), header=None)  # Header handmatig bepalen later
-            st.write("Bijlage ingelezen als DataFrame:")
-            st.dataframe(raw_df)
+elif attachment_name.endswith(".pdf"):
+    try:
+        # Debug: PDF-bestand controleren
+        st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
 
-            # Zoek de rij waar de kolomnamen staan (bijvoorbeeld rij 20 in jouw voorbeeld)
-            header_row = 19  # Beginindex voor headers
-            data_start_row = header_row + 1  # Data begint een rij onder de headers
+        # PDF omzetten naar Excel
+        pdf_reader = BytesIO(attachment)
+        excel_path = "converted_file.xlsx"
+        pdf_to_excel(pdf_reader, excel_path)
+        
+        # DataFrame inlezen uit Excel
+        df = pd.read_excel(excel_path, engine='openpyxl')
+        st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
+        st.dataframe(df)
 
-            # Lees de data opnieuw in vanaf de gevonden header
-            df = pd.read_excel(BytesIO(attachment), skiprows=header_row, header=0)
-            st.write("Geverifieerde tabel met headers:")
-            st.dataframe(df)
+        # Debug: Controleer de DataFrame-kolommen
+        st.write("Beschikbare kolommen in DataFrame:", df.columns)
 
-            # Stap 2: Detecteer kolommen en doe de mapping
-            detected_columns = detect_relevant_columns(df)
-            mapped_columns = manual_column_mapping(df, detected_columns)
+        # Detecteer en map relevante kolommen
+        detected_columns = detect_relevant_columns(df)
+        mapped_columns = manual_column_mapping(df, detected_columns)
 
-            # Validatie van kolommapping
-            if not isinstance(mapped_columns, dict):
-                st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
+        # Debug: Toon de gedetecteerde en gemapte kolommen
+        st.write("Gedetecteerde kolommen:", detected_columns)
+        st.write("Gemapte kolommen:", mapped_columns)
+
+        # Validatie: Controleren of mapped_columns een dictionary is
+        if not isinstance(mapped_columns, dict):
+            st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
+            return None
+
+        # Validatie: Check of alle kolommen in de DataFrame bestaan
+        for key, col in mapped_columns.items():
+            if col not in df.columns:
+                st.error(f"Kolom '{col}' niet gevonden in de DataFrame. Controleer de mapping.")
                 return None
 
-            if mapped_columns:
-                # Filter relevante kolommen
-                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
-                relevant_data.columns = mapped_columns.keys()
+        # Verwerk de relevante data
+        if mapped_columns:
+            relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+            relevant_data.columns = mapped_columns.keys()
 
-                # Automatische detectie van eindrij
-                end_row = len(relevant_data.dropna(how="all")) - 1
+            # Debug: Controleer de relevante data na mapping
+            st.write("Relevante data na mapping:")
+            st.dataframe(relevant_data)
 
-                # Laat de gebruiker de data filteren op rijen indien nodig
-                start_row = st.sidebar.number_input(
-                    "Beginrij data (niet de header):", 
-                    min_value=0, 
-                    max_value=end_row, 
-                    value=0
-                )
-                end_row = st.sidebar.number_input(
-                    "Eindrij data:", 
-                    min_value=0, 
-                    max_value=end_row, 
-                    value=end_row
-                )
-                relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
+            # Validatie: Controleer op lege waarden in de relevante data
+            if relevant_data.isnull().any().any():
+                st.warning("De relevante data bevat lege waarden. Controleer de inputbestanden.")
+                relevant_data = relevant_data.dropna()  # Optioneel: Verwijder rijen met lege waarden
 
-                # Toon relevante data
-                st.write("Relevante data:")
-                st.dataframe(relevant_data)
+            # Filter de relevante data op basis van rijen
+            start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(df)-1, value=0)
+            end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(df)-1, value=len(df)-1)
 
-                if st.sidebar.button("Verwerk gegevens naar offerte"):
+            # Debug: Toon de geselecteerde rijen
+            st.write(f"Geselecteerde rijen: {start_row} tot {end_row}")
+
+            relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
+
+            st.write("Relevante data (na filtering):")
+            st.dataframe(relevant_data)
+
+            # Verwerk de data als deze niet leeg is
+            if not relevant_data.empty:
+                if st.button("Verwerk gegevens naar offerte"):
                     handle_mapped_data_to_offer(relevant_data)
             else:
-                st.warning("Geen relevante kolommen gevonden of gemapped.")
-                return None
-        except Exception as e:
-            st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
-            return None
+                st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+        else:
+            st.warning("Geen relevante kolommen gevonden of gemapped.")
+    except Exception as e:
+        st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
 
 
 
