@@ -218,7 +218,7 @@ with tab4:
                             st.warning("Selecteer minimaal één rij om in te lezen.")
 
             # Excel-upload functionaliteit in een expander
-            with st.expander("Excel-upload voor Synoniemen_actief", expanded=False):
+            with st.expander("Excel-upload voor Synoniemen_actief", expanded=True):
                 st.markdown("### Upload een Excel-bestand om synoniemen toe te voegen aan 'Synoniemen_actief'")
                 uploaded_file = st.file_uploader("Kies een Excel-bestand", type=["xlsx"])
 
