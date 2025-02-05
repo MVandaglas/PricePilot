@@ -447,6 +447,8 @@ with tab1:
 
 
 
+
+
 # Controleer en zet kolommen om
 for col in ["M2 totaal", "RSP", "Verkoopprijs"]:
     if col not in st.session_state.offer_df.columns:
@@ -697,6 +699,34 @@ def find_article_details(article_number):
 
     # 6. Als alles niet matcht
     return (None, None, None, original_article_number, "niet gevonden", original_article_number, None)
+
+
+# Werkt de artikelnummer bij in de DataFrame op basis van de ingevulde artikelnaam. Gebruikt fuzzy matching om de beste overeenkomst te vinden.
+def update_article_numbers_from_names(df, article_table, cutoff_value = cutoff_value):
+    if df.empty or article_table.empty:
+        return df  # Return ongeldige invoer
+
+    for index, row in df.iterrows():
+        artikelnaam = row.get("Artikelnaam", "").strip()
+
+        # Alleen bijwerken als er een naam is en de artikelnummer ontbreekt of een slechte match is
+        if artikelnaam and (pd.isna(row.get("Artikelnummer")) or row["Source"] in ["niet gevonden", "GPT"]):
+
+            # Zoek de beste match met fuzzy matching
+            best_match = process.extractOne(artikelnaam, article_table["Description"], scorer=fuzz.ratio, score_cutoff=cutoff_value * 100)
+
+            if best_match:
+                best_article_name, score, match_index = best_match
+                matched_article_number = article_table.iloc[match_index]["Material"]
+
+                df.at[index, "Artikelnummer"] = matched_article_number
+                df.at[index, "Source"] = "fuzzy_match"  # Markeer als fuzzy match
+                df.at[index, "fuzzy_match"] = best_article_name  # Voeg fuzzy match kolom toe
+            else:
+                df.at[index, "Source"] = "niet gevonden"  # Geen match gevonden
+
+    return df
+
 
 
 # Functie om aanbevolen prijs te berekenen
@@ -1276,6 +1306,7 @@ def handle_gpt_chat():
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state["trigger_update"] = True
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
+            st.session_state.offer_df = update_article_numbers_from_names(st.session_state.offer_df, article_table)
             st.rerun()
 
            
