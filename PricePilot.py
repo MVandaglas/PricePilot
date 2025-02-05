@@ -1595,68 +1595,36 @@ def extract_table_from_docx(doc):
     
     elif attachment_name.endswith(".pdf"):
         try:
-            # Debug: PDF-bestand controleren
-            st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
-    
-            # PDF omzetten naar Excel
             pdf_reader = BytesIO(attachment)
+            st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
+
             excel_path = "converted_file.xlsx"
             pdf_to_excel(pdf_reader, excel_path)
-            
-            # DataFrame inlezen uit Excel
+
             df = pd.read_excel(excel_path, engine='openpyxl')
             st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
             st.dataframe(df)
-    
-            # Debug: Controleer de DataFrame-kolommen
-            st.write("Beschikbare kolommen in DataFrame:", df.columns)
-    
-            # Detecteer en map relevante kolommen
+
             detected_columns = detect_relevant_columns(df)
             mapped_columns = manual_column_mapping(df, detected_columns)
-    
-            # Debug: Toon de gedetecteerde en gemapte kolommen
-            st.write("Gedetecteerde kolommen:", detected_columns)
-            st.write("Gemapte kolommen:", mapped_columns)
-    
-            # Validatie: Controleren of mapped_columns een dictionary is
+
+            # Validatie voor mapped_columns
             if not isinstance(mapped_columns, dict):
                 st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
                 return None
-    
-            # Validatie: Check of alle kolommen in de DataFrame bestaan
-            for key, col in mapped_columns.items():
-                if col not in df.columns:
-                    st.error(f"Kolom '{col}' niet gevonden in de DataFrame. Controleer de mapping.")
-                    return None
-    
-            # Verwerk de relevante data
+
             if mapped_columns:
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
-    
-                # Debug: Controleer de relevante data na mapping
-                st.write("Relevante data na mapping:")
-                st.dataframe(relevant_data)
-    
-                # Validatie: Controleer op lege waarden in de relevante data
-                if relevant_data.isnull().any().any():
-                    st.warning("De relevante data bevat lege waarden. Controleer de inputbestanden.")
-                    relevant_data = relevant_data.dropna()  # Optioneel: Verwijder rijen met lege waarden
-    
-                # Filter de relevante data op basis van rijen
+
+                # Filter relevant data based on start_row and end_row
                 start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(df)-1, value=0)
                 end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(df)-1, value=len(df)-1)
-    
-                # Debug: Toon de geselecteerde rijen
-                st.write(f"Geselecteerde rijen: {start_row} tot {end_row}")
-    
                 relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
-    
-                st.write("Relevante data (na filtering):")
+
+                st.write("Relevante data:")
                 st.dataframe(relevant_data)
-    
-                # Verwerk de data als deze niet leeg is
+
                 if not relevant_data.empty:
                     if st.button("Verwerk gegevens naar offerte"):
                         handle_mapped_data_to_offer(relevant_data)
@@ -1666,7 +1634,7 @@ def extract_table_from_docx(doc):
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
-
+    
 
 
     elif attachment_name.endswith(".pdf"):
