@@ -426,7 +426,15 @@ with tab1:
                 
                 # Logica voor PricePilot
                 elif prijsbepaling_optie == "PricePilot logica":
-                    return min(row["SAP Prijs"], row["RSP"])
+                    # Zorg ervoor dat zowel SAP Prijs als RSP niet 0 zijn
+                    if row["SAP Prijs"] > 0 and row["RSP"] > 0:
+                        return min(row["SAP Prijs"], row["RSP"])
+                    elif row["SAP Prijs"] > 0:
+                        return row["SAP Prijs"]  # Gebruik SAP Prijs als RSP 0 is
+                    elif row["RSP"] > 0:
+                        return row["RSP"]  # Gebruik RSP als SAP Prijs 0 is
+                    else:
+                        return 0  # Als beide 0 zijn, zet Prijs_backend op 0
                 
                 # Default naar 0 als niets anders van toepassing is
                 return 0
