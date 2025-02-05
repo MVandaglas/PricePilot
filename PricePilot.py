@@ -2330,6 +2330,7 @@ with tab3:
                 else:
                     st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
     
+update_tabel()
 
 # Rechterkolom: Excel-file uploader in een expander
 with col2:
