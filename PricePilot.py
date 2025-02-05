@@ -1048,7 +1048,7 @@ with tab1:
                 st.session_state.selected_rows = []  # Reset de geselecteerde rijen na verwijderen
                 # Reset de Rijnummer-kolom na verwijderen
                 st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-                st.rerun
+                st.rerun()
             else:
                 st.warning("Selecteer eerst rijen om te verwijderen.")
     
@@ -2330,8 +2330,7 @@ with tab3:
                 else:
                     st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
     
-update_tabel()
-st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
+
 
 # Rechterkolom: Excel-file uploader in een expander
 with col2:
@@ -2396,7 +2395,7 @@ with col2:
             except Exception as e:
                 st.error(f"Fout bij het lezen van het bestand: {e}")
 
-st.rerun()
+
 
 with col2:
     def generate_excel():
