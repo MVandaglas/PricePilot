@@ -1324,20 +1324,19 @@ def handle_gpt_chat():
     else:
         st.sidebar.warning("Voer alstublieft tekst in of upload een bestand.")
 
-
-# Update SAP Prijs alleen als het artikelnummer bestaat
-for index, row in df.iterrows():
-    artikelnummer = row.get('Artikelnummer')
-
-    if artikelnummer and st.session_state.customer_number in sap_prices:
-        df.at[index, 'SAP Prijs'] = sap_prices[st.session_state.customer_number].get(artikelnummer, None)
-    else:
-        df.at[index, 'SAP Prijs'] = None
-
-# Herbereken de prijs
-st.session_state.offer_df = bereken_prijs_backend(df)
-return st.session_state.offer_df
-
+#  Werkt de SAP Prijs bij op basis van het klantnummer en artikelnummer.
+def update_sap_prices(df):   
+    for index, row in df.iterrows():
+        artikelnummer = row.get('Artikelnummer')
+        if artikelnummer and st.session_state.customer_number in sap_prices:
+            df.at[index, 'SAP Prijs'] = sap_prices[st.session_state.customer_number].get(artikelnummer, None)
+        else:
+            df.at[index, 'SAP Prijs'] = None
+    df = bereken_prijs_backend(df)  # Herbereken de prijzen
+    return df  # Nu staat return binnen de functie
+    
+# Functie direct uitvoeren en opslaan in sessiestatus
+st.session_state.offer_df = update_sap_prices(st.session_state.offer_df)
 
 # Functie voor het verwerken van e-mailinhoud naar offerte
 def handle_email_to_offer(email_body):
