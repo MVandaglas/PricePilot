@@ -100,7 +100,7 @@ else:
 
 # Verwerk de accounts als er gegevens beschikbaar zijn
 if accounts:
-    accounts_df = pd.(accounts).drop(columns="attributes", errors="ignore")
+    accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
     accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
     accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
 else:
