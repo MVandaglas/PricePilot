@@ -971,7 +971,7 @@ def update_tabel():
     st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
     st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-    new_df = pd.DataFrame(data, columns=["Offertenummer", "Artikelnaam", "Artikelnummer", "Spacer", "Breedte", "Hoogte", "Aantal", "M2 p/s", "M2 totaal", "RSP", "SAP Prijs", "Handmatige Prijs", "Min_prijs", "Max_prijs", "Verkoopprijs", "Prijs_backend", "Source", "fuzzy_match", "original_article_number"])
+    new_df = st.session_state.offer_df
     new_df.insert(0, 'Rijnummer', new_df.index + 1)
     
     st.session_state.offer_df = pd.concat([st.session_state.offer_df, new_df], ignore_index=True)
