@@ -2396,6 +2396,7 @@ with col2:
             except Exception as e:
                 st.error(f"Fout bij het lezen van het bestand: {e}")
 
+st.rerun()
 
 with col2:
     def generate_excel():
