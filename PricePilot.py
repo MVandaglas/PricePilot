@@ -964,9 +964,7 @@ with tab1:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
  
-   
-
- # Verbeterde update_tabel functie
+    # Verbeterde update_tabel functie
 def update_tabel():
     updated_df = pd.DataFrame(edited_df_response['data'])
     st.session_state.offer_df = updated_df
@@ -980,9 +978,7 @@ with tab1:
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
         update_tabel()
-        updated_df = edited_df_response['data']
-        save_changes(pd.DataFrame(updated_df))
- 
+        update_tabel()
 
  
     # Update de DataFrame na elke wijziging
