@@ -1635,9 +1635,7 @@ def process_attachment(attachment, attachment_name):
 
     elif attachment_name.endswith(".pdf"):
         try:
-            # Debug: PDF-bestand controleren
-            st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
-    
+     
             # PDF omzetten naar Excel
             pdf_reader = BytesIO(attachment)
             excel_path = "converted_file.xlsx"
@@ -1645,19 +1643,10 @@ def process_attachment(attachment, attachment_name):
             
             # DataFrame inlezen uit Excel
             df = pd.read_excel(excel_path, engine='openpyxl')
-            st.write("PDF omgezet naar Excel en ingelezen als DataFrame:")
-            st.dataframe(df)
-    
-            # Debug: Controleer de DataFrame-kolommen
-            st.write("Beschikbare kolommen in DataFrame:", df.columns)
     
             # Detecteer en map relevante kolommen
             detected_columns = detect_relevant_columns(df)
             mapped_columns = manual_column_mapping(df, detected_columns)
-    
-            # Debug: Toon de gedetecteerde en gemapte kolommen
-            st.write("Gedetecteerde kolommen:", detected_columns)
-            st.write("Gemapte kolommen:", mapped_columns)
     
             # Validatie: Controleren of mapped_columns een dictionary is
             if not isinstance(mapped_columns, dict):
@@ -1674,11 +1663,7 @@ def process_attachment(attachment, attachment_name):
             if mapped_columns:
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
-    
-                # Debug: Controleer de relevante data na mapping
-                st.write("Relevante data na mapping:")
-                st.dataframe(relevant_data)
-    
+     
                 # Validatie: Controleer op lege waarden in de relevante data
                 if relevant_data.isnull().any().any():
                     st.warning("De relevante data bevat lege waarden. Controleer de inputbestanden.")
@@ -1687,10 +1672,7 @@ def process_attachment(attachment, attachment_name):
                 # Filter de relevante data op basis van rijen
                 start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(df)-1, value=0)
                 end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(df)-1, value=len(df)-1)
-    
-                # Debug: Toon de geselecteerde rijen
-                st.write(f"Geselecteerde rijen: {start_row} tot {end_row}")
-    
+       
                 relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
     
                 st.write("Relevante data (na filtering):")
