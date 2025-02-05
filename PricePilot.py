@@ -980,7 +980,7 @@ with tab1:
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
         update_tabel()
-    
+        save_changes()
  
 
  
