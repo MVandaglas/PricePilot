@@ -47,7 +47,7 @@ CSV_PATH = st.secrets.get("SP_CSV_SYN")  # Pad naar TestSynoniem.csv in SharePoi
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
     # Initialiseer de matrix met standaardwaarden
-    st.session_state.prijsscherpte_matrix = pd.DataFrame({
+    st.session_state.prijsscherpte_matrix = pd.({
         "Offertebedrag": [0, 5000, 10000, 25000, 50000],  # X-as
         "A": [60, 70, 80, 90, 100],  # Y-as kolommen
         "B": [40, 50, 60, 70, 80],
@@ -100,11 +100,11 @@ else:
 
 # Verwerk de accounts als er gegevens beschikbaar zijn
 if accounts:
-    accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
+    accounts_df = pd.(accounts).drop(columns="attributes", errors="ignore")
     accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
     accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
 else:
-    accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
+    accounts_df = pd.(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
 
 
 
@@ -790,28 +790,19 @@ def update_offer_data(df):
 # Functie om de RSP voor alle regels te updaten
 def update_rsp_for_all_rows(df, prijsscherpte):
     if prijsscherpte:
-        st.write("DataFrame vóór RSP-update:")
-        st.dataframe(df)
 
         def calculate_rsp(row):
             min_price = row.get('Min_prijs', None)
             max_price = row.get('Max_prijs', None)
             if pd.notna(min_price) and pd.notna(max_price):
                 rsp_value = calculate_recommended_price(min_price, max_price, prijsscherpte)
-                st.write(f"RSP voor rij {row.name}: {round(rsp_value * 20) / 20}")
                 return round(rsp_value * 20) / 20
             return row.get('RSP', None)
 
         df['RSP'] = df.apply(calculate_rsp, axis=1)
 
-        st.write("DataFrame na RSP-update:")
-        st.dataframe(df)
-
         # Pas backend-berekeningen toe
         df = bereken_prijs_backend(df)
-
-        st.write("DataFrame na bereken_prijs_backend:")
-        st.dataframe(df)
 
     return df
 
