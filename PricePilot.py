@@ -980,7 +980,8 @@ with tab1:
     # Knop om de tabel bij te werken
     if st.button("Update tabel"):
         update_tabel()
-        save_changes()
+        updated_df = edited_df_response['data']
+        save_changes(pd.DataFrame(updated_df))
  
 
  
