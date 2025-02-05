@@ -47,7 +47,7 @@ CSV_PATH = st.secrets.get("SP_CSV_SYN")  # Pad naar TestSynoniem.csv in SharePoi
 # Importeer prijsscherpte
 if "prijsscherpte_matrix" not in st.session_state:
     # Initialiseer de matrix met standaardwaarden
-    st.session_state.prijsscherpte_matrix = pd.({
+    st.session_state.prijsscherpte_matrix = pd.DataFrame({
         "Offertebedrag": [0, 5000, 10000, 25000, 50000],  # X-as
         "A": [60, 70, 80, 90, 100],  # Y-as kolommen
         "B": [40, 50, 60, 70, 80],
