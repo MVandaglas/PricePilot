@@ -1593,7 +1593,8 @@ def extract_table_from_docx(doc):
     return all_dataframes  # Return een lijst van DataFrames
 
     
-    elif attachment_name.endswith(".pdf"):
+
+   elif attachment_name.endswith(".pdf"):
         try:
             pdf_reader = BytesIO(attachment)
             st.write(f"PDF-bestand '{attachment_name}' ingelezen:")
@@ -1634,6 +1635,7 @@ def extract_table_from_docx(doc):
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
+
     
 
 
