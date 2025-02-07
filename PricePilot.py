@@ -1605,7 +1605,8 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
                 
                 # Controleer en los dubbele kolomnamen op
-                df.columns = pd.io.parsers.ParserBase({'names': df.columns})._maybe_dedup_names(df.columns)          
+                df.columns = pd.io.parsers.ParserBase({'names': df.columns})._maybe_dedup_names(df.columns)
+                df.columns = pd.io.parsers.DataFrame.assign({'names': df.columns})._deduplicate(df.columns)  
             
             return df
         else:
