@@ -1578,7 +1578,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 continue
 
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
-            columns = re.split(r'(?<!\w)\s{3,}(?!\w)', line)
+            columns = re.split(r'(?:\s{3,}|\t+)', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
 
