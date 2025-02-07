@@ -1564,29 +1564,11 @@ def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
             lines = []
-            structured_data = []
-            current_category = None
-
-            # Extract text with bounding boxes
             for page in pdf.pages:
-                rows = []
-                for word in page.extract_words():
-                    rows.append(word)
+                lines.extend(page.extract_text().split("\n"))
 
-                # Groepeer woorden per regel op basis van de y-coördinaten
-                rows_grouped = {}
-                for word in rows:
-                    y_position = round(word["top"], -1)  # Rond de y-positie af op 10 pixels voor groepering
-                    if y_position not in rows_grouped:
-                        rows_grouped[y_position] = []
-                    rows_grouped[y_position].append(word)
-
-                # Sorteer op y-positie
-                for _, words in sorted(rows_grouped.items()):
-                    line = " ".join([word["text"] for word in sorted(words, key=lambda x: x["x0"])]).strip()
-                    lines.append(line)
-
-        # Kolomsplitsing en detectie van categorieën
+        structured_data = []
+        current_category = None
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
 
         for line in lines:
@@ -1595,8 +1577,8 @@ def extract_pdf_to_dataframe(pdf_reader):
                 current_category = line.replace(":", "")
                 continue
 
-            # Splits de kolommen op basis van meerdere spaties
-            columns = re.split(r'(?:\s{3,}|\t+)', line)
+            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
+            columns = re.split(r'\s+', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
 
@@ -1643,7 +1625,7 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
-
+        
 def extract_latest_email(body):
     """
     Extracts only the latest email from an email thread.
