@@ -1559,8 +1559,8 @@ def pdf_to_excel(pdf_reader, excel_path):
         st.error(f"Fout bij het converteren van PDF naar Excel: {e}")
         return None
 
-# Functie voor extractie en verwerking van gegevens met flexibele mapping
-def extract_flexible_data(pdf_reader):
+# Algemene functie voor extractie en verwerking van PDF-gegevens
+def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
             lines = []
@@ -1568,24 +1568,31 @@ def extract_flexible_data(pdf_reader):
                 lines.extend(page.extract_text().split("\n"))
 
         structured_data = []
+        current_category = None
+        category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
+
         for line in lines:
             line = line.strip()
+            if category_pattern.match(line):
+                current_category = line.replace(":", "")
+                continue
+
             columns = re.split(r'\s+', line)
-            if len(columns) >= 3:  # Voorkom ongeldige rijen
-                structured_data.append(columns)
+            if len(columns) >= 5 and current_category:
+                structured_data.append([current_category] + columns)
 
         if structured_data:
             max_columns = max(len(row) for row in structured_data)
-            column_names = [f"Kolom_{i}" for i in range(max_columns)]
+            column_names = ["Categorie"] + [f"Kolom_{i}" for i in range(1, max_columns)]
             structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
-            df_final = pd.DataFrame(structured_data, columns=column_names)
+            df = pd.DataFrame(structured_data, columns=column_names)
 
-            return df_final
+            return df
         else:
-            st.warning("Geen gegevens gevonden in de PDF. Controleer of de PDF tekst of tabellen bevat.")
+            st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
     except Exception as e:
-        st.error(f"Fout bij het extraheren van gegevens: {e}")
+        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
 
 
@@ -1678,7 +1685,7 @@ def process_attachment(attachment, attachment_name):
                 st.warning("De PDF bevat geen tabellen om naar Excel te converteren. Controleer de inhoud van de PDF.")
     
             # Gegevens extraheren uit PDF
-            df_extracted = extract_flexible_data(pdf_reader)
+            df_extracted = extract_pdf_to_dataframe(pdf_reader)
             if not df_extracted.empty:
                 st.write("Gestructureerde gegevens:")
                 st.dataframe(df_extracted)
