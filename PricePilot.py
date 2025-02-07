@@ -1543,15 +1543,29 @@ def pdf_to_excel(pdf_path, excel_path):
     """
     try:
         with pdfplumber.open(pdf_path) as pdf:
+            all_tables = []
             writer = pd.ExcelWriter(excel_path, engine='openpyxl')
+
             for i, page in enumerate(pdf.pages):
                 table = page.extract_table()
-                if table:
-                    df = pd.DataFrame(table[1:], columns=table[0])  # Gebruik de eerste rij als header
+                
+                if table and len(table) > 1:  # Zorg ervoor dat er data is
+                    headers = table[0] if all(isinstance(h, str) for h in table[0]) else [f"Kolom_{j}" for j in range(len(table[0]))]
+                    df = pd.DataFrame(table[1:], columns=headers)
                     df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
-            writer.close()
+                    all_tables.append(df)
+
+            # Controleer of er tabellen zijn opgeslagen
+            if not all_tables:
+                st.error("Geen tabellen gevonden in de PDF. Controleer of de PDF correcte tabellen bevat.")
+                return None
+
+            writer._save()  # Correct afsluiten van het bestand
+            return excel_path
+
     except Exception as e:
         st.error(f"Fout bij het converteren van PDF naar Excel: {e}")
+        return None
 
 
 
