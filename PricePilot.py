@@ -1604,10 +1604,20 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
                 
-                # Controleer en los dubbele kolomnamen op
-                df.columns = pd.io.parsers.ParserBase({'names': df.columns})._maybe_dedup_names(df.columns)
-                df.columns = pd.io.parsers.DataFrame.assign({'names': df.columns})._deduplicate(df.columns)  
-            
+
+                # Los dubbele kolomnamen correct op
+                def deduplicate_columns(columns):
+                    seen = {}
+                    for i, col in enumerate(columns):
+                        if col not in seen:
+                            seen[col] = 0
+                        else:
+                            seen[col] += 1
+                            columns[i] = f"{col}_{seen[col]}"
+                    return columns
+    
+                df.columns = deduplicate_columns(list(df.columns))
+
             return df
         else:
             st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
