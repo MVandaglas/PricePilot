@@ -1564,11 +1564,29 @@ def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
             lines = []
-            for page in pdf.pages:
-                lines.extend(page.extract_text().split("\n"))
+            structured_data = []
+            current_category = None
 
-        structured_data = []
-        current_category = None
+            # Extract text with bounding boxes
+            for page in pdf.pages:
+                rows = []
+                for word in page.extract_words():
+                    rows.append(word)
+
+                # Groepeer woorden per regel op basis van de y-coördinaten
+                rows_grouped = {}
+                for word in rows:
+                    y_position = round(word["top"], -1)  # Rond de y-positie af op 10 pixels voor groepering
+                    if y_position not in rows_grouped:
+                        rows_grouped[y_position] = []
+                    rows_grouped[y_position].append(word)
+
+                # Sorteer op y-positie
+                for _, words in sorted(rows_grouped.items()):
+                    line = " ".join([word["text"] for word in sorted(words, key=lambda x: x["x0"])]).strip()
+                    lines.append(line)
+
+        # Kolomsplitsing en detectie van categorieën
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
 
         for line in lines:
@@ -1577,7 +1595,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 current_category = line.replace(":", "")
                 continue
 
-            # Splitsen op basis van spaties of tabs, minimaal drie of meer
+            # Splits de kolommen op basis van meerdere spaties
             columns = re.split(r'(?:\s{3,}|\t+)', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
@@ -1604,20 +1622,19 @@ def extract_pdf_to_dataframe(pdf_reader):
             if header_row is not None:
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
-                
 
-                # Los dubbele kolomnamen correct op
-                def deduplicate_columns(columns):
-                    seen = {}
-                    for i, col in enumerate(columns):
-                        if col not in seen:
-                            seen[col] = 0
-                        else:
-                            seen[col] += 1
-                            columns[i] = f"{col}_{seen[col]}"
-                    return columns
-    
-                df.columns = deduplicate_columns(list(df.columns))
+            # Los dubbele kolomnamen correct op
+            def deduplicate_columns(columns):
+                seen = {}
+                for i, col in enumerate(columns):
+                    if col not in seen:
+                        seen[col] = 0
+                    else:
+                        seen[col] += 1
+                        columns[i] = f"{col}_{seen[col]}"
+                return columns
+
+            df.columns = deduplicate_columns(list(df.columns))
 
             return df
         else:
@@ -1626,7 +1643,6 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
-
 
 def extract_latest_email(body):
     """
