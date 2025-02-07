@@ -1587,6 +1587,23 @@ def extract_pdf_to_dataframe(pdf_reader):
             structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
             df = pd.DataFrame(structured_data, columns=column_names)
 
+            # Detecteer headers op de eerste twee rijen
+            header_row = None
+            for i in range(2):
+                potential_headers = df.iloc[i].str.lower().str.strip()
+                if any(potential_headers.isin([
+                    "artikelnaam", "artikel", "product", "type", "article",
+                    "hoogte", "height", "h",
+                    "breedte", "width", "b",
+                    "aantal", "quantity", "qty", "stuks"
+                ])):
+                    header_row = i
+                    break
+
+            if header_row is not None:
+                df.columns = df.iloc[header_row]
+                df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
+            
             return df
         else:
             st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
@@ -1689,7 +1706,11 @@ def process_attachment(attachment, attachment_name):
             if not df_extracted.empty:
                 st.write("Gestructureerde gegevens:")
                 st.dataframe(df_extracted)
-    
+
+                # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
+                df_extracted = df_extracted[~df_extracted.apply(lambda row: row.astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
+                df_extracted = df_extracted.dropna(how='all')
+                
                 # Relevante kolommen detecteren
                 detected_columns = detect_relevant_columns(df_extracted)
                 mapped_columns = manual_column_mapping(df_extracted, detected_columns)
