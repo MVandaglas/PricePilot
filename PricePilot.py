@@ -1533,34 +1533,38 @@ def manual_column_mapping(df, detected_columns):
 
 
 # Open de PDF en lees tabellen met pdfplumber
-def pdf_to_excel(pdf_path, excel_path):
+def pdf_to_excel(pdf_reader, excel_path):
     """
-    Convert a PDF containing tables into an Excel file.
+    Converteert een PDF met tabellen naar een Excel-bestand.
     
     Parameters:
-        pdf_path (str or BytesIO): Path to the PDF file or a BytesIO object.
-        excel_path (str): Path to save the output Excel file.
+        pdf_reader (BytesIO): In-memory bestand van een PDF.
+        excel_path (str): Pad om het Excel-bestand op te slaan.
     """
     try:
-        with pdfplumber.open(pdf_path) as pdf:
-            all_tables = []
+        with pdfplumber.open(pdf_reader) as pdf:
             writer = pd.ExcelWriter(excel_path, engine='openpyxl')
+            has_data = False  # Controleer of er überhaupt tabellen zijn gevonden
 
             for i, page in enumerate(pdf.pages):
                 table = page.extract_table()
                 
-                if table and len(table) > 1:  # Zorg ervoor dat er data is
+                if table and len(table) > 1:  # Zorg dat er data is
                     headers = table[0] if all(isinstance(h, str) for h in table[0]) else [f"Kolom_{j}" for j in range(len(table[0]))]
                     df = pd.DataFrame(table[1:], columns=headers)
-                    df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
-                    all_tables.append(df)
+                    
+                    # Controleer of de DataFrame echt data bevat
+                    if not df.empty:
+                        df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
+                        has_data = True
 
-            # Controleer of er tabellen zijn opgeslagen
-            if not all_tables:
+            # Sluit correct af
+            writer.close()
+
+            if not has_data:
                 st.error("Geen tabellen gevonden in de PDF. Controleer of de PDF correcte tabellen bevat.")
                 return None
 
-            writer._save()  # Correct afsluiten van het bestand
             return excel_path
 
     except Exception as e:
