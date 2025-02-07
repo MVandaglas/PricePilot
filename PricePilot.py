@@ -1533,25 +1533,25 @@ def manual_column_mapping(df, detected_columns):
 
 
 # Open de PDF en lees tabellen met pdfplumber
-# Functie voor PDF naar Excel conversie
 def pdf_to_excel(pdf_reader, excel_path):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
             writer = pd.ExcelWriter(excel_path, engine='openpyxl')
             has_data = False
-            
+
             for i, page in enumerate(pdf.pages):
                 table = page.extract_table()
                 if table and len(table) > 1:
                     headers = table[0] if all(isinstance(h, str) for h in table[0]) else [f"Kolom_{j}" for j in range(len(table[0]))]
                     df = pd.DataFrame(table[1:], columns=headers)
-                    df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
-                    has_data = True
-            
+                    if not df.empty:
+                        df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
+                        has_data = True
+
             writer.close()
-            
+
             if not has_data:
-                st.error("Geen tabellen gevonden in de PDF. Controleer of de PDF correcte tabellen bevat.")
+                st.warning("Geen tabellen gevonden in de PDF. Controleer of de PDF correcte tabellen bevat.")
                 return None
 
             return excel_path
@@ -1566,19 +1566,20 @@ def extract_flexible_data(pdf_reader):
             lines = []
             for page in pdf.pages:
                 lines.extend(page.extract_text().split("\n"))
-        
+
         structured_data = []
         for line in lines:
             line = line.strip()
             columns = re.split(r'\s+', line)
             if len(columns) >= 3:  # Voorkom ongeldige rijen
                 structured_data.append(columns)
-        
+
         if structured_data:
             max_columns = max(len(row) for row in structured_data)
             column_names = [f"Kolom_{i}" for i in range(max_columns)]
             structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
             df_final = pd.DataFrame(structured_data, columns=column_names)
+
             return df_final
         else:
             return pd.DataFrame()
@@ -1669,55 +1670,49 @@ def process_attachment(attachment, attachment_name):
         try:
             pdf_reader = BytesIO(attachment)
             excel_path = "converted_file.xlsx"
-            
+    
             # PDF omzetten naar Excel
-            pdf_to_excel(pdf_reader, excel_path)
-            
-            # Gegevens extraheren uit PDF met flexibele mapping
+            if not pdf_to_excel(pdf_reader, excel_path):
+                st.warning("De PDF kon niet worden omgezet naar Excel. Controleer de inhoud van de PDF.")
+                return
+    
+            # Gegevens extraheren uit PDF
             df_extracted = extract_flexible_data(pdf_reader)
             if not df_extracted.empty:
                 st.write("Gestructureerde gegevens:")
                 st.dataframe(df_extracted)
-            
-            # DataFrame inlezen uit Excel
-            df = pd.read_excel(excel_path, engine='openpyxl')
-            
-            # Detecteer en map relevante kolommen
-            detected_columns = detect_relevant_columns(df)
-            mapped_columns = manual_column_mapping(df, detected_columns)
-            
-            if not isinstance(mapped_columns, dict):
-                st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
-                return None
-            
-            for key, col in mapped_columns.items():
-                if col not in df.columns:
-                    st.error(f"Kolom '{col}' niet gevonden in de DataFrame. Controleer de mapping.")
-                    return None
-            
-            if mapped_columns:
-                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
-                relevant_data.columns = mapped_columns.keys()
-                
-                if relevant_data.isnull().any().any():
-                    st.warning("De relevante data bevat lege waarden. Controleer de inputbestanden.")
-                    relevant_data = relevant_data.dropna()
-                
-                start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(df)-1, value=0)
-                end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(df)-1, value=len(df)-1)
-                
-                relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
-                
-                st.write("Relevante data (na filtering):")
-                st.dataframe(relevant_data)
-                
-                if not relevant_data.empty:
-                    if st.button("Verwerk gegevens naar offerte"):
-                        handle_mapped_data_to_offer(relevant_data)
-                else:
-                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+    
+            # Relevante kolommen detecteren
+            detected_columns = detect_relevant_columns(df_extracted)
+            mapped_columns = manual_column_mapping(df_extracted, detected_columns)
+    
+            if not mapped_columns:
+                st.warning("Geen relevante kolommen gevonden. Controleer de inhoud van de PDF.")
+                return
+    
+            # Selecteer en hernoem kolommen op basis van mapping
+            relevant_data = df_extracted[list(mapped_columns.values())]
+            relevant_data.columns = list(mapped_columns.keys())
+    
+            st.write("Relevante data (na mapping):")
+            st.dataframe(relevant_data)
+    
+            # Optionele filtering op rijen
+            start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(relevant_data)-1, value=0)
+            end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(relevant_data)-1, value=len(relevant_data)-1)
+    
+            relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
+    
+            st.write("Relevante data (na filtering):")
+            st.dataframe(relevant_data)
+    
+            # Verwerken van de gegevens
+            if not relevant_data.empty:
+                if st.button("Verwerk gegevens naar offerte"):
+                    handle_mapped_data_to_offer(relevant_data)
             else:
-                st.warning("Geen relevante kolommen gevonden of gemapped.")
+                st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+    
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
 
