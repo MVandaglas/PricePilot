@@ -52,7 +52,7 @@ if "prijsscherpte_matrix" not in st.session_state:
         "A": [60, 70, 80, 90, 100],  # Y-as kolommen
         "B": [40, 50, 60, 70, 80],
         "C": [30, 40, 50, 65, 75],
-        "D": [10, 25, 45, 60, 70],
+        "D": [10, 25, 45, 60, 65],
     })
 
 st.sidebar.write(f"Laatste update: {time.ctime()}")
@@ -1586,8 +1586,11 @@ def extract_pdf_to_dataframe(pdf_reader):
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
 
-            # Controleer of er minstens één cel is die alleen een getal bevat
-            if not any(re.fullmatch(r"[1-9]\d*", col) for col in columns):
+           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
+            numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
+            non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
+            
+            if not non_zero_values:
                 continue
 
         if structured_data:
@@ -1633,7 +1636,6 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
-
         
 def extract_latest_email(body):
     """
