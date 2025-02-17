@@ -1565,36 +1565,39 @@ def extract_pdf_to_dataframe(pdf_reader):
         with pdfplumber.open(pdf_reader) as pdf:
             lines = []
             for page in pdf.pages:
-                lines.extend(page.extract_text().split("\n"))
+                text = page.extract_text()
+                if text:
+                    lines.extend(text.split("\n"))
 
         structured_data = []
         current_category = None
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
 
         for line in lines:
-           line = str(line).strip()
-           if category_pattern.match(line):
+            line = str(line).strip()
+            if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
-                
-           # Controleer of de regel "Totaal" bevat en sla deze over
-           if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
+
+            # Controleer of de regel "Totaal" bevat en sla deze over
+            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
-                
-            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
-           columns = re.split(r'\s+', line)
-           if len(columns) >= 5 and current_category:
-                structured_data.append([current_category] + columns + [num_numeric_fields])
 
-           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
-           numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
-           non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
-
-            # Voeg een extra kolom toe met het aantal numerieke velden
-           num_numeric_fields = len(non_zero_values)
+            # Splits de kolommen op basis van >3 spaties of tabs
+            columns = re.split(r'\s{3,}|	', line)
             
-           if not non_zero_values:
-               continue
+            # Controleer of er minstens één cel is die een niet-nul getal bevat
+            numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
+            non_zero_values = [float(match.group().replace(',', '.')) for match in numeric_values if match]
+            
+            # Voeg een extra kolom toe met het aantal numerieke velden
+            num_numeric_fields = len(non_zero_values)
+            
+            if not any(value > 0 for value in non_zero_values):
+                continue
+
+            if len(columns) >= 5 and current_category:
+                structured_data.append([current_category] + columns + [num_numeric_fields])
 
         if structured_data:
             max_columns = max(len(row) for row in structured_data)
@@ -1618,11 +1621,18 @@ def extract_pdf_to_dataframe(pdf_reader):
             if header_row is not None:
                 df.columns = df.iloc[header_row].astype(str)
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
-            
+
+            # Converteer alleen de kolommen met getallen naar numeriek
+            for col in df.columns:
+                if df[col].astype(str).str.replace(',', '.').str.replace('.', '', 1).str.isnumeric().all():
+                    df[col] = pd.to_numeric(df[col].str.replace(',', '.'), errors='coerce')
+
             # Verwijder rijen waar GEEN ENKELE cel een numeriek getal bevat (index telt niet mee)
-            numeric_cols = df.select_dtypes(include=['number']).columns
-            df = df[df[numeric_cols].notna().any(axis=1)]
-            
+            if not df.empty:
+                numeric_cols = df.select_dtypes(include=['number']).columns
+                if not numeric_cols.empty:
+                    df = df[df[numeric_cols].notna().any(axis=1)]
+
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
                 seen = {}
@@ -1638,10 +1648,10 @@ def extract_pdf_to_dataframe(pdf_reader):
 
             return df
         else:
-            st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
+            print("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
     except Exception as e:
-        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        print(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
         
 def extract_latest_email(body):
