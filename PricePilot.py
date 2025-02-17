@@ -1559,35 +1559,46 @@ def pdf_to_excel(pdf_reader, excel_path):
         st.error(f"Fout bij het converteren van PDF naar Excel: {e}")
         return None
 
-# Algemene functie voor extractie en verwerking van PDF-gegevens
-# Algemene functie voor extractie en verwerking van PDF-gegevens
+import pdfplumber
+import pandas as pd
+import re
+
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
             lines = []
             for page in pdf.pages:
-                lines.extend(page.extract_text().split("\n"))
+                text = page.extract_text()
+                if text:
+                    lines.extend(text.split("\n"))
 
         structured_data = []
         current_category = None
-        category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
+        category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}[A-Z]*-\s*\w+")  # Generiek patroon voor categorienamen
 
         for line in lines:
             line = line.strip()
             if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
-                
-            # Controleer of de regel "Totaal" bevat en sla deze over
+
+            # Negeer regels met "Totaal"
             if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
-                
-            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
-            columns = re.split(r'\s+', line)
+
+            # Splits de tekst slim: behoud woorden met letters en cijfers samen
+            split_pattern = re.compile(r'\s{3,}|\t')  # Split alleen op 3+ spaties of tabs
+            columns = split_pattern.split(line)
+
+            # Herstel gefragmenteerde kolommen als de eerste twee velden tekst zijn (generiek)
+            if len(columns) > 5 and re.match(r'^[\w\-]+$', columns[0]) and re.match(r'^[\w\-]+$', columns[1]):
+                columns[0] = f"{columns[0]} {columns[1]}"
+                del columns[1]  # Verwijder het gesplitste deel
+
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
 
-           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
+            # Controleer op numerieke waarden om lege rijen te filteren
             numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
             non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
             
@@ -1600,24 +1611,15 @@ def extract_pdf_to_dataframe(pdf_reader):
             structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
             df = pd.DataFrame(structured_data, columns=column_names)
 
-            # Detecteer headers op de eerste twee rijen
-            header_row = None
-            for i in range(2):
+            # Detecteer headers op de eerste paar rijen
+            for i in range(min(3, len(df))):
                 potential_headers = df.iloc[i].str.lower().str.strip()
-                if any(potential_headers.isin([
-                    "artikelnaam", "artikel", "product", "type", "article",
-                    "hoogte", "height", "h",
-                    "breedte", "width", "b",
-                    "aantal", "quantity", "qty", "stuks"
-                ])):
-                    header_row = i
+                if any(potential_headers.isin(["aantal", "breedte", "hoogte", "inhoud", "omlopend", "dikte"])):
+                    df.columns = df.iloc[i]
+                    df = df.drop(df.index[:i + 1]).reset_index(drop=True)
                     break
 
-            if header_row is not None:
-                df.columns = df.iloc[header_row]
-                df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
-
-            # Los dubbele kolomnamen correct op
+            # Unieke kolomnamen genereren indien nodig
             def deduplicate_columns(columns):
                 seen = {}
                 for i, col in enumerate(columns):
@@ -1632,11 +1634,11 @@ def extract_pdf_to_dataframe(pdf_reader):
 
             return df
         else:
-            st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
     except Exception as e:
-        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        print(f"Fout bij extractie: {e}")
         return pd.DataFrame()
+
         
 def extract_latest_email(body):
     """
