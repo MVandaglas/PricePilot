@@ -1576,11 +1576,19 @@ def extract_pdf_to_dataframe(pdf_reader):
             if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
-
+                
+            # Controleer of de regel "Totaal" bevat en sla deze over
+            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
+                continue
+                
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
             columns = re.split(r'\s+', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
+
+            # Controleer of er minstens één cel is die alleen een getal bevat
+            if not any(re.fullmatch(r"\d+", col) for col in columns):
+                continue
 
         if structured_data:
             max_columns = max(len(row) for row in structured_data)
