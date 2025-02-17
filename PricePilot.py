@@ -1618,8 +1618,9 @@ def extract_pdf_to_dataframe(pdf_reader):
             if header_row is not None:
                 df.columns = df.iloc[header_row].astype(str)
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
-
-
+            
+            # Verwijder rijen waar GEEN ENKELE cel een numeriek getal bevat (index telt niet mee)
+            df = df[df[numeric_cols].notna().any(axis=1)]
             
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
