@@ -1560,82 +1560,72 @@ def pdf_to_excel(pdf_reader, excel_path):
         return None
 
 # Algemene functie voor extractie en verwerking van PDF-gegevens
-# Algemene functie voor extractie en verwerking van PDF-gegevens
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
-            lines = []
-            for page in pdf.pages:
-                lines.extend(page.extract_text().split("\n"))
-
-        structured_data = []
-        current_category = None
-        category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
-
-        for line in lines:
-            line = line.strip()
-            if category_pattern.match(line):
-                current_category = line.replace(":", "")
-                continue
-                
-            # Controleer of de regel "Totaal" bevat en sla deze over
-            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
-                continue
-                
-            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
-            columns = re.split(r'\s+', line)
-            if len(columns) >= 5 and current_category:
-                structured_data.append([current_category] + columns)
-
-           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
-            numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
-            non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
+            structured_data = []
+            current_category = None
+            category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-.*:")  # Voor glasgroepen
             
-            if not non_zero_values:
-                continue
+            # Definieer titels en headers
+            column_positions = {}
+            headers_detected = False
+            column_headers = []
+            
+            for page in pdf.pages:
+                words = page.extract_words()
+                
+                # Detecteer headers in de eerste twee rijen
+                if not headers_detected:
+                    potential_headers = []
+                    for word in words:
+                        text = word["text"].lower()
+                        x_pos = word["x0"]
+                        potential_headers.append((text, x_pos))
+                    
+                    # Filter alleen de relevante headers
+                    verified_headers = []
+                    for text, x_pos in potential_headers:
+                        if text in ["artikelnaam", "artikel", "product", "type", "article",
+                                    "hoogte", "height", "h", "breedte", "width", "b",
+                                    "aantal", "quantity", "qty", "stuks", "inhoud", "m2/stk", 
+                                    "omlopend", "m/stk", "dikte", "mm"]:
+                            verified_headers.append((text, x_pos))
+                    
+                    # Stel de kolomposities in
+                    for header, x_pos in verified_headers:
+                        column_positions[header] = x_pos
+                    
+                    headers_detected = True
+                
+                row_data = {col: "" for col in column_positions}
+                last_y = None  # Track y-coördinaat voor rijverandering
 
-        if structured_data:
-            max_columns = max(len(row) for row in structured_data)
-            column_names = ["Categorie"] + [f"Kolom_{i}" for i in range(1, max_columns)]
-            structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
-            df = pd.DataFrame(structured_data, columns=column_names)
+                for word in words:
+                    text = word["text"]
+                    x_pos = word["x0"]
+                    y_pos = word["top"]
 
-            # Detecteer headers op de eerste twee rijen
-            header_row = None
-            for i in range(2):
-                potential_headers = df.iloc[i].str.lower().str.strip()
-                if any(potential_headers.isin([
-                    "artikelnaam", "artikel", "product", "type", "article",
-                    "hoogte", "height", "h",
-                    "breedte", "width", "b",
-                    "aantal", "quantity", "qty", "stuks"
-                ])):
-                    header_row = i
-                    break
+                    # Detecteer nieuwe rij op basis van y-coördinaat
+                    if last_y is not None and abs(y_pos - last_y) > 5:
+                        structured_data.append(row_data)
+                        row_data = {col: "" for col in column_positions}  # Nieuwe rij
+                    last_y = y_pos  # Update de laatste y-coördinaat
 
-            if header_row is not None:
-                df.columns = df.iloc[header_row]
-                df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
+                    # Bepaal in welke kolom het woord thuishoort
+                    for col_name, x_col in column_positions.items():
+                        if abs(x_pos - x_col) < 20:  # Kleine marge voor uitlijning
+                            row_data[col_name] += f" {text}".strip()
+                            break
 
-            # Los dubbele kolomnamen correct op
-            def deduplicate_columns(columns):
-                seen = {}
-                for i, col in enumerate(columns):
-                    if col not in seen:
-                        seen[col] = 0
-                    else:
-                        seen[col] += 1
-                        columns[i] = f"{col}_{seen[col]}"
-                return columns
+                # Voeg de laatste rij toe
+                structured_data.append(row_data)
 
-            df.columns = deduplicate_columns(list(df.columns))
-
-            return df
-        else:
-            st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
-            return pd.DataFrame()
+        # Converteer naar DataFrame
+        df = pd.DataFrame(structured_data)
+        return df
     except Exception as e:
-        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        st.write(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
         
 def extract_latest_email(body):
