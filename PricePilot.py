@@ -1616,6 +1616,10 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
+            # Verwijder rijen waar alle numerieke kolommen 0 of leeg zijn
+            numeric_cols = df.select_dtypes(include=['number']).columns
+            df = df[~(df[numeric_cols].fillna(0) == 0).all(axis=1)]
+            
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
                 seen = {}
