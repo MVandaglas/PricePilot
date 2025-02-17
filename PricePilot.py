@@ -1619,7 +1619,9 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row].astype(str)
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
-
+            # Converteer alle numerieke kolommen correct
+            for col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
             
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
