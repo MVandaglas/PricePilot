@@ -1573,13 +1573,13 @@ def extract_pdf_to_dataframe(pdf_reader):
 
         for line in lines:
            line = str(line).strip()
-           if category_pattern.match(line):
+            if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
                 
             # Controleer of de regel "Totaal" bevat en sla deze over
             if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
-                continue
+               continue
                 
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
             columns = re.split(r'\s+', line)
