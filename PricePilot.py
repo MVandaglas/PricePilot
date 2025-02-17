@@ -1561,6 +1561,7 @@ def pdf_to_excel(pdf_reader, excel_path):
 
 # Algemene functie voor extractie en verwerking van PDF-gegevens
 # Algemene functie voor extractie en verwerking van PDF-gegevens
+# Algemene functie voor extractie en verwerking van PDF-gegevens
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
@@ -1587,7 +1588,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
 
-           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
+            # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
             numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
             non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
             
@@ -1629,6 +1630,22 @@ def extract_pdf_to_dataframe(pdf_reader):
                 return columns
 
             df.columns = deduplicate_columns(list(df.columns))
+
+            # Functie om rijen te verwijderen die geen numerieke waarden bevatten
+            def remove_non_numeric_rows(df):
+                def is_numeric(value):
+                    # Controleer of de waarde een numerieke string is
+                    return bool(re.match(r'^\\d+(\\.\\d+)?$', str(value).strip()))
+                
+                # Itereer over elke rij en controleer of er minstens één numerieke waarde is (exclusief de indexkolom)
+                rows_to_keep = df.apply(lambda row: any(is_numeric(value) for value in row[1:]), axis=1)
+                
+                # Filter de DataFrame om alleen de rijen met numerieke waarden te behouden
+                df_filtered = df[rows_to_keep].reset_index(drop=True)
+                
+                return df_filtered
+
+            df = remove_non_numeric_rows(df)
 
             return df
         else:
