@@ -1578,15 +1578,25 @@ def extract_pdf_to_dataframe(pdf_reader):
                 continue
                 
             # Controleer of de regel "Totaal" bevat en sla deze over
-            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
+            if re.search(r"\bTotaal:?", line, re.IGNORECASE):
                 continue
                 
-            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
-            columns = re.split(r'\s+', line)
+            # Splits de kolommen op basis van >3 spaties of tabs, en behoud komma's als deel van een waarde
+            columns = re.split(r'\s{3,}|\t', line)
+            
+            # Combineer waarden die posities bevatten zoals "A12 EW30" en "A28,28,B90"
+            if len(columns) > 1 and re.match(r"^[A-Za-z0-9]+(?:[,\s][A-Za-z0-9]+)*$", columns[0]):
+                position_values = [columns[0]]
+                i = 1
+                while i < len(columns) and not re.fullmatch(r"\d+", columns[i]):
+                    position_values.append(columns[i])
+                    i += 1
+                columns = [" ".join(position_values)] + columns[i:]
+                
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
 
-            # Controleer of er minstens één cel is die alleen een getal bevat
+            # Controleer of er minstens één cel is die alleen een getal bevat en geen 0 is
             if not any(re.fullmatch(r"[1-9]\d*", col) for col in columns):
                 continue
 
@@ -1631,8 +1641,9 @@ def extract_pdf_to_dataframe(pdf_reader):
             st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
     except Exception as e:
-        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        st.warning(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
         
 def extract_latest_email(body):
     """
