@@ -1585,8 +1585,20 @@ def extract_pdf_to_dataframe(pdf_reader):
             columns = re.split(r'\s+', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
+                
+            # Combineer waarden die posities bevatten zoals "A12 EW30" en "A28,28,B90"
+            if len(columns) > 1 and re.match(r"^[A-Za-z0-9]+(?:[,\s][A-Za-z0-9]+)*$", columns[0]):
+                position_values = [columns[0]]
+                i = 1
+                while i < len(columns) and not re.fullmatch(r"\d+", columns[i]):
+                    position_values.append(columns[i])
+                    i += 1
+                columns = [" ".join(position_values)] + columns[i:]
+                
+            if len(columns) >= 5 and current_category:
+                structured_data.append([current_category] + columns)
 
-            # Controleer of er minstens één cel is die alleen een getal bevat
+            # Controleer of er minstens één cel is die alleen een getal bevat en geen 0 is
             if not any(re.fullmatch(r"[1-9]\d*", col) for col in columns):
                 continue
 
