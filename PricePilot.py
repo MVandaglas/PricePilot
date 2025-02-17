@@ -1584,14 +1584,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             # Splits de kolommen op basis van >3 spaties of tabs, en behoud komma's als deel van een waarde
             columns = re.split(r'\s{3,}|\t', line)
             
-            # Combineer waarden die posities bevatten zoals "A12 EW30" en "A28,28,B90"
-            if len(columns) > 1 and re.match(r"^[A-Za-z0-9]+(?:[,\s][A-Za-z0-9]+)*$", columns[0]):
-                position_values = [columns[0]]
-                i = 1
-                while i < len(columns) and not re.fullmatch(r"\d+", columns[i]):
-                    position_values.append(columns[i])
-                    i += 1
-                columns = [" ".join(position_values)] + columns[i:]
+
                 
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
