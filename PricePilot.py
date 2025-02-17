@@ -1573,28 +1573,28 @@ def extract_pdf_to_dataframe(pdf_reader):
 
         for line in lines:
            line = str(line).strip()
-            if category_pattern.match(line):
+           if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
                 
-            # Controleer of de regel "Totaal" bevat en sla deze over
-            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
-               continue
+           # Controleer of de regel "Totaal" bevat en sla deze over
+           if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
+                continue
                 
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
-            columns = re.split(r'\s+', line)
-            if len(columns) >= 5 and current_category:
+           columns = re.split(r'\s+', line)
+           if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns + [num_numeric_fields])
 
            # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
-            numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
-            non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
+           numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
+           non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
 
             # Voeg een extra kolom toe met het aantal numerieke velden
-            num_numeric_fields = len(non_zero_values)
+           num_numeric_fields = len(non_zero_values)
             
-            if not non_zero_values:
-                continue
+           if not non_zero_values:
+               continue
 
         if structured_data:
             max_columns = max(len(row) for row in structured_data)
