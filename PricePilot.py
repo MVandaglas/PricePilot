@@ -1584,18 +1584,21 @@ def extract_pdf_to_dataframe(pdf_reader):
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
             columns = re.split(r'\s+', line)
             if len(columns) >= 5 and current_category:
-                structured_data.append([current_category] + columns)
+                structured_data.append([current_category] + columns + [num_numeric_fields])
 
            # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
             numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
             non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
+
+            # Voeg een extra kolom toe met het aantal numerieke velden
+            num_numeric_fields = len(non_zero_values)
             
             if not non_zero_values:
                 continue
 
         if structured_data:
             max_columns = max(len(row) for row in structured_data)
-            column_names = ["Categorie"] + [f"Kolom_{i}" for i in range(1, max_columns)]
+            column_names = ["Categorie"] + [f"Kolom_{i}" for i in range(1, max_columns - 1)] + ["Aantal_numerieke_velden"]
             structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
             df = pd.DataFrame(structured_data, columns=column_names)
 
@@ -1616,9 +1619,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
-            # Verwijder rijen waar alle numerieke kolommen 0 of leeg zijn
-            numeric_cols = df.select_dtypes(include=['number']).columns
-            df = df[~(df[numeric_cols].fillna(0) == 0).all(axis=1)]
+
             
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
