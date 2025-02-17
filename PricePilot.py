@@ -1560,6 +1560,7 @@ def pdf_to_excel(pdf_reader, excel_path):
         return None
 
 # Algemene functie voor extractie en verwerking van PDF-gegevens
+# Algemene functie voor extractie en verwerking van PDF-gegevens
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
@@ -1576,20 +1577,22 @@ def extract_pdf_to_dataframe(pdf_reader):
             if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
-
+                
             # Controleer of de regel "Totaal" bevat en sla deze over
             if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
-
+                
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
-            columns = re.split(r'\s{3,}|\t', line)
-            
-            # Controleer of er minstens één cel is die alleen een getal bevat
-            if not any(re.fullmatch(r"\d+", col) for col in columns):
-                continue
-
+            columns = re.split(r'\s+', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
+
+           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
+            numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
+            non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
+            
+            if not non_zero_values:
+                continue
 
         if structured_data:
             max_columns = max(len(row) for row in structured_data)
@@ -1629,12 +1632,11 @@ def extract_pdf_to_dataframe(pdf_reader):
 
             return df
         else:
-            print("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
+            st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
     except Exception as e:
-        print(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
-
         
 def extract_latest_email(body):
     """
