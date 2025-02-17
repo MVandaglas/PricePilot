@@ -1572,7 +1572,7 @@ def extract_pdf_to_dataframe(pdf_reader):
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
 
         for line in lines:
-            line = line.strip()
+           line = str(line).strip()
             if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
@@ -1605,7 +1605,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             # Detecteer headers op de eerste twee rijen
             header_row = None
             for i in range(2):
-                potential_headers = df.iloc[i].str.lower().str.strip()
+                potential_headers = df.iloc[i].astype(str).str.lower().str.strip()
                 if any(potential_headers.isin([
                     "artikelnaam", "artikel", "product", "type", "article",
                     "hoogte", "height", "h",
@@ -1616,7 +1616,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                     break
 
             if header_row is not None:
-                df.columns = df.iloc[header_row]
+                df.columns = df.iloc[header_row].astype(str)
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
 
