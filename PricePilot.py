@@ -1620,6 +1620,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
             
             # Verwijder rijen waar GEEN ENKELE cel een numeriek getal bevat (index telt niet mee)
+            numeric_cols = df.select_dtypes(include=['number']).columns
             df = df[df[numeric_cols].notna().any(axis=1)]
             
             # Los dubbele kolomnamen correct op
