@@ -1573,7 +1573,7 @@ def extract_pdf_to_dataframe(pdf_reader):
 
         for line in lines:
            line = str(line).strip()
-            if category_pattern.match(line):
+           if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
                 
