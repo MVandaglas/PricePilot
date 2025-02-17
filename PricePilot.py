@@ -1587,7 +1587,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 structured_data.append([current_category] + columns)
 
             # Controleer of er minstens één cel is die alleen een getal bevat
-            if not any(re.fullmatch(r"\d+", col) for col in columns):
+            if not any(re.fullmatch(r"[1-9]\d*", col) for col in columns):
                 continue
 
         if structured_data:
