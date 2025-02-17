@@ -1586,8 +1586,11 @@ def extract_pdf_to_dataframe(pdf_reader):
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
 
-             # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
-            if not any(re.search(r"\b[1-9]\d*(?:[.,]\d+)?\b", col) for col in columns):
+           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
+            numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
+            non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
+            
+            if not non_zero_values:
                 continue
 
         if structured_data:
