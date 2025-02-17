@@ -1622,10 +1622,6 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row].astype(str)
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
-            # Converteer alleen de kolommen met getallen naar numeriek
-            for col in df.columns:
-                if df[col].astype(str).str.replace(',', '.').str.replace('.', '', 1).str.isnumeric().all():
-                    df[col] = pd.to_numeric(df[col].str.replace(',', '.'), errors='coerce')
 
             # Verwijder rijen waar GEEN ENKELE cel een numeriek getal bevat (index telt niet mee)
             if not df.empty:
