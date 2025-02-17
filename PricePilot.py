@@ -1578,18 +1578,15 @@ def extract_pdf_to_dataframe(pdf_reader):
                 continue
                 
             # Controleer of de regel "Totaal" bevat en sla deze over
-            if re.search(r"\bTotaal:?", line, re.IGNORECASE):
+            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
                 
-            # Splits de kolommen op basis van >3 spaties of tabs, en behoud komma's als deel van een waarde
-            columns = re.split(r'\s{3,}|\t', line)
-            
-
-                
+            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
+            columns = re.split(r'\s+', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
 
-            # Controleer of er minstens één cel is die alleen een getal bevat en geen 0 is
+            # Controleer of er minstens één cel is die alleen een getal bevat
             if not any(re.fullmatch(r"[1-9]\d*", col) for col in columns):
                 continue
 
@@ -1634,7 +1631,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
     except Exception as e:
-        st.warning(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
 
         
