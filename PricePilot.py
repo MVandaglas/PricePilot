@@ -1565,16 +1565,14 @@ def extract_pdf_to_dataframe(pdf_reader):
         with pdfplumber.open(pdf_reader) as pdf:
             lines = []
             for page in pdf.pages:
-                text = page.extract_text()
-                if text:
-                    lines.extend(text.split("\n"))
+                lines.extend(page.extract_text().split("\n"))
 
         structured_data = []
         current_category = None
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
 
         for line in lines:
-            line = str(line).strip()
+            line = line.strip()
             if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
@@ -1583,32 +1581,26 @@ def extract_pdf_to_dataframe(pdf_reader):
             if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
 
-            # Splits de kolommen op basis van >3 spaties of tabs
-            columns = re.split(r'\s{3,}|	', line)
+            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
+            columns = re.split(r'\s{3,}|\t', line)
             
-            # Controleer of er minstens één cel is die een niet-nul getal bevat
-            numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
-            non_zero_values = [float(match.group().replace(',', '.')) for match in numeric_values if match]
-            
-            # Voeg een extra kolom toe met het aantal numerieke velden
-            num_numeric_fields = len(non_zero_values)
-            
-            if not any(value > 0 for value in non_zero_values):
+            # Controleer of er minstens één cel is die alleen een getal bevat
+            if not any(re.fullmatch(r"\d+", col) for col in columns):
                 continue
 
             if len(columns) >= 5 and current_category:
-                structured_data.append([current_category] + columns + [num_numeric_fields])
+                structured_data.append([current_category] + columns)
 
         if structured_data:
             max_columns = max(len(row) for row in structured_data)
-            column_names = ["Categorie"] + [f"Kolom_{i}" for i in range(1, max_columns - 1)] + ["Aantal_numerieke_velden"]
+            column_names = ["Categorie"] + [f"Kolom_{i}" for i in range(1, max_columns)]
             structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
             df = pd.DataFrame(structured_data, columns=column_names)
 
             # Detecteer headers op de eerste twee rijen
             header_row = None
             for i in range(2):
-                potential_headers = df.iloc[i].astype(str).str.lower().str.strip()
+                potential_headers = df.iloc[i].str.lower().str.strip()
                 if any(potential_headers.isin([
                     "artikelnaam", "artikel", "product", "type", "article",
                     "hoogte", "height", "h",
@@ -1619,9 +1611,8 @@ def extract_pdf_to_dataframe(pdf_reader):
                     break
 
             if header_row is not None:
-                df.columns = df.iloc[header_row].astype(str)
+                df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
-
 
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
@@ -1638,11 +1629,12 @@ def extract_pdf_to_dataframe(pdf_reader):
 
             return df
         else:
-            st.write("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
+            print("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
     except Exception as e:
-        st.write(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        print(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
         
 def extract_latest_email(body):
     """
