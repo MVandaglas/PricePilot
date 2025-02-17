@@ -1638,10 +1638,10 @@ def extract_pdf_to_dataframe(pdf_reader):
 
             return df
         else:
-            print("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
+            st.write("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
     except Exception as e:
-        print(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        st.write(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
         
 def extract_latest_email(body):
