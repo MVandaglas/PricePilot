@@ -1664,7 +1664,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 if st.button(f"Laad batch {st.session_state['current_batch'] + 1}"):
                     st.session_state["backlog"] = df_backlog.copy()  
                     st.session_state["current_batch"] += 1  
-                    st.experimental_rerun()  
+                    st.rerun()  
 
             # **Voorkomen dat lege batches getoond worden**
             if df_bulk.empty and df_backlog.empty:
