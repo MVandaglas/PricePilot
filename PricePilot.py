@@ -1651,7 +1651,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             if st.session_state["current_batch"] == 1:
                 df_current = df  # Begin met de oorspronkelijke dataset
             else:
-                df_current = st.session_state["backlog"]  # Laad backlog voor volgende batch
+                df_current = st.session_state.get("backlog", pd.DataFrame())  # Laad backlog voor volgende batch
 
             # **Check of rijen nog steeds niet aan de eisen voldoen**
             df_backlog = df_current[
@@ -1664,14 +1664,19 @@ def extract_pdf_to_dataframe(pdf_reader):
             df_bulk = df_current.drop(df_backlog.index)
 
             # **Toon counter met aantal achtergehouden regels**
-            st.write(f"🔹 Achtergehouden rijen voor volgende batch ({st.session_state['current_batch'] + 1}): {len(df_backlog)}")
+            st.write(f"🔴 Achtergehouden rijen voor volgende batch ({st.session_state['current_batch'] + 1}): {len(df_backlog)}")
 
             # **Knop om volgende batch te laden als er nog achtergehouden regels zijn**
             if len(df_backlog) > 0:
                 if st.button(f"Laad batch {st.session_state['current_batch'] + 1}"):
-                    st.session_state["backlog"] = df_backlog  # Zet backlog voor volgende batch
+                    st.session_state["backlog"] = df_backlog.copy()  # Zet backlog correct in session state
                     st.session_state["current_batch"] += 1  # Verhoog batch nummer
-                    st.rerun()  # Refresh app om nieuwe batch te laden
+                    st.experimental_rerun()  # Refresh app om nieuwe batch te laden
+
+            # **Check of er daadwerkelijk data is om te verwerken**
+            if df_bulk.empty and df_backlog.empty:
+                st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
+                return pd.DataFrame()
 
             return df_bulk  # Laatste correcte dataset tonen
 
