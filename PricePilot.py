@@ -1582,23 +1582,15 @@ def extract_pdf_to_dataframe(pdf_reader):
             if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
-                
+
             # Controleer of de regel "Totaal" bevat en sla deze over
             if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
 
-               
-            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
+            # Splits de kolommen op basis van >3 spaties of tabs
             columns = re.split(r'\s+', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
-
-           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
-            numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
-            non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
-            
-            if not non_zero_values:
-                continue
 
         if structured_data:
             max_columns = max(len(row) for row in structured_data)
@@ -1623,15 +1615,14 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
-            # Verwijder rijen vanaf rij 3 die "Aantal", "Breedte" of "Hoogte" bevatten in een van de kolommen
-            if df.shape[0] > 2:  # Zorg ervoor dat er minstens 3 rijen zijn
+            # Verwijder rijen vanaf rij 3 die "Aantal", "Breedte" of "Hoogte" bevatten
+            if df.shape[0] > 2:
                 df = pd.concat([
                     df.iloc[:2],  # Behoud de eerste 2 rijen
                     df.iloc[2:][~df.iloc[2:].apply(
                         lambda row: row.astype(str).str.contains(r"\b(Aantal|Breedte|Hoogte)\b", case=False).any(), axis=1)
                     ]
                 ]).reset_index(drop=True)
-
 
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
@@ -1646,13 +1637,36 @@ def extract_pdf_to_dataframe(pdf_reader):
 
             df.columns = deduplicate_columns(list(df.columns))
 
-            return df
+            # **Numerieke filtering toevoegen voor Aantal, Breedte en Hoogte**
+            df.columns = df.columns.str.lower()  # Zet kolomnamen naar lowercase voor uniforme verwerking
+
+            for col in ["aantal", "breedte", "hoogte"]:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')  # Niet-numerieke waarden worden NaN
+
+            # **Achterhouden van rijen die niet voldoen aan de criteria**
+            df_backlog = df[
+                df["aantal"].isna() | (df["aantal"] <= 0) |  # Aantal niet numeriek of <= 0
+                df["breedte"].isna() | (df["breedte"] < 100) |  # Breedte niet numeriek of < 100
+                df["hoogte"].isna() | (df["hoogte"] < 100)  # Hoogte niet numeriek of < 100
+            ]
+
+            # **Hoofddata (de rijen die WEL correct zijn)**
+            df_bulk = df.drop(df_backlog.index)
+
+            # **Toon counter met aantal achtergehouden regels**
+            st.write(f"Achtergehouden rijen voor volgende batch: {len(df_backlog)}")
+
+            return df_bulk  # Verwerk alleen de correcte gegevens
+
         else:
             st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
+
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
         
 def extract_latest_email(body):
     """
