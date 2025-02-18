@@ -1581,6 +1581,16 @@ def extract_pdf_to_dataframe(pdf_reader):
             if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
 
+            # Controleer of de regel "Totaal" bevat en sla deze over
+            if re.search(r"\bAantal:?\b", line, re.IGNORECASE):
+                continue
+
+            for index, line in enumerate(lines):
+                line = line.strip()
+            
+                # Controleer of de regel "Aantal", "Breedte" of "Hoogte" bevat en sla deze over, behalve als het regel 1 is
+                if index > 0 and re.search(r"\b(Aantal|Breedte|Hoogte):?\b", line, re.IGNORECASE):
+                    continue
 
                 
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
@@ -1745,7 +1755,7 @@ def process_attachment(attachment, attachment_name):
                 st.dataframe(df_extracted)
 
                 # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
-                df_extracted = df_extracted[~df_extracted.apply(lambda row: row.astype(str).str.contains(r'Aantal', case=False).any(), axis=1)]
+                df_extracted = df_extracted[~df_extracted.apply(lambda row: row.astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
                 df_extracted = df_extracted.dropna(how='all')
                 
                 # Relevante kolommen detecteren
@@ -1753,14 +1763,14 @@ def process_attachment(attachment, attachment_name):
                 mapped_columns = manual_column_mapping(df_extracted, detected_columns)
     
                 if not mapped_columns:
-                    st.warning("Geen relevante kolommen gevonden. Controleer de inhoud van de PDF.")
+                    pass
                     return
     
                 # Selecteer en hernoem kolommen op basis van mapping
                 relevant_data = df_extracted[list(mapped_columns.values())]
                 relevant_data.columns = list(mapped_columns.keys())
     
-                st.write("Relevante data (na mapping):")
+                st.write("Data na mapping:")
                 st.dataframe(relevant_data)
     
                 # Optionele filtering op rijen
@@ -1768,9 +1778,6 @@ def process_attachment(attachment, attachment_name):
                 end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(relevant_data)-1, value=len(relevant_data)-1)
     
                 relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
-    
-                st.write("Relevante data (na filtering):")
-                st.dataframe(relevant_data)
     
                 # Verwerken van de gegevens
                 if not relevant_data.empty:
