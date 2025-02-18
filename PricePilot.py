@@ -1630,38 +1630,39 @@ def extract_pdf_to_dataframe(pdf_reader):
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
 
-            # **Bepaal de batchnummers**
-            batch_number = st.session_state.get("batch_number", 1)
-            df_current = st.session_state.get("df_current", df)
+            # **Batch verwerking zonder session_state**
+            batch_number = 1
+            current_df = df.copy()  # De dataset voor batch 1
 
-            st.write(f"🔹 **Verwerken van batch {batch_number}**")
+            while True:
+                st.write(f"🔹 **Verwerken van batch {batch_number}**")
 
-            # **Filter regels die niet voldoen**
-            df_backlog = df_current[
-                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
-                df_current["breedte"].isna() | (df_current["breedte"] < 100) |
-                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
-            ]
+                # **Filter regels die niet voldoen**
+                df_backlog = current_df[
+                    current_df["aantal"].isna() | (current_df["aantal"] <= 0) |
+                    current_df["breedte"].isna() | (current_df["breedte"] < 100) |
+                    current_df["hoogte"].isna() | (current_df["hoogte"] < 100)
+                ]
 
-            # **Hoofddata (de correcte rijen)**
-            df_bulk = df_current.drop(df_backlog.index)
+                # **Hoofddata (de correcte rijen)**
+                df_bulk = current_df.drop(df_backlog.index)
 
-            # **Laat de correcte gegevens zien**
-            st.write("✅ **Verwerkte gegevens:**")
-            st.dataframe(df_bulk)
+                # **Laat de correcte gegevens zien**
+                st.write("✅ **Verwerkte gegevens:**")
+                st.dataframe(df_bulk)
 
-            # **Toon teller van achtergehouden regels**
-            if not df_backlog.empty:
-                st.write(f"🔴 Achtergehouden rijen voor batch {batch_number + 1}: {len(df_backlog)}")
-
-                # **Knop voor volgende batch - Correct `key` gebruik**
-                if st.button(f"Verwerk batch {batch_number + 1}", key=f"batch_{batch_number}"):
-                    st.session_state["df_current"] = df_backlog.copy()  # Zet backlog als nieuwe dataset
-                    st.session_state["batch_number"] = batch_number + 1  # Verhoog batchnummer
-                    st.experimental_rerun()
-            else:
-                st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
-                st.session_state.clear()  # Reset state als alle batches verwerkt zijn
+                # **Toon teller van achtergehouden regels**
+                if not df_backlog.empty:
+                    st.write(f"🔴 Achtergehouden rijen voor batch {batch_number + 1}: {len(df_backlog)}")
+                    
+                    # **Knop voor volgende batch - Unieke ID gebruiken**
+                    if st.button(f"Verwerk batch {batch_number + 1}", key=f"batch_{batch_number+1}"):
+                        current_df = df_backlog.copy()  # Zet backlog als nieuwe dataset
+                        batch_number += 1  # Verhoog batchnummer
+                        st.experimental_rerun()
+                else:
+                    st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
+                    break
 
             return df_bulk  
 
@@ -1672,7 +1673,18 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
-
+        
+def extract_latest_email(body):
+    """
+    Extracts only the latest email from an email thread.
+    It detects the start of a new email using the pattern 'Van:' followed by 'Verzonden:'.
+    """
+    email_parts = re.split(r'Van:.*?Verzonden:.*?Aan:.*?Onderwerp:', body, flags=re.DOTALL)
+    if email_parts:
+        latest_email = email_parts[0].strip()
+        return latest_email
+    else:
+        return body.strip()
 
 def extract_table_from_docx(doc):
     """
