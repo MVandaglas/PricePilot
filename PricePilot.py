@@ -1571,6 +1571,11 @@ def extract_pdf_to_dataframe(pdf_reader):
         current_category = None
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
 
+        line_count = 0  # Teller om de regelindex bij te houden
+        for line in lines:
+            line = line.strip()
+            line_count += 1
+
         for line in lines:
             line = line.strip()
             if category_pattern.match(line):
@@ -1582,7 +1587,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 continue
 
             # Controleer of de regel "Aantal", "Breedte" of "Hoogte" bevat en sla deze over vanaf regel 3
-            if idx > 2 and re.search(r"\b(Aantal|Breedte|Hoogte)\b:?", line, re.IGNORECASE):
+            if line_count > 2 and re.search(r"\b(Aantal|Breedte|Hoogte)\b", line, re.IGNORECASE):
                 continue
 
                 
