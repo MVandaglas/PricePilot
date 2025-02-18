@@ -1745,7 +1745,17 @@ def process_attachment(attachment, attachment_name):
                 st.dataframe(df_extracted)
 
                 # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
-                df_extracted = df_extracted[~df_extracted.apply(lambda row: row.astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
+                df_extracted = df_extracted[~df_extracted.apply(
+                    lambda row: row.astype(str).str.contains(r'totaal', case=False).any(), axis=1)
+                ]
+                
+                # Filter regels vanaf rij 3 die "Aantal", "Breedte" of "Hoogte" bevatten
+                df_extracted = df_extracted.iloc[:2].append(
+                    df_extracted.iloc[2:][~df_extracted.iloc[2:].apply(
+                        lambda row: row.astype(str).str.contains(r'Aantal|Breedte|Hoogte', case=False).any(), axis=1)
+                    ]
+                ).reset_index(drop=True)
+
                 df_extracted = df_extracted.dropna(how='all')
                 
                 # Relevante kolommen detecteren
