@@ -1642,30 +1642,38 @@ def extract_pdf_to_dataframe(pdf_reader):
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors='coerce')  # Niet-numerieke waarden worden NaN
 
-            # **Achterhouden van rijen die niet voldoen aan de criteria**
-            df_backlog = df[
-                df["aantal"].isna() | (df["aantal"] <= 0) |  # Aantal niet numeriek of <= 0
-                df["breedte"].isna() | (df["breedte"] < 100) |  # Breedte niet numeriek of < 100
-                df["hoogte"].isna() | (df["hoogte"] < 100)  # Hoogte niet numeriek of < 100
+            # **Batch verwerking instellen**
+            if "current_batch" not in st.session_state:
+                st.session_state["current_batch"] = 1  # Start bij batch 1
+                st.session_state["backlog"] = None  # Geen backlog bij de eerste run
+
+            # **Laad de juiste batch**
+            if st.session_state["current_batch"] == 1:
+                df_current = df  # Begin met de oorspronkelijke dataset
+            else:
+                df_current = st.session_state["backlog"]  # Laad backlog voor volgende batch
+
+            # **Check of rijen nog steeds niet aan de eisen voldoen**
+            df_backlog = df_current[
+                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |  # Aantal niet numeriek of <= 0
+                df_current["breedte"].isna() | (df_current["breedte"] < 100) |  # Breedte niet numeriek of < 100
+                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)  # Hoogte niet numeriek of < 100
             ]
 
             # **Hoofddata (de rijen die WEL correct zijn)**
-            df_bulk = df.drop(df_backlog.index)
+            df_bulk = df_current.drop(df_backlog.index)
 
             # **Toon counter met aantal achtergehouden regels**
-            st.write(f"🔴 Achtergehouden rijen voor volgende batch: {len(df_backlog)}")
+            st.write(f"🔹 Achtergehouden rijen voor volgende batch ({st.session_state['current_batch'] + 1}): {len(df_backlog)}")
 
-            # **Knop om achtergehouden regels te laden**
-            if st.button("Laad achtergehouden regels"):
-                st.session_state["show_backlog"] = True
-                st.rerun()  # Refresh de app om de backlog te tonen
+            # **Knop om volgende batch te laden als er nog achtergehouden regels zijn**
+            if len(df_backlog) > 0:
+                if st.button(f"Laad batch {st.session_state['current_batch'] + 1}"):
+                    st.session_state["backlog"] = df_backlog  # Zet backlog voor volgende batch
+                    st.session_state["current_batch"] += 1  # Verhoog batch nummer
+                    st.experimental_rerun()  # Refresh app om nieuwe batch te laden
 
-            # **Tonen van de juiste batch**
-            if "show_backlog" in st.session_state and st.session_state["show_backlog"]:
-                st.write("📌 **Weergave van achtergehouden regels**")
-                return df_backlog  # Toon de achtergehouden batch
-            else:
-                return df_bulk  # Standaard: toon de correcte data
+            return df_bulk  # Laatste correcte dataset tonen
 
         else:
             st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
@@ -1674,7 +1682,6 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
-
         
 def extract_latest_email(body):
     """
