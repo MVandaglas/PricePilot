@@ -1571,11 +1571,6 @@ def extract_pdf_to_dataframe(pdf_reader):
         current_category = None
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
 
-        line_count = 0  # Teller om de regelindex bij te houden
-        for line in lines:
-            line = line.strip()
-            line_count += 1
-
         for line in lines:
             line = line.strip()
             if category_pattern.match(line):
@@ -1586,9 +1581,6 @@ def extract_pdf_to_dataframe(pdf_reader):
             if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
 
-            # Controleer of de regel "Aantal", "Breedte" of "Hoogte" bevat en sla deze over vanaf regel 3
-            if line_count > 2 and re.search(r"\b(Aantal|Breedte|Hoogte)\b", line, re.IGNORECASE):
-                continue
 
                 
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
@@ -1625,6 +1617,16 @@ def extract_pdf_to_dataframe(pdf_reader):
             if header_row is not None:
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
+
+            line_count = 0  # Teller om de regelindex bij te houden
+            for line in lines:
+                line = line.strip()
+                line_count += 1
+
+            
+            # Controleer of de regel "Aantal", "Breedte" of "Hoogte" bevat en sla deze over vanaf regel 3
+            if line_count > 2 and re.search(r"\b(Aantal|Breedte|Hoogte)\b", line, re.IGNORECASE):
+                continue
 
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
