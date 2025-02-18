@@ -1564,11 +1564,6 @@ def pdf_to_excel(pdf_reader, excel_path):
         return None
 
 # Algemene functie voor extractie en verwerking van PDF-gegevens
-import pandas as pd
-import pdfplumber
-import re
-import streamlit as st
-
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
@@ -1630,46 +1625,41 @@ def extract_pdf_to_dataframe(pdf_reader):
                     ]
                 ]).reset_index(drop=True)
 
-            # **Numerieke conversie**
+            # **Numerieke filtering voor Aantal, Breedte en Hoogte**
             for col in ["aantal", "breedte", "hoogte"]:
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
 
-            # **Batch verwerking instellen**
-            if "current_batch" not in st.session_state:
-                st.session_state["current_batch"] = 1  
-                st.session_state["backlog"] = None  
+            # **Batch verwerking zonder session_state**
+            batch_number = 1
+            while True:
+                st.write(f"🔹 **Verwerken van batch {batch_number}**")
 
-            # **Bepalen welke batch wordt geladen**
-            if st.session_state["current_batch"] == 1:
-                df_current = df.copy()  
-            else:
-                df_current = st.session_state.get("backlog", pd.DataFrame()).copy()  
+                # **Filter regels die niet voldoen**
+                df_backlog = df[
+                    df["aantal"].isna() | (df["aantal"] <= 0) |
+                    df["breedte"].isna() | (df["breedte"] < 100) |
+                    df["hoogte"].isna() | (df["hoogte"] < 100)
+                ]
 
-            # **Nieuwe filtering voor batch**
-            df_backlog = df_current[
-                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
-                df_current["breedte"].isna() | (df_current["breedte"] < 100) |
-                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
-            ]
+                # **Hoofddata (de correcte rijen)**
+                df_bulk = df.drop(df_backlog.index)
 
-            # **Hoofddata (de correcte rijen)**
-            df_bulk = df_current.drop(df_backlog.index)
+                # **Laat de correcte gegevens zien**
+                st.write("✅ **Verwerkte gegevens:**")
+                st.dataframe(df_bulk)
 
-            # **Aantal achtergehouden rijen tonen**
-            st.write(f"🔴 Achtergehouden rijen voor volgende batch ({st.session_state['current_batch'] + 1}): {len(df_backlog)}")
+                # **Toon teller van achtergehouden regels**
+                if not df_backlog.empty:
+                    st.write(f"🔴 Achtergehouden rijen voor batch {batch_number + 1}: {len(df_backlog)}")
+                else:
+                    st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
+                    break
 
-            # **Correct opslaan van backlog**
-            if len(df_backlog) > 0:
-                if st.button(f"Laad batch {st.session_state['current_batch'] + 1}"):
-                    st.session_state["backlog"] = df_backlog.copy()  
-                    st.session_state["current_batch"] += 1  
-                    st.rerun()  
-
-            # **Voorkomen dat lege batches getoond worden**
-            if df_bulk.empty and df_backlog.empty:
-                st.warning("🚨 Geen gegevens meer om te verwerken. Alle batches zijn voltooid.")
-                return pd.DataFrame()
+                # **Wachten op interactie voordat de volgende batch wordt geladen**
+                if st.button(f"Verwerk batch {batch_number + 1}"):
+                    df = df_backlog.copy()  # Zet backlog als nieuwe dataset
+                    batch_number += 1  # Verhoog batchnummer
 
             return df_bulk  
 
