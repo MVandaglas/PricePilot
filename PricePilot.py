@@ -1617,12 +1617,13 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
-            for index, line in enumerate(lines):
-                line = line.strip()
-            
-                # Controleer of de regel "Aantal", "Breedte" of "Hoogte" bevat en sla deze over, behalve als het regel 1 is
-                if index > 0 and re.search(r"\b(Aantal|Breedte|Hoogte):?\b", line, re.IGNORECASE):
-                    continue
+            # Verwijder rijen vanaf rij 3 die "Aantal", "Breedte" of "Hoogte" bevatten in een van de kolommen
+            if df.shape[0] > 2:  # Zorg ervoor dat er minstens 3 rijen zijn
+                df = df.iloc[:2].append(
+                    df.iloc[2:][~df.iloc[2:].apply(
+                        lambda row: row.astype(str).str.contains(r"\b(Aantal|Breedte|Hoogte)\b", case=False).any(), axis=1)
+                    ]
+                ).reset_index(drop=True
 
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
