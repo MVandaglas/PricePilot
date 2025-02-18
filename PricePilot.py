@@ -1624,9 +1624,9 @@ def extract_pdf_to_dataframe(pdf_reader):
                 line_count += 1
 
             
-            # Controleer of de regel "Aantal", "Breedte" of "Hoogte" bevat en sla deze over vanaf regel 3
-            if line_count > 2 and re.search(r"\b(Aantal|Breedte|Hoogte)\b", line, re.IGNORECASE):
-                continue
+                # Controleer of de regel "Aantal", "Breedte" of "Hoogte" bevat en sla deze over vanaf regel 3
+                if line_count > 2 and re.search(r"\b(Aantal|Breedte|Hoogte)\b", line, re.IGNORECASE):
+                    continue
 
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
