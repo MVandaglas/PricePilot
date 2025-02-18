@@ -1486,6 +1486,12 @@ def handle_mapped_data_to_offer(df):
     else:
         st.sidebar.warning("Geen gegevens gevonden om toe te voegen.")
 
+def remap_and_process(df):
+    # Hier kun je logica toevoegen om de achtergehouden regels opnieuw te mappen
+    st.write("Her-mapping van achtergehouden regels...")
+    return df
+
+
 def manual_column_mapping(df, detected_columns):
     """
     Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen
@@ -1576,20 +1582,21 @@ def extract_pdf_to_dataframe(pdf_reader):
             if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
-
+                
             # Controleer of de regel "Totaal" bevat en sla deze over
             if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
 
-            # Splits de kolommen op basis van >3 spaties of tabs
+               
+            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
             columns = re.split(r'\s+', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
 
-            # Controleer of er minstens één cel is die een niet-nul getal bevat
+           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
             numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
             non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
-
+            
             if not non_zero_values:
                 continue
 
@@ -1616,40 +1623,28 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
-            # Filter regels met "Aantal", "Breedte" of "Hoogte" (vanaf rij 3)
-            if df.shape[0] > 2:
+            # Verwijder rijen vanaf rij 3 die "Aantal", "Breedte" of "Hoogte" bevatten in een van de kolommen
+            if df.shape[0] > 2:  # Zorg ervoor dat er minstens 3 rijen zijn
                 df = pd.concat([
-                    df.iloc[:2],  
+                    df.iloc[:2],  # Behoud de eerste 2 rijen
                     df.iloc[2:][~df.iloc[2:].apply(
                         lambda row: row.astype(str).str.contains(r"\b(Aantal|Breedte|Hoogte)\b", case=False).any(), axis=1)
                     ]
                 ]).reset_index(drop=True)
 
-            # **Splits de data in een bulkverwerking en een backlog**
-            # Zet kolomnamen in lowercase voor gemakkelijke selectie
-            df.columns = df.columns.str.lower()
 
-            # Selecteer rijen die niet voldoen aan de criteria
-            df_backlog = df[
-                (df["aantal"].astype(float) <= 0) |
-                (df["breedte"].astype(float) <= 99) |
-                (df["hoogte"].astype(float) <= 99)
-            ]
+            # Los dubbele kolomnamen correct op
+            def deduplicate_columns(columns):
+                seen = {}
+                for i, col in enumerate(columns):
+                    if col not in seen:
+                        seen[col] = 0
+                    else:
+                        seen[col] += 1
+                        columns[i] = f"{col}_{seen[col]}"
+                return columns
 
-            # Hoofddata (de rijen die WEL correct zijn)
-            df_bulk = df.drop(df_backlog.index)
-
-            # Toon counter met aantal achtergehouden regels
-            st.write(f"Achtergehouden rijen voor volgende batch: {len(df_backlog)}")
-
-            # **Eerste verwerking: de bulkverwerking**
-            process_data(df_bulk)
-
-            # **Tweede verwerking: de backlog na her-mapping**
-            if not df_backlog.empty:
-                st.write("Verwerken van de achtergehouden regels in een volgende batch...")
-                df_backlog = remap_and_process(df_backlog)
-                process_data(df_backlog)
+            df.columns = deduplicate_columns(list(df.columns))
 
             return df
         else:
@@ -1658,7 +1653,6 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
-
         
 def extract_latest_email(body):
     """
