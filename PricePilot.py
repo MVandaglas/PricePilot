@@ -1653,9 +1653,19 @@ def extract_pdf_to_dataframe(pdf_reader):
             df_bulk = df.drop(df_backlog.index)
 
             # **Toon counter met aantal achtergehouden regels**
-            st.write(f"Achtergehouden rijen voor volgende batch: {len(df_backlog)}")
+            st.write(f"🔴 Achtergehouden rijen voor volgende batch: {len(df_backlog)}")
 
-            return df_bulk  # Verwerk alleen de correcte gegevens
+            # **Knop om achtergehouden regels te laden**
+            if st.button("Laad achtergehouden regels"):
+                st.session_state["show_backlog"] = True
+                st.experimental_rerun()  # Refresh de app om de backlog te tonen
+
+            # **Tonen van de juiste batch**
+            if "show_backlog" in st.session_state and st.session_state["show_backlog"]:
+                st.write("📌 **Weergave van achtergehouden regels**")
+                return df_backlog  # Toon de achtergehouden batch
+            else:
+                return df_bulk  # Standaard: toon de correcte data
 
         else:
             st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
