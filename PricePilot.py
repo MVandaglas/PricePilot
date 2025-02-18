@@ -1623,7 +1623,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                     df.iloc[2:][~df.iloc[2:].apply(
                         lambda row: row.astype(str).str.contains(r"\b(Aantal|Breedte|Hoogte)\b", case=False).any(), axis=1)
                     ]
-                ).reset_index(drop=True
+                ).reset_index(drop=True)
 
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
