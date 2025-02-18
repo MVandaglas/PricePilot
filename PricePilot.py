@@ -495,7 +495,7 @@ with tab3:
         standardized_columns = {col: col.strip().lower() for col in df.columns}
         
         column_mapping = {
-            "Artikelnaam": ["artikelnaam", "artikel", "product", "type", "article"],
+            "Artikelnaam": ["artikelnaam", "artikel", "product", "type", "article", "samenstelling"],
             "Hoogte": ["hoogte", "height", "h"],
             "Breedte": ["breedte", "width", "b"],
             "Aantal": ["aantal", "quantity", "qty", "stuks"]
@@ -1560,7 +1560,6 @@ def pdf_to_excel(pdf_reader, excel_path):
         return None
 
 # Algemene functie voor extractie en verwerking van PDF-gegevens
-# Algemene functie voor extractie en verwerking van PDF-gegevens
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
@@ -1578,8 +1577,8 @@ def extract_pdf_to_dataframe(pdf_reader):
                 current_category = line.replace(":", "")
                 continue
                 
-            # Controleer of de regel "Totaal" bevat en sla deze over
-            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
+            # Controleer of de regel "Totaal", "Aantal", "Breedte" of "Hoogte" bevat en sla deze over
+            if re.search(r"\b(Totaal|Aantal|Breedte|Hoogte)\b", line, re.IGNORECASE):
                 continue
                 
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
@@ -1605,7 +1604,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             for i in range(2):
                 potential_headers = df.iloc[i].str.lower().str.strip()
                 if any(potential_headers.isin([
-                    "artikelnaam", "artikel", "product", "type", "article",
+                    "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
                     "hoogte", "height", "h",
                     "breedte", "width", "b",
                     "aantal", "quantity", "qty", "stuks"
