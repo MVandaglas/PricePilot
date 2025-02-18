@@ -1619,11 +1619,13 @@ def extract_pdf_to_dataframe(pdf_reader):
 
             # Verwijder rijen vanaf rij 3 die "Aantal", "Breedte" of "Hoogte" bevatten in een van de kolommen
             if df.shape[0] > 2:  # Zorg ervoor dat er minstens 3 rijen zijn
-                df = df.iloc[:2].append(
+                df = pd.concat([
+                    df.iloc[:2],  # Behoud de eerste 2 rijen
                     df.iloc[2:][~df.iloc[2:].apply(
                         lambda row: row.astype(str).str.contains(r"\b(Aantal|Breedte|Hoogte)\b", case=False).any(), axis=1)
                     ]
-                ).reset_index(drop=True)
+                ]).reset_index(drop=True)
+
 
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
