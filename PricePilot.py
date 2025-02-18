@@ -1535,9 +1535,6 @@ def manual_column_mapping(df, detected_columns):
 
     return mapped_columns
 
-if "current_batch" not in st.session_state:
-    st.session_state["current_batch"] = "batch_1"        
-
 
 # Functie voor PDF naar Excel conversie
 def pdf_to_excel(pdf_reader, excel_path):
@@ -1659,9 +1656,6 @@ def extract_pdf_to_dataframe(pdf_reader):
             st.write(f"Achtergehouden rijen voor volgende batch: {len(df_backlog)}")
 
             return df_bulk  # Verwerk alleen de correcte gegevens
-            
-            if st.session_state["current_batch"] == "batch_2":
-                df_bulk = df_backlog  # Laad batch 2 als de nieuwe dataset
 
         else:
             st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
@@ -1743,9 +1737,7 @@ def process_attachment(attachment, attachment_name):
 
                 if st.sidebar.button("Verwerk gegevens naar offerte"):
                     handle_mapped_data_to_offer(relevant_data)
-                    # **Schakel naar batch 2**
-                    st.session_state["current_batch"] = "batch_2"
-                    st.experimental_rerun()  # Ververst de app om batch 2 te laden
+
             else:
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
                 return None
