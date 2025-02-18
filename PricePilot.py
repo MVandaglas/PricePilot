@@ -1556,7 +1556,7 @@ def pdf_to_excel(pdf_reader, excel_path):
                 return None
 
     except Exception as e:
-        st.error(f"Fout bij het converteren van PDF naar Excel: {e}")
+        pass
         return None
 
 # Algemene functie voor extractie en verwerking van PDF-gegevens
@@ -1736,7 +1736,7 @@ def process_attachment(attachment, attachment_name):
             # PDF omzetten naar Excel
             excel_result = pdf_to_excel(pdf_reader, excel_path)
             if not excel_result:
-                st.warning("De PDF bevat geen tabellen om naar Excel te converteren. Controleer de inhoud van de PDF.")
+                pass
     
             # Gegevens extraheren uit PDF
             df_extracted = extract_pdf_to_dataframe(pdf_reader)
