@@ -1658,7 +1658,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 if st.button(f"Verwerk batch {batch_number + 1}", key=f"batch_{batch_number}"):
                     st.session_state["df_current"] = df_backlog.copy()  # Zet backlog als nieuwe dataset
                     st.session_state["batch_number"] = batch_number + 1  # Verhoog batchnummer
-                    st.experimental_rerun()
+                    st.rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.clear()  # Reset state als alle batches verwerkt zijn
