@@ -1578,7 +1578,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 continue
                 
             # Controleer of de regel "Totaal", "Aantal", "Breedte" of "Hoogte" bevat en sla deze over, maar niet voor de eerste twee rijen
-            if idx > 1 and re.search(r"\b(Totaal|Aantal|Breedte|Hoogte)\b", line, re.IGNORECASE):
+            re.search(r"\b(Totaal)\b", line, re.IGNORECASE):
                 continue
                 
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
