@@ -1564,6 +1564,11 @@ def pdf_to_excel(pdf_reader, excel_path):
         return None
 
 # Algemene functie voor extractie en verwerking van PDF-gegevens
+import pandas as pd
+import pdfplumber
+import re
+import streamlit as st
+
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
@@ -1613,80 +1618,69 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
-            # Verwijder rijen vanaf rij 3 die "Aantal", "Breedte" of "Hoogte" bevatten
+            # **Kolomnamen uniform maken**
+            df.columns = df.columns.str.lower()
+
+            # **Verwijder rijen vanaf rij 3 die "Aantal", "Breedte" of "Hoogte" bevatten**
             if df.shape[0] > 2:
                 df = pd.concat([
-                    df.iloc[:2],  # Behoud de eerste 2 rijen
+                    df.iloc[:2],  
                     df.iloc[2:][~df.iloc[2:].apply(
                         lambda row: row.astype(str).str.contains(r"\b(Aantal|Breedte|Hoogte)\b", case=False).any(), axis=1)
                     ]
                 ]).reset_index(drop=True)
 
-            # Los dubbele kolomnamen correct op
-            def deduplicate_columns(columns):
-                seen = {}
-                for i, col in enumerate(columns):
-                    if col not in seen:
-                        seen[col] = 0
-                    else:
-                        seen[col] += 1
-                        columns[i] = f"{col}_{seen[col]}"
-                return columns
-
-            df.columns = deduplicate_columns(list(df.columns))
-
-            # **Numerieke filtering toevoegen voor Aantal, Breedte en Hoogte**
-            df.columns = df.columns.str.lower()  # Zet kolomnamen naar lowercase voor uniforme verwerking
-
+            # **Numerieke conversie**
             for col in ["aantal", "breedte", "hoogte"]:
                 if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors='coerce')  # Niet-numerieke waarden worden NaN
+                    df[col] = pd.to_numeric(df[col], errors="coerce")  
 
             # **Batch verwerking instellen**
             if "current_batch" not in st.session_state:
-                st.session_state["current_batch"] = 1  # Start bij batch 1
-                st.session_state["backlog"] = None  # Geen backlog bij de eerste run
+                st.session_state["current_batch"] = 1  
+                st.session_state["backlog"] = None  
 
-            # **Laad de juiste batch**
+            # **Bepalen welke batch wordt geladen**
             if st.session_state["current_batch"] == 1:
-                df_current = df  # Begin met de oorspronkelijke dataset
+                df_current = df.copy()  
             else:
-                df_current = st.session_state.get("backlog", pd.DataFrame())  # Laad backlog voor volgende batch
+                df_current = st.session_state.get("backlog", pd.DataFrame()).copy()  
 
-            # **Check of rijen nog steeds niet aan de eisen voldoen**
+            # **Nieuwe filtering voor batch**
             df_backlog = df_current[
-                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |  # Aantal niet numeriek of <= 0
-                df_current["breedte"].isna() | (df_current["breedte"] < 100) |  # Breedte niet numeriek of < 100
-                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)  # Hoogte niet numeriek of < 100
+                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
+                df_current["breedte"].isna() | (df_current["breedte"] < 100) |
+                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
             ]
 
-            # **Hoofddata (de rijen die WEL correct zijn)**
+            # **Hoofddata (de correcte rijen)**
             df_bulk = df_current.drop(df_backlog.index)
 
-            # **Toon counter met aantal achtergehouden regels**
+            # **Aantal achtergehouden rijen tonen**
             st.write(f"🔴 Achtergehouden rijen voor volgende batch ({st.session_state['current_batch'] + 1}): {len(df_backlog)}")
 
-            # **Knop om volgende batch te laden als er nog achtergehouden regels zijn**
+            # **Correct opslaan van backlog**
             if len(df_backlog) > 0:
                 if st.button(f"Laad batch {st.session_state['current_batch'] + 1}"):
-                    st.session_state["backlog"] = df_backlog.copy()  # Zet backlog correct in session state
-                    st.session_state["current_batch"] += 1  # Verhoog batch nummer
-                    st.rerun()  # Refresh app om nieuwe batch te laden
+                    st.session_state["backlog"] = df_backlog.copy()  
+                    st.session_state["current_batch"] += 1  
+                    st.experimental_rerun()  
 
-            # **Check of er daadwerkelijk data is om te verwerken**
+            # **Voorkomen dat lege batches getoond worden**
             if df_bulk.empty and df_backlog.empty:
-                st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
+                st.warning("🚨 Geen gegevens meer om te verwerken. Alle batches zijn voltooid.")
                 return pd.DataFrame()
 
-            return df_bulk  # Laatste correcte dataset tonen
+            return df_bulk  
 
         else:
-            st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
+            st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
             return pd.DataFrame()
 
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
         
 def extract_latest_email(body):
     """
