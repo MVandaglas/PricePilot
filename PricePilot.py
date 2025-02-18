@@ -1658,7 +1658,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             # **Knop om achtergehouden regels te laden**
             if st.button("Laad achtergehouden regels"):
                 st.session_state["show_backlog"] = True
-                st.experimental_rerun()  # Refresh de app om de backlog te tonen
+                st.rerun()  # Refresh de app om de backlog te tonen
 
             # **Tonen van de juiste batch**
             if "show_backlog" in st.session_state and st.session_state["show_backlog"]:
