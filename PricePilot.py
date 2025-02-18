@@ -1745,7 +1745,7 @@ def process_attachment(attachment, attachment_name):
                 st.dataframe(df_extracted)
 
                 # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
-                df_extracted = df_extracted[~df_extracted.apply(lambda row: row.astype(str).str.contains(r'aantal', case=False).any(), axis=1)]
+                df_extracted = df_extracted[~df_extracted.apply(lambda row: row.astype(str).str.contains(r'Aantal', case=False).any(), axis=1)]
                 df_extracted = df_extracted.dropna(how='all')
                 
                 # Relevante kolommen detecteren
