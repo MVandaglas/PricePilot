@@ -1577,8 +1577,8 @@ def extract_pdf_to_dataframe(pdf_reader):
                 current_category = line.replace(":", "")
                 continue
                 
-            # Controleer of de regel "Totaal", "Aantal", "Breedte" of "Hoogte" bevat en sla deze over, maar niet voor de eerste twee rijen
-            re.search(r"\b(Totaal)\b", line, re.IGNORECASE):
+            # Controleer of de regel "Totaal" bevat en sla deze over
+            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
                 
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
