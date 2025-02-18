@@ -1560,89 +1560,84 @@ def pdf_to_excel(pdf_reader, excel_path):
         return None
 
 # Algemene functie voor extractie en verwerking van PDF-gegevens
+# Algemene functie voor extractie en verwerking van PDF-gegevens
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
             lines = []
             for page in pdf.pages:
-                extracted_text = page.extract_text()
-                if extracted_text:
-                    lines.extend(extracted_text.split("\n"))
+                lines.extend(page.extract_text().split("\n"))
 
         structured_data = []
         current_category = None
-        category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Glasgroep detecteren
-        rejected_rows = []  # Opslaan van afgewezen rijen
+        category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
 
         for line in lines:
             line = line.strip()
-
-            # Detecteer de glasgroep
             if category_pattern.match(line):
                 current_category = line.replace(":", "")
                 continue
-
-            # Sla regels met "Totaal aantal" over
-            if re.search(r"\bTotaal aantal\b", line, re.IGNORECASE):
+                
+            # Controleer of de regel "Totaal" bevat en sla deze over
+            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
+                
+            # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
+            columns = re.split(r'\s+', line)
+            if len(columns) >= 5 and current_category:
+                structured_data.append([current_category] + columns)
 
-            # Negeer overbodige rijen zoals "mm mm"
-            if line.lower() == "mm mm":
+           # Controleer of er minstens één cel is die een niet-nul getal bevat (ook met decimalen of extra tekens)
+            numeric_values = [re.search(r"\b\d+(?:[.,]\d+)?\b", col) for col in columns]
+            non_zero_values = [match.group() for match in numeric_values if match and float(match.group().replace(',', '.')) > 0]
+            
+            if not non_zero_values:
                 continue
-
-            # Dynamische regex detectie voor verschillende kolomstructuren
-            row_patterns = [
-                re.compile(r"([A-Z]+\d+(?:,\s*[A-Z]+\d+)*)\s+(\d+)\s+(\d+)\s+(\d+)\s+([\d,.]+)\s+([\d,.]+)\s+(\d+)"),
-                re.compile(r"([A-Z]+\d+(?:,\s*[A-Z]+\d+)*)\s+(\d+)\s+(\d+)\s+([\d,.]+)\s+([\d,.]+)\s+(\d+)")  # Alternatief patroon
-            ]
-
-            match = None
-            for pattern in row_patterns:
-                match = pattern.match(line)
-                if match:
-                    break  # Stop als een match gevonden is
-
-            if match:
-                data_row = [current_category] + list(match.groups())
-                structured_data.append(data_row)
 
         if structured_data:
-            # Dynamische kolomnamen detectie op basis van data-inhoud
-            column_count = len(structured_data[0])
-            default_columns_map = {
-                8: ["Categorie", "Artikelnaam", "Aantal", "Breedte", "Hoogte", "Inhoud", "m2/Stk", "Dikte"],
-                7: ["Categorie", "Artikelnaam", "Aantal", "Breedte", "Hoogte", "Inhoud", "Dikte"]
-            }
-            column_names = default_columns_map.get(column_count, [f"Kolom_{i}" for i in range(column_count)])
-
+            max_columns = max(len(row) for row in structured_data)
+            column_names = ["Categorie"] + [f"Kolom_{i}" for i in range(1, max_columns)]
+            structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
             df = pd.DataFrame(structured_data, columns=column_names)
 
-            # Omzetten van numerieke waarden naar correcte types
-            for col in df.columns:
-                if any(keyword in col.lower() for keyword in ["aantal", "breedte", "hoogte", "inhoud", "m2/stk", "dikte"]):
-                    df[col] = pd.to_numeric(df[col].str.replace(",", "."), errors='coerce')
+            # Detecteer headers op de eerste twee rijen
+            header_row = None
+            for i in range(2):
+                potential_headers = df.iloc[i].str.lower().str.strip()
+                if any(potential_headers.isin([
+                    "artikelnaam", "artikel", "product", "type", "article",
+                    "hoogte", "height", "h",
+                    "breedte", "width", "b",
+                    "aantal", "quantity", "qty", "stuks"
+                ])):
+                    header_row = i
+                    break
 
-            # Validatie toepassen
-            if "Aantal" in df.columns and "Breedte" in df.columns and "Hoogte" in df.columns:
-                mask = (df["Aantal"] <= 0) | (df["Breedte"] <= 50) | (df["Hoogte"] <= 50)
-                rejected_rows = df[mask]  # Bewaar de afgewezen rijen
-                df = df[~mask]  # Houd alleen de geldige rijen over
+            if header_row is not None:
+                df.columns = df.iloc[header_row]
+                df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
-            # Opnieuw proberen om afgewezen rijen te verwerken
-            if not rejected_rows.empty:
-                for index, row in rejected_rows.iterrows():
-                    structured_data.append(row.tolist())
+            # Los dubbele kolomnamen correct op
+            def deduplicate_columns(columns):
+                seen = {}
+                for i, col in enumerate(columns):
+                    if col not in seen:
+                        seen[col] = 0
+                    else:
+                        seen[col] += 1
+                        columns[i] = f"{col}_{seen[col]}"
+                return columns
 
-                df_reprocessed = pd.DataFrame(structured_data, columns=column_names)
-                df = pd.concat([df, df_reprocessed]).drop_duplicates().reset_index(drop=True)
+            df.columns = deduplicate_columns(list(df.columns))
 
             return df
         else:
-            print("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
+            st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
             return pd.DataFrame()
     except Exception as e:
-        print(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
         
 def extract_latest_email(body):
     """
