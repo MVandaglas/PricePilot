@@ -706,7 +706,7 @@ def find_article_details(article_number):
 
 
     # 6. Als alles niet matcht
-    return (None, None, None, original_article_number, "niet gevonden", original_article_number, None)
+    return (article_number, None, None, original_article_number, "niet gevonden", original_article_number, None)
 
 
 # Werkt de artikelnummer bij in de DataFrame op basis van de ingevulde artikelnaam. Gebruikt fuzzy matching om de beste overeenkomst te vinden.
