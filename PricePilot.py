@@ -1560,7 +1560,6 @@ def pdf_to_excel(pdf_reader, excel_path):
         return None
 
 # Algemene functie voor extractie en verwerking van PDF-gegevens
-# Algemene functie voor extractie en verwerking van PDF-gegevens
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
@@ -1569,6 +1568,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 lines.extend(page.extract_text().split("\n"))
 
         structured_data = []
+        invalid_rows = []  # Lijst om ongeldige rijen op te slaan
         current_category = None
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
 
@@ -1579,7 +1579,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 continue
                 
             # Controleer of de regel "Totaal" bevat en sla deze over
-            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
+            if re.search(r"\bTotaal:?", line, re.IGNORECASE):
                 continue
                 
             # Splits de kolommen op basis van >3 spaties of tabs, en negeer komma's als scheidingsteken
@@ -1616,6 +1616,22 @@ def extract_pdf_to_dataframe(pdf_reader):
             if header_row is not None:
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
+
+            # Converteer kolommen naar numeriek indien mogelijk
+            for col in ["Aantal", "Breedte", "Hoogte"]:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
+
+            # Validatie: Controleer de waarden
+            mask_invalid = (df["Aantal"] <= 1) | (df["Aantal"] >= 999) | (df["Breedte"] <= 50) | (df["Breedte"] >= 9999) | (df["Hoogte"] <= 50) | (df["Hoogte"] >= 9999)
+            invalid_rows = df[mask_invalid]
+            df = df[~mask_invalid]
+
+            # Opnieuw verwerken van foutieve regels
+            if not invalid_rows.empty:
+                structured_data.extend(invalid_rows.values.tolist())
+                df_reprocessed = pd.DataFrame(structured_data, columns=column_names)
+                df = pd.concat([df, df_reprocessed]).drop_duplicates().reset_index(drop=True)
 
             # Los dubbele kolomnamen correct op
             def deduplicate_columns(columns):
