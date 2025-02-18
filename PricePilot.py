@@ -1661,7 +1661,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             return df_bulk  # Verwerk alleen de correcte gegevens
             
             if st.session_state["current_batch"] == "batch_2":
-            df_bulk = df_backlog  # Laad batch 2 als de nieuwe dataset
+                df_bulk = df_backlog  # Laad batch 2 als de nieuwe dataset
 
         else:
             st.warning("Geen gegevens gevonden in de PDF. Controleer de inhoud.")
