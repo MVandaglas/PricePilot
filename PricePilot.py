@@ -34,6 +34,7 @@ from office365.sharepoint.client_context import ClientContext
 from msal import ConfidentialClientApplication
 import jwt
 import numpy as np
+import uuid
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
@@ -1656,7 +1657,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                     st.write(f"🔴 Achtergehouden rijen voor batch {batch_number + 1}: {len(df_backlog)}")
 
                     # **Wachten op interactie voordat de volgende batch wordt geladen**
-                    if st.button(f"Verwerk batch {batch_number + 1}", key=f"batch_{batch_number}_{len(df_backlog)}"):
+                    if st.button(f"Verwerk batch {batch_number + 1}", key=f"batch_{batch_number}_{uuid.uuid4()}"):
                         df_current = df_backlog.copy()  # Zet backlog als nieuwe dataset
                         batch_number += 1  # Verhoog batchnummer
                         st.rerun()
