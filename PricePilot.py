@@ -1672,8 +1672,9 @@ def extract_pdf_to_dataframe(pdf_reader):
                 
                 if st.button(f"Verwerk batch {st.session_state.batch_number + 1}"):
                     # **Update de dataset met de achtergehouden rijen**
-                    st.session_state.df_current = df_backlog.copy()
+                    df_current = df_backlog.copy()
                     st.session_state.batch_number += 1
+                    df_bulk = df_current.loc[~df_current.index.isin(df_backlog.index)].copy()
                     
                     # **Verberg de oorspronkelijke dataset en toon de bijgewerkte versie**
                     st.session_state.show_processed = False
