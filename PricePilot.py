@@ -1585,31 +1585,34 @@ def correct_backlog_rows(df_backlog):
     
     for _, row in df_backlog.iterrows():
         row_values = row.values.copy()
-
-        # Probeer verschuivingen in de opgegeven volgorde:
-        shifts = [-1, -2, -3, -4, 1, 2]  # Links/rechts verschuivingen
-        for shift in shifts:
-            # Voer de verschuiving uit
-            if shift < 0:
-                corrected_row = np.roll(row_values, shift)
-                corrected_row[:abs(shift)] = None  # Lege plekken vullen met None
-            else:
-                corrected_row = np.roll(row_values, shift)
-                corrected_row[-shift:] = None  # Lege plekken vullen met None
+        none_index = np.where(pd.isna(row_values))[0]
+        
+        if len(none_index) > 0:
+            none_col = none_index[0]  # Eerste None waarde
+            shifts = [-1, -2, 1, 2] if none_col > 0 else [1, 2]  # Alleen naar rechts als eerste kolom None is
             
-            # Zet terug in een pandas Series zodat we per kolom kunnen controleren
-            corrected_series = pd.Series(corrected_row, index=df_backlog.columns)
-
-            # Controleer of de rij nu geldig is
-            if (
-                is_valid_numeric(corrected_series["aantal"], 0) and
-                is_valid_numeric(corrected_series["breedte"], 99) and
-                is_valid_numeric(corrected_series["hoogte"], 99)
-            ):
-                corrected_rows.append(corrected_series)
-                break  # Stop zodra een geldige verschuiving is gevonden
+            for shift in shifts:
+                corrected_row = row_values.copy()
+                
+                if shift < 0:
+                    corrected_row[none_col+shift:none_col] = corrected_row[none_col:none_col-shift]
+                    corrected_row[none_col-shift:none_col] = None
+                else:
+                    corrected_row[none_col:none_col+shift] = corrected_row[none_col+shift:none_col+2*shift]
+                    corrected_row[none_col+shift:none_col+2*shift] = None
+                
+                corrected_series = pd.Series(corrected_row, index=df_backlog.columns)
+                
+                if (
+                    is_valid_numeric(corrected_series["aantal"], 0) and
+                    is_valid_numeric(corrected_series["breedte"], 99) and
+                    is_valid_numeric(corrected_series["hoogte"], 99)
+                ):
+                    corrected_rows.append(corrected_series)
+                    break
+            else:
+                corrected_rows.append(row)
         else:
-            # Als geen enkele verschuiving werkt, voeg dan de originele rij toe
             corrected_rows.append(row)
     
     return pd.DataFrame(corrected_rows, columns=df_backlog.columns)
@@ -1700,17 +1703,6 @@ def extract_pdf_to_dataframe(pdf_reader):
             df_bulk = df_current.loc[
                 ~df_current.index.isin(df_backlog.index)
             ].copy()
-            st.write("✅ **Verwerkte gegevens:** df_current")
-            st.dataframe(df_current)
-
-            st.write("✅ **Verwerkte gegevens:** df_backlog_corrected")
-            st.dataframe(df_backlog_corrected)
-
-            st.write("✅ **Verwerkte gegevens:** df_bulk")
-            st.dataframe(df_bulk)
-
-            st.write("✅ **Verwerkte gegevens:** df_backlog")
-            st.dataframe(df_backlog)
             
             return df_bulk  
 
@@ -1721,6 +1713,7 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
 
 
 
