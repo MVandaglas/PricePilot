@@ -1617,32 +1617,24 @@ def correct_backlog_rows(df_backlog):
     
     return pd.DataFrame(corrected_rows, columns=df_backlog.columns)
 
-def extract_pdf_to_dataframe(pdf_reader, pdf_path=None, excel_path=None):
+def extract_pdf_to_dataframe(pdf_reader):
     try:
-        table_found = False  # Bijhouden of een tabel is gevonden
+        # **Stap 1: Controleer of er een tabel in de PDF staat**
+        table_found = False  # Flag om bij te houden of een tabel is gevonden
+
+        with pdfplumber.open(pdf_reader) as pdf:
+            for i, page in enumerate(pdf.pages):
+                table = page.extract_table()
+                if table:
+                    table_found = True  # Markeer dat er een tabel is gevonden
+                    break  # Eén tabel is genoeg om de check te voltooien
         
-        # **Controleer of pdf_reader een bestandspad of BytesIO is**
-        if isinstance(pdf_reader, str):
-            pdf_source = pdf_reader  # pdf_reader is een pad naar een bestand
-        elif isinstance(pdf_reader, BytesIO):
-            pdf_source = pdf_reader  # pdf_reader is een bestand als BytesIO
-        else:
-            st.error("❌ Ongeldige PDF-ingang. Geef een bestandspad of een BytesIO-object op.")
-            return pd.DataFrame()
-        
-        # **Stap 1: Probeer tabellen uit de PDF te extraheren**
-        if pdf_path and excel_path:
-            with pdfplumber.open(pdf_source) as pdf, pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
-                for i, page in enumerate(pdf.pages):
-                    table = page.extract_table()
-                    if table:
-                        df = pd.DataFrame(table[1:], columns=table[0])  # Gebruik eerste rij als header
-                        df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
-                        table_found = True  # Markeer dat er een tabel is gevonden
-        
-        # **Als een tabel is gevonden, stop hier en return**
+        # **Toon de uitkomst in de UI**
         if table_found:
-            return df
+            st.success("✅ Een tabel is gevonden in de PDF.")
+        else:
+            st.warning("⚠ Geen tabel gevonden, probeer tekstextractie...")
+
         
         # **Fallback naar tekstextractie als er geen tabel is gevonden**
         st.warning("Geen tabel gevonden, probeer tekstextractie...")
