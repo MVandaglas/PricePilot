@@ -1683,7 +1683,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             
                     # **Voer UI-herstart correct uit**
                     st.session_state["force_rerun"] = True
-                    st.experimental_rerun()
+                    st.rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
