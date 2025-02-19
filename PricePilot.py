@@ -1689,7 +1689,7 @@ def extract_pdf_to_dataframe(pdf_reader):
 
         else:
             st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
-            return pd.DataFrame()
+            return pd.DataFrame(df_bulk)
 
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
