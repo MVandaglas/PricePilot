@@ -1781,7 +1781,11 @@ def convert_docx_to_xlsx(doc_bytes):
     Converteer een DOCX-bestand naar een Excel-bestand en retourneer het pad.
     """
     doc = Document(BytesIO(doc_bytes))
-    excel_output_path = "/mnt/data/extracted_data.xlsx"
+    
+    # Maak een tijdelijk bestand aan
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as temp_file:
+        excel_output_path = temp_file.name
+
 
     with pd.ExcelWriter(excel_output_path, engine="openpyxl") as writer:
         table_count = 0
