@@ -1569,6 +1569,7 @@ def pdf_to_excel(pdf_reader, excel_path):
 
 
 
+
 def is_valid_numeric(value, min_value):
     """ Controleert of een waarde numeriek is en groter dan een minimale waarde. """
     try:
@@ -1577,9 +1578,17 @@ def is_valid_numeric(value, min_value):
     except (ValueError, TypeError):
         return False
 
+def shift_row_left(row_values, start_index, shift_amount):
+    """ Schuift alle waarden rechts van start_index naar links met shift_amount. """
+    new_row = row_values.copy()
+    new_row[start_index:-shift_amount] = new_row[start_index+shift_amount:]
+    new_row[-shift_amount:] = None  # Maak de laatste kolommen leeg na verschuiving
+    return new_row
+
 def correct_backlog_rows(df_backlog):
     """
-    Corrigeer rijen die in de backlog zitten door de kolommen systematisch naar links en rechts te verschuiven.
+    Corrigeer rijen die in de backlog zitten door de kolommen systematisch naar links te verschuiven
+    vanaf de eerste None-waarde.
     """
     corrected_rows = []
     
@@ -1588,19 +1597,10 @@ def correct_backlog_rows(df_backlog):
         none_index = np.where(pd.isna(row_values))[0]
         
         if len(none_index) > 0:
-            none_col = none_index[0]  # Eerste None waarde
-            shifts = [-1, -2, 1, 2] if none_col > 0 else [1, 2]  # Alleen naar rechts als eerste kolom None is
+            none_col = none_index[0]  # Eerste None waarde gevonden
             
-            for shift in shifts:
-                corrected_row = row_values.copy()
-                
-                if shift < 0:
-                    corrected_row[none_col+shift:none_col] = corrected_row[none_col:none_col-shift]
-                    corrected_row[none_col-shift:none_col] = None
-                else:
-                    corrected_row[none_col:none_col+shift] = corrected_row[none_col+shift:none_col+2*shift]
-                    corrected_row[none_col+shift:none_col+2*shift] = None
-                
+            for shift in [1, 2]:  # Probeer 1 en 2 kolommen naar links te schuiven
+                corrected_row = shift_row_left(row_values, none_col, shift)
                 corrected_series = pd.Series(corrected_row, index=df_backlog.columns)
                 
                 if (
@@ -1713,6 +1713,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             st.write("✅ **Verwerkte gegevens:** df_backlog_corrected")
             st.dataframe(df_backlog)
             
+          
             return df_bulk  
 
         else:
@@ -1722,6 +1723,7 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
 
 
 
