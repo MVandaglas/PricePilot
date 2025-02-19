@@ -1636,7 +1636,6 @@ def extract_pdf_to_dataframe(pdf_reader):
             
 
 
-            
             # **Initialiseer de dataset**
             if "df_current" not in st.session_state:
                 st.session_state.df_current = df.copy()
@@ -1673,25 +1672,24 @@ def extract_pdf_to_dataframe(pdf_reader):
                 
                 if st.button(f"Verwerk batch {st.session_state.batch_number + 1}"):
                     # **Update de dataset met de achtergehouden rijen**
-                    st.session_state.df_current = df_backlog.copy()
+                    df_current = df_backlog.copy()
                     st.session_state.batch_number += 1
+                    df_bulk = df_current.loc[~df_current.index.isin(df_backlog.index)].copy()
                     
                     # **Verberg de oorspronkelijke dataset en toon de bijgewerkte versie**
                     st.session_state.show_processed = False
-                    
-                    # **Wacht 2 seconden en voer dan een UI refresh uit**
-                    time.sleep(2)
-                    st.rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # **Reset voor een schone UI**
+            
 
-              
+
+    
             return df_bulk  
 
         else:
             st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
-            return pd.DataFrame()
+            return pd.DataFrame(df_bulk)
 
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
