@@ -1641,7 +1641,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df_current["breedte"].isna() | (df_current["breedte"] < 100) |
                 df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
             ]
-
+            
             # **Session state initialiseren**
             if "batch_number" not in st.session_state:
                 st.session_state.batch_number = 1
@@ -1668,18 +1668,23 @@ def extract_pdf_to_dataframe(pdf_reader):
             if not df_backlog.empty:
                 st.write(f"🔴 Achtergehouden rijen voor batch {st.session_state.batch_number + 1}: {len(df_backlog)}")
             
-                # **Check of de backlog niet leeg is**
                 st.write("🔍 **Achtergehouden data voorbeeld:**")
-                st.dataframe(df_backlog.head())  # Laat een voorbeeld zien
+                st.dataframe(df_backlog.head())
             
                 if st.button(f"Verwerk batch {st.session_state.batch_number + 1}", key=f"batch_{st.session_state.batch_number}"):
                     st.session_state.df_current = df_backlog.copy()  # Zet backlog als nieuwe dataset
                     st.session_state.batch_number += 1  # Verhoog batchnummer
-                    st.rerun()  # UI herladen zonder state te verliezen
+                    
+                    # Debugging: Check de nieuwe dataset
+                    st.write("✅ Nieuwe dataset voor volgende batch:")
+                    st.dataframe(st.session_state.df_current)
+            
+                    # Forceer een herlaadactie
+                    st.session_state["force_rerun"] = not st.session_state.get("force_rerun", False)  
+                    st.experimental_rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
-
             return df_bulk  
 
         else:
