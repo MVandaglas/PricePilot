@@ -1768,12 +1768,12 @@ def process_attachment(attachment, attachment_name):
     """
     if attachment_name.endswith(".xlsx"):
         try:
-            df = pd.read_excel(BytesIO(attachment))
+            df = pd.read_excel(BytesIO(attachment), dtype=str)  # Voorkomt float conversie
 
             # Automatische header-detectie, vergelijkbaar met PDF-verwerking
             header_row = None
-            for i in range(30):  # Kijk naar de eerste 30 rijen
-                potential_headers = df.iloc[i].astype(str).str.lower().str.strip()
+            for i in range(min(3, len(df))):  # Kijk naar de eerste 3 rijen, maar blijf binnen grenzen
+                potential_headers = df.iloc[i].astype(str).fillna("").str.lower().str.strip()  # Voorkom 'float' errors
                 if any(potential_headers.isin([
                     "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
                     "hoogte", "height", "h",
@@ -1790,7 +1790,7 @@ def process_attachment(attachment, attachment_name):
             df.columns = df.columns.str.lower()
 
             # Verwijder onnodige rijen zoals 'Totaal'
-            df = df[~df.apply(lambda row: row.astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
+            df = df[~df.apply(lambda row: row.astype(str).fillna("").str.contains(r'totaal', case=False).any(), axis=1)]
             df = df.dropna(how='all')
 
             # Detecteer en map kolommen
