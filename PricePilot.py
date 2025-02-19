@@ -1645,16 +1645,18 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df_current["breedte"].isna() | (df_current["breedte"] < 100) |
                 df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
             ]
+                        
+            
             
             # **Session state initialiseren**
             if "batch_number" not in st.session_state:
                 st.session_state.batch_number = 1
             
             if "df_current" not in st.session_state:
-                st.session_state.df_current = df.copy()
+                st.session_state.df_current = pd.DataFrame()  # Maak een lege DataFrame als start
             
-            if "df_bulk" not in st.session_state:  # ✅ Nieuw: df_bulk initialiseren
-                st.session_state.df_bulk = st.session_state("df_current", df)
+            if "df_bulk" not in st.session_state:  # ✅ Nieuw: df_bulk altijd initialiseren
+                st.session_state.df_bulk = pd.DataFrame()
             
             df_current = st.session_state.df_current  # Werk met de nieuwste state
             
@@ -1668,7 +1670,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             ]
             
             st.write("✅ **Verwerkte gegevens:**")
-            st.dataframe(st.session_state.df_bulk)  # ✅ `df_bulk` blijft bewaard tussen interacties
+            st.dataframe(st.session_state.df_bulk)  # ✅ `df_bulk` is nu altijd beschikbaar
             
             if not df_backlog.empty:
                 st.write(f"🔴 Achtergehouden rijen voor batch {st.session_state.batch_number + 1}: {len(df_backlog)}")
@@ -1682,8 +1684,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
-    
-            return df_bulk  
+
 
         else:
             st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
