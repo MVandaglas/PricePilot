@@ -1786,8 +1786,6 @@ def process_attachment(attachment, attachment_name):
             # Gegevens extraheren uit PDF
             df_extracted = extract_pdf_to_dataframe(pdf_reader)
             if not df_extracted.empty:
-                st.write("Gestructureerde gegevens:")
-                st.dataframe(df_extracted)
 
                 # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
                 df_extracted = df_extracted[~df_extracted.apply(lambda row: row.astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
