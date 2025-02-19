@@ -1769,6 +1769,8 @@ def process_attachment(attachment, attachment_name):
     if attachment_name.endswith(".xlsx"):
         try:
             df = pd.read_excel(BytesIO(attachment), dtype=str)  # Voorkomt float conversie
+            st.write("Bijlage ingelezen als DataFrame:")
+            st.dataframe(df)
 
             # Automatische header-detectie, vergelijkbaar met PDF-verwerking
             header_row = None
