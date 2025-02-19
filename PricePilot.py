@@ -1764,18 +1764,39 @@ def extract_table_from_docx(doc):
 
 def process_attachment(attachment, attachment_name):
     """
-    Analyzes and processes an attachment based on its file type (Excel, PDF, or DOCX).
+    Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
     if attachment_name.endswith(".xlsx"):
         try:
             df = pd.read_excel(BytesIO(attachment))
-            st.write("Bijlage ingelezen als DataFrame:")
-            st.dataframe(df)
 
+            # Automatische header-detectie, vergelijkbaar met PDF-verwerking
+            header_row = None
+            for i in range(30):  # Kijk naar de eerste 30 rijen
+                potential_headers = df.iloc[i].astype(str).str.lower().str.strip()
+                if any(potential_headers.isin([
+                    "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
+                    "hoogte", "height", "h",
+                    "breedte", "width", "b",
+                    "aantal", "quantity", "qty", "stuks"
+                ])):
+                    header_row = i
+                    break
+
+            if header_row is not None:
+                df.columns = df.iloc[header_row]  # Zet de headers correct
+                df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
+
+            df.columns = df.columns.str.lower()
+
+            # Verwijder onnodige rijen zoals 'Totaal'
+            df = df[~df.apply(lambda row: row.astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
+            df = df.dropna(how='all')
+
+            # Detecteer en map kolommen
             detected_columns = detect_relevant_columns(df)
             mapped_columns = manual_column_mapping(df, detected_columns)
 
-            # Validatie voor mapped_columns
             if not isinstance(mapped_columns, dict):
                 st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
                 return None
@@ -1784,7 +1805,7 @@ def process_attachment(attachment, attachment_name):
                 relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                 relevant_data.columns = mapped_columns.keys()
 
-                # Filter relevant data based on start_row and end_row
+                # Filter relevant data
                 start_row = st.sidebar.number_input("Beginrij data (niet de header):", min_value=0, max_value=len(df)-1, value=0)
                 end_row = st.sidebar.number_input("Eindrij data:", min_value=0, max_value=len(df)-1, value=len(df)-1)
                 relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
@@ -1801,6 +1822,7 @@ def process_attachment(attachment, attachment_name):
         except Exception as e:
             st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
             return None
+
 
     elif attachment_name.endswith(".pdf"):
         try:
