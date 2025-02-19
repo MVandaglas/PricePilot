@@ -1680,11 +1680,6 @@ def extract_pdf_to_dataframe(pdf_reader):
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
 
-
-            else:
-                st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
-                st.session_state.clear()  # Reset state als alle batches verwerkt zijn
-
             return df_bulk  
 
         else:
