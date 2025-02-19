@@ -79,6 +79,10 @@ SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD") + os.environ.get("SF_SECURITY_TOK
 SF_SECURITY_TOKEN =  os.getenv("SF_SECURITY_TOKEN")
 SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox
 
+if "force_rerun" in st.session_state and st.session_state.force_rerun:
+    st.session_state.force_rerun = False  # Zet de trigger uit om oneindige loops te voorkomen
+    st.rerun()  # UI herladen zonder dat state verloren gaat
+
 
 # Verbind met Salesforce
 try:
@@ -1675,12 +1679,13 @@ def extract_pdf_to_dataframe(pdf_reader):
                     st.session_state.df_current = df_backlog.copy()  # Zet backlog als nieuwe dataset
                     st.session_state.batch_number += 1  # Verhoog batchnummer
                     
-                    # Debugging: Check de nieuwe dataset
-                    st.write("✅ Nieuwe dataset voor volgende batch:")
+                    # 🚨 Debug: Laat de nieuwe dataset zien vóór de herlaadactie
+                    st.write("✅ **Nieuwe dataset in session_state (voordat UI herlaadt):**")
                     st.dataframe(st.session_state.df_current)
-            
-                    # Forceer een herlaadactie
-                    st.rerun()
+                
+                    # **Trigger een herlaadactie zonder dat de state verloren gaat**
+                    st.session_state["force_rerun"] = True
+
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
