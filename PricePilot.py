@@ -1635,12 +1635,14 @@ def extract_pdf_to_dataframe(pdf_reader):
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
             
             
-
             # **Initialiseer de dataset**
             if "df_current" not in st.session_state:
                 st.session_state.df_current = df.copy()
             if "batch_number" not in st.session_state:
                 st.session_state.batch_number = 1
+            if "next_df" in st.session_state:
+                st.session_state.df_current = st.session_state.next_df.copy()
+                del st.session_state.next_df  # Opschonen van tijdelijke variabele
             
             # **Bepaal de huidige dataset**
             df_current = st.session_state.df_current
@@ -1671,19 +1673,16 @@ def extract_pdf_to_dataframe(pdf_reader):
                     st.write("🔍 Debug: Nieuwe df_backlog:")
                     st.dataframe(df_backlog)
                     
-                    # **Update de dataset met de achtergehouden rijen**
-                    st.session_state.df_current = df_backlog.copy()
+                    # **Sla de nieuwe dataset tijdelijk op in session_state**
+                    st.session_state.next_df = df_backlog.copy()
                     st.session_state.batch_number += 1
                     
-                    st.write("🔍 Debug: Na update df_current:")
-                    st.dataframe(st.session_state.df_current)
-                    
-                    # **Forceer een herstart van de UI**
                     st.write("🔄 UI wordt opnieuw geladen...")
                     st.rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # **Reset voor een schone UI**
+
 
 
     
