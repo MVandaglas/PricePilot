@@ -1700,6 +1700,8 @@ def extract_pdf_to_dataframe(pdf_reader):
             df_bulk = df_current.loc[
                 ~df_current.index.isin(df_backlog.index)
             ].copy()
+            st.write("✅ **Verwerkte gegevens:**")
+            st.dataframe(df_bulk)
             
             return df_bulk  
 
