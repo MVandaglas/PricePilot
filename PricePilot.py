@@ -1654,7 +1654,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 st.session_state.df_current = df.copy()
             
             if "df_bulk" not in st.session_state:  # ✅ Nieuw: df_bulk initialiseren
-                st.session_state.df_bulk = pd.DataFrame()
+                st.session_state.df_bulk = st.session_state("df_current", df)
             
             df_current = st.session_state.df_current  # Werk met de nieuwste state
             
