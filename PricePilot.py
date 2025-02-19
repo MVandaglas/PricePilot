@@ -1672,7 +1672,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                     if st.button(f"Verwerk batch {st.session_state.batch_number + 1}", key=f"batch_{st.session_state.batch_number}"):
                         df_bulk = df_backlog.copy()  # Zet backlog als nieuwe dataset
                         st.session_state["batch_number"] += 1  # Verhoog batchnummer
-                        st.rerun(scope="fragment")
+                        st.rerun(scope="app")
                 else:
                     st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                     st.session_state.df_current = pd.DataFrame()  # Reset UI
