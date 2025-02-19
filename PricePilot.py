@@ -1697,21 +1697,19 @@ def extract_pdf_to_dataframe(pdf_reader):
             ]
             
             if not df_backlog.empty:
-                df_backlog_corrected = correct_backlog_rows(df_backlog)
-                df_current.update(df_backlog_corrected)
+                df_corrected = correct_backlog_rows(df_current)
+                df_current.update(df_corrected)
             
             df_bulk = df_current.loc[
                 ~df_current.index.isin(df_backlog.index)
             ].copy()
 
-            st.write("✅ **Verwerkte gegevens:** df_backlog_corrected")
-            st.dataframe(df_backlog_corrected)
             st.write("✅ **Verwerkte gegevens:** df_current")
             st.dataframe(df_current)
             st.write("✅ **Verwerkte gegevens:** df_bulk")
             st.dataframe(df_bulk)
-            st.write("✅ **Verwerkte gegevens:** df_backlog_corrected")
-            st.dataframe(df_backlog)
+            st.write("✅ **Verwerkte gegevens:** df_corrected")
+            st.dataframe(df_corrected)
             
           
             return df_bulk  
