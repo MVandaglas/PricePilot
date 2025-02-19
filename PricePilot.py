@@ -1651,31 +1651,34 @@ def extract_pdf_to_dataframe(pdf_reader):
             
             df_current = st.session_state.df_current  # Werk met de huidige state
             
-            if not df_current.empty:
-                st.write(f"🔹 **Verwerken van batch {st.session_state.batch_number}**")
+            st.write(f"🔹 **Verwerken van batch {st.session_state.batch_number}**")
             
-                df_backlog = df_current[
-                    df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
-                    df_current["breedte"].isna() | (df_current["breedte"] < 100) |
-                    df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
-                ]
+            # **Filter regels die niet voldoen**
+            df_backlog = df_current[
+                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
+                df_current["breedte"].isna() | (df_current["breedte"] < 100) |
+                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
+            ]
             
-                df_bulk = df_current.drop(df_backlog.index)  # Correct verwerken van de huidige batch
+            df_bulk = df_current.drop(df_backlog.index)  # Correct verwerken van de huidige batch
             
-                st.write("✅ **Verwerkte gegevens:**")
-                st.dataframe(df_bulk)
+            st.write("✅ **Verwerkte gegevens:**")
+            st.dataframe(df_bulk)
             
-                if not df_backlog.empty:
-                    st.write(f"🔴 Achtergehouden rijen voor batch {st.session_state.batch_number + 1}: {len(df_backlog)}")
+            if not df_backlog.empty:
+                st.write(f"🔴 Achtergehouden rijen voor batch {st.session_state.batch_number + 1}: {len(df_backlog)}")
             
-                    # **Knop voor volgende batch**
-                    if st.button(f"Verwerk batch {st.session_state.batch_number + 1}", key=f"batch_{st.session_state.batch_number}"):
-                        st.session_state.df_current = df_backlog.copy()  # Zet backlog als nieuwe dataset
-                        st.session_state.batch_number += 1  # Verhoog batchnummer
-                        st.rerun()  # Herlaadt de UI correct zonder loop-problemen
-                else:
-                    st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
-                    st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
+                # **Check of de backlog niet leeg is**
+                st.write("🔍 **Achtergehouden data voorbeeld:**")
+                st.dataframe(df_backlog.head())  # Laat een voorbeeld zien
+            
+                if st.button(f"Verwerk batch {st.session_state.batch_number + 1}", key=f"batch_{st.session_state.batch_number}"):
+                    st.session_state.df_current = df_backlog.copy()  # Zet backlog als nieuwe dataset
+                    st.session_state.batch_number += 1  # Verhoog batchnummer
+                    st.experimental_rerun()  # UI herladen zonder state te verliezen
+            else:
+                st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
+                st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
 
 
             else:
