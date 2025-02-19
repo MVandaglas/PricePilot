@@ -1622,10 +1622,12 @@ def extract_pdf_to_dataframe(pdf_reader):
         with pdfplumber.open(pdf_reader) as pdf:
             lines = []
             for page in pdf.pages:
-                lines.extend(page.extract_text().split("\n"))
+                text = page.extract_text()
+                if text:
+                    lines.extend(text.split("\n"))
 
         structured_data = []
-        current_category = "0"
+        current_category = "0"  # Fallback waarde als er geen categorie is
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")
 
         for line in lines:
@@ -1638,7 +1640,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 continue
 
             columns = re.split(r'\s+', line)
-            if len(columns) >= 5 and current_category:
+            if len(columns) >= 5:
                 structured_data.append([current_category] + columns)
 
         if structured_data:
@@ -1648,8 +1650,8 @@ def extract_pdf_to_dataframe(pdf_reader):
             df = pd.DataFrame(structured_data, columns=column_names)
 
             header_row = None
-            for i in range(2):
-                potential_headers = df.iloc[i].str.lower().str.strip()
+            for i in range(min(3, len(df))):  # Maximaal 3 rijen doorzoeken voor headers
+                potential_headers = df.iloc[i].astype(str).str.lower().str.strip()
                 if any(potential_headers.isin([
                     "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
                     "hoogte", "height", "h",
@@ -1662,8 +1664,17 @@ def extract_pdf_to_dataframe(pdf_reader):
             if header_row is not None:
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
+            else:
+                st.warning("⚠ Geen header herkend, eerste rij als header gebruikt.")
+                df.columns = df.iloc[0]
+                df = df.drop(df.index[0]).reset_index(drop=True)
 
             df.columns = df.columns.str.lower()
+
+            if "aantal" not in df.columns:
+                st.error("⚠ Kolom 'aantal' niet gevonden in de PDF.")
+                st.write("Herkende kolommen:", df.columns.tolist())
+                return pd.DataFrame()
 
             if df.shape[0] > 2:
                 df = pd.concat([
@@ -1704,10 +1715,9 @@ def extract_pdf_to_dataframe(pdf_reader):
                 ~df_current.index.isin(df_backlog.index)
             ].copy()
 
-            st.write("✅ **Verwerkte gegevens:** df_corrected")
+            st.write("✅ **Verwerkte gegevens:**")
             st.dataframe(df_corrected)
             
-          
             return df_corrected  
 
         else:
@@ -1717,6 +1727,7 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
 
 
 
