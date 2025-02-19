@@ -1617,16 +1617,25 @@ def correct_backlog_rows(df_backlog):
     
     return pd.DataFrame(corrected_rows, columns=df_backlog.columns)
 
-def extract_pdf_to_dataframe(pdf_reader):
+def extract_pdf_to_dataframe(pdf_reader, pdf_path, excel_path):
     try:
+        table_found = False  # Variabele om bij te houden of een tabel is gevonden
+
+        # Probeer eerst een tabel te extraheren
         with pdfplumber.open(pdf_path) as pdf, pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
             for i, page in enumerate(pdf.pages):
                 table = page.extract_table()
                 if table:
                     df = pd.DataFrame(table[1:], columns=table[0])  # Gebruik de eerste rij als header
                     df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
-                    
-    else:
+                    table_found = True  # Markeer dat er een tabel is gevonden
+
+        # Als er een tabel is gevonden, stop hier en return
+        if table_found:
+            return df
+        
+        # **Fallback naar tekstextractie als er geen tabel is gevonden**
+        st.warning("Geen tabel gevonden, probeer tekstextractie...")
         with pdfplumber.open(pdf_reader) as pdf:
             lines = []
             for page in pdf.pages:
