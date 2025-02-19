@@ -1617,11 +1617,6 @@ def correct_backlog_rows(df_backlog):
     
     return pd.DataFrame(corrected_rows, columns=df_backlog.columns)
 
-import pdfplumber
-import pandas as pd
-import re
-import streamlit as st
-from io import BytesIO
 
 def extract_pdf_to_dataframe(pdf_reader):
     try:
@@ -1645,7 +1640,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             st.dataframe(df_table)  # Toon de tabel in de UI
             return df_table  # Return de tabel als dataframe
         else:
-            st.warning("⚠ Geen tabel gevonden, AI tekstextractie.")
+            st.warning("✨ Geen tabel gevonden, AI tekstextractie.")
 
             
             # **Fallback naar tekstextractie als er geen tabel is gevonden**
