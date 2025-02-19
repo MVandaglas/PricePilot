@@ -1567,7 +1567,45 @@ def pdf_to_excel(pdf_reader, excel_path):
         pass
         return None
 
-# Algemene functie voor extractie en verwerking van PDF-gegevens
+
+
+def correct_backlog_rows(df_backlog):
+    """
+    Corrigeer rijen die in de backlog zitten door de kolommen systematisch naar links en rechts te verschuiven.
+    """
+    corrected_rows = []
+    
+    for _, row in df_backlog.iterrows():
+        row_values = row.values.copy()
+
+        # Probeer verschuivingen in de opgegeven volgorde:
+        shifts = [-1, -2, 1, 2]  # Links/rechts verschuivingen
+        for shift in shifts:
+            # Voer de verschuiving uit
+            if shift < 0:
+                corrected_row = np.roll(row_values, shift)
+                corrected_row[:abs(shift)] = None  # Lege plekken vullen met None
+            else:
+                corrected_row = np.roll(row_values, shift)
+                corrected_row[-shift:] = None  # Lege plekken vullen met None
+            
+            # Zet terug in een pandas Series zodat we per kolom kunnen controleren
+            corrected_series = pd.Series(corrected_row, index=df_backlog.columns)
+
+            # Controleer of de rij nu geldig is
+            if (
+                pd.to_numeric(corrected_series["aantal"], errors="coerce") > 0 and
+                pd.to_numeric(corrected_series["breedte"], errors="coerce") > 99 and
+                pd.to_numeric(corrected_series["hoogte"], errors="coerce") > 99
+            ):
+                corrected_rows.append(corrected_series)
+                break  # Stop zodra een geldige verschuiving is gevonden
+        else:
+            # Als geen enkele verschuiving werkt, voeg dan de originele rij toe
+            corrected_rows.append(row)
+    
+    return pd.DataFrame(corrected_rows, columns=df_backlog.columns)
+
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         with pdfplumber.open(pdf_reader) as pdf:
@@ -1577,7 +1615,7 @@ def extract_pdf_to_dataframe(pdf_reader):
 
         structured_data = []
         current_category = None
-        category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")  # Voor glasgroepen
+        category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")
 
         for line in lines:
             line = line.strip()
@@ -1585,11 +1623,9 @@ def extract_pdf_to_dataframe(pdf_reader):
                 current_category = line.replace(":", "")
                 continue
 
-            # Controleer of de regel "Totaal" bevat en sla deze over
             if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
                 continue
 
-            # Splits de kolommen op basis van >3 spaties of tabs
             columns = re.split(r'\s+', line)
             if len(columns) >= 5 and current_category:
                 structured_data.append([current_category] + columns)
@@ -1600,7 +1636,6 @@ def extract_pdf_to_dataframe(pdf_reader):
             structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
             df = pd.DataFrame(structured_data, columns=column_names)
 
-            # Detecteer headers op de eerste twee rijen
             header_row = None
             for i in range(2):
                 potential_headers = df.iloc[i].str.lower().str.strip()
@@ -1617,10 +1652,8 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df.columns = df.iloc[header_row]
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
 
-            # **Kolomnamen uniform maken**
             df.columns = df.columns.str.lower()
 
-            # **Verwijder rijen vanaf rij 3 die "Aantal", "Breedte" of "Hoogte" bevatten**
             if df.shape[0] > 2:
                 df = pd.concat([
                     df.iloc[:2],  
@@ -1629,13 +1662,10 @@ def extract_pdf_to_dataframe(pdf_reader):
                     ]
                 ]).reset_index(drop=True)
 
-            # **Numerieke filtering voor Aantal, Breedte en Hoogte**
             for col in ["aantal", "breedte", "hoogte"]:
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
             
-
-            # **Initialiseer de dataset**
             if "df_current" not in st.session_state:
                 st.session_state.df_current = df.copy()
             if "batch_number" not in st.session_state:
@@ -1645,63 +1675,34 @@ def extract_pdf_to_dataframe(pdf_reader):
             
             if st.session_state.next_df is not None:
                 st.session_state.df_current = st.session_state.next_df.copy()
-                st.session_state.next_df = None  # Opschonen van tijdelijke variabele
+                st.session_state.next_df = None  
             
-            # **Bepaal de huidige dataset**
             df_current = st.session_state.df_current
             
-            # **Filter regels die niet voldoen**
             df_backlog = df_current[
                 df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
                 df_current["breedte"].isna() | (df_current["breedte"] < 100) |
                 df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
             ]
             
-            # **Bepaal df_bulk correct (alleen de regels die wél voldoen)**
-            df_bulk = df_current.loc[~df_current.index.isin(df_backlog.index)].copy()
-            
-            # **Dynamische UI met toggle**
-            if "show_processed" not in st.session_state:
-                st.session_state.show_processed = True
-            
-            st.write(f"🔹 **Verwerken van batch {st.session_state.batch_number}**")
-            
-            if st.session_state.show_processed:
-                st.write("✅ **Verwerkte gegevens:**")
-                st.dataframe(df_bulk)
-            
             if not df_backlog.empty:
-                st.write(f"🔴 Achtergehouden rijen voor batch {st.session_state.batch_number + 1}: {len(df_backlog)}")
-                st.write("🔍 **Achtergehouden data voorbeeld:**")
-                st.dataframe(df_backlog.head())
-                
-                if st.button(f"Verwerk batch {st.session_state.batch_number + 1}"):
-                    # **Sla de nieuwe dataset tijdelijk op in session_state**
-                    st.session_state.next_df = df_backlog.copy()
-                    st.session_state.batch_number += 1
-                    
-                    # **Verberg de oorspronkelijke dataset en toon de bijgewerkte versie**
-                    st.session_state.show_processed = False
-                    
-                    # **Wacht 1 seconde en voer dan een UI refresh uit**
-                    time.sleep(1)
-                    st.rerun()
-            else:
-                st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
-                st.session_state.df_current = pd.DataFrame()  # **Reset voor een schone UI**
-
+                df_backlog_corrected = correct_backlog_rows(df_backlog)
+                df_current.update(df_backlog_corrected)
             
-
-    
+            df_bulk = df_current.loc[
+                ~df_current.index.isin(df_backlog.index)
+            ].copy()
+            
             return df_bulk  
 
         else:
             st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
-            return pd.DataFrame(df_bulk)
+            return pd.DataFrame()
 
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
 
         
 def extract_latest_email(body):
