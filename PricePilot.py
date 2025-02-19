@@ -1617,7 +1617,7 @@ def correct_backlog_rows(df_backlog):
     
     return pd.DataFrame(corrected_rows, columns=df_backlog.columns)
 
-def extract_pdf_to_dataframe(pdf_reader, pdf_path, excel_path):
+def extract_pdf_to_dataframe(pdf_reader, pdf_path=None, excel_path=None):
     try:
         table_found = False  # Variabele om bij te houden of een tabel is gevonden
 
