@@ -1645,19 +1645,15 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df_current["breedte"].isna() | (df_current["breedte"] < 100) |
                 df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
             ]
-                        
-            
             
             # **Session state initialiseren**
             if "batch_number" not in st.session_state:
                 st.session_state.batch_number = 1
             
             if "df_current" not in st.session_state:
-                st.session_state.df_current = pd.DataFrame()  # Maak een lege DataFrame als start
+                st.session_state.df_current = df.copy()
             
-            if "df_bulk" not in st.session_state:  # ✅ Nieuw: df_bulk altijd initialiseren
-                st.session_state.df_bulk = pd.DataFrame()
-            
+            # 🚀 **Zorg dat de nieuwste dataset wordt gebruikt**
             df_current = st.session_state.df_current  # Werk met de nieuwste state
             
             st.write(f"🔹 **Verwerken van batch {st.session_state.batch_number}**")
@@ -1669,8 +1665,11 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
             ]
             
+            # ✅ **Pas `df_bulk` correct aan**
+            df_bulk = df_current.drop(df_backlog.index)  
+            
             st.write("✅ **Verwerkte gegevens:**")
-            st.dataframe(st.session_state.df_bulk)  # ✅ `df_bulk` is nu altijd beschikbaar
+            st.dataframe(df_bulk)  # 🚀 **Dit toont nu de juiste data!**
             
             if not df_backlog.empty:
                 st.write(f"🔴 Achtergehouden rijen voor batch {st.session_state.batch_number + 1}: {len(df_backlog)}")
@@ -1679,12 +1678,17 @@ def extract_pdf_to_dataframe(pdf_reader):
                 st.dataframe(df_backlog.head())
             
                 if st.button(f"Verwerk batch {st.session_state.batch_number + 1}", key=f"batch_{st.session_state.batch_number}"):
-                    st.session_state.df_bulk = df_backlog.copy()  # ✅ Zet backlog als nieuwe `df_bulk`
-                    st.session_state.batch_number += 1  # ✅ Verhoog batchnummer
+                    st.session_state.df_current = df_backlog.copy()  # ✅ **Werk `df_current` correct bij**
+                    st.session_state.batch_number += 1  
+            
+                    # **Voer UI-herstart correct uit**
+                    st.session_state["force_rerun"] = True
+                    st.rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
-
+    
+            return df_bulk  
 
         else:
             st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
