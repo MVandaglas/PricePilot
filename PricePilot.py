@@ -1635,6 +1635,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
 
 
+                    
             # **Initialiseer de dataset**
             if "df_current" not in st.session_state:
                 st.session_state.df_current = df.copy()
@@ -1652,7 +1653,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             ]
             
             # **Bepaal df_bulk correct (alleen de regels die wél voldoen)**
-            df_bulk = df_current[~df_current.index.isin(df_backlog.index)]
+            df_bulk = df_current.loc[~df_current.index.isin(df_backlog.index)].copy()
             
             st.write(f"🔹 **Verwerken van batch {st.session_state.batch_number}**")
             st.write("✅ **Verwerkte gegevens:**")
@@ -1668,14 +1669,12 @@ def extract_pdf_to_dataframe(pdf_reader):
                     st.session_state.df_current = df_backlog.copy()
                     st.session_state.batch_number += 1
             
-                    # **Voorkom dat df_bulk leeg wordt door een expliciete herberekening**
-                    df_bulk = df_backlog[~df_backlog.index.isin(df_backlog.index)]
-            
                     # **Forceer een herstart van de UI**
                     st.rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # **Reset voor een schone UI**
+            
 
     
             return df_bulk  
