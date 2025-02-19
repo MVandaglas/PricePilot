@@ -1617,21 +1617,33 @@ def correct_backlog_rows(df_backlog):
     
     return pd.DataFrame(corrected_rows, columns=df_backlog.columns)
 
+import pdfplumber
+import pandas as pd
+import re
+import streamlit as st
+from io import BytesIO
+
 def extract_pdf_to_dataframe(pdf_reader):
     try:
         # **Stap 1: Controleer of er een tabel in de PDF staat**
         table_found = False  # Flag om bij te houden of een tabel is gevonden
+        first_table = None  # Variabele om eerste gevonden tabel op te slaan
 
         with pdfplumber.open(pdf_reader) as pdf:
             for i, page in enumerate(pdf.pages):
                 table = page.extract_table()
                 if table:
                     table_found = True  # Markeer dat er een tabel is gevonden
+                    first_table = table  # Sla de eerste gevonden tabel op
                     break  # Eén tabel is genoeg om de check te voltooien
         
         # **Toon de uitkomst in de UI**
-        if table_found:
+        if table_found and first_table:
             st.success("✅ Een tabel is gevonden in de PDF.")
+            df_table = pd.DataFrame(first_table[1:], columns=first_table[0])  # Eerste rij als header gebruiken
+            st.write("**Voorbeeld van de eerste gedetecteerde tabel:**")
+            st.dataframe(df_table)  # Toon de tabel in de UI
+            return df_table  # Return de tabel als dataframe
         else:
             st.warning("⚠ Geen tabel gevonden, probeer tekstextractie...")
 
