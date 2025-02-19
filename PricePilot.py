@@ -1768,14 +1768,14 @@ def process_attachment(attachment, attachment_name):
     """
     if attachment_name.endswith(".xlsx"):
         try:
-            df = pd.read_excel(BytesIO(attachment), dtype=str)  # Voorkomt float conversie
+            df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
             st.write("Bijlage ingelezen als DataFrame:")
             st.dataframe(df)
 
-            # Automatische header-detectie, vergelijkbaar met PDF-verwerking
+            # Automatische header-detectie
             header_row = None
-            for i in range(min(30, len(df))):  # Kijk naar de eerste 30 rijen, maar blijf binnen grenzen
-                potential_headers = df.iloc[i].astype(str).fillna("").str.lower().str.strip()  # Voorkom 'float' errors
+            for i in range(min(30, len(df))):  # Zoek de header in de eerste 30 rijen
+                potential_headers = df.iloc[i].fillna("").astype(str).str.lower().str.strip()  # Voorkom 'float' errors
                 if any(potential_headers.isin([
                     "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
                     "hoogte", "height", "h",
@@ -1786,13 +1786,16 @@ def process_attachment(attachment, attachment_name):
                     break
 
             if header_row is not None:
-                df.columns = df.iloc[header_row]  # Zet de headers correct
+                df.columns = df.iloc[header_row].fillna("").astype(str).str.lower().str.strip()  # Kolomnamen corrigeren
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
+            else:
+                st.warning("Geen headers gedetecteerd in de eerste 30 rijen.")
+                return None
 
             df.columns = df.columns.str.lower()
 
             # Verwijder onnodige rijen zoals 'Totaal'
-            df = df[~df.apply(lambda row: row.astype(str).fillna("").str.contains(r'totaal', case=False).any(), axis=1)]
+            df = df[~df.apply(lambda row: row.fillna("").astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
             df = df.dropna(how='all')
 
             # Detecteer en map kolommen
