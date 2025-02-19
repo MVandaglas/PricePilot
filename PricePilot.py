@@ -1636,21 +1636,24 @@ def extract_pdf_to_dataframe(pdf_reader):
 
 
                     
-            # **Initialiseer de dataset**
-            if "df_current" not in st.session_state:
-                st.session_state.df_current = df.copy()
-            if "batch_number" not in st.session_state:
-                st.session_state.batch_number = 1
-            
-            # **Bepaal de huidige dataset**
-            df_current = st.session_state.df_current
-            
-            # **Filter regels die niet voldoen**
-            df_backlog = df_current[
-                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
-                df_current["breedte"].isna() | (df_current["breedte"] < 100) |
-                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
-            ]
+import streamlit as st
+import pandas as pd
+
+# **Initialiseer de dataset**
+if "df_current" not in st.session_state:
+    st.session_state.df_current = df.copy()
+if "batch_number" not in st.session_state:
+    st.session_state.batch_number = 1
+
+# **Bepaal de huidige dataset**
+df_current = st.session_state.df_current
+
+# **Filter regels die niet voldoen**
+df_backlog = df_current[
+    df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
+    df_current["breedte"].isna() | (df_current["breedte"] < 100) |
+    df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
+]
             
             # **Bepaal df_bulk correct (alleen de regels die wél voldoen)**
             df_bulk = df_current.loc[~df_current.index.isin(df_backlog.index)].copy()
@@ -1665,16 +1668,24 @@ def extract_pdf_to_dataframe(pdf_reader):
                 st.dataframe(df_backlog.head())
                 
                 if st.button(f"Verwerk batch {st.session_state.batch_number + 1}"):
+                    # **Debug logica toevoegen**
+                    st.write("🔍 Debug: Voor update df_current:")
+                    st.dataframe(st.session_state.df_current)
+                    st.write("🔍 Debug: Nieuwe df_backlog:")
+                    st.dataframe(df_backlog)
+                    
                     # **Update de dataset met de achtergehouden rijen**
                     st.session_state.df_current = df_backlog.copy()
                     st.session_state.batch_number += 1
-            
+                    
+                    st.write("🔍 Debug: Na update df_current:")
+                    st.dataframe(st.session_state.df_current)
+                    
                     # **Forceer een herstart van de UI**
-                    st.rerun()
+                    #st.rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # **Reset voor een schone UI**
-            
 
     
             return df_bulk  
