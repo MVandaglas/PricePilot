@@ -1708,7 +1708,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             st.dataframe(df_corrected)
             
           
-            return df_bulk  
+            return df_corrected  
 
         else:
             st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
