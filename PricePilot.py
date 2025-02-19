@@ -1642,7 +1642,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             if "batch_number" not in st.session_state:
                 st.session_state.batch_number = 1
             if "next_df" in st.session_state:
-            st.session_state.df_current = st.session_state.next_df.copy()
+                st.session_state.df_current = st.session_state.next_df.copy()
             del st.session_state.next_df  # Opschonen van tijdelijke variabele
             
             # **Bepaal de huidige dataset**
