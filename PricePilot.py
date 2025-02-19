@@ -1776,30 +1776,52 @@ def extract_latest_email(body):
     else:
         return body.strip()
 
-def extract_table_from_docx(doc):
-    """
-    Extract tables from a DOCX document and convert them to a DataFrame.
-    """
-    tables = doc.tables
-    all_dataframes = []
 
-    for table in tables:
-        # Verwerk elke rij in de tabel
+def extract_data_from_docx(doc):
+    """
+    Extraheer zowel tabellen als gestructureerde tekst uit een DOCX-document.
+    """
+    all_dataframes = []
+    structured_text = []
+
+    # **Stap 1: Tabellen verwerken**
+    for table in doc.tables:
         rows = []
         for row in table.rows:
             cells = [cell.text.strip() for cell in row.cells]
             rows.append(cells)
 
-        # Zet de tabel om naar een DataFrame
         if rows:
             df = pd.DataFrame(rows)
 
-            # Neem de eerste rij als header als er kolomnamen zijn
-            df.columns = df.iloc[0]  # Eerste rij als kolomnamen
-            df = df[1:]  # Verwijder de header-rij uit de data
+            # Controleer of de eerste rij een header is (kolomnamen)
+            if df.shape[0] > 1:
+                df.columns = df.iloc[0]  # Eerste rij als header
+                df = df[1:]  # Verwijder de header-rij uit de data
+            
             all_dataframes.append(df)
 
-    return all_dataframes  # Return een lijst van DataFrames
+    # **Stap 2: Gestructureerde tekst verwerken**
+    for para in doc.paragraphs:
+        text = para.text.strip()
+        if text:
+            structured_text.append(text)
+
+    # **UI-weergave**
+    if all_dataframes:
+        st.success("✅ Tabellen gevonden in het DOCX-bestand!")
+        for i, df in enumerate(all_dataframes):
+            st.write(f"**Tabel {i+1}:**")
+            st.dataframe(df)
+
+    if structured_text:
+        st.info("✨ Geen tabel gevonden, AI tekstextractie.")
+        text_output = "\n".join(structured_text)
+        st.text_area("📜 Extracted tekst", text_output, height=300)
+
+    # **Return alle DataFrames en gestructureerde tekst**
+    return all_dataframes, structured_text
+
 
     
 
