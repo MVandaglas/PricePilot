@@ -1504,7 +1504,7 @@ def manual_column_mapping(df, detected_columns):
     all_columns = list(df.columns)
     mapped_columns = {k: v for k, v in detected_columns.items() if v in all_columns}
 
-    st.write("Controleer of de kolommen correct zijn gedetecteerd. Indien niet, selecteer de juiste kolom.")
+    st.write("Controleer of de kolommen correct zijn gedetecteerd.✨ Indien niet, selecteer de juiste kolom.")
 
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
         # Bepaal standaardindex veilig
