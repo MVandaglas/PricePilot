@@ -1569,6 +1569,14 @@ def pdf_to_excel(pdf_reader, excel_path):
 
 
 
+def is_valid_numeric(value, min_value):
+    """ Controleert of een waarde numeriek is en groter dan een minimale waarde. """
+    try:
+        num = float(value)
+        return num > min_value
+    except (ValueError, TypeError):
+        return False
+
 def correct_backlog_rows(df_backlog):
     """
     Corrigeer rijen die in de backlog zitten door de kolommen systematisch naar links en rechts te verschuiven.
@@ -1594,9 +1602,9 @@ def correct_backlog_rows(df_backlog):
 
             # Controleer of de rij nu geldig is
             if (
-                pd.to_numeric(corrected_series["aantal"], errors="coerce") > 0 and
-                pd.to_numeric(corrected_series["breedte"], errors="coerce") > 99 and
-                pd.to_numeric(corrected_series["hoogte"], errors="coerce") > 99
+                is_valid_numeric(corrected_series["aantal"], 0) and
+                is_valid_numeric(corrected_series["breedte"], 99) and
+                is_valid_numeric(corrected_series["hoogte"], 99)
             ):
                 corrected_rows.append(corrected_series)
                 break  # Stop zodra een geldige verschuiving is gevonden
@@ -1702,6 +1710,7 @@ def extract_pdf_to_dataframe(pdf_reader):
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
         return pd.DataFrame()
+
 
 
         
