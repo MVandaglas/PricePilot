@@ -1774,7 +1774,7 @@ def process_attachment(attachment, attachment_name):
 
             # Automatische header-detectie, vergelijkbaar met PDF-verwerking
             header_row = None
-            for i in range(min(3, len(df))):  # Kijk naar de eerste 3 rijen, maar blijf binnen grenzen
+            for i in range(min(30, len(df))):  # Kijk naar de eerste 30 rijen, maar blijf binnen grenzen
                 potential_headers = df.iloc[i].astype(str).fillna("").str.lower().str.strip()  # Voorkom 'float' errors
                 if any(potential_headers.isin([
                     "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
