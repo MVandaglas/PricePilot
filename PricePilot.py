@@ -1635,122 +1635,121 @@ def extract_pdf_to_dataframe(pdf_reader):
         else:
             st.warning("⚠ Geen tabel gevonden, probeer tekstextractie...")
 
-        
-        # **Fallback naar tekstextractie als er geen tabel is gevonden**
-        st.warning("Geen tabel gevonden, probeer tekstextractie...")
-        with pdfplumber.open(pdf_reader) as pdf:
-            lines = []
-            for page in pdf.pages:
-                text = page.extract_text()
-                if text:
-                    lines.extend(text.split("\n"))
-
-        structured_data = []
-        current_category = "0"  # Fallback waarde als er geen categorie is
-        category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")
-
-        for line in lines:
-            line = line.strip()
-            if category_pattern.match(line):
-                current_category = line.replace(":", "")
-                continue
-
-            if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
-                continue
-
-            columns = re.split(r'\s+', line)
-            if len(columns) >= 5:
-                structured_data.append([current_category] + columns)
-
-        if structured_data:
-            max_columns = max(len(row) for row in structured_data)
-            column_names = ["Categorie"] + [f"Kolom_{i}" for i in range(1, max_columns)]
-            structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
-            df = pd.DataFrame(structured_data, columns=column_names)
-
-            header_row = None
-            for i in range(min(3, len(df))):  # Maximaal 3 rijen doorzoeken voor headers
-                potential_headers = df.iloc[i].astype(str).str.lower().str.strip()
-                if any(potential_headers.isin([
-                    "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
-                    "hoogte", "height", "h",
-                    "breedte", "width", "b",
-                    "aantal", "quantity", "qty", "stuks"
-                ])):
-                    header_row = i
-                    break
-
-            if header_row is not None:
-                df.columns = df.iloc[header_row]
-                df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
-            else:
-                st.warning("⚠ Geen header herkend, eerste rij als header gebruikt.")
-                df.columns = df.iloc[0]
-                df = df.drop(df.index[0]).reset_index(drop=True)
-
-            df.columns = df.columns.str.lower()
-
-            if "aantal" not in df.columns:
-                st.error("⚠ Kolom 'aantal' niet gevonden in de PDF.")
-                st.write("Herkende kolommen:", df.columns.tolist())
-                return pd.DataFrame()
-
-            if df.shape[0] > 2:
-                df = pd.concat([
-                    df.iloc[:2],  
-                    df.iloc[2:][~df.iloc[2:].apply(
-                        lambda row: row.astype(str).str.contains(r"\b(Aantal|Breedte|Hoogte)\b", case=False).any(), axis=1)
-                    ]
-                ]).reset_index(drop=True)
-
-            for col in ["aantal", "breedte", "hoogte"]:
-                if col in df.columns:
-                    df[col] = pd.to_numeric(df[col], errors="coerce")  
             
-            if "df_current" not in st.session_state:
-                st.session_state.df_current = df.copy()
-            if "batch_number" not in st.session_state:
-                st.session_state.batch_number = 1
-            if "next_df" not in st.session_state:
-                st.session_state.next_df = None
-            
-            if st.session_state.next_df is not None:
-                st.session_state.df_current = st.session_state.next_df.copy()
-                st.session_state.next_df = None  
-            
-            df_current = st.session_state.df_current
-            
-            df_backlog = df_current[
-                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
-                df_current["breedte"].isna() | (df_current["breedte"] < 100) |
-                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
-            ]
-            
-            if not df_backlog.empty:
-                df_corrected = correct_backlog_rows(df_current)
-                df_current.update(df_corrected)
-            
-            df_bulk = df_current.loc[
-                ~df_current.index.isin(df_backlog.index)
-            ].copy()
-
-            st.write("✅ **Verwerkte gegevens:**")
-            st.dataframe(df_corrected)
-            
-            return df_corrected  
-
-        else:
-            st.warning("Geen gegevens gevonden in de PDF om te verwerken test.")
-
-                
+            # **Fallback naar tekstextractie als er geen tabel is gevonden**
+            with pdfplumber.open(pdf_reader) as pdf:
+                lines = []
+                for page in pdf.pages:
+                    text = page.extract_text()
+                    if text:
+                        lines.extend(text.split("\n"))
     
-    except Exception as e:
-        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
-        return pd.DataFrame()
-
-    except Exception as e:
-        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
-        return pd.DataFrame()
+            structured_data = []
+            current_category = "0"  # Fallback waarde als er geen categorie is
+            category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")
+    
+            for line in lines:
+                line = line.strip()
+                if category_pattern.match(line):
+                    current_category = line.replace(":", "")
+                    continue
+    
+                if re.search(r"\bTotaal:?\b", line, re.IGNORECASE):
+                    continue
+    
+                columns = re.split(r'\s+', line)
+                if len(columns) >= 5:
+                    structured_data.append([current_category] + columns)
+    
+            if structured_data:
+                max_columns = max(len(row) for row in structured_data)
+                column_names = ["Categorie"] + [f"Kolom_{i}" for i in range(1, max_columns)]
+                structured_data = [row + [""] * (max_columns - len(row)) for row in structured_data]
+                df = pd.DataFrame(structured_data, columns=column_names)
+    
+                header_row = None
+                for i in range(min(3, len(df))):  # Maximaal 3 rijen doorzoeken voor headers
+                    potential_headers = df.iloc[i].astype(str).str.lower().str.strip()
+                    if any(potential_headers.isin([
+                        "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
+                        "hoogte", "height", "h",
+                        "breedte", "width", "b",
+                        "aantal", "quantity", "qty", "stuks"
+                    ])):
+                        header_row = i
+                        break
+    
+                if header_row is not None:
+                    df.columns = df.iloc[header_row]
+                    df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
+                else:
+                    st.warning("⚠ Geen header herkend, eerste rij als header gebruikt.")
+                    df.columns = df.iloc[0]
+                    df = df.drop(df.index[0]).reset_index(drop=True)
+    
+                df.columns = df.columns.str.lower()
+    
+                if "aantal" not in df.columns:
+                    st.error("⚠ Kolom 'aantal' niet gevonden in de PDF.")
+                    st.write("Herkende kolommen:", df.columns.tolist())
+                    return pd.DataFrame()
+    
+                if df.shape[0] > 2:
+                    df = pd.concat([
+                        df.iloc[:2],  
+                        df.iloc[2:][~df.iloc[2:].apply(
+                            lambda row: row.astype(str).str.contains(r"\b(Aantal|Breedte|Hoogte)\b", case=False).any(), axis=1)
+                        ]
+                    ]).reset_index(drop=True)
+    
+                for col in ["aantal", "breedte", "hoogte"]:
+                    if col in df.columns:
+                        df[col] = pd.to_numeric(df[col], errors="coerce")  
+                
+                if "df_current" not in st.session_state:
+                    st.session_state.df_current = df.copy()
+                if "batch_number" not in st.session_state:
+                    st.session_state.batch_number = 1
+                if "next_df" not in st.session_state:
+                    st.session_state.next_df = None
+                
+                if st.session_state.next_df is not None:
+                    st.session_state.df_current = st.session_state.next_df.copy()
+                    st.session_state.next_df = None  
+                
+                df_current = st.session_state.df_current
+                
+                df_backlog = df_current[
+                    df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
+                    df_current["breedte"].isna() | (df_current["breedte"] < 100) |
+                    df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
+                ]
+                
+                if not df_backlog.empty:
+                    df_corrected = correct_backlog_rows(df_current)
+                    df_current.update(df_corrected)
+                
+                df_bulk = df_current.loc[
+                    ~df_current.index.isin(df_backlog.index)
+                ].copy()
+    
+                st.write("✅ **Verwerkte gegevens:**")
+                st.dataframe(df_corrected)
+                
+                return df_corrected  
+    
+            else:
+                st.warning("Geen gegevens gevonden in de PDF om te verwerken test.")
+    
+                    
+        
+        except Exception as e:
+            st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
+            return pd.DataFrame()
+    
+        except Exception as e:
+            st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
+            return pd.DataFrame()
 
 
 
