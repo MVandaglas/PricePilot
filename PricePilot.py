@@ -1634,15 +1634,13 @@ def extract_pdf_to_dataframe(pdf_reader):
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
             
-            
+
+
             # **Initialiseer de dataset**
             if "df_current" not in st.session_state:
                 st.session_state.df_current = df.copy()
             if "batch_number" not in st.session_state:
                 st.session_state.batch_number = 1
-            if "next_df" in st.session_state:
-                st.session_state.df_current = st.session_state.next_df.copy()
-                del st.session_state.next_df  # Opschonen van tijdelijke variabele
             
             # **Bepaal de huidige dataset**
             df_current = st.session_state.df_current
@@ -1657,9 +1655,15 @@ def extract_pdf_to_dataframe(pdf_reader):
             # **Bepaal df_bulk correct (alleen de regels die wél voldoen)**
             df_bulk = df_current.loc[~df_current.index.isin(df_backlog.index)].copy()
             
+            # **Dynamische UI met toggle**
+            if "show_processed" not in st.session_state:
+                st.session_state.show_processed = True
+            
             st.write(f"🔹 **Verwerken van batch {st.session_state.batch_number}**")
-            st.write("✅ **Verwerkte gegevens:**")
-            st.dataframe(df_bulk)
+            
+            if st.session_state.show_processed:
+                st.write("✅ **Verwerkte gegevens:**")
+                st.dataframe(df_bulk)
             
             if not df_backlog.empty:
                 st.write(f"🔴 Achtergehouden rijen voor batch {st.session_state.batch_number + 1}: {len(df_backlog)}")
@@ -1667,22 +1671,16 @@ def extract_pdf_to_dataframe(pdf_reader):
                 st.dataframe(df_backlog.head())
                 
                 if st.button(f"Verwerk batch {st.session_state.batch_number + 1}"):
-                    # **Debug logica toevoegen**
-                    st.write("🔍 Debug: Voor update df_current:")
-                    st.dataframe(st.session_state.df_current)
-                    st.write("🔍 Debug: Nieuwe df_backlog:")
-                    st.dataframe(df_backlog)
-                    
-                    # **Sla de nieuwe dataset tijdelijk op in session_state**
-                    st.session_state.next_df = df_backlog.copy()
+                    # **Update de dataset met de achtergehouden rijen**
+                    st.session_state.df_current = df_backlog.copy()
                     st.session_state.batch_number += 1
                     
-                    st.write("🔄 UI wordt opnieuw geladen...")
-                    #st.rerun()
+                    # **Verberg de oorspronkelijke dataset en toon de bijgewerkte versie**
+                    st.session_state.show_processed = False
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # **Reset voor een schone UI**
-
+            
 
 
     
