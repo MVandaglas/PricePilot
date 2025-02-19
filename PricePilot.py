@@ -1721,17 +1721,14 @@ def extract_pdf_to_dataframe(pdf_reader):
             return df_corrected  
 
         else:
-            st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
+            st.warning("Geen gegevens gevonden in de PDF om te verwerken test.")
             with pdfplumber.open(pdf_path) as pdf, pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
                 for i, page in enumerate(pdf.pages):
                     table = page.extract_table()
                     if table:
                         df = pd.DataFrame(table[1:], columns=table[0])  # Gebruik de eerste rij als header
                         df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
-
-            
-        
-
+                
     
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
