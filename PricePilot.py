@@ -1634,29 +1634,14 @@ def extract_pdf_to_dataframe(pdf_reader):
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
 
-            # **Bepaal de batchnummers**
-            batch_number = st.session_state.get("batch_number", 1)
-            df_current = st.session_state.get("df_current", df)
-
-
-            # **Filter regels die niet voldoen**
-            df_backlog = df_current[
-                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
-                df_current["breedte"].isna() | (df_current["breedte"] < 100) |
-                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
-            ]
-            
-            # **Session state initialiseren**
+            # **Initialiseer de dataset**
+            if "df_current" not in st.session_state:
+                st.session_state.df_current = df.copy()
             if "batch_number" not in st.session_state:
                 st.session_state.batch_number = 1
             
-            if "df_current" not in st.session_state:
-                st.session_state.df_current = df.copy()
-            
-            # 🚀 **Zorg dat de nieuwste dataset wordt gebruikt**
-            df_current = st.session_state.df_current  # Werk met de nieuwste state
-            
-            st.write(f"🔹 **Verwerken van batch {st.session_state.batch_number}**")
+            # **Bepaal de huidige dataset**
+            df_current = st.session_state.df_current
             
             # **Filter regels die niet voldoen**
             df_backlog = df_current[
@@ -1665,28 +1650,27 @@ def extract_pdf_to_dataframe(pdf_reader):
                 df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
             ]
             
-            # ✅ **Pas `df_bulk` correct aan**
-            df_bulk = df_current.drop(df_backlog.index)  
+            df_bulk = df_current.drop(df_backlog.index)  # **Verwerkte dataset zonder foutieve regels**
             
+            st.write(f"🔹 **Verwerken van batch {st.session_state.batch_number}**")
             st.write("✅ **Verwerkte gegevens:**")
-            st.dataframe(df_bulk)  # 🚀 **Dit toont nu de juiste data!**
+            st.dataframe(df_bulk)
             
             if not df_backlog.empty:
                 st.write(f"🔴 Achtergehouden rijen voor batch {st.session_state.batch_number + 1}: {len(df_backlog)}")
-            
                 st.write("🔍 **Achtergehouden data voorbeeld:**")
                 st.dataframe(df_backlog.head())
-            
-                if st.button(f"Verwerk batch {st.session_state.batch_number + 1}", key=f"batch_{st.session_state.batch_number}"):
-                    st.session_state.df_current = df_backlog.copy()  # ✅ **Werk `df_current` correct bij**
-                    st.session_state.batch_number += 1  
-            
-                    # **Voer UI-herstart correct uit**
-                    st.session_state["force_rerun"] = True
+                
+                if st.button(f"Verwerk batch {st.session_state.batch_number + 1}"):
+                    # **Update de dataset met de achtergehouden rijen**
+                    st.session_state.df_current = df_backlog.copy()
+                    st.session_state.batch_number += 1
+                    
+                    # **Forceer een herstart van de UI**
                     st.rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
-                st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
+                st.session_state.df_current = pd.DataFrame()  # **Reset voor een schone UI**
     
             return df_bulk  
 
