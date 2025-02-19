@@ -1777,9 +1777,11 @@ def extract_latest_email(body):
     else:
         return body.strip()
 
+
+
 def convert_docx_to_xlsx(doc_bytes):
     """
-    Converteer een DOCX-bestand naar een Excel-bestand en retourneer het pad.
+    Converteer een DOCX-bestand naar een Excel-bestand en neem ALLE inhoud mee.
     """
     doc = Document(BytesIO(doc_bytes))
     
@@ -1787,12 +1789,11 @@ def convert_docx_to_xlsx(doc_bytes):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as temp_file:
         excel_output_path = temp_file.name
 
-
     with pd.ExcelWriter(excel_output_path, engine="openpyxl") as writer:
         table_count = 0
         has_data = False
 
-        # Verwerk tabellen in het DOCX-bestand
+        # **Stap 1: Verwerk tabellen**
         for table in doc.tables:
             rows = []
             for row in table.rows:
@@ -1809,14 +1810,26 @@ def convert_docx_to_xlsx(doc_bytes):
                 df.to_excel(writer, sheet_name=f"Tabel_{table_count}", index=False)
                 has_data = True
 
-        # Verwerk gestructureerde tekst
-        structured_text = [para.text.strip() for para in doc.paragraphs if para.text.strip()]
+        # **Stap 2: Verwerk gestructureerde tekst, inclusief kopteksten en lijsten**
+        structured_text = []
+        for para in doc.paragraphs:
+            text = para.text.strip()
+            if text:
+                # Herken kopteksten
+                if para.style.name.startswith("Heading"):
+                    structured_text.append(f"[KOPTEKST] {text}")
+                # Herken opsommingstekens (lijsten)
+                elif text.startswith(("- ", "* ", "• ")):
+                    structured_text.append(f"[LIJST] {text}")
+                else:
+                    structured_text.append(text)
+
         if structured_text:
             df_text = pd.DataFrame(structured_text, columns=["Extracted Text"])
             df_text.to_excel(writer, sheet_name="Gestructureerde Tekst", index=False)
             has_data = True
 
-        # Voeg een lege sheet toe als er geen gegevens zijn
+        # **Stap 3: Voeg een lege sheet toe als er geen gegevens zijn**
         if not has_data:
             df_empty = pd.DataFrame(["Geen data gevonden"], columns=["Melding"])
             df_empty.to_excel(writer, sheet_name="Leeg Document", index=False)
