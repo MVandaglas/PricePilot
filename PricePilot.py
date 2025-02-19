@@ -1701,7 +1701,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 ~df_current.index.isin(df_backlog.index)
             ].copy()
             st.write("✅ **Verwerkte gegevens:** df_current")
-            st.dataframe(df_current)
+            st.dataframe(df_current.update)
 
             st.write("✅ **Verwerkte gegevens:** df_backlog_corrected")
             st.dataframe(df_backlog_corrected)
