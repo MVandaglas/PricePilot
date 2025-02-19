@@ -1625,7 +1625,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 lines.extend(page.extract_text().split("\n"))
 
         structured_data = []
-        current_category = None
+        current_category = "0"
         category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")
 
         for line in lines:
