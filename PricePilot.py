@@ -1710,7 +1710,7 @@ def extract_pdf_to_dataframe(pdf_reader):
             st.dataframe(df_current)
             st.write("✅ **Verwerkte gegevens:** df_bulk")
             st.dataframe(df_bulk)
-            st.write("✅ **Verwerkte gegevens:** df_backlog")
+            st.write("✅ **Verwerkte gegevens:** df_backlog_corrected")
             st.dataframe(df_backlog)
             
             return df_bulk  
