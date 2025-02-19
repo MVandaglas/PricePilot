@@ -1634,7 +1634,6 @@ def extract_pdf_to_dataframe(pdf_reader):
             batch_number = st.session_state.get("batch_number", 1)
             df_current = st.session_state.get("df_current", df)
 
-            st.write(f"🔹 **Verwerken van batch {batch_number}**")
 
             # **Filter regels die niet voldoen**
             df_backlog = df_current[
