@@ -1896,7 +1896,7 @@ def process_attachment(attachment, attachment_name):
                 else:
                     st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
             else:
-                st.warning("Geen gegevens gevonden in de PDF om te verwerken.")
+                st.warning("Geen gegevens gevonden in de PDF om te verwerken. test2")
     
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
