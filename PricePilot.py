@@ -1704,10 +1704,6 @@ def extract_pdf_to_dataframe(pdf_reader):
                 ~df_current.index.isin(df_backlog.index)
             ].copy()
 
-            st.write("✅ **Verwerkte gegevens:** df_current")
-            st.dataframe(df_current)
-            st.write("✅ **Verwerkte gegevens:** df_bulk")
-            st.dataframe(df_bulk)
             st.write("✅ **Verwerkte gegevens:** df_corrected")
             st.dataframe(df_corrected)
             
