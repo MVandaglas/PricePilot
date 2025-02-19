@@ -1587,7 +1587,7 @@ def correct_backlog_rows(df_backlog):
         row_values = row.values.copy()
 
         # Probeer verschuivingen in de opgegeven volgorde:
-        shifts = [-1, -2, 1, 2]  # Links/rechts verschuivingen
+        shifts = [-1, -2, -3, -4, 1, 2]  # Links/rechts verschuivingen
         for shift in shifts:
             # Voer de verschuiving uit
             if shift < 0:
