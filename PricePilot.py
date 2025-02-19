@@ -2008,8 +2008,8 @@ def process_attachment(attachment, attachment_name):
             else:
                 st.warning("Geen relevante kolommen gevonden of gemapped.")
     
-    except Exception as e:
-        st.error(f"Fout bij het verwerken van de DOCX-bijlage: {e}")
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de DOCX-bijlage: {e}")
 
 
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid  
