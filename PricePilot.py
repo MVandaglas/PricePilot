@@ -1743,13 +1743,13 @@ def extract_pdf_to_dataframe(pdf_reader):
     
                     
         
-        except Exception as e:
-            st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
-            return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        return pd.DataFrame()
     
-        except Exception as e:
-            st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
-            return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
+        return pd.DataFrame()
 
 
 
