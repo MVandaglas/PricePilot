@@ -34,7 +34,6 @@ from office365.sharepoint.client_context import ClientContext
 from msal import ConfidentialClientApplication
 import jwt
 import numpy as np
-import uuid
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
@@ -1631,41 +1630,38 @@ def extract_pdf_to_dataframe(pdf_reader):
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
 
-            # Houd batchnummer bij in session_state
-            if "batch_number" not in st.session_state:
-                st.session_state.batch_number = 1
-            
-            # Houd bij welke rijen nog verwerkt moeten worden
-            if "df_current" not in st.session_state:
-                st.session_state.df_current = df.copy()
-            
-            df_current = st.session_state.df_current  # Werk met de huidige state
-            
-            if not df_current.empty:
-                st.write(f"🔹 **Verwerken van batch {st.session_state.batch_number}**")
-            
-                df_backlog = df_current[
-                    df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
-                    df_current["breedte"].isna() | (df_current["breedte"] < 100) |
-                    df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
-                ]
-            
-                df_bulk = df_current.drop(df_backlog.index)
-            
-                st.write("✅ **Verwerkte gegevens:**")
-                st.dataframe(df_bulk)
-            
-                if not df_backlog.empty:
-                    st.write(f"🔴 Achtergehouden rijen voor batch {st.session_state.batch_number + 1}: {len(df_backlog)}")
-            
-                    if st.button(f"Verwerk batch {st.session_state.batch_number + 1}", key=f"batch_{st.session_state.batch_number}"):
-                        st.session_state.batch_number += 1
-                        st.session_state.df_current = df_backlog.copy()
-                        st.experimental_rerun()  # Rerun zonder duplicatie
-                else:
-                    st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
-                    st.session_state.df_current = pd.DataFrame()  # Reset zodat de UI clean blijft
+            # **Bepaal de batchnummers**
+            batch_number = st.session_state.get("batch_number", 1)
+            df_current = st.session_state.get("df_current", df)
 
+            st.write(f"🔹 **Verwerken van batch {batch_number}**")
+
+            # **Filter regels die niet voldoen**
+            df_backlog = df_current[
+                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
+                df_current["breedte"].isna() | (df_current["breedte"] < 100) |
+                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
+            ]
+
+            # **Hoofddata (de correcte rijen)**
+            df_bulk = df_current.drop(df_backlog.index)
+
+            # **Laat de correcte gegevens zien**
+            st.write("✅ **Verwerkte gegevens:**")
+            st.dataframe(df_bulk)
+
+            # **Toon teller van achtergehouden regels**
+            if not df_backlog.empty:
+                st.write(f"🔴 Achtergehouden rijen voor batch {batch_number + 1}: {len(df_backlog)}")
+
+                # **Knop voor volgende batch - Correct `key` gebruik**
+                if st.button(f"Verwerk batch {batch_number + 1}", key=f"batch_{batch_number}"):
+                    st.session_state["df_current"] = df_backlog.copy()  # Zet backlog als nieuwe dataset
+                    st.session_state["batch_number"] = batch_number + 1  # Verhoog batchnummer
+                    st.rerun()
+            else:
+                st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
+                st.session_state.clear()  # Reset state als alle batches verwerkt zijn
 
             return df_bulk  
 
