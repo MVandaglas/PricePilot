@@ -1633,27 +1633,23 @@ def extract_pdf_to_dataframe(pdf_reader):
             for col in ["aantal", "breedte", "hoogte"]:
                 if col in df.columns:
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
-
-
-                    
-import streamlit as st
-import pandas as pd
-
-# **Initialiseer de dataset**
-if "df_current" not in st.session_state:
-    st.session_state.df_current = df.copy()
-if "batch_number" not in st.session_state:
-    st.session_state.batch_number = 1
-
-# **Bepaal de huidige dataset**
-df_current = st.session_state.df_current
-
-# **Filter regels die niet voldoen**
-df_backlog = df_current[
-    df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
-    df_current["breedte"].isna() | (df_current["breedte"] < 100) |
-    df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
-]
+            
+            
+            # **Initialiseer de dataset**
+            if "df_current" not in st.session_state:
+                st.session_state.df_current = df.copy()
+            if "batch_number" not in st.session_state:
+                st.session_state.batch_number = 1
+            
+            # **Bepaal de huidige dataset**
+            df_current = st.session_state.df_current
+            
+            # **Filter regels die niet voldoen**
+            df_backlog = df_current[
+                df_current["aantal"].isna() | (df_current["aantal"] <= 0) |
+                df_current["breedte"].isna() | (df_current["breedte"] < 100) |
+                df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
+            ]
             
             # **Bepaal df_bulk correct (alleen de regels die wél voldoen)**
             df_bulk = df_current.loc[~df_current.index.isin(df_backlog.index)].copy()
