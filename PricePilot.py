@@ -1776,6 +1776,48 @@ def extract_latest_email(body):
     else:
         return body.strip()
 
+def convert_docx_to_xlsx(doc_bytes):
+    """
+    Converteer een DOCX-bestand naar een Excel-bestand en retourneer het pad.
+    """
+    doc = Document(BytesIO(doc_bytes))
+    excel_output_path = "/mnt/data/extracted_data.xlsx"
+
+    with pd.ExcelWriter(excel_output_path, engine="openpyxl") as writer:
+        table_count = 0
+        has_data = False
+
+        # Verwerk tabellen in het DOCX-bestand
+        for table in doc.tables:
+            rows = []
+            for row in table.rows:
+                cells = [cell.text.strip() for cell in row.cells]
+                rows.append(cells)
+
+            if rows:
+                df = pd.DataFrame(rows)
+                if df.shape[0] > 1:
+                    df.columns = df.iloc[0]  # Eerste rij als header
+                    df = df[1:].reset_index(drop=True)  # Verwijder de header-rij uit de data
+
+                table_count += 1
+                df.to_excel(writer, sheet_name=f"Tabel_{table_count}", index=False)
+                has_data = True
+
+        # Verwerk gestructureerde tekst
+        structured_text = [para.text.strip() for para in doc.paragraphs if para.text.strip()]
+        if structured_text:
+            df_text = pd.DataFrame(structured_text, columns=["Extracted Text"])
+            df_text.to_excel(writer, sheet_name="Gestructureerde Tekst", index=False)
+            has_data = True
+
+        # Voeg een lege sheet toe als er geen gegevens zijn
+        if not has_data:
+            df_empty = pd.DataFrame(["Geen data gevonden"], columns=["Melding"])
+            df_empty.to_excel(writer, sheet_name="Leeg Document", index=False)
+
+    return excel_output_path
+
 
 def extract_data_from_docx(doc):
     """
@@ -1946,36 +1988,27 @@ def process_attachment(attachment, attachment_name):
 
     elif attachment_name.endswith(".docx"):
         try:
-            doc = Document(BytesIO(attachment))
-            st.write(f"DOCX-bestand '{attachment_name}' ingelezen:")
+            st.write(f"DOCX-bestand '{attachment_name}' ingelezen.")
     
-            # **Extract tabellen en gestructureerde tekst**
-            tables, structured_text = extract_data_from_docx(doc)
+            # Converteer DOCX naar Excel
+            excel_file = convert_docx_to_xlsx(attachment)
     
-            if not tables:
-                st.warning("Geen tabellen gevonden in het DOCX-bestand. Gestructureerde tekst wordt verwerkt.")
+            # Lees de Excel-data in
+            df_dict = pd.read_excel(excel_file, sheet_name=None)
     
-                if structured_text:
-                    # Zet gestructureerde tekst om in een DataFrame (per regel een rij)
-                    df_text = pd.DataFrame(structured_text, columns=["Tekst"])
-                    st.write("📜 **Gestructureerde tekst uit DOCX:**")
-                    st.dataframe(df_text)
+            # Controleer of er data is
+            if not df_dict:
+                st.error("Geen data gevonden in het Excel-bestand.")
+                return None
     
-                    if st.sidebar.button("Verwerk tekstgegevens naar offerte"):
-                        handle_mapped_data_to_offer(df_text)
-                else:
-                    st.error("Geen tabellen of gestructureerde tekst gevonden in het DOCX-bestand.")
-                
-                return None  # Stop de verwerking hier als er geen tabellen of tekst zijn
-    
-            # **Tabellen gevonden: Toon en laat de gebruiker een tabel kiezen**
+            # Toon de beschikbare tabellen in de Excel
             st.write("Selecteer de tabel om te verwerken:")
-            selected_table_idx = st.sidebar.selectbox(
-                "Kies een tabel:", options=list(range(len(tables))), format_func=lambda x: f"Tabel {x + 1}"
+            selected_sheet = st.sidebar.selectbox(
+                "Kies een tabel:", options=list(df_dict.keys()), format_func=lambda x: f"Tabel: {x}"
             )
-            table = tables[selected_table_idx]
+            table = df_dict[selected_sheet]
     
-            st.write(f"Inhoud van Tabel {selected_table_idx + 1}:")
+            st.write(f"Inhoud van **{selected_sheet}**:")
             st.dataframe(table)
     
             # **Detecteer relevante kolommen**
