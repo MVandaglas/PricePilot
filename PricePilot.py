@@ -34,6 +34,7 @@ from office365.sharepoint.client_context import ClientContext
 from msal import ConfidentialClientApplication
 import jwt
 import numpy as np
+import tempfile
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
