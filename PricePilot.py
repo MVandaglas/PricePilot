@@ -1944,70 +1944,70 @@ def process_attachment(attachment, attachment_name):
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
 
 
-elif attachment_name.endswith(".docx"):
-    try:
-        doc = Document(BytesIO(attachment))
-        st.write(f"DOCX-bestand '{attachment_name}' ingelezen:")
-
-        # **Extract tabellen en gestructureerde tekst**
-        tables, structured_text = extract_data_from_docx(doc)
-
-        if not tables:
-            st.warning("Geen tabellen gevonden in het DOCX-bestand. Gestructureerde tekst wordt verwerkt.")
-
-            if structured_text:
-                # Zet gestructureerde tekst om in een DataFrame (per regel een rij)
-                df_text = pd.DataFrame(structured_text, columns=["Tekst"])
-                st.write("📜 **Gestructureerde tekst uit DOCX:**")
-                st.dataframe(df_text)
-
-                if st.sidebar.button("Verwerk tekstgegevens naar offerte"):
-                    handle_mapped_data_to_offer(df_text)
+    elif attachment_name.endswith(".docx"):
+        try:
+            doc = Document(BytesIO(attachment))
+            st.write(f"DOCX-bestand '{attachment_name}' ingelezen:")
+    
+            # **Extract tabellen en gestructureerde tekst**
+            tables, structured_text = extract_data_from_docx(doc)
+    
+            if not tables:
+                st.warning("Geen tabellen gevonden in het DOCX-bestand. Gestructureerde tekst wordt verwerkt.")
+    
+                if structured_text:
+                    # Zet gestructureerde tekst om in een DataFrame (per regel een rij)
+                    df_text = pd.DataFrame(structured_text, columns=["Tekst"])
+                    st.write("📜 **Gestructureerde tekst uit DOCX:**")
+                    st.dataframe(df_text)
+    
+                    if st.sidebar.button("Verwerk tekstgegevens naar offerte"):
+                        handle_mapped_data_to_offer(df_text)
+                else:
+                    st.error("Geen tabellen of gestructureerde tekst gevonden in het DOCX-bestand.")
+                
+                return None  # Stop de verwerking hier als er geen tabellen of tekst zijn
+    
+            # **Tabellen gevonden: Toon en laat de gebruiker een tabel kiezen**
+            st.write("Selecteer de tabel om te verwerken:")
+            selected_table_idx = st.sidebar.selectbox(
+                "Kies een tabel:", options=list(range(len(tables))), format_func=lambda x: f"Tabel {x + 1}"
+            )
+            table = tables[selected_table_idx]
+    
+            st.write(f"Inhoud van Tabel {selected_table_idx + 1}:")
+            st.dataframe(table)
+    
+            # **Detecteer relevante kolommen**
+            detected_columns = detect_relevant_columns(table)
+            mapped_columns = manual_column_mapping(table, detected_columns)
+    
+            # **Validatie voor mapped_columns**
+            if not isinstance(mapped_columns, dict):
+                st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
+                return None
+    
+            if mapped_columns:
+                # **Selecteer en hernoem relevante kolommen**
+                relevant_data = table[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()
+    
+                # **Filter relevante data op rijen**
+                start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(table)-1, value=0)
+                end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(table)-1, value=len(table)-1)
+                relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
+    
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
+    
+                if not relevant_data.empty:
+                    if st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                else:
+                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de tabel.")
             else:
-                st.error("Geen tabellen of gestructureerde tekst gevonden in het DOCX-bestand.")
-            
-            return None  # Stop de verwerking hier als er geen tabellen of tekst zijn
-
-        # **Tabellen gevonden: Toon en laat de gebruiker een tabel kiezen**
-        st.write("Selecteer de tabel om te verwerken:")
-        selected_table_idx = st.sidebar.selectbox(
-            "Kies een tabel:", options=list(range(len(tables))), format_func=lambda x: f"Tabel {x + 1}"
-        )
-        table = tables[selected_table_idx]
-
-        st.write(f"Inhoud van Tabel {selected_table_idx + 1}:")
-        st.dataframe(table)
-
-        # **Detecteer relevante kolommen**
-        detected_columns = detect_relevant_columns(table)
-        mapped_columns = manual_column_mapping(table, detected_columns)
-
-        # **Validatie voor mapped_columns**
-        if not isinstance(mapped_columns, dict):
-            st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
-            return None
-
-        if mapped_columns:
-            # **Selecteer en hernoem relevante kolommen**
-            relevant_data = table[[mapped_columns[key] for key in mapped_columns]]
-            relevant_data.columns = mapped_columns.keys()
-
-            # **Filter relevante data op rijen**
-            start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(table)-1, value=0)
-            end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(table)-1, value=len(table)-1)
-            relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
-
-            st.write("Relevante data:")
-            st.dataframe(relevant_data)
-
-            if not relevant_data.empty:
-                if st.sidebar.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(relevant_data)
-            else:
-                st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de tabel.")
-        else:
-            st.warning("Geen relevante kolommen gevonden of gemapped.")
-
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
+    
     except Exception as e:
         st.error(f"Fout bij het verwerken van de DOCX-bijlage: {e}")
 
