@@ -1729,7 +1729,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                 if table:
                     df = pd.DataFrame(table[1:], columns=table[0])  # Gebruik de eerste rij als header
                     df.to_excel(writer, sheet_name=f"Page_{i+1}", index=False)
-            writer.close()
+                    writer.close()
             
         
 
