@@ -1635,6 +1635,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                     df[col] = pd.to_numeric(df[col], errors="coerce")  
             
             
+
             # **Initialiseer de dataset**
             if "df_current" not in st.session_state:
                 st.session_state.df_current = df.copy()
@@ -1678,10 +1679,12 @@ def extract_pdf_to_dataframe(pdf_reader):
                     st.dataframe(st.session_state.df_current)
                     
                     # **Forceer een herstart van de UI**
-                    #st.rerun()
+                    st.write("🔄 UI wordt opnieuw geladen...")
+                    st.rerun()
             else:
                 st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
                 st.session_state.df_current = pd.DataFrame()  # **Reset voor een schone UI**
+
 
     
             return df_bulk  
