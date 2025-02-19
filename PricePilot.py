@@ -1660,7 +1660,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                     df_current["hoogte"].isna() | (df_current["hoogte"] < 100)
                 ]
             
-                df_bulk = df_current.drop(df_backlog.index)
+                df_bulk = df_current.drop(df_backlog.index)  # Correct verwerken van de huidige batch
             
                 st.write("✅ **Verwerkte gegevens:**")
                 st.dataframe(df_bulk)
@@ -1670,12 +1670,12 @@ def extract_pdf_to_dataframe(pdf_reader):
             
                     # **Knop voor volgende batch**
                     if st.button(f"Verwerk batch {st.session_state.batch_number + 1}", key=f"batch_{st.session_state.batch_number}"):
-                        df_bulk = df_backlog.copy()  # Zet backlog als nieuwe dataset
-                        st.session_state["batch_number"] += 1  # Verhoog batchnummer
-                        st.rerun(scope="app")
+                        st.session_state.df_current = df_backlog.copy()  # Zet backlog als nieuwe dataset
+                        st.session_state.batch_number += 1  # Verhoog batchnummer
+                        st.experimental_rerun()  # Herlaadt de UI correct zonder loop-problemen
                 else:
                     st.success("🎉 Alle batches zijn verwerkt! Geen achtergehouden regels meer.")
-                    st.session_state.df_current = pd.DataFrame()  # Reset UI
+                    st.session_state.df_current = pd.DataFrame()  # Reset UI voor een schone interface
 
 
             else:
