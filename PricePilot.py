@@ -199,28 +199,20 @@ with tab4:
                         
                         # **Haal de kolomnamen op**
                         kolomnamen = [desc[0] for desc in cursor.description]
-                        
-                        # **Debugging: Controleer de opgehaalde data**
-                        print("Opgehaalde data:", synoniemen_data)
-                        print("Aantal rijen:", len(synoniemen_data))
-                        print("Kolomnamen:", kolomnamen)
+     
                         
                         # **Controleer of er None-waarden zijn**
                         for rij in synoniemen_data:
                             if None in rij:
-                                print("⚠️ Rij met None-waarde gevonden:", rij)
+                              pass
                         
                         # **Converteer tuples naar lijsten**
                         synoniemen_data_lijst = [list(rij) for rij in synoniemen_data]
-                        
-                        # **Debugging: Controleer de aangepaste data structuur**
-                        print("Aangepaste data voor DataFrame:", synoniemen_data_lijst[:5])
+
                         
                         # **Maak DataFrame aan**
                         synoniemen_df = pd.DataFrame(synoniemen_data_lijst, columns=kolomnamen)
                         
-                        # **Controleer of het DataFrame correct is**
-                        print(synoniemen_df.head())  # Laat de eerste paar rijen zien
             
                         if not synoniemen_df.empty:
                             # **Configureer AgGrid voor Synoniemen**
