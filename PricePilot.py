@@ -232,24 +232,24 @@ with tab4:
                             # **Geselecteerde rijen ophalen**
                             geselecteerde_rijen = response["selected_rows"]
             
-                            if st.button("Lees in als synoniem"):
+                             if st.button("Verwijder geselecteerde synoniemen"):
                                 if len(geselecteerde_rijen) > 0:
                                     try:
                                         for rij in geselecteerde_rijen:
                                             synoniem = rij.get("Synoniem")
                                             artikelnummer = rij.get("Artikelnummer")
-            
+                            
                                             if synoniem and artikelnummer:
                                                 cursor.execute("""
-                                                INSERT INTO synoniemen (Artikelnummer, Synoniem)
-                                                VALUES (?, ?);
+                                                DELETE FROM synoniemen WHERE Artikelnummer = ? AND Synoniem = ?;
                                                 """, (artikelnummer, synoniem))
+                            
                                         conn.commit()
-                                        st.success("Geselecteerde synoniemen zijn ingelezen in 'synoniemen'.")
+                                        st.success("Geselecteerde synoniemen zijn verwijderd uit 'synoniemen'.")
                                     except Exception as e:
-                                        st.error(f"Fout bij inlezen van synoniemen: {e}")
+                                        st.error(f"Fout bij verwijderen van synoniemen: {e}")
                                 else:
-                                    st.warning("Selecteer minimaal één rij.")
+                                    st.warning("Selecteer minimaal één rij om te verwijderen.")
             
                 except Exception as e:
                     st.error(f"Fout bij ophalen van synoniemen: {e}")
