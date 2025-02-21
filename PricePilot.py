@@ -35,6 +35,7 @@ from msal import ConfidentialClientApplication
 import jwt
 import numpy as np
 import tempfile
+import pyodbc
 
 
 # 🔑 Configuratie
