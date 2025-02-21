@@ -232,7 +232,7 @@ with tab4:
                             # **Geselecteerde rijen ophalen**
                             geselecteerde_rijen = response["selected_rows"]
             
-                             if st.button("Verwijder geselecteerde synoniemen"):
+                            if st.button("Verwijder geselecteerde synoniemen"):
                                 if len(geselecteerde_rijen) > 0:
                                     try:
                                         for rij in geselecteerde_rijen:
