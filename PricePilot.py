@@ -54,7 +54,7 @@ def create_connection():
     username = SP_USERNAME
     password = SP_PASSWORD
 
-    conn_str = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}"
+    conn_str = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};Authentication=ActiveDirectoryPassword;UID={username};PWD={password}"
     try:
         conn = pyodbc.connect(conn_str)
         return conn
