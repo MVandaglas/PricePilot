@@ -178,61 +178,70 @@ with tab4:
     if wachtwoord == "Comex25":
         st.success("Toegang verleend tot de beheertab.")
 
+        
+        
         # **Maak verbinding met de database**
         conn = create_connection()
         if conn:
             cursor = conn.cursor()
-
+        
             try:
-                # **Controleer of de tabel 'SynoniemenAI' bestaat**
+                # **Controleer of de tabel 'synoniemen' bestaat**
                 cursor.execute("""
-                SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'SynoniemenAI';
+                SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'synoniemen';
                 """)
                 tabel_bestaat = cursor.fetchone()
-
+        
                 if tabel_bestaat:
                     # **Haal de geaccordeerde synoniemen op**
-                    cursor.execute("SELECT * FROM SynoniemenAI")
+                    cursor.execute("SELECT Artikelnummer, Synoniem FROM synoniemen")
                     kolomnamen = [desc[0] for desc in cursor.description]
-                    synoniemenAI_data = cursor.fetchall()
-                    synoniemenAI_df = pd.DataFrame(synoniemenAI_data, columns=kolomnamen)
-
-                    if not synoniemenAI_df.empty:
-                        # **Configureer AgGrid voor SynoniemenAI**
-                        gb = GridOptionsBuilder.from_dataframe(synoniemenAI_df)
+                    synoniemen_data = cursor.fetchall()
+                    synoniemen_df = pd.DataFrame(synoniemen_data, columns=kolomnamen)
+        
+                    if not synoniemen_df.empty:
+                        # **Configureer AgGrid voor Synoniemen**
+                        gb = GridOptionsBuilder.from_dataframe(synoniemen_df)
                         gb.configure_selection(selection_mode="multiple", use_checkbox=True)
                         gb.configure_default_column(editable=False)
                         grid_options = gb.build()
-
+        
                         response = AgGrid(
-                            synoniemenAI_df,
+                            synoniemen_df,
                             gridOptions=grid_options,
                             update_mode=GridUpdateMode.SELECTION_CHANGED,
                             fit_columns_on_grid_load=True,
                             theme="material"
                         )
-
+        
                         # **Geselecteerde rijen ophalen**
                         geselecteerde_rijen = response["selected_rows"]
-
+        
                         if st.button("Lees in als synoniem"):
                             if len(geselecteerde_rijen) > 0:
                                 try:
                                     for rij in geselecteerde_rijen:
                                         synoniem = rij.get("Synoniem")
                                         artikelnummer = rij.get("Artikelnummer")
-
+        
                                         if synoniem and artikelnummer:
                                             cursor.execute("""
-                                            INSERT INTO Synoniemen (Synoniem, Artikelnummer)
+                                            INSERT INTO synoniemen (Artikelnummer, Synoniem)
                                             VALUES (?, ?);
-                                            """, (synoniem, artikelnummer))
+                                            """, (artikelnummer, synoniem))
                                     conn.commit()
-                                    st.success("Geselecteerde synoniemen zijn ingelezen in 'Synoniemen'.")
+                                    st.success("Geselecteerde synoniemen zijn ingelezen in 'synoniemen'.")
                                 except Exception as e:
                                     st.error(f"Fout bij inlezen van synoniemen: {e}")
                             else:
                                 st.warning("Selecteer minimaal één rij.")
+        
+            except Exception as e:
+                st.error(f"Fout bij ophalen van synoniemen: {e}")
+        
+            finally:
+                conn.close()
+
 
                 # **Excel-upload functionaliteit**
                 with st.expander("📂 Excel-upload voor Synoniemen", expanded=True):
