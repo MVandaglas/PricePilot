@@ -193,10 +193,21 @@ with tab4:
                 tabel_bestaat = cursor.fetchone()
         
                 if tabel_bestaat:
-                    # **Haal de geaccordeerde synoniemen op**
                     cursor.execute("SELECT Artikelnummer, Synoniem FROM synoniemen")
-                    kolomnamen = [desc[0] for desc in cursor.description]
                     synoniemen_data = cursor.fetchall()
+                    
+                    # Debug: print de opgehaalde data en aantal kolommen
+                    st.write("Opgehaalde data:", synoniemen_data)
+                    st.write("Aantal rijen:", len(synoniemen_data))
+                    
+                    # Haal de kolomnamen op
+                    kolomnamen = [desc[0] for desc in cursor.description]
+                    st.write("Kolomnamen:", kolomnamen)
+                    
+                    # Controleer hoeveel kolommen er echt in de data zitten
+                    for rij in synoniemen_data[:5]:  # Print alleen de eerste 5 rijen
+                        st.write("Rij:", rij)
+                    
                     synoniemen_df = pd.DataFrame(synoniemen_data, columns=kolomnamen)
         
                     if not synoniemen_df.empty:
