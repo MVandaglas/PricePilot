@@ -269,7 +269,7 @@ with tab4:
 
                 # **Toon actieve synoniemen**
                 with st.expander("🔍 Bekijk en beheer actieve synoniemen", expanded=False):
-                    cursor.execute("SELECT * FROM Synoniemen")
+                    cursor.execute("SELECT * FROM synoniemen")
                     kolomnamen = [desc[0] for desc in cursor.description]
                     actieve_synoniemen_data = cursor.fetchall()
                     actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
@@ -298,7 +298,7 @@ with tab4:
                                     try:
                                         for rij in geselecteerde_rijen_actief:
                                             synoniem = rij.get("Synoniem")
-                                            cursor.execute("DELETE FROM Synoniemen WHERE Synoniem = ?", (synoniem,))
+                                            cursor.execute("DELETE FROM synoniemen WHERE Synoniem = ?", (synoniem,))
                                         conn.commit()
                                         st.success("Geselecteerde synoniemen verwijderd.")
                                     except Exception as e:
@@ -308,7 +308,7 @@ with tab4:
 
                         with col2:
                             if st.button("🔄 Vernieuw tabel"):
-                                cursor.execute("SELECT * FROM Synoniemen")
+                                cursor.execute("SELECT * FROM synoniemen")
                                 actieve_synoniemen_data = cursor.fetchall()
                                 actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
                                 st.success("De tabel is vernieuwd.")
