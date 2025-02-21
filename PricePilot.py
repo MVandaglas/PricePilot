@@ -193,22 +193,34 @@ with tab4:
                 tabel_bestaat = cursor.fetchone()
         
                 if tabel_bestaat:
+                    # **Haal de geaccordeerde synoniemen op**
                     cursor.execute("SELECT Artikelnummer, Synoniem FROM synoniemen")
                     synoniemen_data = cursor.fetchall()
                     
-                    # Debug: print de opgehaalde data en aantal kolommen
-                    st.write("Opgehaalde data:", synoniemen_data)
-                    st.write("Aantal rijen:", len(synoniemen_data))
-                    
-                    # Haal de kolomnamen op
+                    # **Haal de kolomnamen op**
                     kolomnamen = [desc[0] for desc in cursor.description]
-                    st.write("Kolomnamen:", kolomnamen)
                     
-                    # Controleer hoeveel kolommen er echt in de data zitten
-                    for rij in synoniemen_data[:5]:  # Print alleen de eerste 5 rijen
-                        st.write("Rij:", rij)
+                    # **Debugging: Controleer de opgehaalde data**
+                    print("Opgehaalde data:", synoniemen_data)
+                    print("Aantal rijen:", len(synoniemen_data))
+                    print("Kolomnamen:", kolomnamen)
                     
-                    synoniemen_df = pd.DataFrame(synoniemen_data, columns=kolomnamen)
+                    # **Controleer of er None-waarden zijn**
+                    for rij in synoniemen_data:
+                        if None in rij:
+                            print("⚠️ Rij met None-waarde gevonden:", rij)
+                    
+                    # **Converteer tuples naar lijsten**
+                    synoniemen_data_lijst = [list(rij) for rij in synoniemen_data]
+                    
+                    # **Debugging: Controleer de aangepaste data structuur**
+                    print("Aangepaste data voor DataFrame:", synoniemen_data_lijst[:5])
+                    
+                    # **Maak DataFrame aan**
+                    synoniemen_df = pd.DataFrame(synoniemen_data_lijst, columns=kolomnamen)
+                    
+                    # **Controleer of het DataFrame correct is**
+                    print(synoniemen_df.head())  # Laat de eerste paar rijen zien
         
                     if not synoniemen_df.empty:
                         # **Configureer AgGrid voor Synoniemen**
