@@ -316,8 +316,8 @@ with tab4:
                 # **Verbinding sluiten**
                 conn.close()
 
-            except Exception as e:
-                st.error(f"Fout: {e}")
+                except Exception as e:
+                    st.error(f"Fout: {e}")
 
     elif wachtwoord:
         st.error("❌ Onjuist wachtwoord. Toegang geweigerd.")
