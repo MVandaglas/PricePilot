@@ -179,167 +179,167 @@ with tab4:
         st.success("Toegang verleend tot de beheertab.")
 
         
-        
-        # **Maak verbinding met de database**
-        conn = create_connection()
-        if conn:
-            cursor = conn.cursor()
-        
-            try:
-                # **Controleer of de tabel 'synoniemen' bestaat**
-                cursor.execute("""
-                SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'synoniemen';
-                """)
-                tabel_bestaat = cursor.fetchone()
-        
-                if tabel_bestaat:
-                    # **Haal de geaccordeerde synoniemen op**
-                    cursor.execute("SELECT Artikelnummer, Synoniem FROM synoniemen")
-                    synoniemen_data = cursor.fetchall()
-                    
-                    # **Haal de kolomnamen op**
-                    kolomnamen = [desc[0] for desc in cursor.description]
-                    
-                    # **Debugging: Controleer de opgehaalde data**
-                    print("Opgehaalde data:", synoniemen_data)
-                    print("Aantal rijen:", len(synoniemen_data))
-                    print("Kolomnamen:", kolomnamen)
-                    
-                    # **Controleer of er None-waarden zijn**
-                    for rij in synoniemen_data:
-                        if None in rij:
-                            print("⚠️ Rij met None-waarde gevonden:", rij)
-                    
-                    # **Converteer tuples naar lijsten**
-                    synoniemen_data_lijst = [list(rij) for rij in synoniemen_data]
-                    
-                    # **Debugging: Controleer de aangepaste data structuur**
-                    print("Aangepaste data voor DataFrame:", synoniemen_data_lijst[:5])
-                    
-                    # **Maak DataFrame aan**
-                    synoniemen_df = pd.DataFrame(synoniemen_data_lijst, columns=kolomnamen)
-                    
-                    # **Controleer of het DataFrame correct is**
-                    print(synoniemen_df.head())  # Laat de eerste paar rijen zien
-        
-                    if not synoniemen_df.empty:
-                        # **Configureer AgGrid voor Synoniemen**
-                        gb = GridOptionsBuilder.from_dataframe(synoniemen_df)
-                        gb.configure_selection(selection_mode="multiple", use_checkbox=True)
-                        gb.configure_default_column(editable=False)
-                        grid_options = gb.build()
-        
-                        response = AgGrid(
-                            synoniemen_df,
-                            gridOptions=grid_options,
-                            update_mode=GridUpdateMode.SELECTION_CHANGED,
-                            fit_columns_on_grid_load=True,
-                            theme="material"
-                        )
-        
-                        # **Geselecteerde rijen ophalen**
-                        geselecteerde_rijen = response["selected_rows"]
-        
-                        if st.button("Lees in als synoniem"):
-                            if len(geselecteerde_rijen) > 0:
-                                try:
-                                    for rij in geselecteerde_rijen:
-                                        synoniem = rij.get("Synoniem")
-                                        artikelnummer = rij.get("Artikelnummer")
-        
-                                        if synoniem and artikelnummer:
-                                            cursor.execute("""
-                                            INSERT INTO synoniemen (Artikelnummer, Synoniem)
-                                            VALUES (?, ?);
-                                            """, (artikelnummer, synoniem))
-                                    conn.commit()
-                                    st.success("Geselecteerde synoniemen zijn ingelezen in 'synoniemen'.")
-                                except Exception as e:
-                                    st.error(f"Fout bij inlezen van synoniemen: {e}")
-                            else:
-                                st.warning("Selecteer minimaal één rij.")
-        
-            except Exception as e:
-                st.error(f"Fout bij ophalen van synoniemen: {e}")
-        
-            finally:
-                conn.close()
-
-
-                # **Excel-upload functionaliteit**
-                with st.expander("📂 Excel-upload voor Synoniemen", expanded=True):
-                    st.markdown("### Upload een Excel-bestand om synoniemen toe te voegen:")
-                    uploaded_file = st.file_uploader("Kies een Excel-bestand", type=["xlsx"])
-
-                    if uploaded_file:
-                        try:
-                            upload_df = pd.read_excel(uploaded_file)
-                            if "Synoniem" in upload_df.columns and "Artikelnummer" in upload_df.columns:
-                                for _, row in upload_df.iterrows():
-                                    synoniem = row["Synoniem"]
-                                    artikelnummer = row["Artikelnummer"]
-                                    if pd.notna(synoniem) and pd.notna(artikelnummer):
-                                        cursor.execute("""
-                                        INSERT INTO Synoniemen (Synoniem, Artikelnummer)
-                                        VALUES (?, ?);
-                                        """, (synoniem, artikelnummer))
-                                conn.commit()
-                                st.success("Excel-bestand succesvol ingelezen.")
-                            else:
-                                st.error("Het Excel-bestand moet kolommen 'Synoniem' en 'Artikelnummer' bevatten.")
-                        except Exception as e:
-                            st.error(f"Fout bij verwerken van Excel-bestand: {e}")
-
-                # **Toon actieve synoniemen**
-                with st.expander("🔍 Bekijk en beheer actieve synoniemen", expanded=False):
-                    cursor.execute("SELECT * FROM synoniemen")
-                    kolomnamen = [desc[0] for desc in cursor.description]
-                    actieve_synoniemen_data = cursor.fetchall()
-                    actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
-
-                    if not actieve_synoniemen_df.empty:
-                        gb_actief = GridOptionsBuilder.from_dataframe(actieve_synoniemen_df)
-                        gb_actief.configure_default_column(editable=False, filter=True)
-                        gb_actief.configure_selection(selection_mode="multiple", use_checkbox=True)
-                        grid_options_actief = gb_actief.build()
-
-                        response_actief = AgGrid(
-                            actieve_synoniemen_df,
-                            gridOptions=grid_options_actief,
-                            update_mode=GridUpdateMode.SELECTION_CHANGED,
-                            fit_columns_on_grid_load=True,
-                            theme="material"
-                        )
-
-                        geselecteerde_rijen_actief = response_actief["selected_rows"]
-
-                        col1, col2 = st.columns(2)
-
-                        with col1:
-                            if st.button("🗑️ Verwijder geselecteerde actieve synoniemen"):
-                                if len(geselecteerde_rijen_actief) > 0:
+        with st.expander("🔍 Bekijk en beheer actieve synoniemen", expanded=False):       
+            # **Maak verbinding met de database**
+            conn = create_connection()
+            if conn:
+                cursor = conn.cursor()
+            
+                try:
+                    # **Controleer of de tabel 'synoniemen' bestaat**
+                    cursor.execute("""
+                    SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'synoniemen';
+                    """)
+                    tabel_bestaat = cursor.fetchone()
+            
+                    if tabel_bestaat:
+                        # **Haal de geaccordeerde synoniemen op**
+                        cursor.execute("SELECT Artikelnummer, Synoniem FROM synoniemen")
+                        synoniemen_data = cursor.fetchall()
+                        
+                        # **Haal de kolomnamen op**
+                        kolomnamen = [desc[0] for desc in cursor.description]
+                        
+                        # **Debugging: Controleer de opgehaalde data**
+                        print("Opgehaalde data:", synoniemen_data)
+                        print("Aantal rijen:", len(synoniemen_data))
+                        print("Kolomnamen:", kolomnamen)
+                        
+                        # **Controleer of er None-waarden zijn**
+                        for rij in synoniemen_data:
+                            if None in rij:
+                                print("⚠️ Rij met None-waarde gevonden:", rij)
+                        
+                        # **Converteer tuples naar lijsten**
+                        synoniemen_data_lijst = [list(rij) for rij in synoniemen_data]
+                        
+                        # **Debugging: Controleer de aangepaste data structuur**
+                        print("Aangepaste data voor DataFrame:", synoniemen_data_lijst[:5])
+                        
+                        # **Maak DataFrame aan**
+                        synoniemen_df = pd.DataFrame(synoniemen_data_lijst, columns=kolomnamen)
+                        
+                        # **Controleer of het DataFrame correct is**
+                        print(synoniemen_df.head())  # Laat de eerste paar rijen zien
+            
+                        if not synoniemen_df.empty:
+                            # **Configureer AgGrid voor Synoniemen**
+                            gb = GridOptionsBuilder.from_dataframe(synoniemen_df)
+                            gb.configure_selection(selection_mode="multiple", use_checkbox=True)
+                            gb.configure_default_column(editable=False)
+                            grid_options = gb.build()
+            
+                            response = AgGrid(
+                                synoniemen_df,
+                                gridOptions=grid_options,
+                                update_mode=GridUpdateMode.SELECTION_CHANGED,
+                                fit_columns_on_grid_load=True,
+                                theme="material"
+                            )
+            
+                            # **Geselecteerde rijen ophalen**
+                            geselecteerde_rijen = response["selected_rows"]
+            
+                            if st.button("Lees in als synoniem"):
+                                if len(geselecteerde_rijen) > 0:
                                     try:
-                                        for rij in geselecteerde_rijen_actief:
+                                        for rij in geselecteerde_rijen:
                                             synoniem = rij.get("Synoniem")
-                                            cursor.execute("DELETE FROM synoniemen WHERE Synoniem = ?", (synoniem,))
+                                            artikelnummer = rij.get("Artikelnummer")
+            
+                                            if synoniem and artikelnummer:
+                                                cursor.execute("""
+                                                INSERT INTO synoniemen (Artikelnummer, Synoniem)
+                                                VALUES (?, ?);
+                                                """, (artikelnummer, synoniem))
                                         conn.commit()
-                                        st.success("Geselecteerde synoniemen verwijderd.")
+                                        st.success("Geselecteerde synoniemen zijn ingelezen in 'synoniemen'.")
                                     except Exception as e:
-                                        st.error(f"Fout bij verwijderen: {e}")
+                                        st.error(f"Fout bij inlezen van synoniemen: {e}")
                                 else:
                                     st.warning("Selecteer minimaal één rij.")
-
-                        with col2:
-                            if st.button("🔄 Vernieuw tabel"):
-                                cursor.execute("SELECT * FROM synoniemen")
-                                actieve_synoniemen_data = cursor.fetchall()
-                                actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
-                                st.success("De tabel is vernieuwd.")
-
-                # **Verbinding sluiten**
-                conn.close()
-
-
+            
+                except Exception as e:
+                    st.error(f"Fout bij ophalen van synoniemen: {e}")
+            
+                finally:
+                    conn.close()
+    
+    
+                    # **Excel-upload functionaliteit**
+                    with st.expander("📂 Excel-upload voor Synoniemen", expanded=True):
+                        st.markdown("### Upload een Excel-bestand om synoniemen toe te voegen:")
+                        uploaded_file = st.file_uploader("Kies een Excel-bestand", type=["xlsx"])
+    
+                        if uploaded_file:
+                            try:
+                                upload_df = pd.read_excel(uploaded_file)
+                                if "Synoniem" in upload_df.columns and "Artikelnummer" in upload_df.columns:
+                                    for _, row in upload_df.iterrows():
+                                        synoniem = row["Synoniem"]
+                                        artikelnummer = row["Artikelnummer"]
+                                        if pd.notna(synoniem) and pd.notna(artikelnummer):
+                                            cursor.execute("""
+                                            INSERT INTO Synoniemen (Synoniem, Artikelnummer)
+                                            VALUES (?, ?);
+                                            """, (synoniem, artikelnummer))
+                                    conn.commit()
+                                    st.success("Excel-bestand succesvol ingelezen.")
+                                else:
+                                    st.error("Het Excel-bestand moet kolommen 'Synoniem' en 'Artikelnummer' bevatten.")
+                            except Exception as e:
+                                st.error(f"Fout bij verwerken van Excel-bestand: {e}")
+    
+                    # **Toon actieve synoniemen**
+    
+                        cursor.execute("SELECT * FROM synoniemen")
+                        kolomnamen = [desc[0] for desc in cursor.description]
+                        actieve_synoniemen_data = cursor.fetchall()
+                        actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
+    
+                        if not actieve_synoniemen_df.empty:
+                            gb_actief = GridOptionsBuilder.from_dataframe(actieve_synoniemen_df)
+                            gb_actief.configure_default_column(editable=False, filter=True)
+                            gb_actief.configure_selection(selection_mode="multiple", use_checkbox=True)
+                            grid_options_actief = gb_actief.build()
+    
+                            response_actief = AgGrid(
+                                actieve_synoniemen_df,
+                                gridOptions=grid_options_actief,
+                                update_mode=GridUpdateMode.SELECTION_CHANGED,
+                                fit_columns_on_grid_load=True,
+                                theme="material"
+                            )
+    
+                            geselecteerde_rijen_actief = response_actief["selected_rows"]
+    
+                            col1, col2 = st.columns(2)
+    
+                            with col1:
+                                if st.button("🗑️ Verwijder geselecteerde actieve synoniemen"):
+                                    if len(geselecteerde_rijen_actief) > 0:
+                                        try:
+                                            for rij in geselecteerde_rijen_actief:
+                                                synoniem = rij.get("Synoniem")
+                                                cursor.execute("DELETE FROM synoniemen WHERE Synoniem = ?", (synoniem,))
+                                            conn.commit()
+                                            st.success("Geselecteerde synoniemen verwijderd.")
+                                        except Exception as e:
+                                            st.error(f"Fout bij verwijderen: {e}")
+                                    else:
+                                        st.warning("Selecteer minimaal één rij.")
+    
+                            with col2:
+                                if st.button("🔄 Vernieuw tabel"):
+                                    cursor.execute("SELECT * FROM synoniemen")
+                                    actieve_synoniemen_data = cursor.fetchall()
+                                    actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
+                                    st.success("De tabel is vernieuwd.")
+    
+                    # **Verbinding sluiten**
+                    conn.close()
+    
+    
 
     elif wachtwoord:
         st.error("❌ Onjuist wachtwoord. Toegang geweigerd.")
