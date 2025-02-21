@@ -35,6 +35,7 @@ from msal import ConfidentialClientApplication
 import jwt
 import numpy as np
 import tempfile
+import pyodbc
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
@@ -42,7 +43,23 @@ CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
 SP_SITE = st.secrets.get("SP_SITE")
 TENANT_ID = st.secrets.get("TENANT_ID")
 CSV_PATH = st.secrets.get("SP_CSV_SYN")  # Pad naar TestSynoniem.csv in SharePoint
+SP_USERNAME = st.secrets.get("SP_USERNAME")
+SP_PASSWORD = st.secrets.get("SP_PASSWORD")
 
+# **Verbinding met Azure SQL Server**
+def create_connection():
+    server = "vdgbullsaiserver.database.windows.net"
+    database = "vdgbullsaidb"
+    username = SP_USERNAME
+    password = SP_PASSWORD
+
+    conn_str = f"DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}"
+    try:
+        conn = pyodbc.connect(conn_str)
+        return conn
+    except Exception as e:
+        st.error(f"Database fout: {e}")
+        return None
 
 
 # Importeer prijsscherpte
@@ -154,216 +171,147 @@ tab1, tab2, tab3, tab4 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Off
 
 with tab4:
     st.subheader("Beheer")
-    
-    # Wachtwoordbeveiliging
+
+    # **Wachtwoordbeveiliging**
     wachtwoord = st.text_input("Voer het wachtwoord in om toegang te krijgen:", type="password")
     if wachtwoord == "Comex25":
         st.success("Toegang verleend tot de beheertab.")
 
-        # Verbinding met database
+        # **Maak verbinding met de database**
         conn = create_connection()
-        cursor = conn.cursor()
+        if conn:
+            cursor = conn.cursor()
 
-        try:
-            # Controleer of de tabel 'SynoniemenAI' bestaat
-            cursor.execute("""
-            SELECT name FROM sqlite_master WHERE type='table' AND name='SynoniemenAI';
-            """)
-            tabel_bestaat = cursor.fetchone()
-            
-            if tabel_bestaat:
-                # Haal de geaccordeerde synoniemen op uit de tabel
-                cursor.execute("SELECT * FROM SynoniemenAI")
-                kolomnamen = [desc[0] for desc in cursor.description]
-                synoniemenAI_data = cursor.fetchall()
+            try:
+                # **Controleer of de tabel 'SynoniemenAI' bestaat**
+                cursor.execute("""
+                SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'SynoniemenAI';
+                """)
+                tabel_bestaat = cursor.fetchone()
 
-                # Zet de data in een DataFrame
-                import pandas as pd
-                synoniemenAI_df = pd.DataFrame(synoniemenAI_data, columns=kolomnamen)
+                if tabel_bestaat:
+                    # **Haal de geaccordeerde synoniemen op**
+                    cursor.execute("SELECT * FROM SynoniemenAI")
+                    kolomnamen = [desc[0] for desc in cursor.description]
+                    synoniemenAI_data = cursor.fetchall()
+                    synoniemenAI_df = pd.DataFrame(synoniemenAI_data, columns=kolomnamen)
 
-                if not synoniemenAI_df.empty:
-                    # Configureer AgGrid voor de synoniemenAI tabel
-                    from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode
-                    gb = GridOptionsBuilder.from_dataframe(synoniemenAI_df)
-                    gb.configure_selection(selection_mode="multiple", use_checkbox=True)
-                    gb.configure_default_column(editable=False)
-                    grid_options = gb.build()
+                    if not synoniemenAI_df.empty:
+                        # **Configureer AgGrid voor SynoniemenAI**
+                        gb = GridOptionsBuilder.from_dataframe(synoniemenAI_df)
+                        gb.configure_selection(selection_mode="multiple", use_checkbox=True)
+                        gb.configure_default_column(editable=False)
+                        grid_options = gb.build()
 
-                    # Toon de AgGrid-tabel met multi-selectbox
-                    response = AgGrid(
-                        synoniemenAI_df,
-                        gridOptions=grid_options,
-                        update_mode=GridUpdateMode.SELECTION_CHANGED,
-                        fit_columns_on_grid_load=True,
-                        theme="material"
-                    )
+                        response = AgGrid(
+                            synoniemenAI_df,
+                            gridOptions=grid_options,
+                            update_mode=GridUpdateMode.SELECTION_CHANGED,
+                            fit_columns_on_grid_load=True,
+                            theme="material"
+                        )
 
-                    # Haal de geselecteerde rijen op
-                    geselecteerde_rijen = response["selected_rows"]
+                        # **Geselecteerde rijen ophalen**
+                        geselecteerde_rijen = response["selected_rows"]
 
-                    # Knop om geselecteerde rijen als synoniem in te lezen
-                    if st.button("Lees in als synoniem"):
-                        if len(geselecteerde_rijen) > 0:  # Controleer of er geselecteerde rijen zijn
-                            try:
-                                for rij in geselecteerde_rijen:
-                                    if isinstance(rij, dict):
-                                        synoniem = rij.get("Synoniem", None)
-                                        artikelnummer = rij.get("Artikelnummer", None)
+                        if st.button("Lees in als synoniem"):
+                            if len(geselecteerde_rijen) > 0:
+                                try:
+                                    for rij in geselecteerde_rijen:
+                                        synoniem = rij.get("Synoniem")
+                                        artikelnummer = rij.get("Artikelnummer")
 
                                         if synoniem and artikelnummer:
                                             cursor.execute("""
-                                            INSERT OR IGNORE INTO Synoniemen_actief (Synoniem, Artikelnummer)
+                                            INSERT INTO Synoniemen (Synoniem, Artikelnummer)
                                             VALUES (?, ?);
                                             """, (synoniem, artikelnummer))
+                                    conn.commit()
+                                    st.success("Geselecteerde synoniemen zijn ingelezen in 'Synoniemen'.")
+                                except Exception as e:
+                                    st.error(f"Fout bij inlezen van synoniemen: {e}")
+                            else:
+                                st.warning("Selecteer minimaal één rij.")
+
+                # **Excel-upload functionaliteit**
+                with st.expander("📂 Excel-upload voor Synoniemen", expanded=True):
+                    st.markdown("### Upload een Excel-bestand om synoniemen toe te voegen:")
+                    uploaded_file = st.file_uploader("Kies een Excel-bestand", type=["xlsx"])
+
+                    if uploaded_file:
+                        try:
+                            upload_df = pd.read_excel(uploaded_file)
+                            if "Synoniem" in upload_df.columns and "Artikelnummer" in upload_df.columns:
+                                for _, row in upload_df.iterrows():
+                                    synoniem = row["Synoniem"]
+                                    artikelnummer = row["Artikelnummer"]
+                                    if pd.notna(synoniem) and pd.notna(artikelnummer):
+                                        cursor.execute("""
+                                        INSERT INTO Synoniemen (Synoniem, Artikelnummer)
+                                        VALUES (?, ?);
+                                        """, (synoniem, artikelnummer))
                                 conn.commit()
-                                st.success("Geselecteerde synoniemen zijn succesvol ingelezen in 'Synoniemen_actief'.")
-                            except Exception as e:
-                                st.error(f"Fout bij het inlezen van synoniemen: {e}")
-                        else:
-                            st.warning("Selecteer minimaal één rij om in te lezen.")
+                                st.success("Excel-bestand succesvol ingelezen.")
+                            else:
+                                st.error("Het Excel-bestand moet kolommen 'Synoniem' en 'Artikelnummer' bevatten.")
+                        except Exception as e:
+                            st.error(f"Fout bij verwerken van Excel-bestand: {e}")
 
-            # Excel-upload functionaliteit in een expander
-            with st.expander("Excel-upload voor Synoniemen_actief", expanded=True):
-                st.markdown("### Upload een Excel-bestand om synoniemen toe te voegen aan 'Synoniemen_actief'")
-                uploaded_file = st.file_uploader("Kies een Excel-bestand", type=["xlsx"])
-
-                if uploaded_file:
-                    try:
-                        # Lees het Excel-bestand in
-                        upload_df = pd.read_excel(uploaded_file)
-                        
-                        # Controleer of vereiste kolommen bestaan
-                        if "Synoniem" in upload_df.columns and "Artikelnummer" in upload_df.columns:
-                            for _, row in upload_df.iterrows():
-                                synoniem = row["Synoniem"]
-                                artikelnummer = row["Artikelnummer"]
-                                if pd.notna(synoniem) and pd.notna(artikelnummer):
-                                    cursor.execute("""
-                                    INSERT OR IGNORE INTO Synoniemen_actief (Synoniem, Artikelnummer)
-                                    VALUES (?, ?);
-                                    """, (synoniem, artikelnummer))
-                            conn.commit()
-                            st.success("Excel-bestand is succesvol ingelezen in 'Synoniemen_actief'.")
-                        else:
-                            st.error("Het Excel-bestand moet kolommen 'Synoniem' en 'Artikelnummer' bevatten.")
-                    except Exception as e:
-                        st.error(f"Fout bij het verwerken van het Excel-bestand: {e}")
-
-            # Actieve synoniemen in een expander
-            with st.expander("Bekijk en beheer actieve synoniemen", expanded=False):
-                if "actieve_synoniemen_df" not in st.session_state:
-                    cursor.execute("SELECT * FROM Synoniemen_actief")
+                # **Toon actieve synoniemen**
+                with st.expander("🔍 Bekijk en beheer actieve synoniemen", expanded=False):
+                    cursor.execute("SELECT * FROM Synoniemen")
                     kolomnamen = [desc[0] for desc in cursor.description]
                     actieve_synoniemen_data = cursor.fetchall()
-                    if actieve_synoniemen_data:
-                        st.session_state.actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
-                    else:
-                        st.session_state.actieve_synoniemen_df = pd.DataFrame(columns=["Synoniem", "Artikelnummer"])
+                    actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
 
-                # Toon AgGrid
-                actieve_synoniemen_df = st.session_state.actieve_synoniemen_df
+                    if not actieve_synoniemen_df.empty:
+                        gb_actief = GridOptionsBuilder.from_dataframe(actieve_synoniemen_df)
+                        gb_actief.configure_default_column(editable=False, filter=True)
+                        gb_actief.configure_selection(selection_mode="multiple", use_checkbox=True)
+                        grid_options_actief = gb_actief.build()
 
-                if not actieve_synoniemen_df.empty:
-                    # Configureer AgGrid met filtering
-                    gb_actief = GridOptionsBuilder.from_dataframe(actieve_synoniemen_df)
-                    gb_actief.configure_default_column(editable=False, filter=True)  # Activeer filtering
-                    gb_actief.configure_selection(selection_mode="multiple", use_checkbox=True)
-                    grid_options_actief = gb_actief.build()
+                        response_actief = AgGrid(
+                            actieve_synoniemen_df,
+                            gridOptions=grid_options_actief,
+                            update_mode=GridUpdateMode.SELECTION_CHANGED,
+                            fit_columns_on_grid_load=True,
+                            theme="material"
+                        )
 
-                    response_actief = AgGrid(
-                        actieve_synoniemen_df,
-                        gridOptions=grid_options_actief,
-                        update_mode=GridUpdateMode.SELECTION_CHANGED | GridUpdateMode.FILTERING_CHANGED,
-                        fit_columns_on_grid_load=True,
-                        theme="material"
-                    )
+                        geselecteerde_rijen_actief = response_actief["selected_rows"]
 
-                    geselecteerde_rijen_actief = response_actief["selected_rows"]
+                        col1, col2 = st.columns(2)
 
-                    # Knoppen voor verwijdering en vernieuwen
-                    col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button("🗑️ Verwijder geselecteerde actieve synoniemen"):
+                                if len(geselecteerde_rijen_actief) > 0:
+                                    try:
+                                        for rij in geselecteerde_rijen_actief:
+                                            synoniem = rij.get("Synoniem")
+                                            cursor.execute("DELETE FROM Synoniemen WHERE Synoniem = ?", (synoniem,))
+                                        conn.commit()
+                                        st.success("Geselecteerde synoniemen verwijderd.")
+                                    except Exception as e:
+                                        st.error(f"Fout bij verwijderen: {e}")
+                                else:
+                                    st.warning("Selecteer minimaal één rij.")
 
-                    with col1:
-                        if st.button("Verwijder geselecteerde actieve synoniemen"):
-                            if len(geselecteerde_rijen_actief) > 0:
-                                try:
-                                    for rij in geselecteerde_rijen_actief:
-                                        synoniem = rij.get("Synoniem")
-                                        if synoniem:
-                                            cursor.execute("DELETE FROM Synoniemen_actief WHERE Synoniem = ?", (synoniem,))
-                                    conn.commit()
-
-                                    # Vernieuw de tabel na verwijdering
-                                    cursor.execute("SELECT * FROM Synoniemen_actief")
-                                    actieve_synoniemen_data = cursor.fetchall()
-                                    st.session_state.actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
-
-                                    st.success("Geselecteerde actieve synoniemen zijn succesvol verwijderd.")
-                                except Exception as e:
-                                    st.error(f"Fout bij het verwijderen: {e}")
-                            else:
-                                st.warning("Selecteer minimaal één rij om te verwijderen.")
-
-                    with col2:
-                        if st.button("Vernieuw tabel"):
-                            try:
-                                # Haal de tabel opnieuw op
-                                cursor.execute("SELECT * FROM Synoniemen_actief")
+                        with col2:
+                            if st.button("🔄 Vernieuw tabel"):
+                                cursor.execute("SELECT * FROM Synoniemen")
                                 actieve_synoniemen_data = cursor.fetchall()
-                                kolomnamen = [desc[0] for desc in cursor.description]  # Dynamisch kolomnamen ophalen
-                                st.session_state.actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
-                                st.success("De tabel is succesvol vernieuwd.")
-                            except Exception as e:
-                                st.error(f"Fout bij het vernieuwen van de tabel: {e}")
-                else:
-                    st.info("Er zijn geen actieve synoniemen beschikbaar.")
+                                actieve_synoniemen_df = pd.DataFrame(actieve_synoniemen_data, columns=kolomnamen)
+                                st.success("De tabel is vernieuwd.")
 
-            # Pricing tabel
-            with st.expander("Beheer prijsscherpte matrix", expanded=True):
-                # Maak de AgGrid configuratie
-                st.subheader("Dynamische Prijsscherpte Matrix")
-                
-                gb = GridOptionsBuilder.from_dataframe(st.session_state.prijsscherpte_matrix)
-                gb.configure_default_column(editable=True)  # Maak kolommen bewerkbaar
-                gb.configure_column("Offertebedrag", editable=True)  # Offertebedrag mag niet bewerkt worden
-                gb.configure_grid_options(enableRangeSelection=True)  # Selecteer meerdere cellen indien nodig
-                
-                grid_options = gb.build()
-                
-                # Toon de matrix met AgGrid
-                grid_response = AgGrid(
-                    st.session_state.prijsscherpte_matrix,
-                    gridOptions=grid_options,
-                    update_mode=GridUpdateMode.MANUAL,  # Update alleen wanneer gebruiker klaar is
-                    fit_columns_on_grid_load=True,
-                    editable=True,
-                    height=300,
-                    width="100%",
-                    theme="material",  # Kies een thema, zoals 'material' of 'alpine'
-                )
-                
-                # Sla de bewerkte gegevens op in de sessiestatus
-                updated_matrix = grid_response["data"]
-                st.session_state.prijsscherpte_matrix = pd.DataFrame(updated_matrix)
+                # **Verbinding sluiten**
+                conn.close()
 
-                if klantgrootte in st.session_state.prijsscherpte_matrix.columns:
-                    for index, row in st.session_state.prijsscherpte_matrix.iterrows():
-                        if offer_amount >= row["Offertebedrag"]:
-                            prijsscherpte = row[klantgrootte]
-                        else:
-                            break
-                    st.write(f"Prijsscherpte voor klantgrootte {klantgrootte} en offertebedrag {offer_amount}: {prijsscherpte}")
-                else:
-                    st.warning("Klantgrootte niet gevonden in de matrix.")
-        
-        except Exception as e:
-            pass
+            except Exception as e:
+                st.error(f"Fout: {e}")
 
-        finally:
-            conn.close()
     elif wachtwoord:
-        st.error("Onjuist wachtwoord. Toegang geweigerd.")
-
+        st.error("❌ Onjuist wachtwoord. Toegang geweigerd.")
+        
 
 # Tab 1: Offerte Genereren
 with tab1:
