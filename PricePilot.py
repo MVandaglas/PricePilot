@@ -236,8 +236,15 @@ with tab4:
                                 if len(geselecteerde_rijen) > 0:
                                     try:
                                         for rij in geselecteerde_rijen:
-                                            synoniem = rij.get("Synoniem")
-                                            artikelnummer = rij.get("Artikelnummer")
+                                            # Controleer of rij een dictionary is of een tuple/lijst
+                                            if isinstance(rij, dict):
+                                                synoniem = rij.get("Synoniem")
+                                                artikelnummer = rij.get("Artikelnummer")
+                                            elif isinstance(rij, (tuple, list)) and len(rij) == 2:
+                                                artikelnummer, synoniem = rij  # Pak waarden uit tuple/lijst
+                                            else:
+                                                st.warning(f"Ongeldig formaat van rij: {rij}")
+                                                continue
                             
                                             if synoniem and artikelnummer:
                                                 cursor.execute("""
@@ -250,6 +257,7 @@ with tab4:
                                         st.error(f"Fout bij verwijderen van synoniemen: {e}")
                                 else:
                                     st.warning("Selecteer minimaal één rij om te verwijderen.")
+
             
                 except Exception as e:
                     st.error(f"Fout bij ophalen van synoniemen: {e}")
