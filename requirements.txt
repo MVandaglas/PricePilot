@@ -20,3 +20,4 @@ requests-ntlm
 Office365-REST-Python-Client
 sharepy
 PyJWT
+pyodbc
