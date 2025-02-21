@@ -2338,7 +2338,7 @@ with tab1:
         
                 # Opslaan in database
                 conn = create_connection()
-                cursor = conn.cursor()
+        #        cursor = conn.cursor()
         
                 try:
                     # Voeg elke rij van de offerte toe aan de database
