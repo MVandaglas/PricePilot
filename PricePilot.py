@@ -1685,14 +1685,9 @@ def extract_latest_email(body):
 
 
 
-import tempfile
-import pandas as pd
-from io import BytesIO
-from docx import Document
-
 def convert_docx_to_xlsx(doc_bytes):
     """
-    Converteer een DOCX-bestand naar een Excel-bestand en neem ALLE inhoud mee.
+    Converteer een DOCX-bestand naar een Excel-bestand, inclusief tabellen en gestructureerde tekst.
     """
     doc = Document(BytesIO(doc_bytes))
 
@@ -1705,43 +1700,42 @@ def convert_docx_to_xlsx(doc_bytes):
         has_data = False
 
         # **Stap 1: Verwerk tabellen**
-        for table in doc.tables:
-            rows = []
-            for row in table.rows:
-                cells = [cell.text.strip() for cell in row.cells]
-                if any(cells):  # **Lege rijen negeren**
-                    rows.append(cells)
+        if len(doc.tables) > 0:
+            for table in doc.tables:
+                rows = []
+                for row in table.rows:
+                    cells = [cell.text.strip() for cell in row.cells]
+                    if any(cells):  # Lege rijen negeren
+                        rows.append(cells)
 
-            if rows:
-                df = pd.DataFrame(rows)
+                if rows:
+                    df = pd.DataFrame(rows)
+                    
+                    # **Controleer of de eerste rij een header is**
+                    if df.shape[0] > 1 and not any(df.iloc[0].isna()):
+                        df.columns = df.iloc[0]  # Eerste rij als header
+                        df = df[1:].reset_index(drop=True)  # Verwijder de header-rij uit de data
+                    else:
+                        df.columns = [f"Kolom_{i+1}" for i in range(df.shape[1])]  # Fallback headers
 
-                # **Stap 1.1: Controleer of de eerste rij een echte header is**
-                if df.shape[0] > 1 and not any(df.iloc[0].isna()):
-                    df.columns = df.iloc[0]  # Eerste rij als header als deze niet leeg is
-                    df = df[1:].reset_index(drop=True)  # Verwijder de header-rij uit de data
-                else:
-                    df.columns = [f"Kolom_{i+1}" for i in range(df.shape[1])]  # Fallback headers
+                    table_count += 1
+                    df.to_excel(writer, sheet_name=f"Tabel_{table_count}", index=False)
+                    has_data = True
+        else:
+            print("❌ Geen tabellen gevonden! We proberen tekst te extraheren.")
 
-                table_count += 1
-                df.to_excel(writer, sheet_name=f"Tabel_{table_count}", index=False)
-                has_data = True
-
-        # **Stap 2: Verwerk gestructureerde tekst, inclusief kopteksten en lijsten**
-        structured_text = []
-        for para in doc.paragraphs:
-            text = para.text.strip()
-            if text:
-                if para.style.name.startswith("Heading"):
-                    structured_text.append(f"[KOPTEKST] {text}")
-                elif text.startswith(("- ", "* ", "• ")):
-                    structured_text.append(f"[LIJST] {text}")
-                else:
+        # **Stap 2: Als er geen tabellen zijn, probeer tekstregels te extraheren**
+        if not has_data:
+            structured_text = []
+            for para in doc.paragraphs:
+                text = para.text.strip()
+                if text:
                     structured_text.append(text)
 
-        if structured_text:
-            df_text = pd.DataFrame(structured_text, columns=["Extracted Text"])
-            df_text.to_excel(writer, sheet_name="Gestructureerde Tekst", index=False)
-            has_data = True
+            if structured_text:
+                df_text = pd.DataFrame(structured_text, columns=["Extracted Text"])
+                df_text.to_excel(writer, sheet_name="Gestructureerde Tekst", index=False)
+                has_data = True
 
         # **Stap 3: Voeg een lege sheet toe als er geen gegevens zijn**
         if not has_data:
