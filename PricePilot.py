@@ -1685,21 +1685,48 @@ def extract_latest_email(body):
 
 
 
+from docx import Document
+from io import BytesIO
+
 def debug_check_tables(doc_bytes):
-    """ Controleert of er tabellen in het DOCX-bestand zijn. """
+    """ Controleert of er tabellen in het DOCX-bestand zijn en toont extra statistieken. """
     doc = Document(BytesIO(doc_bytes))
     num_tables = len(doc.tables)
 
-    st.write(f"📊 Aantal tabellen in het DOCX-bestand: {num_tables}")
+    print(f"📊 Aantal tabellen in het DOCX-bestand: {num_tables}")
 
+    total_table_cells = 0
+    total_text_lines = 0
+    total_words = 0
+    total_chars = 0
+
+    # **Tabelinformatie**
     for i, table in enumerate(doc.tables):
-        st.write(f"Tabel {i+1}:")
+        st.write(f"📂 Tabel {i+1}:")
         for row in table.rows:
-            st.write([cell.text.strip() for cell in row.cells])
+            cell_values = [cell.text.strip() for cell in row.cells]
+            st.write(cell_values)
+            total_table_cells += len(cell_values)
         st.write("="*50)  # Visuele scheiding tussen tabellen
 
     if num_tables == 0:
         st.write("❌ Geen tabellen gevonden in het document!")
+
+    # **Tekstinformatie**
+    for para in doc.paragraphs:
+        text = para.text.strip()
+        if text:
+            total_text_lines += 1
+            total_chars += len(text)
+            total_words += len(text.split())
+
+    # **Toon de statistieken**
+    st.write(f"📃 Aantal regels tekst: {total_text_lines}")
+    st.write(f"🔤 Aantal tekens: {total_chars}")
+    st.write(f"📝 Aantal woorden: {total_words}")
+
+    if num_tables > 0:
+        st.write(f"📦 Totaal aantal cellen in tabellen: {total_table_cells}")
 
 def convert_docx_to_xlsx(doc_bytes):
     """
