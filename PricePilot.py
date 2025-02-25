@@ -36,7 +36,7 @@ import jwt
 import numpy as np
 import tempfile
 import pyodbc
-from comtypes.client import CreateObject
+
 
 
 # 🔑 Configuratie
