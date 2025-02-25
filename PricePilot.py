@@ -1559,7 +1559,8 @@ def extract_pdf_to_dataframe(pdf_reader):
     
             structured_data = []
             current_category = "0"  # Fallback waarde als er geen categorie is
-            category_pattern = re.compile(r"^\d{1,2}-\s*\d{1,2}A-\s*\w+")
+            category_pattern = re.compile(r"(\d{1,2}-\s*\d{1,2}[A-Z]?-\s*\w+)|(\d{1,2}[A-Z]?\s*-\s*\w+)")
+
     
             for line in lines:
                 line = line.strip()
