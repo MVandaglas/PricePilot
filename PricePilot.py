@@ -1945,7 +1945,7 @@ def process_attachment(attachment, attachment_name):
             pdf_file = convert_docx_to_pdf(attachment)
 
             # **Stap 2: Extraheer tabellen uit PDF**
-            tables_dict = extract_tables_from_pdf(pdf_fil
+            tables_dict = extract_tables_from_pdf(pdf_file)
             
             if not tables_dict:
                 st.error("Geen tabellen gevonden in het geconverteerde PDF-bestand.")
