@@ -1708,9 +1708,7 @@ def convert_docx_to_xlsx(doc_bytes):
     # **Voer eerst de debug-check uit**
     debug_check_tables(doc_bytes)
 
-    doc = Document(BytesIO(doc_bytes))
-
-    # Maak een tijdelijk bestand aan
+    # Maak een tijdelijk Excel-bestand aan
     with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as temp_file:
         excel_output_path = temp_file.name
 
@@ -1718,7 +1716,7 @@ def convert_docx_to_xlsx(doc_bytes):
         table_count = 0
         has_data = False
 
-        # **Stap 1: Verwerk tabellen**
+        # **Stap 1: Controleer tabellen**
         if len(doc.tables) > 0:
             for table in doc.tables:
                 rows = []
@@ -1729,40 +1727,38 @@ def convert_docx_to_xlsx(doc_bytes):
 
                 if rows:
                     df = pd.DataFrame(rows)
-
-                    # **Stap 1.1: Controleer of de eerste rij een echte header is**
-                    if df.shape[0] > 1 and not any(df.iloc[0].isna()):
-                        df.columns = df.iloc[0]  # Eerste rij als header als deze niet leeg is
-                        df = df[1:].reset_index(drop=True)  # Verwijder de header-rij uit de data
-                    else:
-                        df.columns = [f"Kolom_{i+1}" for i in range(df.shape[1])]  # Fallback headers
+                    df.columns = [f"Kolom_{i+1}" for i in range(df.shape[1])]  # Fallback headers
 
                     table_count += 1
                     df.to_excel(writer, sheet_name=f"Tabel_{table_count}", index=False)
                     has_data = True
         else:
-            st.write("❌ Geen tabellen gevonden! We proberen tekst te extraheren.")
+           st.write("❌ Geen tabellen gevonden! We proberen tekst als tabel te verwerken.")
 
-        # **Stap 2: Als er geen tabellen zijn, probeer tekstregels te extraheren**
-        if not has_data:
-            structured_text = []
-            for para in doc.paragraphs:
-                text = para.text.strip()
-                if text:
-                    structured_text.append(text)
+        # **Stap 2: Als er geen tabellen zijn, probeer tekstregels als tabel te extraheren**
+        structured_data = []
+        for para in doc.paragraphs:
+            text = para.text.strip()
+            if text:
+                # Probeer regels te splitsen op tab of meerdere spaties (lijkt op een tabel)
+                row = [t.strip() for t in text.split("\t")]  # Eerst op tabs splitsen
+                if len(row) < 2:  # Als te weinig kolommen, probeer spaties
+                    row = [t.strip() for t in text.split("  ")]  # Twee of meer spaties als scheiding
+                structured_data.append(row)
 
-            if structured_text:
-                df_text = pd.DataFrame(structured_text, columns=["Extracted Text"])
-                df_text.to_excel(writer, sheet_name="Gestructureerde Tekst", index=False)
-                has_data = True
+        # **Stap 3: Sla gestructureerde tekst op als tabel**
+        if structured_data:
+            df_text = pd.DataFrame(structured_data)
+            df_text.columns = [f"Kolom_{i+1}" for i in range(df_text.shape[1])]  # Fallback headers
+            df_text.to_excel(writer, sheet_name="Gestructureerde Tekst", index=False)
+            has_data = True
 
-        # **Stap 3: Voeg een lege sheet toe als er geen gegevens zijn**
+        # **Stap 4: Voeg een lege sheet toe als er geen gegevens zijn**
         if not has_data:
             df_empty = pd.DataFrame(["Geen data gevonden"], columns=["Melding"])
             df_empty.to_excel(writer, sheet_name="Leeg Document", index=False)
 
     return excel_output_path
-
 
 
 
