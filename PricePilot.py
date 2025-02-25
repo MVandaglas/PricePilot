@@ -1685,10 +1685,29 @@ def extract_latest_email(body):
 
 
 
+def debug_check_tables(doc_bytes):
+    """ Controleert of er tabellen in het DOCX-bestand zijn. """
+    doc = Document(BytesIO(doc_bytes))
+    num_tables = len(doc.tables)
+
+    st.write(f"📊 Aantal tabellen in het DOCX-bestand: {num_tables}")
+
+    for i, table in enumerate(doc.tables):
+        st.write(f"Tabel {i+1}:")
+        for row in table.rows:
+            st.write([cell.text.strip() for cell in row.cells])
+        st.write("="*50)  # Visuele scheiding tussen tabellen
+
+    if num_tables == 0:
+        st.write("❌ Geen tabellen gevonden in het document!")
+
 def convert_docx_to_xlsx(doc_bytes):
     """
-    Converteer een DOCX-bestand naar een Excel-bestand, inclusief tabellen en gestructureerde tekst.
+    Converteer een DOCX-bestand naar een Excel-bestand en neem ALLE inhoud mee.
     """
+    # **Voer eerst de debug-check uit**
+    debug_check_tables(doc_bytes)
+
     doc = Document(BytesIO(doc_bytes))
 
     # Maak een tijdelijk bestand aan
@@ -1710,10 +1729,10 @@ def convert_docx_to_xlsx(doc_bytes):
 
                 if rows:
                     df = pd.DataFrame(rows)
-                    
-                    # **Controleer of de eerste rij een header is**
+
+                    # **Stap 1.1: Controleer of de eerste rij een echte header is**
                     if df.shape[0] > 1 and not any(df.iloc[0].isna()):
-                        df.columns = df.iloc[0]  # Eerste rij als header
+                        df.columns = df.iloc[0]  # Eerste rij als header als deze niet leeg is
                         df = df[1:].reset_index(drop=True)  # Verwijder de header-rij uit de data
                     else:
                         df.columns = [f"Kolom_{i+1}" for i in range(df.shape[1])]  # Fallback headers
@@ -1722,7 +1741,7 @@ def convert_docx_to_xlsx(doc_bytes):
                     df.to_excel(writer, sheet_name=f"Tabel_{table_count}", index=False)
                     has_data = True
         else:
-            print("❌ Geen tabellen gevonden! We proberen tekst te extraheren.")
+            st.write("❌ Geen tabellen gevonden! We proberen tekst te extraheren.")
 
         # **Stap 2: Als er geen tabellen zijn, probeer tekstregels te extraheren**
         if not has_data:
@@ -1743,6 +1762,7 @@ def convert_docx_to_xlsx(doc_bytes):
             df_empty.to_excel(writer, sheet_name="Leeg Document", index=False)
 
     return excel_output_path
+
 
 
 
