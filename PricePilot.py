@@ -38,7 +38,6 @@ import tempfile
 import pyodbc
 
 
-
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
 CLIENT_SECRET = st.secrets.get("SP_CLIENTSECRET")
@@ -1668,33 +1667,7 @@ def extract_pdf_to_dataframe(pdf_reader):
 
 
 
-def convert_docx_to_pdf(docx_bytes):
-    """Converteert een DOCX-bestand naar PDF en slaat het op als een tijdelijk bestand."""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as temp_docx:
-        temp_docx.write(docx_bytes)
-        temp_docx_path = temp_docx.name
 
-    temp_pdf_path = temp_docx_path.replace(".docx", ".pdf")
-
-    word = CreateObject("Word.Application")
-    word.Visible = False
-    doc = word.Documents.Open(os.path.abspath(temp_docx_path))
-    doc.SaveAs(os.path.abspath(temp_pdf_path), FileFormat=17)  # 17 = wdFormatPDF
-    doc.Close()
-    word.Quit()
-
-    return temp_pdf_path
-
-def extract_tables_from_pdf(pdf_path):
-    """Extraheer tabellen uit een PDF met pdfplumber."""
-    tables = {}
-    with pdfplumber.open(pdf_path) as pdf:
-        for i, page in enumerate(pdf.pages):
-            extracted_tables = page.extract_tables()
-            for j, table in enumerate(extracted_tables):
-                df = pd.DataFrame(table)
-                tables[f"Pagina_{i+1}_Tabel_{j+1}"] = df
-    return tables
 
 
         
@@ -1941,26 +1914,27 @@ def process_attachment(attachment, attachment_name):
         try:
             st.write(f"DOCX-bestand '{attachment_name}' ingelezen.")
     
-            # **Stap 1: Converteer DOCX naar PDF**
-            pdf_file = convert_docx_to_pdf(attachment)
-
-            # **Stap 2: Extraheer tabellen uit PDF**
-            tables_dict = extract_tables_from_pdf(pdf_file)
-            
-            if not tables_dict:
-                st.error("Geen tabellen gevonden in het geconverteerde PDF-bestand.")
+            # Converteer DOCX naar Excel
+            excel_file = convert_docx_to_xlsx(attachment)
+    
+            # Lees de Excel-data in
+            df_dict = pd.read_excel(excel_file, sheet_name=None)
+    
+            # Controleer of er data is
+            if not df_dict:
+                st.error("Geen data gevonden in het Excel-bestand.")
                 return None
     
-           # **Stap 3: Gebruiker selecteert een tabel**
+            # Toon de beschikbare tabellen in de Excel
             st.write("Selecteer de tabel om te verwerken:")
             selected_sheet = st.sidebar.selectbox(
-                "Kies een tabel:", options=list(tables_dict.keys()), format_func=lambda x: f"{x}"
+                "Kies een tabel:", options=list(df_dict.keys()), format_func=lambda x: f"Tabel: {x}"
             )
-            table = tables_dict[selected_sheet]
-
+            table = df_dict[selected_sheet]
+    
             st.write(f"Inhoud van **{selected_sheet}**:")
             st.dataframe(table)
-            
+    
             # **Detecteer relevante kolommen**
             detected_columns = detect_relevant_columns(table)
             mapped_columns = manual_column_mapping(table, detected_columns)
