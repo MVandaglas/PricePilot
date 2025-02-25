@@ -1760,7 +1760,7 @@ def convert_docx_to_xlsx(doc_bytes):
                     df.to_excel(writer, sheet_name=f"Tabel_{table_count}", index=False)
                     has_data = True
         else:
-           st.write("❌ Geen tabellen gevonden! We proberen tekst als tabel te verwerken.")
+            st.write("❌ Geen tabellen gevonden! We proberen tekst als tabel te verwerken.")
 
         # **Stap 2: Als er geen tabellen zijn, probeer tekstregels als tabel te extraheren**
         structured_data = []
@@ -1780,13 +1780,12 @@ def convert_docx_to_xlsx(doc_bytes):
             df_text.to_excel(writer, sheet_name="Gestructureerde Tekst", index=False)
             has_data = True
 
-        # **Stap 4: Voeg een lege sheet toe als er geen gegevens zijn**
+        # **Stap 4: Voeg een minimale zichtbare sheet toe als er geen gegevens zijn**
         if not has_data:
-            df_empty = pd.DataFrame(["Geen data gevonden"], columns=["Melding"])
+            df_empty = pd.DataFrame({"Melding": ["Geen data gevonden"]})
             df_empty.to_excel(writer, sheet_name="Leeg Document", index=False)
 
     return excel_output_path
-
 
 
 def extract_data_from_docx(doc):
