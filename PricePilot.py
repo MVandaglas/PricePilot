@@ -1685,12 +1685,17 @@ def extract_latest_email(body):
 
 
 
+import tempfile
+import pandas as pd
+from io import BytesIO
+from docx import Document
+
 def convert_docx_to_xlsx(doc_bytes):
     """
     Converteer een DOCX-bestand naar een Excel-bestand en neem ALLE inhoud mee.
     """
     doc = Document(BytesIO(doc_bytes))
-    
+
     # Maak een tijdelijk bestand aan
     with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as temp_file:
         excel_output_path = temp_file.name
@@ -1704,13 +1709,18 @@ def convert_docx_to_xlsx(doc_bytes):
             rows = []
             for row in table.rows:
                 cells = [cell.text.strip() for cell in row.cells]
-                rows.append(cells)
+                if any(cells):  # **Lege rijen negeren**
+                    rows.append(cells)
 
             if rows:
                 df = pd.DataFrame(rows)
-                if df.shape[0] > 1:
-                    df.columns = df.iloc[0]  # Eerste rij als header
+
+                # **Stap 1.1: Controleer of de eerste rij een echte header is**
+                if df.shape[0] > 1 and not any(df.iloc[0].isna()):
+                    df.columns = df.iloc[0]  # Eerste rij als header als deze niet leeg is
                     df = df[1:].reset_index(drop=True)  # Verwijder de header-rij uit de data
+                else:
+                    df.columns = [f"Kolom_{i+1}" for i in range(df.shape[1])]  # Fallback headers
 
                 table_count += 1
                 df.to_excel(writer, sheet_name=f"Tabel_{table_count}", index=False)
@@ -1721,10 +1731,8 @@ def convert_docx_to_xlsx(doc_bytes):
         for para in doc.paragraphs:
             text = para.text.strip()
             if text:
-                # Herken kopteksten
                 if para.style.name.startswith("Heading"):
                     structured_text.append(f"[KOPTEKST] {text}")
-                # Herken opsommingstekens (lijsten)
                 elif text.startswith(("- ", "* ", "• ")):
                     structured_text.append(f"[LIJST] {text}")
                 else:
@@ -1741,6 +1749,7 @@ def convert_docx_to_xlsx(doc_bytes):
             df_empty.to_excel(writer, sheet_name="Leeg Document", index=False)
 
     return excel_output_path
+
 
 
 def extract_data_from_docx(doc):
