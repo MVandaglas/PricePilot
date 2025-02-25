@@ -1939,7 +1939,7 @@ def process_attachment(attachment, attachment_name):
 
     elif attachment_name.endswith(".docx"):
         try:
-            st.write(f"DOCX-bestand '{attachment_name}' ingelezen."
+            st.write(f"DOCX-bestand '{attachment_name}' ingelezen.")
     
             # **Stap 1: Converteer DOCX naar PDF**
             pdf_file = convert_docx_to_pdf(attachment)
