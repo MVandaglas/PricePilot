@@ -2503,7 +2503,7 @@ with tab3:
             
             # Instellen van een dropdown voor de kolom "Artikelnaam"
             gb.configure_column(
-                "Artikelnaam ▼",
+                "Artikelnaam",
                 editable=True,
                 cellEditor="agSelectCellEditor",
                 cellEditorParams={"values": list(article_mapping.keys())}
