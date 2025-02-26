@@ -2507,8 +2507,7 @@ with tab3:
                 editable=True,
                 cellEditor="agSelectCellEditor",
                 cellEditorParams={"values": list(article_mapping.keys())},
-                cellRenderer="(params) => `<span>${params.value} ▼</span>`"  # Pijltje toevoegen
-            )
+                cellRenderer="(params) => `<span>${params.value} ▼</span>`",  # Pijltje toevoegen
                 valueSetter="""
                     function(params) {
                         if (params.newValue && params.newValue in params.context.articleMapping) {
