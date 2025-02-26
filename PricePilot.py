@@ -2507,7 +2507,7 @@ with tab3:
                 editable=True,
                 cellEditor="agSelectCellEditor",
                 cellEditorParams={"values": list(article_mapping.keys())}
-         
+            )
             
             # Configureren van de overige kolommen
             gb.configure_column("Artikelnummer", editable=False, hide=True)
