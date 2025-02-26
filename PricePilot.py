@@ -2506,7 +2506,8 @@ with tab3:
                 "Artikelnaam",
                 editable=True,
                 cellEditor="agSelectCellEditor",
-                cellEditorParams={"values": list(article_mapping.keys())},  # Voeg artikelnamen toe als opties
+                cellEditorParams={"values": list(article_mapping.keys())},
+                cellRenderer="(params) => `<span>${params.value} ▼</span>`"  # Pijltje toevoegen
             )
             
             # Configureren van de overige kolommen
