@@ -2503,20 +2503,11 @@ with tab3:
             
             # Instellen van een dropdown voor de kolom "Artikelnaam"
             gb.configure_column(
-                "Artikelnaam",
+                "Artikelnaam ▼",
                 editable=True,
                 cellEditor="agSelectCellEditor",
-                cellEditorParams={"values": list(article_mapping.keys())},
-                cellRenderer="(params) => `<span>${params.value} ▼</span>`",  # Pijltje toevoegen
-                valueSetter="""
-                    function(params) {
-                        if (params.newValue && params.newValue in params.context.articleMapping) {
-                            params.data.Artikelnummer = params.context.articleMapping[params.newValue];
-                        }
-                        return params.newValue;
-                    }
-                """
-            )
+                cellEditorParams={"values": list(article_mapping.keys())}
+         
             
             # Configureren van de overige kolommen
             gb.configure_column("Artikelnummer", editable=False, hide=True)
