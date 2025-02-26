@@ -49,7 +49,7 @@ SP_PASSWORD = st.secrets.get("SP_PASSWORD")
 
 # **Verbinding met Azure SQL Server**
 def create_connection():
-    server = "vdgbullsaiserver.database.windows.net"
+    server = "vdgbullsaiserver.database.windows.net,1433"
     database = "vdgbullsaidb"
     username = SP_USERNAME
     password = SP_PASSWORD
