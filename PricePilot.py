@@ -1685,9 +1685,6 @@ def extract_latest_email(body):
 
 
 
-from docx import Document
-from io import BytesIO
-
 def debug_check_tables(doc_bytes):
     """ Controleert of er tabellen in het DOCX-bestand zijn en toont extra statistieken. """
     doc = Document(BytesIO(doc_bytes))
@@ -1834,6 +1831,32 @@ def extract_data_from_docx(doc):
     return all_dataframes, structured_text
 
 
+def extract_data_with_gpt(document_text):
+    """
+    Roept de OpenAI API aan om de relevante gegevens (omschrijving, aantal, breedte, hoogte) te extraheren.
+    """
+    prompt = f"""
+    Analyseer de volgende tekst en extraheer de relevante gegevens in een tabelvorm met kolommen:
+    ["omschrijving", "aantal", "breedte", "hoogte"].
+    Een omschrijving bevat meestal getallen met "-" ertussen. De breedte en hoogte zijn in millimeters.
+
+    Tekst:
+    {document_text}
+
+    Geef de output terug in JSON-formaat.
+    """
+
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestek formulier en vertaald naar een tabel."},
+                      {"role": "user", "content": prompt}]
+        )
+        extracted_data = response.choices[0].message.content
+        return pd.DataFrame(eval(extracted_data))  # Zet JSON-string om naar DataFrame
+    except Exception as e:
+        st.write(f"Fout bij GPT-extractie: {e}")
+        return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
     
 
 def process_attachment(attachment, attachment_name):
@@ -1889,6 +1912,19 @@ def process_attachment(attachment, attachment_name):
                 end_row = st.sidebar.number_input("Eindrij data:", min_value=0, max_value=len(df)-1, value=len(df)-1)
                 relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
 
+                # GPT Extractie als geen data is gevonden
+                if relevant_data.empty:
+                    st.warning("Geen tabel gevonden. Probeer GPT-extractie...")
+
+                    document_text = extract_text_from_excel(attachment)
+                    if document_text:
+                        relevant_data = extract_data_with_gpt(document_text)
+                        st.write("Data geëxtraheerd via GPT:")
+                        st.dataframe(relevant_data)
+                    
+                    if not relevant_data.empty and st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
 
@@ -1932,7 +1968,20 @@ def process_attachment(attachment, attachment_name):
                 # Selecteer en hernoem kolommen op basis van mapping
                 relevant_data = df_extracted[list(mapped_columns.values())]
                 relevant_data.columns = list(mapped_columns.keys())
-    
+
+                # GPT Extractie als geen data is gevonden
+                if relevant_data.empty:
+                    st.warning("Geen tabel gevonden. Probeer GPT-extractie...")
+
+                    document_text = extract_text_from_pdf(attachment)
+                    if document_text:
+                        relevant_data = extract_data_with_gpt(document_text)
+                        st.write("Data geëxtraheerd via GPT:")
+                        st.dataframe(relevant_data)
+                    
+                    if not relevant_data.empty and st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                
                 st.write("Data na mapping:")
                 st.dataframe(relevant_data)
     
@@ -1998,7 +2047,21 @@ def process_attachment(attachment, attachment_name):
                 start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(table)-1, value=0)
                 end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(table)-1, value=len(table)-1)
                 relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
-    
+
+                # **GPT Extractie als geen data is gevonden**
+                if relevant_data.empty:
+                    st.warning("Geen tabel gevonden. Probeer GPT-extractie...")
+
+                    document_text = extract_text_from_docx(attachment)
+                    if document_text:
+                        relevant_data = extract_data_with_gpt(document_text)
+                        st.write("Data geëxtraheerd via GPT:")
+                        st.dataframe(relevant_data)
+
+                    if not relevant_data.empty and st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                
+                
                 st.write("Relevante data:")
                 st.dataframe(relevant_data)
     
