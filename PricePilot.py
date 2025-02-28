@@ -1542,6 +1542,7 @@ def extract_pdf_to_dataframe(pdf_reader):
         if table_found and first_table:
             st.success("✅ Een tabel is gevonden in de PDF.")
             df_table = pd.DataFrame(first_table[1:], columns=first_table[0])  # Eerste rij als header gebruiken
+            df = df.reset_index(drop=True)  # Zorgt ervoor dat de index uniek is
             st.write("**Voorbeeld van de eerste gedetecteerde tabel:**")
             st.dataframe(df_table)  # Toon de tabel in de UI
             return df_table  # Return de tabel als dataframe
