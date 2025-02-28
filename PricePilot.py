@@ -1879,50 +1879,65 @@ def convert_docx_to_xlsx(doc_bytes):
     return excel_output_path
 
 
-def extract_data_from_docx(doc):
+def extract_data_with_gpt(prompt):
     """
-    Extraheer zowel tabellen als gestructureerde tekst uit een DOCX-document.
+    Verstuurt een tekstprompt naar GPT en retourneert een correct geformatteerde DataFrame.
     """
-    all_dataframes = []
-    structured_text = []
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        extracted_data = response.choices[0].message.content  # Haal de tekstuele GPT-output op
 
-    # **Stap 1: Tabellen verwerken**
-    for table in doc.tables:
-        rows = []
-        for row in table.rows:
-            cells = [cell.text.strip() for cell in row.cells]
-            rows.append(cells)
+        # **Stap 1: Debugging - Toon ruwe GPT-response**
+        st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
+        st.code(extracted_data, language="json")
 
-        if rows:
-            df = pd.DataFrame(rows)
+        # **Stap 2: Strip Markdown en onnodige tekens**
+        extracted_data = extracted_data.strip()
+        if extracted_data.startswith("```json"):
+            extracted_data = extracted_data[7:].strip()  # Verwijder '```json'
+        if extracted_data.endswith("```"):
+            extracted_data = extracted_data[:-3].strip()  # Verwijder '```'
 
-            # Controleer of de eerste rij een header is (kolomnamen)
-            if df.shape[0] > 1:
-                df.columns = df.iloc[0]  # Eerste rij als header
-                df = df[1:]  # Verwijder de header-rij uit de data
-            
-            all_dataframes.append(df)
+        # **Stap 3: JSON validatie**
+        try:
+            extracted_json = json.loads(extracted_data)  # Parse JSON
+        except json.JSONDecodeError as e:
+            st.error(f"❌ GPT-response is geen geldige JSON! Fout: {e}")
+            return pd.DataFrame()  # Lege DataFrame als fallback
 
-    # **Stap 2: Gestructureerde tekst verwerken**
-    for para in doc.paragraphs:
-        text = para.text.strip()
-        if text:
-            structured_text.append(text)
+        # **Stap 4: Zet JSON om naar een DataFrame**
+        if isinstance(extracted_json, list):
+            df = pd.DataFrame(extracted_json)
+        elif isinstance(extracted_json, dict):
+            df = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
+        else:
+            st.error("❌ GPT-response heeft geen correct formaat.")
+            return pd.DataFrame()  # Leeg DataFrame als fallback
 
-    # **UI-weergave**
-    if all_dataframes:
-        st.success("✅ Tabellen gevonden in het DOCX-bestand!")
-        for i, df in enumerate(all_dataframes):
-            st.write(f"**Tabel {i+1}:**")
-            st.dataframe(df)
+        # **Stap 5: Converteer numerieke kolommen**
+        for col in df.columns:
+            if df[col].dtype == "object":  # Alleen stringkolommen aanpassen
+                df[col] = df[col].astype(str).str.replace(" mm", "", regex=True)
+                df[col] = df[col].astype(str).str.replace(" m²", "", regex=True)
 
-    if structured_text:
-        st.info("✨ Geen tabel gevonden, AI tekstextractie.")
-        text_output = "\n".join(structured_text)
-        st.text_area("📜 Extracted tekst", text_output, height=300)
+                # Probeer te converteren naar numeriek indien mogelijk
+                df[col] = pd.to_numeric(df[col], errors="ignore")
 
-    # **Return alle DataFrames en gestructureerde tekst**
-    return all_dataframes, structured_text
+        # **Stap 6: Toon de verwerkte DataFrame**
+        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
+        st.dataframe(df)
+        return df
+
+    except Exception as e:
+        st.error(f"❌ Fout bij GPT-extractie: {e}")
+        return pd.DataFrame()  # Leeg DataFrame als fallback
 
 
 
