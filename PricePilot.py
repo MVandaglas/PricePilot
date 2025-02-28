@@ -5,6 +5,7 @@ import os
 import pandas as pd
 from PIL import Image
 import re
+import json
 from datetime import datetime, timedelta, date
 from st_aggrid import AgGrid, GridOptionsBuilder, JsCode, ColumnsAutoSizeMode, GridUpdateMode, DataReturnMode
 import openai
@@ -1926,19 +1927,22 @@ def extract_data_with_gpt(prompt):
         )
         
         extracted_data = response.choices[0].message.content  # Haal de tekstuele GPT-output op
-        
+
         # **Debugging: Toon de ruwe GPT-response**
-        st.write("📌 **Debugging: Ruwe GPT-response**")
+        st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
         st.code(extracted_data, language="json")
 
-        # **Controleer of de response een geldige JSON-string is**
+        # **Stap 1: Verwijder backticks als GPT markdown gebruikt**
+        extracted_data = extracted_data.strip("```json").strip("```").strip()
+
+        # **Stap 2: Probeer de GPT-output als JSON te laden**
         try:
-            extracted_json = json.loads(extracted_data)  # Probeer de GPT-output als JSON te laden
+            extracted_json = json.loads(extracted_data)  # Parse JSON
         except json.JSONDecodeError:
             st.error("❌ GPT-response is geen geldige JSON! Controleer de AI-output.")
             return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
 
-        # **Controleer of het een lijst of dict is en zet het om naar een DataFrame**
+        # **Stap 3: Zet JSON om naar een DataFrame**
         if isinstance(extracted_json, list):
             df = pd.DataFrame(extracted_json)
         elif isinstance(extracted_json, dict):
@@ -1947,7 +1951,7 @@ def extract_data_with_gpt(prompt):
             st.error("❌ GPT-response heeft geen correct formaat.")
             return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
 
-        # **Controleer of de kolommen correct zijn**
+        # **Stap 4: Controleer of de juiste kolommen aanwezig zijn**
         expected_columns = {"omschrijving", "aantal", "breedte", "hoogte"}
         if not expected_columns.issubset(set(df.columns)):
             st.error(f"❌ Onverwachte kolommen in GPT-output: {df.columns.tolist()}")
