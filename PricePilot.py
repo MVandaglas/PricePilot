@@ -1915,9 +1915,10 @@ def extract_data_from_docx(doc):
     return all_dataframes, structured_text
 
 
+
 def extract_data_with_gpt(prompt):
     """
-    Verstuurt een tekstprompt naar GPT en probeert een gestructureerde tabel te extraheren.
+    Verstuurt een tekstprompt naar GPT en retourneert een ruwe DataFrame.
     """
     try:
         response = openai.chat.completions.create(
@@ -1932,52 +1933,38 @@ def extract_data_with_gpt(prompt):
         st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
         st.code(extracted_data, language="json")
 
-        # **Stap 1: Verwijder backticks als GPT markdown gebruikt**
+        # **Stap 1: Verwijder backticks en extra opmaak**
         extracted_data = extracted_data.strip("```json").strip("```").strip()
-        
-        # Stap 1B: Knip de JSON af als er extra tekst is toegevoegd
+
+        # **Stap 2: Verwijder extra tekst als GPT een uitleg toevoegt**
         if "Note:" in extracted_data:
-            extracted_data = extracted_data.split("Note:")[0].strip()  # Verwijder alles na 'Note:'
+            extracted_data = extracted_data.split("Note:")[0].strip()
 
-
-        # **Stap 2: Probeer de GPT-output als JSON te laden**
+        # **Stap 3: Probeer de GPT-output als JSON te laden**
         try:
             extracted_json = json.loads(extracted_data)  # Parse JSON
         except json.JSONDecodeError:
             st.error("❌ GPT-response is geen geldige JSON! Controleer de AI-output.")
-            return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
+            return pd.DataFrame()  # Lege DataFrame als fallback
 
-        # **Stap 3: Zet JSON om naar een DataFrame**
-        if isinstance(extracted_json, dict) and "glass_compositions" in extracted_json:
-            extracted_json = extracted_json["glass_compositions"]  # Unwrap de JSON-lijst
-        
+        # **Stap 4: Zet JSON om naar DataFrame zonder filtering**
         if isinstance(extracted_json, list):
             df = pd.DataFrame(extracted_json)
         elif isinstance(extracted_json, dict):
             df = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
         else:
             st.error("❌ GPT-response heeft geen correct formaat.")
-            return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
+            return pd.DataFrame()  # Leeg DataFrame als fallback
 
-        # **Stap 4: Controleer of de juiste kolommen aanwezig zijn**
-        expected_columns = {"omschrijving", "aantal", "breedte", "hoogte"}
-        if not expected_columns.issubset(set(df.columns)):
-            st.error(f"❌ Onverwachte kolommen in GPT-output: {df.columns.tolist()}")
-            return pd.DataFrame(columns=list(expected_columns))  # Leeg DataFrame met correcte kolomnamen
-
-        # Stap 5: Zet numerieke kolommen om naar integers (verwijder ' mm')
-        if "breedte" in df.columns:
-            df["breedte"] = df["breedte"].astype(str).str.replace(" mm", "").astype(float)
-        
-        if "hoogte" in df.columns:
-            df["hoogte"] = df["hoogte"].astype(str).str.replace(" mm", "").astype(float)
-        
-
-        return df  # Geef de correcte DataFrame terug
+        # **Stap 5: Toon de volledige DataFrame zonder filtering**
+        st.success("✅ AI-extractie voltooid! Hieronder de ruwe output:")
+        st.dataframe(df)  # Toon de volledige DataFrame zoals ontvangen
+        return df  # Geef de DataFrame terug zonder kolomrestricties
 
     except Exception as e:
         st.error(f"❌ Fout bij GPT-extractie: {e}")
-        return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
+        return pd.DataFrame()  # Leeg DataFrame als fallback
+
     
 
 def process_attachment(attachment, attachment_name):
