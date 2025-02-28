@@ -1577,8 +1577,8 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                         document_text = extract_text_from_pdf(pdf_reader)
                         relevant_data = extract_data_with_gpt(document_text)
                         # **Debugging: Toon ruwe GPT-response**
-                        st.write("📌 **Debugging: Ruwe GPT-response**")
-                        st.write(relevant_data)
+                        st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
+                        st.code(relevant_data, language="json")
                         
                         # **Controleer of de respons een geldige DataFrame is**
                         if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
@@ -1914,31 +1914,49 @@ def extract_data_from_docx(doc):
     return all_dataframes, structured_text
 
 
-def extract_data_with_gpt(document_text):
+def extract_data_with_gpt(prompt):
     """
-    Roept de OpenAI API aan om de relevante gegevens (omschrijving, aantal, breedte, hoogte) te extraheren.
+    Verstuurt een tekstprompt naar GPT en probeert een gestructureerde tabel te extraheren.
     """
-    prompt = f"""
-    Analyseer de volgende tekst en extraheer de relevante gegevens in een tabelvorm met kolommen:
-    ["omschrijving", "aantal", "breedte", "hoogte"].
-    Een omschrijving bevat meestal getallen met "-" ertussen. De breedte en hoogte zijn in millimeters.
-
-    Tekst:
-    {document_text}
-
-    Geef de output terug in JSON-formaat.
-    """
-
     try:
         response = openai.chat.completions.create(
             model="gpt-4o",
-            messages=[{"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestek formulier en vertaald naar een tabel."},
+            messages=[{"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
                       {"role": "user", "content": prompt}]
         )
-        extracted_data = response.choices[0].message.content
-        return pd.DataFrame(eval(extracted_data))  # Zet JSON-string om naar DataFrame
+        
+        extracted_data = response.choices[0].message.content  # Haal de tekstuele GPT-output op
+        
+        # **Debugging: Toon de ruwe GPT-response**
+        st.write("📌 **Debugging: Ruwe GPT-response**")
+        st.code(extracted_data, language="json")
+
+        # **Controleer of de response een geldige JSON-string is**
+        try:
+            extracted_json = json.loads(extracted_data)  # Probeer de GPT-output als JSON te laden
+        except json.JSONDecodeError:
+            st.error("❌ GPT-response is geen geldige JSON! Controleer de AI-output.")
+            return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
+
+        # **Controleer of het een lijst of dict is en zet het om naar een DataFrame**
+        if isinstance(extracted_json, list):
+            df = pd.DataFrame(extracted_json)
+        elif isinstance(extracted_json, dict):
+            df = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
+        else:
+            st.error("❌ GPT-response heeft geen correct formaat.")
+            return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
+
+        # **Controleer of de kolommen correct zijn**
+        expected_columns = {"omschrijving", "aantal", "breedte", "hoogte"}
+        if not expected_columns.issubset(set(df.columns)):
+            st.error(f"❌ Onverwachte kolommen in GPT-output: {df.columns.tolist()}")
+            return pd.DataFrame(columns=list(expected_columns))  # Leeg DataFrame met correcte kolomnamen
+
+        return df  # Geef de correcte DataFrame terug
+
     except Exception as e:
-        st.write(f"Fout bij GPT-extractie: {e}")
+        st.error(f"❌ Fout bij GPT-extractie: {e}")
         return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
     
 
