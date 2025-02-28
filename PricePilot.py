@@ -1576,6 +1576,19 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     with st.spinner("🔄 AI-extractie bezig... Even geduld..."):
                         document_text = extract_text_from_pdf(pdf_reader)
                         relevant_data = extract_data_with_gpt(document_text)
+                        # **Debugging: Toon ruwe GPT-response**
+                        st.write("📌 **Debugging: Ruwe GPT-response**")
+                        st.write(relevant_data)
+                        
+                        # **Controleer of de respons een geldige DataFrame is**
+                        if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
+                            st.success("✅ AI-extractie voltooid!")
+                            st.write("📌 **Data geëxtraheerd via AI:**")
+                            st.dataframe(relevant_data)
+                            return relevant_data  # Direct GPT-resultaat retourneren
+                        else:
+                            st.error("❌ Fout bij GPT-extractie: De gegenereerde data is niet geldig.")
+                            return pd.DataFrame()  # Voorkom crashes door een lege DataFrame terug te geven
                     
                     st.success("✅ AI-extractie voltooid!")
                     st.write("📌 **Data geëxtraheerd via AI:**")
