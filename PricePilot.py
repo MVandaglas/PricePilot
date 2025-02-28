@@ -1523,6 +1523,17 @@ def correct_backlog_rows(df_backlog):
     
     return pd.DataFrame(corrected_rows, columns=df_backlog.columns)
 
+def extract_text_from_pdf(pdf_bytes):
+    """
+    Haalt tekst uit een PDF-bestand.
+    """
+    try:
+        with pdfplumber.open(pdf_bytes) as pdf:
+            text = "\n".join([page.extract_text() for page in pdf.pages if page.extract_text()])
+        return text
+    except Exception as e:
+        st.error(f"Fout bij tekstextractie uit PDF: {e}")
+        return ""
 
 def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
     try:
@@ -1919,7 +1930,8 @@ def process_attachment(attachment, attachment_name):
     """
     Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
-    use_gpt_extraction = st.sidebar.checkbox("Gebruik AI extractie", value=False, key="ai_fallback_checkbox")
+    use_gpt_extraction = st.sidebar.checkbox(f"Gebruik AI-extractie voor {attachment_name}", value=False, key=f"ai_fallback_{attachment_name}")
+
     if attachment_name.endswith(".xlsx"):
         try:
             df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
