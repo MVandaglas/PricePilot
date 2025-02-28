@@ -1574,22 +1574,32 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                 st.warning("✨ Geen tabel gevonden.")
             
                 if use_gpt_extraction:
-                    with st.spinner("🔄 AI-extractie bezig... Even geduld..."):
-                        document_text = extract_text_from_pdf(pdf_reader)
-                        relevant_data = extract_data_with_gpt(document_text)
-                        # **Debugging: Toon ruwe GPT-response**
-                        st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
-                        st.code(relevant_data, language="json")
-                        
-                        # **Controleer of de respons een geldige DataFrame is**
-                        if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
-                            st.success("✅ AI-extractie voltooid!")
-                            st.write("📌 **Data geëxtraheerd via AI:**")
-                            st.dataframe(relevant_data)
-                            return relevant_data  # Direct GPT-resultaat retourneren
-                        else:
-                            st.error("❌ Fout bij GPT-extractie: De gegenereerde data is niet geldig.")
-                            return pd.DataFrame()  # Voorkom crashes door een lege DataFrame terug te geven
+                    progress_bar = st.progress(0)  # Start een lege progress bar
+                    
+                    for percent_complete in range(0, 101, 10):  # Laat de balk oplopen van 0% naar 100%
+                        time.sleep(0.5)  # Wacht 0.5 seconden per stap (kan worden aangepast)
+                        progress_bar.progress(percent_complete)
+                    
+                    # Voer nu de AI-extractie uit
+                    document_text = extract_text_from_pdf(pdf_reader)
+                    relevant_data = extract_data_with_gpt(document_text)
+                    
+                    # Verwijder de progress bar en geef succesmelding
+                    progress_bar.empty()
+                    st.success("✅ AI-extractie voltooid!")
+                    # **Debugging: Toon ruwe GPT-response**
+                    st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
+                    st.code(relevant_data, language="json")
+                    
+                    # **Controleer of de respons een geldige DataFrame is**
+                    if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
+                        st.success("✅ AI-extractie voltooid!")
+                        st.write("📌 **Data geëxtraheerd via AI:**")
+                        st.dataframe(relevant_data)
+                        return relevant_data  # Direct GPT-resultaat retourneren
+                    else:
+                        st.error("❌ Fout bij GPT-extractie: De gegenereerde data is niet geldig.")
+                        return pd.DataFrame()  # Voorkom crashes door een lege DataFrame terug te geven
                     
                     st.success("✅ AI-extractie voltooid!")
                     st.write("📌 **Data geëxtraheerd via AI:**")
