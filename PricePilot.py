@@ -1573,12 +1573,15 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                 st.warning("✨ Geen tabel gevonden.")
             
                 if use_gpt_extraction:
-                    st.info("🔄 AI-extractie wordt uitgevoerd...")
-                    document_text = extract_text_from_pdf(pdf_reader)
-                    relevant_data = extract_data_with_gpt(document_text)
+                    with st.spinner("🔄 AI-extractie bezig... Even geduld..."):
+                        document_text = extract_text_from_pdf(pdf_reader)
+                        relevant_data = extract_data_with_gpt(document_text)
+                    
+                    st.success("✅ AI-extractie voltooid!")
                     st.write("📌 **Data geëxtraheerd via AI:**")
                     st.dataframe(relevant_data)
                     return relevant_data  # Direct GPT-resultaat retourneren
+
                 else:
                     st.warning("⚠ Geen tabel gevonden, en AI-extractie is niet ingeschakeld.")
 
