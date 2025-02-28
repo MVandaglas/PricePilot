@@ -1558,7 +1558,19 @@ def extract_pdf_to_dataframe(pdf_reader):
             st.dataframe(df_table)  # Toon de tabel in de UI
             return df_table  # Return de tabel als dataframe
         else:
-            st.warning("✨ Geen tabel gevonden, AI tekstextractie.")
+            if not table_found:
+                st.warning("✨ Geen tabel gevonden.")
+            
+                if use_gpt_extraction:
+                    st.info("🔄 AI-extractie wordt uitgevoerd...")
+                    document_text = extract_text_from_pdf(pdf_reader)
+                    relevant_data = extract_data_with_gpt(document_text)
+                    st.write("📌 **Data geëxtraheerd via AI:**")
+                    st.dataframe(relevant_data)
+                    return relevant_data  # Direct GPT-resultaat retourneren
+                else:
+                    st.warning("⚠ Geen tabel gevonden, en AI-extractie is niet ingeschakeld.")
+
 
             # **Fallback naar tekstextractie als er geen tabel is gevonden**
             with pdfplumber.open(pdf_reader) as pdf:
@@ -1907,6 +1919,7 @@ def process_attachment(attachment, attachment_name):
     """
     Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
+    use_gpt_extraction = st.sidebar.checkbox("Gebruik AI extractie", value=False)
     if attachment_name.endswith(".xlsx"):
         try:
             df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
