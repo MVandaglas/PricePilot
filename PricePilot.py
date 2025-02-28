@@ -1934,6 +1934,11 @@ def extract_data_with_gpt(prompt):
 
         # **Stap 1: Verwijder backticks als GPT markdown gebruikt**
         extracted_data = extracted_data.strip("```json").strip("```").strip()
+        
+        # Stap 1B: Knip de JSON af als er extra tekst is toegevoegd
+        if "Note:" in extracted_data:
+            extracted_data = extracted_data.split("Note:")[0].strip()  # Verwijder alles na 'Note:'
+
 
         # **Stap 2: Probeer de GPT-output als JSON te laden**
         try:
@@ -1959,6 +1964,14 @@ def extract_data_with_gpt(prompt):
         if not expected_columns.issubset(set(df.columns)):
             st.error(f"❌ Onverwachte kolommen in GPT-output: {df.columns.tolist()}")
             return pd.DataFrame(columns=list(expected_columns))  # Leeg DataFrame met correcte kolomnamen
+
+        # Stap 5: Zet numerieke kolommen om naar integers (verwijder ' mm')
+        if "breedte" in df.columns:
+            df["breedte"] = df["breedte"].astype(str).str.replace(" mm", "").astype(float)
+        
+        if "hoogte" in df.columns:
+            df["hoogte"] = df["hoogte"].astype(str).str.replace(" mm", "").astype(float)
+        
 
         return df  # Geef de correcte DataFrame terug
 
