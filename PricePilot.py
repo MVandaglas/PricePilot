@@ -1954,10 +1954,6 @@ def extract_data_with_gpt(prompt):
             st.error("❌ GPT-response heeft geen correct formaat.")
             return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
 
-        else:
-            st.error("❌ GPT-response heeft geen correct formaat.")
-            return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
-
         # **Stap 4: Controleer of de juiste kolommen aanwezig zijn**
         expected_columns = {"omschrijving", "aantal", "breedte", "hoogte"}
         if not expected_columns.issubset(set(df.columns)):
