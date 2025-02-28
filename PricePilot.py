@@ -1524,7 +1524,7 @@ def correct_backlog_rows(df_backlog):
     return pd.DataFrame(corrected_rows, columns=df_backlog.columns)
 
 
-def extract_pdf_to_dataframe(pdf_reader):
+def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
     try:
         # **Stap 1: Controleer of er een tabel in de PDF staat**
         table_found = False  # Flag om bij te houden of een tabel is gevonden
