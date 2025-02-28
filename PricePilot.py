@@ -1919,7 +1919,7 @@ def process_attachment(attachment, attachment_name):
     """
     Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
-    use_gpt_extraction = st.sidebar.checkbox("Gebruik AI extractie", value=False)
+    use_gpt_extraction = st.sidebar.checkbox("Gebruik AI extractie", value=False, key="ai_fallback_checkbox")
     if attachment_name.endswith(".xlsx"):
         try:
             df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
@@ -2007,7 +2007,7 @@ def process_attachment(attachment, attachment_name):
                 pass
     
             # Gegevens extraheren uit PDF
-            df_extracted = extract_pdf_to_dataframe(pdf_reader)
+            df_extracted = extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction)
             if not df_extracted.empty:
 
                 # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
