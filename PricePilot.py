@@ -1542,7 +1542,12 @@ def extract_pdf_to_dataframe(pdf_reader):
         if table_found and first_table:
             st.success("✅ Een tabel is gevonden in de PDF.")
             df_table = pd.DataFrame(first_table[1:], columns=first_table[0])  # Eerste rij als header gebruiken
-            df_table = df_table.reset_index(drop=True)  # Zorgt ervoor dat de index uniek is
+            
+            # **Debugging Stap**: Controleer of er duplicate indexwaarden zijn
+            if df_table.index.duplicated().any():
+                st.error("⚠ Waarschuwing: Dubbele indexen gedetecteerd in de tabel!")
+                df_table = df_table.reset_index(drop=True)  # Fix index probleem
+            
             st.write("**Voorbeeld van de eerste gedetecteerde tabel:**")
             st.dataframe(df_table)  # Toon de tabel in de UI
             return df_table  # Return de tabel als dataframe
@@ -1596,11 +1601,18 @@ def extract_pdf_to_dataframe(pdf_reader):
     
                 if header_row is not None:
                     df.columns = df.iloc[header_row]
-                    df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
+                    df = df.drop(df.index[:header_row + 1])
                 else:
                     st.warning("⚠ Geen header herkend, eerste rij als header gebruikt.")
                     df.columns = df.iloc[0]
-                    df = df.drop(df.index[0]).reset_index(drop=True)
+                    df = df.drop(df.index[0])
+                
+                # **Debugging Stap**: Controleer of de index uniek is
+                df = df.reset_index(drop=True)
+                
+                if df.index.duplicated().any():
+                    st.error("⚠ Waarschuwing: Dubbele indexen in AI-extractie! Reset index.")
+                    df = df.reset_index(drop=True)  # Nogmaals voor de zekerheid
     
                 df.columns = df.columns.str.lower()
     
