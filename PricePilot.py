@@ -1934,8 +1934,10 @@ def extract_data_with_gpt(prompt):
     try:
         response = openai.chat.completions.create(
             model="gpt-4o",
-            messages=[{"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
-                      {"role": "user", "content": prompt}]
+            messages=[
+                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
+                {"role": "user", "content": prompt}
+            ]
         )
         
         extracted_data = response.choices[0].message.content  # Haal de tekstuele GPT-output op
@@ -1967,7 +1969,7 @@ def extract_data_with_gpt(prompt):
             st.error("❌ GPT-response heeft geen correct formaat.")
             return pd.DataFrame()  # Leeg DataFrame als fallback
 
-        # **Stap 5: Zet kolommen om naar numerieke waarden als ze eenheden bevatten**
+        # **Stap 5: Converteer numerieke kolommen**
         for col in df.columns:
             if df[col].dtype == "object":  # Alleen stringkolommen aanpassen
                 df[col] = df[col].astype(str).str.replace(" mm", "", regex=True)
@@ -1976,13 +1978,7 @@ def extract_data_with_gpt(prompt):
                 # Probeer te converteren naar numeriek indien mogelijk
                 df[col] = pd.to_numeric(df[col], errors="ignore")
 
-        # **Stap 6: Flexibele kolomnamen**
-        expected_columns = ["Omschrijving", "Raamref", "Raam", "Vak", "Breedte", "Hoogte", "Aantal", "Opp", "Spacer", "Uitvoeringsoptie"]
-        for col in expected_columns:
-            if col not in df.columns:
-                df[col] = None  # Voeg ontbrekende kolommen toe om consistentie te behouden
-
-        # **Stap 7: Toon de verwerkte DataFrame**
+        # **Stap 6: Toon de verwerkte DataFrame**
         st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
         st.dataframe(df)
         return df
