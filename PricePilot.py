@@ -1608,11 +1608,22 @@ def extract_pdf_to_dataframe(pdf_reader):
                     df = df.drop(df.index[0])
                 
                 # **Debugging Stap**: Controleer of de index uniek is
-                df = df.reset_index(drop=True)
+                if not df.index.is_unique:
+                    st.error("⚠ Waarschuwing: Niet-unieke indexwaarden gevonden, reset index na deduplicatie.")
+                    df = df.loc[~df.index.duplicated(keep='first')].reset_index(drop=True)
+                else:
+                    df = df.reset_index(drop=True)
+
                 
                 if df.index.duplicated().any():
                     st.error("⚠ Waarschuwing: Dubbele indexen in AI-extractie! Reset index.")
-                    df = df.reset_index(drop=True)  # Nogmaals voor de zekerheid
+                    # Controleer of de index uniek is
+                    if not df.index.is_unique:
+                        st.error("⚠ Waarschuwing: Niet-unieke indexwaarden gevonden, reset index na deduplicatie.")
+                        df = df.loc[~df.index.duplicated(keep='first')].reset_index(drop=True)
+                    else:
+                        df = df.reset_index(drop=True)
+
     
                 df.columns = df.columns.str.lower()
     
