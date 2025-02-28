@@ -1604,7 +1604,27 @@ def extract_pdf_to_dataframe(pdf_reader):
                         break
     
                 if header_row is not None:
-                    df.columns = df.iloc[header_row]
+                    # Controleer en hernoem dubbele kolomnamen
+                    df.columns = df.iloc[header_row].astype(str).str.strip()  # Strip spaties en zet om naar string
+                    df = df.drop(df.index[:header_row + 1])  # Verwijder header-rij
+                    
+                    # Hernoem dubbele kolommen
+                    if df.columns.duplicated().any():
+                        st.error(f"⚠ Fout: Dubbele kolomnamen gevonden: {df.columns[df.columns.duplicated()].tolist()}")
+                    
+                        new_columns = []
+                        col_count = {}
+                        for col in df.columns:
+                            if col in col_count:
+                                col_count[col] += 1
+                                new_columns.append(f"{col}_{col_count[col]}")  # Voeg index toe aan dubbele kolommen
+                            else:
+                                col_count[col] = 1
+                                new_columns.append(col)
+                    
+                        df.columns = new_columns  # Update kolomnamen
+                        st.success("✅ Dubbele kolomnamen hernoemd.")
+
                     df = df.drop(df.index[:header_row + 1])
                 else:
                     st.warning("⚠ Geen header herkend, eerste rij als header gebruikt.")
