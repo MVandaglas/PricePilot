@@ -1943,10 +1943,17 @@ def extract_data_with_gpt(prompt):
             return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
 
         # **Stap 3: Zet JSON om naar een DataFrame**
+        if isinstance(extracted_json, dict) and "glass_compositions" in extracted_json:
+            extracted_json = extracted_json["glass_compositions"]  # Unwrap de JSON-lijst
+        
         if isinstance(extracted_json, list):
             df = pd.DataFrame(extracted_json)
         elif isinstance(extracted_json, dict):
             df = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
+        else:
+            st.error("❌ GPT-response heeft geen correct formaat.")
+            return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
+
         else:
             st.error("❌ GPT-response heeft geen correct formaat.")
             return pd.DataFrame(columns=["omschrijving", "aantal", "breedte", "hoogte"])  # Leeg DataFrame als fallback
