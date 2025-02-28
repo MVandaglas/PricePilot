@@ -1544,17 +1544,22 @@ def extract_pdf_to_dataframe(pdf_reader):
             df_table = pd.DataFrame(first_table[1:], columns=first_table[0])  # Eerste rij als header gebruiken
             
             # **Debugging Stap**: Controleer of er duplicate indexwaarden zijn
+            st.write("📌 **Debugging: Inhoud van df_table vóór index reset**")
+            st.write(df_table)
+
             if df_table.index.duplicated().any():
                 st.error("⚠ Waarschuwing: Dubbele indexen gedetecteerd in de tabel!")
                 df_table = df_table.reset_index(drop=True)  # Fix index probleem
             
+            st.write("📌 **Debugging: DataFrame na index reset**")
+            st.write(df_table)
+
             st.write("**Voorbeeld van de eerste gedetecteerde tabel:**")
             st.dataframe(df_table)  # Toon de tabel in de UI
             return df_table  # Return de tabel als dataframe
         else:
             st.warning("✨ Geen tabel gevonden, AI tekstextractie.")
 
-            
             # **Fallback naar tekstextractie als er geen tabel is gevonden**
             with pdfplumber.open(pdf_reader) as pdf:
                 lines = []
@@ -1567,7 +1572,6 @@ def extract_pdf_to_dataframe(pdf_reader):
             current_category = "0"  # Fallback waarde als er geen categorie is
             category_pattern = re.compile(r"(\d{1,2}-\s*\d{1,2}[A-Z]?-\s*\w+)|(\d{1,2}[A-Z]?\s*-\s*\w+)")
 
-    
             for line in lines:
                 line = line.strip()
                 if category_pattern.match(line):
@@ -1608,23 +1612,25 @@ def extract_pdf_to_dataframe(pdf_reader):
                     df = df.drop(df.index[0])
                 
                 # **Debugging Stap**: Controleer of de index uniek is
+                st.write("📌 **Debugging: Inhoud van df vóór index reset**")
+                st.write(df)
+
                 if not df.index.is_unique:
-                    st.error("⚠ Waarschuwing: Niet-unieke indexwaarden gevonden, reset index na deduplicatie.")
+                    st.error("⚠ Waarschuwing: Niet-unieke indexwaarden gevonden vóór reset. Fix index...")
+                    st.write("Dubbele indexen gevonden:", df.index[df.index.duplicated()].tolist())  # Debug info
                     df = df.loc[~df.index.duplicated(keep='first')].reset_index(drop=True)
                 else:
                     df = df.reset_index(drop=True)
 
-                
-                if df.index.duplicated().any():
-                    st.error("⚠ Waarschuwing: Dubbele indexen in AI-extractie! Reset index.")
-                    # Controleer of de index uniek is
-                    if not df.index.is_unique:
-                        st.error("⚠ Waarschuwing: Niet-unieke indexwaarden gevonden, reset index na deduplicatie.")
-                        df = df.loc[~df.index.duplicated(keep='first')].reset_index(drop=True)
-                    else:
-                        df = df.reset_index(drop=True)
+                # Debugging: Controleer opnieuw na reset
+                if not df.index.is_unique:
+                    st.error("⚠ Probleem na reset: Index is nog steeds niet uniek!")
+                    st.write("Huidige indexstatus:", df.index)
 
-    
+                # Extra: Print de kolommen en rijen om te checken of data correct is
+                st.write("📌 **Debugging: DataFrame na index reset**")
+                st.write(df)
+
                 df.columns = df.columns.str.lower()
     
                 if "aantal" not in df.columns:
@@ -1678,12 +1684,6 @@ def extract_pdf_to_dataframe(pdf_reader):
     
             else:
                 st.warning("Geen gegevens gevonden in de PDF om te verwerken test.")
-    
-                    
-        
-    except Exception as e:
-        st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
-        return pd.DataFrame()
     
     except Exception as e:
         st.error(f"Fout bij het extraheren van PDF-gegevens: {e}")
