@@ -1937,7 +1937,11 @@ def process_attachment(attachment, attachment_name):
             if st.button(
                 f"🦅 Gebruik HawkAI voor {attachment_name} 🦅",
                 key=f"ai_fallback_{attachment_name}"
-            )
+            ):
+                with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
+                    extracted_text = extract_data_with_gpt(attachment)  # Jouw AI-extractiefunctie
+                    st.write("📄 Geëxtraheerde tekst:")
+                    st.text(extracted_text)
 
 
     if attachment_name.endswith(".xlsx"):
