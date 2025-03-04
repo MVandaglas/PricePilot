@@ -1404,7 +1404,7 @@ def remap_and_process(df):
 
 
 
-def manual_column_mapping():
+def manual_column_mapping(df, detected_columns):
     """
     Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen,
     waarbij alleen JSON-kolommen worden gebruikt als die beschikbaar zijn.
