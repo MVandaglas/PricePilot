@@ -1931,27 +1931,25 @@ def process_attachment(attachment, attachment_name):
     excluded_extensions = ('.png', '.jpg', '.jpeg')
 
     # Expander voor HawkAI-knoppen
-    with st.sidebar.expander("🦅 HawkAI Bestandsverwerking", expanded=True):
-        # Container om knoppen netjes gegroepeerd te houden
-        with st.sidebar.container():
-            if not attachment_name.lower().endswith(excluded_extensions):
-                # Knopwaarde opslaan
-                use_gpt_extraction = st.button(
-                    f"🦅 Gebruik HawkAI voor {attachment_name} 🦅",
-                    key=f"ai_fallback_{attachment_name}"
-                )
+    with st.sidebar.container():
+        if not attachment_name.lower().endswith(excluded_extensions):
+            # Knopwaarde opslaan
+            use_gpt_extraction = st.checkbox(
+                f"🦅 Gebruik HawkAI voor {attachment_name} 🦅", value = false,
+                key=f"ai_fallback_{attachment_name}"
+            )
 
-                # Controleer of de knop is ingedrukt
-                if use_gpt_extraction:
-                    with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
-                        # Stuur de bijlage direct naar GPT voor data-extractie
-                        df = extract_data_with_gpt(attachment)
+            # Controleer of de knop is ingedrukt
+            if use_gpt_extraction:
+                with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
+                    # Stuur de bijlage direct naar GPT voor data-extractie
+                    df = extract_data_with_gpt(attachment)
 
-                        # Stap 3: Toon het resultaat
-                        if not df.empty:
-                            st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
-                            st.dataframe(df)
-                        else:
+                    # Stap 3: Toon het resultaat
+                    if not df.empty:
+                        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
+                        st.dataframe(df)
+                    else:
                             st.warning("⚠️ Geen bruikbare data geëxtraheerd.")
 
 
