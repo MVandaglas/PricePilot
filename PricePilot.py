@@ -1587,7 +1587,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                     st.session_state["json_df"] = relevant_data.copy()  # Sla AI-extractie op
                 
                 # Verwijder de progress bar en geef succesmelding
-                progress_bar.empty()
+
                 st.success("✅ AI-extractie voltooid!")
                 # **Debugging: Toon ruwe GPT-response**
                 st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
