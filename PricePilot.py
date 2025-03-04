@@ -1965,41 +1965,33 @@ def process_attachment(attachment, attachment_name):
     if attachment_name.lower().endswith(excluded_extensions):
         return  # Stop de functie voor deze bestandstypes
 
-    # **AI Extractie alleen als gebruiker op de knop drukt**
-    if st.sidebar.button(f"🔍 Gebruik AI-extractie voor {attachment_name}"):
-        with st.spinner(f"AI-extractie bezig voor {attachment_name}... ⏳"):
-            if attachment_name.endswith(".pdf"):
-                document_text = extract_text_from_pdf(attachment)
-            elif attachment_name.endswith(".xlsx"):
-                document_text = extract_text_from_excel(attachment)
-            else:
-                st.error("❌ Dit bestandsformaat wordt niet ondersteund voor AI-extractie.")
-                return
+if attachment_name.endswith(".pdf"):
+    try:
+        pdf_reader = BytesIO(attachment)  # Zet bytes om naar een bestand-stream
 
-            relevant_data = extract_data_with_gpt(document_text)
+        # **AI Extractie alleen als gebruiker op de knop drukt**
+        if st.sidebar.button(f"🔍 Gebruik AI-extractie voor {attachment_name}"):
+            with st.spinner(f"AI-extractie bezig voor {attachment_name}... ⏳"):
+                document_text = extract_text_from_pdf(pdf_reader)
+                relevant_data = extract_data_with_gpt(document_text)
 
-            # **Sla JSON-output op in session_state**
-            if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
-                st.session_state["json_df"] = relevant_data.copy()
-                st.success("✅ AI-extractie voltooid!")
+                # **Sla JSON-output op in session_state**
+                if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
+                    st.session_state["json_df"] = relevant_data.copy()
+                    st.success("✅ AI-extractie voltooid!")
 
-    # **Gebruik JSON als deze al bestaat**
-    if "json_df" in st.session_state and not st.session_state["json_df"].empty:
-        df_extracted = st.session_state["json_df"]
-        st.write("📌 **Data geladen vanuit AI-extractie**")
-    else:
-        # **Laad de data alleen als er nog geen AI-extractie is uitgevoerd**
-        if attachment_name.endswith(".pdf"):
-            df_extracted = extract_pdf_to_dataframe(attachment)  # AI-extractie niet meer nodig, al gebeurd
-        elif attachment_name.endswith(".xlsx"):
-            df_extracted = pd.read_excel(BytesIO(attachment), dtype=str)
+        # **Gebruik JSON als deze al bestaat**
+        if "json_df" in st.session_state and not st.session_state["json_df"].empty:
+            df_extracted = st.session_state["json_df"]
+            st.write("📌 **Data geladen vanuit AI-extractie**")
         else:
-            st.error("❌ Dit bestandsformaat wordt niet ondersteund.")
-            return
+            df_extracted = extract_pdf_to_dataframe(pdf_reader)  # Correcte aanroep!
 
-    if not df_extracted.empty:
-        detected_columns = detect_relevant_columns(df_extracted)
-        mapped_columns = manual_column_mapping(df_extracted, detected_columns)
+        if not df_extracted.empty:
+            detected_columns = detect_relevant_columns(df_extracted)
+            mapped_columns = manual_column_mapping(df_extracted, detected_columns)
+    except Exception as e:
+        st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
 
     if attachment_name.endswith(".xlsx"):
         try:
