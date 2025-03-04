@@ -1580,8 +1580,6 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     # Verwijder de progress bar en geef succesmelding
                     progress_bar.empty()
                     st.success("✅ AI-extractie voltooid!")
-                    # **Debugging: Toon ruwe GPT-response**
-                    st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
                     st.code(relevant_data, language="json")
                     
                     # **Controleer of de respons een geldige DataFrame is**
@@ -1687,10 +1685,6 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                 if not df.index.is_unique:
                     st.error("⚠ Probleem na reset: Index is nog steeds niet uniek!")
                     st.write("Huidige indexstatus:", df.index)
-
-                # Extra: Print de kolommen en rijen om te checken of data correct is
-                st.write("📌 **Debugging: DataFrame na index reset**")
-                st.write(df)
 
                 df.columns = df.columns.str.lower()
     
