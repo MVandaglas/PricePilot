@@ -1405,36 +1405,41 @@ def remap_and_process(df):
 
 def manual_column_mapping(df, detected_columns):
     """
-    Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen
-    en zorgt ervoor dat de kolommen 'Aantal', 'Hoogte' en 'Breedte' numeriek worden gemaakt.
+    Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen,
+    waarbij eerst wordt gekeken naar de JSON-output als die beschikbaar is.
     """
-    
-    # **Stap 1: JSON/DataFrame opslaan in session_state (alleen als het nog niet bestaat)**
-    if "saved_df" not in st.session_state:
-        st.session_state["saved_df"] = df.copy()  # Oorspronkelijke dataset opslaan
-    df = st.session_state["saved_df"]  # Werk verder met de opgeslagen DataFrame
 
-    all_columns = list(df.columns)
+    # **Stap 1: Gebruik JSON DataFrame als die bestaat**
+    if "json_df" in st.session_state:
+        df = st.session_state["json_df"]  # Werk met de JSON-data
+    elif "saved_df" in st.session_state:
+        df = st.session_state["saved_df"]  # Gebruik fallback als JSON niet bestaat
+    else:
+        st.error("⚠️ Geen dataset gevonden. Voer eerst de AI-extractie uit!")
+        return {}
+
+    all_columns = list(df.columns)  # Gebruik alleen de kolommen van de gekozen DataFrame
     mapped_columns = {k: v for k, v in detected_columns.items() if v in all_columns}
 
     st.write("Controleer of de kolommen correct zijn gedetecteerd.✨ Indien niet, selecteer de juiste kolom.")
 
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
-        # **Stap 2: Initialiseer session_state vóór het aanmaken van de widget**
         session_key = f"mapped_{key}"
+
+        # **Stap 2: Initialiseer session_state vóór het aanmaken van de widget**
         if session_key not in st.session_state:
-            st.session_state[session_key] = mapped_columns.get(key, "Geen")  # Gebruik de detectie of 'Geen'
+            st.session_state[session_key] = mapped_columns.get(key, "Geen")
 
         # **Stap 3: Correcte index bepalen**
         options = ["Geen"] + all_columns
         default_index = options.index(st.session_state[session_key]) if st.session_state[session_key] in options else 0
 
-        # **Stap 4: Maak de selectbox met een correcte index**
+        # **Stap 4: Maak de selectbox met alleen JSON-kolommen**
         mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'", 
             options=options,
             index=default_index,
-            key=session_key  # Hiermee wordt de gekozen waarde in `session_state` opgeslagen
+            key=session_key  
         )
 
     # **Stap 5: Filter de mapping om alleen daadwerkelijke selecties te behouden**
