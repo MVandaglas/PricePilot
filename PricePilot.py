@@ -1930,14 +1930,26 @@ def process_attachment(attachment, attachment_name):
     # Bestandstypes die GEEN knop moeten krijgen
     excluded_extensions = ('.png', '.jpg', '.jpeg')
 
-    # Maak een container om de knoppen netjes gegroepeerd te houden
-    with st.sidebar.container():
-        # Alleen een knop tonen als het bestand NIET in de uitsluitlijst zit
-        if not attachment_name.lower().endswith(excluded_extensions):
-            if st.button(
-                f"🦅 Gebruik HawkAI voor {attachment_name} 🦅",
-                key=f"ai_fallback_{attachment_name}"
-            ):
+    # Expander voor HawkAI-knoppen
+    with st.sidebar.expander("🦅 HawkAI Bestandsverwerking", expanded=True):
+        # Container om knoppen netjes gegroepeerd te houden
+        with st.sidebar.container():
+            if not attachment_name.lower().endswith(excluded_extensions):
+                if st.button(
+                    f"🦅 Gebruik HawkAI voor {attachment_name} 🦅",
+                    key=f"ai_fallback_{attachment_name}"
+                ):
+                    with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
+                        # Stuur de bijlage direct naar GPT voor data-extractie
+                        df = extract_data_with_gpt(attachment)
+
+                        # Stap 3: Toon het resultaat
+                        if not df.empty:
+                            st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
+                            st.dataframe(df)
+                        else:
+                            st.warning("⚠️ Geen bruikbare data geëxtraheerd.")
+
 
 
     if attachment_name.endswith(".xlsx"):
