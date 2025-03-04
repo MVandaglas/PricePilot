@@ -1935,8 +1935,8 @@ def extract_data_with_gpt(prompt):
         # **Stap 5: Converteer numerieke kolommen**
         for col in df_json.columns:
             if df_json[col].dtype == "object":  # Alleen stringkolommen aanpassen
-                df_json[col] = df[col].astype(str).str.replace(" mm", "", regex=True)
-                df_json[col] = df[col].astype(str).str.replace(" m²", "", regex=True)
+                df_json[col] = df_json[col].astype(str).str.replace(" mm", "", regex=True)
+                df_json[col] = df_json[col].astype(str).str.replace(" m²", "", regex=True)
 
                 # Probeer te converteren naar numeriek indien mogelijk
                 df_json[col] = pd.to_numeric(df[col], errors="ignore")
