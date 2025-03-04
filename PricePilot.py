@@ -1923,7 +1923,7 @@ def extract_data_with_gpt(prompt):
 
 
 
-def process_attachment(attachments):
+def process_attachment(attachment, attachment_name):
     """
     Laat de gebruiker een bijlage kiezen via een dropdown en toont pas een checkbox als er een keuze is gemaakt.
     """
