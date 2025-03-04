@@ -1540,7 +1540,7 @@ def extract_text_from_pdf(pdf_bytes):
         st.error(f"Fout bij tekstextractie uit PDF: {e}")
         return ""
 
-def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
+def extract_pdf_to_dataframe(pdf_reader):
     try:
         # **Stap 1: Controleer of er een tabel in de PDF staat**
         table_found = False  # Flag om bij te houden of een tabel is gevonden
@@ -1577,13 +1577,7 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
             if not table_found:
                 st.warning("✨ Geen tabel gevonden.")
             
-                if use_gpt_extraction:
-                    progress_bar = st.progress(0)  # Start een lege progress bar
-                    
-                    for percent_complete in range(0, 101, 10):  # Laat de balk oplopen van 0% naar 100%
-                        time.sleep(0.5)  # Wacht 0.5 seconden per stap (kan worden aangepast)
-                        progress_bar.progress(percent_complete)
-                    
+                        
                     # Voer nu de AI-extractie uit
                     document_text = extract_text_from_pdf(pdf_reader)
                     relevant_data = extract_data_with_gpt(document_text)
@@ -1974,7 +1968,14 @@ def process_attachment(attachment, attachment_name):
     # **AI Extractie alleen als gebruiker op de knop drukt**
     if st.sidebar.button(f"🔍 Gebruik AI-extractie voor {attachment_name}"):
         with st.spinner(f"AI-extractie bezig voor {attachment_name}... ⏳"):
-            document_text = extract_text_from_pdf(attachment) if attachment_name.endswith(".pdf") else extract_text_from_excel(attachment)
+            if attachment_name.endswith(".pdf"):
+                document_text = extract_text_from_pdf(attachment)
+            elif attachment_name.endswith(".xlsx"):
+                document_text = extract_text_from_excel(attachment)
+            else:
+                st.error("❌ Dit bestandsformaat wordt niet ondersteund voor AI-extractie.")
+                return
+
             relevant_data = extract_data_with_gpt(document_text)
 
             # **Sla JSON-output op in session_state**
@@ -1987,7 +1988,14 @@ def process_attachment(attachment, attachment_name):
         df_extracted = st.session_state["json_df"]
         st.write("📌 **Data geladen vanuit AI-extractie**")
     else:
-        df_extracted = extract_pdf_to_dataframe(attachment, True) if attachment_name.endswith(".pdf") else pd.read_excel(BytesIO(attachment), dtype=str)
+        # **Laad de data alleen als er nog geen AI-extractie is uitgevoerd**
+        if attachment_name.endswith(".pdf"):
+            df_extracted = extract_pdf_to_dataframe(attachment, True)  # AI-extractie niet meer nodig, al gebeurd
+        elif attachment_name.endswith(".xlsx"):
+            df_extracted = pd.read_excel(BytesIO(attachment), dtype=str)
+        else:
+            st.error("❌ Dit bestandsformaat wordt niet ondersteund.")
+            return
 
     if not df_extracted.empty:
         detected_columns = detect_relevant_columns(df_extracted)
