@@ -1923,33 +1923,34 @@ def extract_data_with_gpt(prompt):
 
 
 
-def process_attachments(attachments):
+def process_attachment(attachment, attachment_name):
     """
-    Laat de gebruiker een bijlage kiezen via een dropdown en biedt een checkbox om AI-extractie in te schakelen.
+    Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
-    # Bestandstypes die GEEN optie mogen krijgen
+    # Bestandstypes die GEEN knop moeten krijgen
     excluded_extensions = ('.png', '.jpg', '.jpeg')
 
-    # Filter alleen de toegestane bijlagen
-    valid_attachments = [att for att in attachments if not att.lower().endswith(excluded_extensions)]
-
-    if valid_attachments:
-        with st.sidebar.expander("🦅 HawkAI Bestandsverwerking", expanded=True):
-            # Dropdown om een bijlage te selecteren
-            selected_attachment = st.selectbox("📂 Kies een bijlage:", valid_attachments, key="selected_attachment")
-
-            # Checkbox om HawkAI-extractie te activeren
+    # Expander voor HawkAI-knoppen
+    with st.sidebar.container():
+        if not attachment_name.lower().endswith(excluded_extensions):
+            # Knopwaarde opslaan
             use_gpt_extraction = st.checkbox(
-                f"🦅 Gebruik HawkAI voor {selected_attachment} 🦅", value=False, key="ai_fallback"
+                f"🦅 Gebruik HawkAI voor {attachment_name} 🦅", value = False,
+                key=f"ai_fallback_{attachment_name}"
             )
 
-            # Start verwerking als checkbox is ingeschakeld
+            # Controleer of de knop is ingedrukt
             if use_gpt_extraction:
-                with st.spinner(f"HawkAI-extractie bezig voor {selected_attachment}... ⏳"):
-                    st.success(f"✅ AI-extractie gestart voor {selected_attachment}!")  # Hier je verwerkingslogica
+                with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
+                    # Stuur de bijlage direct naar GPT voor data-extractie
+                    df = extract_data_with_gpt(attachment)
 
-    else:
-        st.sidebar.warning("⚠️ Geen verwerkbare bijlagen beschikbaar.")
+                    # Stap 3: Toon het resultaat
+                    if not df.empty:
+                        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
+                        st.dataframe(df)
+                    else:
+                            st.warning("⚠️ Geen bruikbare data geëxtraheerd.")
 
 
 
