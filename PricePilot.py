@@ -1598,7 +1598,7 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     return relevant_data  # Direct GPT-resultaat retourneren
 
                 else:
-                    st.warning("⚠ Geen tabel gevonden, en AI-extractie is niet ingeschakeld.")
+                    st.warning("⚠ Geen tabel gevonden, wees kritisch op de gevonden data en overweeg HawkAI.")
 
 
             # **Fallback naar tekstextractie als er geen tabel is gevonden**
