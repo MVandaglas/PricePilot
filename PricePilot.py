@@ -1554,24 +1554,17 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
         if table_found and first_table:
             st.success("✅ Een tabel is gevonden in de PDF.")
             df_table = pd.DataFrame(first_table[1:], columns=first_table[0])  # Eerste rij als header gebruiken
-            
-            # **Debugging Stap**: Controleer of er duplicate indexwaarden zijn
-            st.write("📌 **Debugging: Inhoud van df_table vóór index reset**")
-            st.write(df_table)
+
 
             if df_table.index.duplicated().any():
-                st.error("⚠ Waarschuwing: Dubbele indexen gedetecteerd in de tabel!")
                 df_table = df_table.reset_index(drop=True)  # Fix index probleem
             
-            st.write("📌 **Debugging: DataFrame na index reset**")
-            st.write(df_table)
-
+ 
             st.write("**Voorbeeld van de eerste gedetecteerde tabel:**")
             st.dataframe(df_table)  # Toon de tabel in de UI
             return df_table  # Return de tabel als dataframe
         else:
             if not table_found:
-                st.warning("✨ Geen tabel gevonden.")
             
                 if use_gpt_extraction:
                     progress_bar = st.progress(0)  # Start een lege progress bar
@@ -1673,7 +1666,6 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                                 new_columns.append(col)
                     
                         df.columns = new_columns  # Update kolomnamen
-                        st.success("✅ Dubbele kolomnamen hernoemd.")
 
                     df = df.drop(df.index[:header_row + 1])
                 else:
