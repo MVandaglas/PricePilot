@@ -1965,35 +1965,37 @@ def process_attachment(attachment, attachment_name):
     if attachment_name.lower().endswith(excluded_extensions):
         return  # Stop de functie voor deze bestandstypes
 
-if attachment_name.endswith(".pdf"):
-    try:
-        pdf_reader = BytesIO(attachment)  # Zet bytes om naar een bestand-stream
+    # **Verwerking van PDF-bestanden**
+    if attachment_name.endswith(".pdf"):
+        try:
+            pdf_reader = BytesIO(attachment)  # Zet bytes om naar een bestand-stream
 
-        # **AI Extractie alleen als gebruiker op de knop drukt**
-        if st.sidebar.button(f"🔍 Gebruik AI-extractie voor {attachment_name}"):
-            with st.spinner(f"AI-extractie bezig voor {attachment_name}... ⏳"):
-                document_text = extract_text_from_pdf(pdf_reader)
-                relevant_data = extract_data_with_gpt(document_text)
+            # **AI Extractie alleen als gebruiker op de knop drukt**
+            if st.sidebar.button(f"🔍 Gebruik AI-extractie voor {attachment_name}"):
+                with st.spinner(f"AI-extractie bezig voor {attachment_name}... ⏳"):
+                    document_text = extract_text_from_pdf(pdf_reader)
+                    relevant_data = extract_data_with_gpt(document_text)
 
-                # **Sla JSON-output op in session_state**
-                if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
-                    st.session_state["json_df"] = relevant_data.copy()
-                    st.success("✅ AI-extractie voltooid!")
+                    # **Sla JSON-output op in session_state**
+                    if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
+                        st.session_state["json_df"] = relevant_data.copy()
+                        st.success("✅ AI-extractie voltooid!")
 
-        # **Gebruik JSON als deze al bestaat**
-        if "json_df" in st.session_state and not st.session_state["json_df"].empty:
-            df_extracted = st.session_state["json_df"]
-            st.write("📌 **Data geladen vanuit AI-extractie**")
-        else:
-            df_extracted = extract_pdf_to_dataframe(pdf_reader)  # Correcte aanroep!
+            # **Gebruik JSON als deze al bestaat**
+            if "json_df" in st.session_state and not st.session_state["json_df"].empty:
+                df_extracted = st.session_state["json_df"]
+                st.write("📌 **Data geladen vanuit AI-extractie**")
+            else:
+                df_extracted = extract_pdf_to_dataframe(pdf_reader)  # Correcte aanroep!
 
-        if not df_extracted.empty:
-            detected_columns = detect_relevant_columns(df_extracted)
-            mapped_columns = manual_column_mapping(df_extracted, detected_columns)
-    except Exception as e:
-        st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
+            if not df_extracted.empty:
+                detected_columns = detect_relevant_columns(df_extracted)
+                mapped_columns = manual_column_mapping(df_extracted, detected_columns)
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
 
-    if attachment_name.endswith(".xlsx"):
+    # **Verwerking van Excel-bestanden**
+    elif attachment_name.endswith(".xlsx"):
         try:
             df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
             st.write("Bijlage ingelezen als DataFrame:")
@@ -2017,7 +2019,7 @@ if attachment_name.endswith(".pdf"):
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
             else:
                 st.warning("Geen headers gedetecteerd in de eerste 30 rijen.")
-            return None
+                return None  # **Verplaats deze return niet naar boven!**
 
             df.columns = df.columns.str.lower()
 
