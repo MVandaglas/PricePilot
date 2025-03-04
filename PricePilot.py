@@ -2005,7 +2005,6 @@ def extract_data_with_gpt(prompt):
 
     
 
-import streamlit as st
 
 def process_attachment(attachment, attachment_name):
     """
@@ -2023,8 +2022,10 @@ def process_attachment(attachment, attachment_name):
                 key=f"ai_fallback_{attachment_name}"
             ):
                 with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
-                    pass
-                
+                    process_file(attachment, attachment_name)  # Start de verwerking
+
+def process_file(attachment, attachment_name):
+
     if attachment_name.endswith(".xlsx"):
         try:
             df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
