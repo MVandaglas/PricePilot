@@ -1869,7 +1869,7 @@ def extract_data_with_gpt(prompt):
         response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel. Kap niet af, verwerk het gehele document."},
+                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
                 {"role": "user", "content": prompt}
             ]
         )
