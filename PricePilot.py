@@ -1935,7 +1935,7 @@ def process_attachment(attachment, attachment_name):
         if not attachment_name.lower().endswith(excluded_extensions):
             # Knopwaarde opslaan
             use_gpt_extraction = st.checkbox(
-                f"🦅 Gebruik HawkAI voor {attachment_name} 🦅", value = false,
+                f"🦅 Gebruik HawkAI voor {attachment_name} 🦅", value = False,
                 key=f"ai_fallback_{attachment_name}"
             )
 
