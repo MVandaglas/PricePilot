@@ -2088,7 +2088,7 @@ def process_attachment(attachment, attachment_name):
                 pass
     
             # Gegevens extraheren uit PDF
-            df_extracted = extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction)
+            df_extracted = extract_pdf_to_dataframe(pdf_reader)
             if not df_extracted.empty:
 
                 # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
