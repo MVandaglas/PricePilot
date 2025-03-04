@@ -1990,7 +1990,7 @@ def process_attachment(attachment, attachment_name):
     else:
         # **Laad de data alleen als er nog geen AI-extractie is uitgevoerd**
         if attachment_name.endswith(".pdf"):
-            df_extracted = extract_pdf_to_dataframe(attachment, True)  # AI-extractie niet meer nodig, al gebeurd
+            df_extracted = extract_pdf_to_dataframe(attachment)  # AI-extractie niet meer nodig, al gebeurd
         elif attachment_name.endswith(".xlsx"):
             df_extracted = pd.read_excel(BytesIO(attachment), dtype=str)
         else:
