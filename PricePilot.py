@@ -1935,10 +1935,14 @@ def process_attachment(attachment, attachment_name):
         # Container om knoppen netjes gegroepeerd te houden
         with st.sidebar.container():
             if not attachment_name.lower().endswith(excluded_extensions):
-                if st.button(
+                # Knopwaarde opslaan
+                use_gpt_extraction = st.button(
                     f"🦅 Gebruik HawkAI voor {attachment_name} 🦅",
                     key=f"ai_fallback_{attachment_name}"
-                ):
+                )
+
+                # Controleer of de knop is ingedrukt
+                if use_gpt_extraction:
                     with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
                         # Stuur de bijlage direct naar GPT voor data-extractie
                         df = extract_data_with_gpt(attachment)
