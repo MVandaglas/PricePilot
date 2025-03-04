@@ -1939,7 +1939,7 @@ def extract_data_with_gpt(prompt):
                 df_json[col] = df_json[col].astype(str).str.replace(" m²", "", regex=True)
 
                 # Probeer te converteren naar numeriek indien mogelijk
-                df_json[col] = pd.to_numeric(df[col], errors="ignore")
+                df_json[col] = pd.to_numeric(df_json[col], errors="ignore")
 
         # **Stap 6: Toon de verwerkte DataFrame**
         st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
