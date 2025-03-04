@@ -1424,25 +1424,18 @@ def manual_column_mapping(df, detected_columns):
     st.write("Controleer of de kolommen correct zijn gedetecteerd.✨ Indien niet, selecteer de juiste kolom.")
 
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
-        try:
-            default_index = all_columns.index(mapped_columns[key]) + 1  # +1 vanwege "Geen" als extra optie
-        except (KeyError, ValueError):
-            default_index = 0
-
-        # **Stap 2: Bewaar mapping in session_state om herladen te voorkomen**
+        # **Stap 2: Initialiseer session_state vóór het aanmaken van de widget**
         session_key = f"mapped_{key}"
         if session_key not in st.session_state:
-            st.session_state[session_key] = "Geen" if key not in mapped_columns else mapped_columns[key]
+            st.session_state[session_key] = mapped_columns.get(key, "Geen")  # Gebruik de detectie of 'Geen'
 
-        # **Stap 3: Pas selectbox aan om session_state te gebruiken**
-        st.session_state[session_key] = st.selectbox(
+        # **Stap 3: Maak de selectbox met een standaardwaarde uit session_state**
+        mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'", 
             options=["Geen"] + all_columns,
-            index=default_index,
+            index=["Geen"] + all_columns.index(st.session_state[session_key]) if st.session_state[session_key] in all_columns else 0,
             key=session_key  # Hiermee wordt de gekozen waarde in `session_state` opgeslagen
         )
-
-        mapped_columns[key] = st.session_state[session_key]
 
     # **Stap 4: Filter de mapping om alleen daadwerkelijke selecties te behouden**
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
@@ -1461,6 +1454,7 @@ def manual_column_mapping(df, detected_columns):
             st.warning(f"'{key}' is niet gemapt.")
 
     return mapped_columns
+
 
 
 # Functie voor PDF naar Excel conversie
