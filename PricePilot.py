@@ -406,7 +406,7 @@ with tab3:
         standardized_columns = {col: col.strip().lower() for col in df.columns}
         
         column_mapping = {
-            "Artikelnaam": ["artikelnaam", "artikel", "product", "type", "article", "samenstelling", "glastype"],
+            "Artikelnaam": ["artikelnaam", "artikel", "product", "type", "article", "samenstelling", "glastype", "omschrijving"],
             "Hoogte": ["hoogte", "height", "h"],
             "Breedte": ["breedte", "width", "b"],
             "Aantal": ["aantal", "quantity", "qty", "stuks"]
