@@ -1653,8 +1653,7 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     
                     # Hernoem dubbele kolommen
                     if df.columns.duplicated().any():
-                        st.error(f"⚠ Fout: Dubbele kolomnamen gevonden: {df.columns[df.columns.duplicated()].tolist()}")
-                    
+                     
                         new_columns = []
                         col_count = {}
                         for col in df.columns:
