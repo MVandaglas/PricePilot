@@ -1407,36 +1407,35 @@ def remap_and_process(df):
 def manual_column_mapping(df, detected_columns):
     """
     Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen,
-    waarbij alleen JSON-kolommen worden gebruikt als die beschikbaar zijn.
+    waarbij JSON-kolommen worden gebruikt als deze beschikbaar zijn.
     """
 
     # **Stap 1: Gebruik JSON DataFrame als die bestaat**
-    if "json_df" in st.session_state and st.session_state["json_df"] is not None:
-        df = st.session_state["json_df"].copy()  # Gebruik de JSON-data
+    if "json_df" in st.session_state and st.session_state["json_df"] is not None and not st.session_state["json_df"].empty:
+        df = st.session_state["json_df"].copy()  # Gebruik JSON-data
         st.write("📌 **Data geladen vanuit JSON-extractie**")
     else:
-        st.error("⚠️ Geen JSON-data gevonden. Voer eerst de AI-extractie uit!")
-        return {}
+        st.write("📌 **Geen JSON-data gevonden, gebruik standaard dataset**")
 
-    all_columns = list(df.columns)  # **Gebruik ALLEEN kolommen uit de JSON-data**
-    st.write("🛠 **Beschikbare kolommen in JSON:**", all_columns)  # Debugging stap
+    all_columns = list(df.columns)  # **Gebruik alleen kolommen van de gekozen dataset**
+    st.write("🛠 **Beschikbare kolommen:**", all_columns)  # Debugging stap
 
     mapped_columns = {}  # Lege mapping dictionary
 
     st.write("Controleer of de kolommen correct zijn gedetecteerd.✨ Indien niet, selecteer de juiste kolom.")
 
-    for key in ["glasType", "Hoogte", "Breedte", "Aantal"]:
+    for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
         session_key = f"mapped_{key}"
 
         # **Stap 2: Initialiseer session_state vóór het aanmaken van de widget**
         if session_key not in st.session_state:
             st.session_state[session_key] = "Geen"
 
-        # **Stap 3: Alleen JSON-kolommen tonen**
+        # **Stap 3: Correcte index bepalen**
         options = ["Geen"] + all_columns
         default_index = options.index(st.session_state[session_key]) if st.session_state[session_key] in options else 0
 
-        # **Stap 4: Selectbox met ALLEEN JSON-kolommen**
+        # **Stap 4: Selectbox met JSON-kolommen als deze beschikbaar zijn**
         mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'",
             options=options,
@@ -1448,6 +1447,7 @@ def manual_column_mapping(df, detected_columns):
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
     return mapped_columns
+
 
 
 
@@ -1931,26 +1931,26 @@ def extract_data_with_gpt(prompt):
 
         # **Stap 4: Zet JSON om naar een DataFrame**
         if isinstance(extracted_json, list):
-            df = pd.DataFrame(extracted_json)
+            df_json = pd.DataFrame(extracted_json)
         elif isinstance(extracted_json, dict):
-            df = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
+            df_json = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
         else:
             st.error("❌ GPT-response heeft geen correct formaat.")
             return pd.DataFrame()  # Leeg DataFrame als fallback
 
         # **Stap 5: Converteer numerieke kolommen**
         for col in df.columns:
-            if df[col].dtype == "object":  # Alleen stringkolommen aanpassen
-                df[col] = df[col].astype(str).str.replace(" mm", "", regex=True)
-                df[col] = df[col].astype(str).str.replace(" m²", "", regex=True)
+            if df_json[col].dtype == "object":  # Alleen stringkolommen aanpassen
+                df_json[col] = df[col].astype(str).str.replace(" mm", "", regex=True)
+                df_json[col] = df[col].astype(str).str.replace(" m²", "", regex=True)
 
                 # Probeer te converteren naar numeriek indien mogelijk
-                df[col] = pd.to_numeric(df[col], errors="ignore")
+                df_json[col] = pd.to_numeric(df[col], errors="ignore")
 
         # **Stap 6: Toon de verwerkte DataFrame**
         st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
-        st.dataframe(df)
-        return df
+        st.dataframe(df_json)
+        return df_json
 
     except Exception as e:
         st.error(f"❌ Fout bij GPT-extractie: {e}")
@@ -1963,7 +1963,35 @@ def process_attachment(attachment, attachment_name):
     """
     Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
-    use_gpt_extraction = st.sidebar.checkbox(f"Gebruik AI-extractie voor {attachment_name}", value=False, key=f"ai_fallback_{attachment_name}")
+
+    # Bestandstypes die GEEN knop mogen krijgen
+    excluded_extensions = ('.png', '.jpg', '.jpeg')
+
+    # **Toon GEEN knop voor afbeeldingen**
+    if attachment_name.lower().endswith(excluded_extensions):
+        return  # Stop de functie voor deze bestandstypes
+
+    # **AI Extractie alleen als gebruiker op de knop drukt**
+    if st.sidebar.button(f"🔍 Gebruik AI-extractie voor {attachment_name}"):
+        with st.spinner(f"AI-extractie bezig voor {attachment_name}... ⏳"):
+            document_text = extract_text_from_pdf(attachment) if attachment_name.endswith(".pdf") else extract_text_from_excel(attachment)
+            relevant_data = extract_data_with_gpt(document_text)
+
+            # **Sla JSON-output op in session_state**
+            if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
+                st.session_state["json_df"] = relevant_data.copy()
+                st.success("✅ AI-extractie voltooid!")
+
+    # **Gebruik JSON als deze al bestaat**
+    if "json_df" in st.session_state and not st.session_state["json_df"].empty:
+        df_extracted = st.session_state["json_df"]
+        st.write("📌 **Data geladen vanuit AI-extractie**")
+    else:
+        df_extracted = extract_pdf_to_dataframe(attachment, True) if attachment_name.endswith(".pdf") else pd.read_excel(BytesIO(attachment), dtype=str)
+
+    if not df_extracted.empty:
+        detected_columns = detect_relevant_columns(df_extracted)
+        mapped_columns = manual_column_mapping(df_extracted, detected_columns)
 
     if attachment_name.endswith(".xlsx"):
         try:
