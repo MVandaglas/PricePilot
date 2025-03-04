@@ -1403,62 +1403,52 @@ def remap_and_process(df):
     return df
 
 
-def manual_column_mapping(df, detected_columns):
+
+def manual_column_mapping():
     """
     Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen,
-    waarbij eerst wordt gekeken naar de JSON-output als die beschikbaar is.
+    waarbij alleen JSON-kolommen worden gebruikt als die beschikbaar zijn.
     """
 
     # **Stap 1: Gebruik JSON DataFrame als die bestaat**
-    if "json_df" in st.session_state:
-        df = st.session_state["json_df"]  # Werk met de JSON-data
-    elif "saved_df" in st.session_state:
-        df = st.session_state["saved_df"]  # Gebruik fallback als JSON niet bestaat
+    if "json_df" in st.session_state and st.session_state["json_df"] is not None:
+        df = st.session_state["json_df"].copy()  # Gebruik de JSON-data
+        st.write("📌 **Data geladen vanuit JSON-extractie**")
     else:
-        st.error("⚠️ Geen dataset gevonden. Voer eerst de AI-extractie uit!")
+        st.error("⚠️ Geen JSON-data gevonden. Voer eerst de AI-extractie uit!")
         return {}
 
-    all_columns = list(df.columns)  # Gebruik alleen de kolommen van de gekozen DataFrame
-    mapped_columns = {k: v for k, v in detected_columns.items() if v in all_columns}
+    all_columns = list(df.columns)  # **Gebruik ALLEEN kolommen uit de JSON-data**
+    st.write("🛠 **Beschikbare kolommen in JSON:**", all_columns)  # Debugging stap
+
+    mapped_columns = {}  # Lege mapping dictionary
 
     st.write("Controleer of de kolommen correct zijn gedetecteerd.✨ Indien niet, selecteer de juiste kolom.")
 
-    for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
+    for key in ["glasType", "Hoogte", "Breedte", "Aantal"]:
         session_key = f"mapped_{key}"
 
         # **Stap 2: Initialiseer session_state vóór het aanmaken van de widget**
         if session_key not in st.session_state:
-            st.session_state[session_key] = mapped_columns.get(key, "Geen")
+            st.session_state[session_key] = "Geen"
 
-        # **Stap 3: Correcte index bepalen**
+        # **Stap 3: Alleen JSON-kolommen tonen**
         options = ["Geen"] + all_columns
         default_index = options.index(st.session_state[session_key]) if st.session_state[session_key] in options else 0
 
-        # **Stap 4: Maak de selectbox met alleen JSON-kolommen**
+        # **Stap 4: Selectbox met ALLEEN JSON-kolommen**
         mapped_columns[key] = st.selectbox(
-            f"Selecteer kolom voor '{key}'", 
+            f"Selecteer kolom voor '{key}'",
             options=options,
             index=default_index,
-            key=session_key  
+            key=session_key
         )
 
     # **Stap 5: Filter de mapping om alleen daadwerkelijke selecties te behouden**
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
-    # **Stap 6: Converteer de kolommen 'Hoogte', 'Breedte' en 'Aantal' naar numeriek**
-    for key in ["Hoogte", "Breedte", "Aantal"]:
-        if key in mapped_columns:
-            try:
-                df[mapped_columns[key]] = pd.to_numeric(df[mapped_columns[key]], errors="coerce").fillna(0)
-            except Exception as e:
-                st.error(f"Fout bij conversie van '{mapped_columns[key]}' naar numeriek: {e}")
-
-    # **Stap 7: Toon een waarschuwing voor niet-gemapte kolommen**
-    for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
-        if key not in mapped_columns:
-            st.warning(f"'{key}' is niet gemapt.")
-
     return mapped_columns
+
 
 
 # Functie voor PDF naar Excel conversie
@@ -1597,6 +1587,10 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     # Voer nu de AI-extractie uit
                     document_text = extract_text_from_pdf(pdf_reader)
                     relevant_data = extract_data_with_gpt(document_text)
+
+                    # **Stap 1: Bewaar JSON-output in session_state**
+                    if "json_df" not in st.session_state or st.session_state["json_df"] is None:
+                        st.session_state["json_df"] = relevant_data.copy()  # Sla AI-extractie op
                     
                     # Verwijder de progress bar en geef succesmelding
                     progress_bar.empty()
