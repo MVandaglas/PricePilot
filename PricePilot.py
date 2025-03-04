@@ -1403,43 +1403,59 @@ def remap_and_process(df):
     return df
 
 
+import streamlit as st
+import pandas as pd
+import numpy as np
+
 def manual_column_mapping(df, detected_columns):
     """
     Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen
     en zorgt ervoor dat de kolommen 'Aantal', 'Hoogte' en 'Breedte' numeriek worden gemaakt.
     """
+    
+    # **Stap 1: JSON/DataFrame opslaan in session_state (alleen als het nog niet bestaat)**
+    if "saved_df" not in st.session_state:
+        st.session_state["saved_df"] = df.copy()  # Oorspronkelijke dataset opslaan
+    df = st.session_state["saved_df"]  # Werk verder met de opgeslagen DataFrame
+
     all_columns = list(df.columns)
     mapped_columns = {k: v for k, v in detected_columns.items() if v in all_columns}
 
     st.write("Controleer of de kolommen correct zijn gedetecteerd.✨ Indien niet, selecteer de juiste kolom.")
 
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
-        # Bepaal standaardindex veilig
         try:
             default_index = all_columns.index(mapped_columns[key]) + 1  # +1 vanwege "Geen" als extra optie
         except (KeyError, ValueError):
             default_index = 0
 
-        # Toon selectbox aan gebruiker
-        mapped_columns[key] = st.selectbox(
+        # **Stap 2: Bewaar mapping in session_state om herladen te voorkomen**
+        session_key = f"mapped_{key}"
+        if session_key not in st.session_state:
+            st.session_state[session_key] = "Geen" if key not in mapped_columns else mapped_columns[key]
+
+        # **Stap 3: Pas selectbox aan om session_state te gebruiken**
+        st.session_state[session_key] = st.selectbox(
             f"Selecteer kolom voor '{key}'", 
             options=["Geen"] + all_columns,
-            index=default_index
+            index=default_index,
+            key=session_key  # Hiermee wordt de gekozen waarde in `session_state` opgeslagen
         )
 
-    # Filter de mapping om alleen daadwerkelijke selecties te behouden
+        mapped_columns[key] = st.session_state[session_key]
+
+    # **Stap 4: Filter de mapping om alleen daadwerkelijke selecties te behouden**
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
-    # Converteer de kolommen 'Hoogte', 'Breedte' en 'Aantal' naar numeriek als ze zijn geselecteerd
+    # **Stap 5: Converteer de kolommen 'Hoogte', 'Breedte' en 'Aantal' naar numeriek**
     for key in ["Hoogte", "Breedte", "Aantal"]:
         if key in mapped_columns:
-            if df[mapped_columns[key]].dtype not in [np.float64, np.int64]:
-                try:
-                    df[mapped_columns[key]] = pd.to_numeric(df[mapped_columns[key]], errors="coerce").fillna(0)
-                except Exception as e:
-                    st.error(f"Fout bij conversie van '{mapped_columns[key]}' naar numeriek: {e}")
+            try:
+                df[mapped_columns[key]] = pd.to_numeric(df[mapped_columns[key]], errors="coerce").fillna(0)
+            except Exception as e:
+                st.error(f"Fout bij conversie van '{mapped_columns[key]}' naar numeriek: {e}")
 
-    # Toon een waarschuwing voor niet-gemapte kolommen
+    # **Stap 6: Toon een waarschuwing voor niet-gemapte kolommen**
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
         if key not in mapped_columns:
             st.warning(f"'{key}' is niet gemapt.")
