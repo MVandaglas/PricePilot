@@ -1669,10 +1669,7 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     st.warning("⚠ Geen header herkend, eerste rij als header gebruikt.")
                     df.columns = df.iloc[0]
                     df = df.drop(df.index[0])
-                
-                # **Debugging Stap**: Controleer of de index uniek is
-                st.write("📌 **Debugging: Inhoud van df vóór index reset**")
-                st.write(df)
+
 
                 if not df.index.is_unique:
                     st.error("⚠ Waarschuwing: Niet-unieke indexwaarden gevonden vóór reset. Fix index...")
