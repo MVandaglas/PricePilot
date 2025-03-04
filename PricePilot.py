@@ -1869,7 +1869,7 @@ def extract_data_with_gpt(prompt):
         response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
+                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel. Kap niet af, verwerk het gehele document."},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -1923,66 +1923,6 @@ def extract_data_with_gpt(prompt):
 
 
 
-
-def extract_data_with_gpt(prompt):
-    """
-    Verstuurt een tekstprompt naar GPT en retourneert een correct geformatteerde DataFrame.
-    """
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
-                {"role": "user", "content": prompt}
-            ]
-        )
-        
-        extracted_data = response.choices[0].message.content  # Haal de tekstuele GPT-output op
-
-        # **Stap 1: Debugging - Toon ruwe GPT-response**
-        st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
-        st.code(extracted_data, language="json")
-
-        # **Stap 2: Strip Markdown en onnodige tekens**
-        extracted_data = extracted_data.strip()
-        if extracted_data.startswith("```json"):
-            extracted_data = extracted_data[7:].strip()  # Verwijder '```json'
-        if extracted_data.endswith("```"):
-            extracted_data = extracted_data[:-3].strip()  # Verwijder '```'
-
-        # **Stap 3: JSON validatie**
-        try:
-            extracted_json = json.loads(extracted_data)  # Parse JSON
-        except json.JSONDecodeError:
-            st.error("❌ GPT-response is geen geldige JSON! Controleer de AI-output.")
-            return pd.DataFrame()  # Lege DataFrame als fallback
-
-        # **Stap 4: Zet JSON om naar een DataFrame**
-        if isinstance(extracted_json, list):
-            df = pd.DataFrame(extracted_json)
-        elif isinstance(extracted_json, dict):
-            df = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
-        else:
-            st.error("❌ GPT-response heeft geen correct formaat.")
-            return pd.DataFrame()  # Leeg DataFrame als fallback
-
-        # **Stap 5: Converteer numerieke kolommen**
-        for col in df.columns:
-            if df[col].dtype == "object":  # Alleen stringkolommen aanpassen
-                df[col] = df[col].astype(str).str.replace(" mm", "", regex=True)
-                df[col] = df[col].astype(str).str.replace(" m²", "", regex=True)
-
-                # Probeer te converteren naar numeriek indien mogelijk
-                df[col] = pd.to_numeric(df[col], errors="ignore")
-
-        # **Stap 6: Toon de verwerkte DataFrame**
-        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
-        st.dataframe(df)
-        return df
-
-    except Exception as e:
-        st.error(f"❌ Fout bij GPT-extractie: {e}")
-        return pd.DataFrame()  # Leeg DataFrame als fallback
 
 
     
