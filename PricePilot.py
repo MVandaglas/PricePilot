@@ -1937,7 +1937,7 @@ def process_attachment(attachment, attachment_name):
             if st.button(
                 f"🦅 Gebruik HawkAI voor {attachment_name} 🦅",
                 key=f"ai_fallback_{attachment_name}"
-            )
+            ):
 
 
     if attachment_name.endswith(".xlsx"):
