@@ -1923,35 +1923,41 @@ def extract_data_with_gpt(prompt):
 
 
 
-def process_attachment(attachment, attachment_name):
+def process_attachments(attachments):
     """
-    Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
+    Laat de gebruiker een bijlage kiezen via een dropdown en toont pas een checkbox als er een keuze is gemaakt.
     """
-    # Bestandstypes die GEEN knop moeten krijgen
+    # Bestandstypes die GEEN optie mogen krijgen
     excluded_extensions = ('.png', '.jpg', '.jpeg')
 
-    # Expander voor HawkAI-knoppen
-    with st.sidebar.container():
-        if not attachment_name.lower().endswith(excluded_extensions):
-            # Knopwaarde opslaan
-            use_gpt_extraction = st.checkbox(
-                f"🦅 Gebruik HawkAI voor {attachment_name} 🦅", value = False,
-                key=f"ai_fallback_{attachment_name}"
-            )
+    # Filter alleen de toegestane bijlagen
+    valid_attachments = [att for att in attachments if not att.lower().endswith(excluded_extensions)]
 
-            # Controleer of de knop is ingedrukt
-            if use_gpt_extraction:
-                with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
-                    # Stuur de bijlage direct naar GPT voor data-extractie
-                    df = extract_data_with_gpt(attachment)
+    if valid_attachments:
+        with st.sidebar.container():
+            # Dropdown om een bijlage te selecteren
+            selected_attachment = st.selectbox("📂 Kies een bijlage:", ["-- Selecteer een bestand --"] + valid_attachments, key="selected_attachment")
 
-                    # Stap 3: Toon het resultaat
-                    if not df.empty:
-                        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
-                        st.dataframe(df)
-                    else:
+            # Toon de checkbox alleen als er een bestand is geselecteerd
+            if selected_attachment != "-- Selecteer een bestand --":
+                use_gpt_extraction = st.checkbox(
+                    f"🦅 Gebruik HawkAI voor {selected_attachment} 🦅",
+                    value=False,
+                    key="ai_fallback"
+                )
+
+                # Start verwerking als checkbox is ingeschakeld
+                if use_gpt_extraction:
+                    with st.spinner(f"HawkAI-extractie bezig voor {selected_attachment}... ⏳"):
+                        # Stuur de bijlage direct naar GPT voor data-extractie
+                        df = extract_data_with_gpt(selected_attachment)
+
+                        # Stap 3: Toon het resultaat
+                        if not df.empty:
+                            st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
+                            st.dataframe(df)
+                        else:
                             st.warning("⚠️ Geen bruikbare data geëxtraheerd.")
-
 
 
     if attachment_name.endswith(".xlsx"):
