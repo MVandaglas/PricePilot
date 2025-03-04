@@ -1403,10 +1403,6 @@ def remap_and_process(df):
     return df
 
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-
 def manual_column_mapping(df, detected_columns):
     """
     Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen
@@ -1429,18 +1425,22 @@ def manual_column_mapping(df, detected_columns):
         if session_key not in st.session_state:
             st.session_state[session_key] = mapped_columns.get(key, "Geen")  # Gebruik de detectie of 'Geen'
 
-        # **Stap 3: Maak de selectbox met een standaardwaarde uit session_state**
+        # **Stap 3: Correcte index bepalen**
+        options = ["Geen"] + all_columns
+        default_index = options.index(st.session_state[session_key]) if st.session_state[session_key] in options else 0
+
+        # **Stap 4: Maak de selectbox met een correcte index**
         mapped_columns[key] = st.selectbox(
             f"Selecteer kolom voor '{key}'", 
-            options=["Geen"] + all_columns,
-            index=["Geen"] + all_columns.index(st.session_state[session_key]) if st.session_state[session_key] in all_columns else 0,
+            options=options,
+            index=default_index,
             key=session_key  # Hiermee wordt de gekozen waarde in `session_state` opgeslagen
         )
 
-    # **Stap 4: Filter de mapping om alleen daadwerkelijke selecties te behouden**
+    # **Stap 5: Filter de mapping om alleen daadwerkelijke selecties te behouden**
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
-    # **Stap 5: Converteer de kolommen 'Hoogte', 'Breedte' en 'Aantal' naar numeriek**
+    # **Stap 6: Converteer de kolommen 'Hoogte', 'Breedte' en 'Aantal' naar numeriek**
     for key in ["Hoogte", "Breedte", "Aantal"]:
         if key in mapped_columns:
             try:
@@ -1448,13 +1448,12 @@ def manual_column_mapping(df, detected_columns):
             except Exception as e:
                 st.error(f"Fout bij conversie van '{mapped_columns[key]}' naar numeriek: {e}")
 
-    # **Stap 6: Toon een waarschuwing voor niet-gemapte kolommen**
+    # **Stap 7: Toon een waarschuwing voor niet-gemapte kolommen**
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
         if key not in mapped_columns:
             st.warning(f"'{key}' is niet gemapt.")
 
     return mapped_columns
-
 
 
 # Functie voor PDF naar Excel conversie
