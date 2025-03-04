@@ -1923,265 +1923,249 @@ def extract_data_with_gpt(prompt):
 
 
 
-def process_attachment(attachments):
+def process_attachment(attachment, attachment_name):
     """
-    Laat de gebruiker een bijlage kiezen via een dropdown en toont pas een checkbox als er een keuze is gemaakt.
+    Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
-    # Bestandstypes die GEEN optie mogen krijgen
+    # Bestandstypes die GEEN knop moeten krijgen
     excluded_extensions = ('.png', '.jpg', '.jpeg')
 
-    # Filter alleen de toegestane bijlagen
-    valid_attachments = {att_name: att_data for att_name, att_data in attachments.items() if not att_name.lower().endswith(excluded_extensions)}
-
-    if valid_attachments:
-        with st.sidebar.container():
-            # Dropdown om een bijlage te selecteren
-            selected_attachment_name = st.selectbox(
-                "📂 Kies een bijlage:", 
-                ["-- Selecteer een bestand --"] + list(valid_attachments.keys()), 
-                key="selected_attachment"
+    # Expander voor HawkAI-knoppen
+    with st.sidebar.container():
+        if not attachment_name.lower().endswith(excluded_extensions):
+            # Knopwaarde opslaan
+            use_gpt_extraction = st.checkbox(
+                f"🦅 Gebruik HawkAI voor {attachment_name} 🦅", value = False,
+                key=f"ai_fallback_{attachment_name}"
             )
 
-            # Toon de checkbox alleen als er een bestand is geselecteerd
-            if selected_attachment_name != "-- Selecteer een bestand --":
-                use_gpt_extraction = st.checkbox(
-                    f"🦅 Gebruik HawkAI voor {selected_attachment_name} 🦅",
-                    value=False,
-                    key=f"ai_fallback_{selected_attachment_name}"
-                )
+            # Controleer of de knop is ingedrukt
+            if use_gpt_extraction:
+                with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
+                    # Stuur de bijlage direct naar GPT voor data-extractie
+                    df = extract_data_with_gpt(attachment)
 
-                # Start verwerking als checkbox is ingeschakeld
-                if use_gpt_extraction:
-                    with st.spinner(f"HawkAI-extractie bezig voor {selected_attachment_name}... ⏳"):
-                        # Stuur de bijlage direct naar GPT voor data-extractie
-                        df = extract_data_with_gpt(valid_attachments[selected_attachment_name])
-
-                        # Stap 3: Toon het resultaat
-                        if not df.empty:
-                            st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
-                            st.dataframe(df)
-                        else:
+                    # Stap 3: Toon het resultaat
+                    if not df.empty:
+                        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
+                        st.dataframe(df)
+                    else:
                             st.warning("⚠️ Geen bruikbare data geëxtraheerd.")
 
-    else:
-        st.sidebar.warning("⚠️ Geen verwerkbare bijlagen beschikbaar.")
-
-# Roep de functie correct aan met echte bijlagen
-process_attachment(attachments)  # Zorg ervoor dat `attachments` een dictionary bevat met {bestandsnaam: bestand_data}
 
 
-if attachment_name.endswith(".xlsx"):
-    try:
-        df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
-        st.write("Bijlage ingelezen als DataFrame:")
-        st.dataframe(df)
+    if attachment_name.endswith(".xlsx"):
+        try:
+            df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
+            st.write("Bijlage ingelezen als DataFrame:")
+            st.dataframe(df)
 
-        # Automatische header-detectie
-        header_row = None
-        for i in range(min(30, len(df))):  # Zoek de header in de eerste 30 rijen
-            potential_headers = df.iloc[i].fillna("").astype(str).str.lower().str.strip()  # Voorkom 'float' errors
-            if any(potential_headers.isin([
-                "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
-                "hoogte", "height", "h",
-                "breedte", "width", "b",
-                "aantal", "quantity", "qty", "stuks"
-            ])):
-                header_row = i
-                break
+            # Automatische header-detectie
+            header_row = None
+            for i in range(min(30, len(df))):  # Zoek de header in de eerste 30 rijen
+                potential_headers = df.iloc[i].fillna("").astype(str).str.lower().str.strip()  # Voorkom 'float' errors
+                if any(potential_headers.isin([
+                    "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
+                    "hoogte", "height", "h",
+                    "breedte", "width", "b",
+                    "aantal", "quantity", "qty", "stuks"
+                ])):
+                    header_row = i
+                    break
 
-        if header_row is not None:
-            df.columns = df.iloc[header_row].fillna("").astype(str).str.lower().str.strip()  # Kolomnamen corrigeren
-            df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
-        else:
-            st.warning("Geen headers gedetecteerd in de eerste 30 rijen.")
-        return None
-
-        df.columns = df.columns.str.lower()
-
-        # Verwijder onnodige rijen zoals 'Totaal'
-        df = df[~df.apply(lambda row: row.fillna("").astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
-        df = df.dropna(how='all')
-
-        # Detecteer en map kolommen
-        detected_columns = detect_relevant_columns(df)
-        mapped_columns = manual_column_mapping(df, detected_columns)
-
-        if not isinstance(mapped_columns, dict):
-            st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
-            return None
-
-        if mapped_columns:
-            relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
-            relevant_data.columns = mapped_columns.keys()
-
-            # Filter relevant data
-            start_row = st.sidebar.number_input("Beginrij data (niet de header):", min_value=0, max_value=len(df)-1, value=0)
-            end_row = st.sidebar.number_input("Eindrij data:", min_value=0, max_value=len(df)-1, value=len(df)-1)
-            relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
-
-            # GPT Extractie als geen data is gevonden
-            if relevant_data.empty:
-                st.warning("Geen tabel gevonden. Probeer GPT-extractie...")
-
-                document_text = extract_text_from_excel(attachment)
-                if document_text:
-                    relevant_data = extract_data_with_gpt(document_text)
-                    st.write("Data geëxtraheerd via GPT:")
-                    st.dataframe(relevant_data)
-                
-                if not relevant_data.empty and st.sidebar.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(relevant_data)
-
-            st.write("Relevante data:")
-            st.dataframe(relevant_data)
-
-            if st.sidebar.button("Verwerk gegevens naar offerte"):
-                handle_mapped_data_to_offer(relevant_data)
-
-        else:
-            st.warning("Geen relevante kolommen gevonden of gemapped.")
-            return None
-    except Exception as e:
-        st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
-        return None
-
-
-elif attachment_name.endswith(".pdf"):
-    try:
-        pdf_reader = BytesIO(attachment)
-        excel_path = "converted_file.xlsx"
-
-        # PDF omzetten naar Excel
-        excel_result = pdf_to_excel(pdf_reader, excel_path)
-        if not excel_result:
-            pass
-
-        # Gegevens extraheren uit PDF
-        df_extracted = extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction)
-        if not df_extracted.empty:
-
-            # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
-            df_extracted = df_extracted[~df_extracted.apply(lambda row: row.astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
-            df_extracted = df_extracted.dropna(how='all')
-            
-            # Relevante kolommen detecteren
-            detected_columns = detect_relevant_columns(df_extracted)
-            mapped_columns = manual_column_mapping(df_extracted, detected_columns)
-
-            if not mapped_columns:
-                pass
-                return
-
-            # Selecteer en hernoem kolommen op basis van mapping
-            relevant_data = df_extracted[list(mapped_columns.values())]
-            relevant_data.columns = list(mapped_columns.keys())
-
-            # GPT Extractie als geen data is gevonden
-            if relevant_data.empty:
-                st.warning("Geen tabel gevonden. Probeer GPT-extractie...")
-
-                document_text = extract_text_from_pdf(attachment)
-                if document_text:
-                    relevant_data = extract_data_with_gpt(document_text)
-                    st.write("Data geëxtraheerd via GPT:")
-                    st.dataframe(relevant_data)
-                
-                if not relevant_data.empty and st.sidebar.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(relevant_data)
-            
-            st.write("Data na mapping:")
-            st.dataframe(relevant_data)
-
-            # Optionele filtering op rijen
-            start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(relevant_data)-1, value=0)
-            end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(relevant_data)-1, value=len(relevant_data)-1)
-
-            relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
-
-            # Verwerken van de gegevens
-            if not relevant_data.empty:
-                if st.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(relevant_data)
+            if header_row is not None:
+                df.columns = df.iloc[header_row].fillna("").astype(str).str.lower().str.strip()  # Kolomnamen corrigeren
+                df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
             else:
-                st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
-        else:
-            st.warning("Geen gegevens gevonden in de PDF om te verwerken. test2")
+                st.warning("Geen headers gedetecteerd in de eerste 30 rijen.")
+                return None
 
-    except Exception as e:
-        st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
+            df.columns = df.columns.str.lower()
 
+            # Verwijder onnodige rijen zoals 'Totaal'
+            df = df[~df.apply(lambda row: row.fillna("").astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
+            df = df.dropna(how='all')
 
-elif attachment_name.endswith(".docx"):
-    try:
-        st.write(f"DOCX-bestand '{attachment_name}' ingelezen.")
+            # Detecteer en map kolommen
+            detected_columns = detect_relevant_columns(df)
+            mapped_columns = manual_column_mapping(df, detected_columns)
 
-        # Converteer DOCX naar Excel
-        excel_file = convert_docx_to_xlsx(attachment)
+            if not isinstance(mapped_columns, dict):
+                st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
+                return None
 
-        # Lees de Excel-data in
-        df_dict = pd.read_excel(excel_file, sheet_name=None)
+            if mapped_columns:
+                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()
 
-        # Controleer of er data is
-        if not df_dict:
-            st.error("Geen data gevonden in het Excel-bestand.")
-            return None
+                # Filter relevant data
+                start_row = st.sidebar.number_input("Beginrij data (niet de header):", min_value=0, max_value=len(df)-1, value=0)
+                end_row = st.sidebar.number_input("Eindrij data:", min_value=0, max_value=len(df)-1, value=len(df)-1)
+                relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
 
-        # Toon de beschikbare tabellen in de Excel
-        st.write("Selecteer de tabel om te verwerken:")
-        selected_sheet = st.sidebar.selectbox(
-            "Kies een tabel:", options=list(df_dict.keys()), format_func=lambda x: f"Tabel: {x}"
-        )
-        table = df_dict[selected_sheet]
+                # GPT Extractie als geen data is gevonden
+                if relevant_data.empty:
+                    st.warning("Geen tabel gevonden. Probeer GPT-extractie...")
 
-        st.write(f"Inhoud van **{selected_sheet}**:")
-        st.dataframe(table)
+                    document_text = extract_text_from_excel(attachment)
+                    if document_text:
+                        relevant_data = extract_data_with_gpt(document_text)
+                        st.write("Data geëxtraheerd via GPT:")
+                        st.dataframe(relevant_data)
+                    
+                    if not relevant_data.empty and st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
 
-        # **Detecteer relevante kolommen**
-        detected_columns = detect_relevant_columns(table)
-        mapped_columns = manual_column_mapping(table, detected_columns)
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
 
-        # **Validatie voor mapped_columns**
-        if not isinstance(mapped_columns, dict):
-            st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
-            return None
-
-        if mapped_columns:
-            # **Selecteer en hernoem relevante kolommen**
-            relevant_data = table[[mapped_columns[key] for key in mapped_columns]]
-            relevant_data.columns = mapped_columns.keys()
-
-            # **Filter relevante data op rijen**
-            start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(table)-1, value=0)
-            end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(table)-1, value=len(table)-1)
-            relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
-
-            # **GPT Extractie als geen data is gevonden**
-            if relevant_data.empty:
-                st.warning("Geen tabel gevonden. Probeer GPT-extractie...")
-
-                document_text = extract_text_from_docx(attachment)
-                if document_text:
-                    relevant_data = extract_data_with_gpt(document_text)
-                    st.write("Data geëxtraheerd via GPT:")
-                    st.dataframe(relevant_data)
-
-                if not relevant_data.empty and st.sidebar.button("Verwerk gegevens naar offerte"):
-                    handle_mapped_data_to_offer(relevant_data)
-            
-            
-            st.write("Relevante data:")
-            st.dataframe(relevant_data)
-
-            if not relevant_data.empty:
                 if st.sidebar.button("Verwerk gegevens naar offerte"):
                     handle_mapped_data_to_offer(relevant_data)
-            else:
-                st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de tabel.")
-        else:
-            st.warning("Geen relevante kolommen gevonden of gemapped.")
 
-    except Exception as e:
-        st.error(f"Fout bij het verwerken van de DOCX-bijlage: {e}")
+            else:
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
+                return None
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de Excel-bijlage: {e}")
+            return None
+
+
+    elif attachment_name.endswith(".pdf"):
+        try:
+            pdf_reader = BytesIO(attachment)
+            excel_path = "converted_file.xlsx"
+    
+            # PDF omzetten naar Excel
+            excel_result = pdf_to_excel(pdf_reader, excel_path)
+            if not excel_result:
+                pass
+    
+            # Gegevens extraheren uit PDF
+            df_extracted = extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction)
+            if not df_extracted.empty:
+
+                # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
+                df_extracted = df_extracted[~df_extracted.apply(lambda row: row.astype(str).str.contains(r'totaal', case=False).any(), axis=1)]
+                df_extracted = df_extracted.dropna(how='all')
+                
+                # Relevante kolommen detecteren
+                detected_columns = detect_relevant_columns(df_extracted)
+                mapped_columns = manual_column_mapping(df_extracted, detected_columns)
+    
+                if not mapped_columns:
+                    pass
+                    return
+    
+                # Selecteer en hernoem kolommen op basis van mapping
+                relevant_data = df_extracted[list(mapped_columns.values())]
+                relevant_data.columns = list(mapped_columns.keys())
+
+                # GPT Extractie als geen data is gevonden
+                if relevant_data.empty:
+                    st.warning("Geen tabel gevonden. Probeer GPT-extractie...")
+
+                    document_text = extract_text_from_pdf(attachment)
+                    if document_text:
+                        relevant_data = extract_data_with_gpt(document_text)
+                        st.write("Data geëxtraheerd via GPT:")
+                        st.dataframe(relevant_data)
+                    
+                    if not relevant_data.empty and st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                
+                st.write("Data na mapping:")
+                st.dataframe(relevant_data)
+    
+                # Optionele filtering op rijen
+                start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(relevant_data)-1, value=0)
+                end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(relevant_data)-1, value=len(relevant_data)-1)
+    
+                relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
+    
+                # Verwerken van de gegevens
+                if not relevant_data.empty:
+                    if st.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                else:
+                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de PDF.")
+            else:
+                st.warning("Geen gegevens gevonden in de PDF om te verwerken. test2")
+    
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
+
+
+    elif attachment_name.endswith(".docx"):
+        try:
+            st.write(f"DOCX-bestand '{attachment_name}' ingelezen.")
+    
+            # Converteer DOCX naar Excel
+            excel_file = convert_docx_to_xlsx(attachment)
+    
+            # Lees de Excel-data in
+            df_dict = pd.read_excel(excel_file, sheet_name=None)
+    
+            # Controleer of er data is
+            if not df_dict:
+                st.error("Geen data gevonden in het Excel-bestand.")
+                return None
+    
+            # Toon de beschikbare tabellen in de Excel
+            st.write("Selecteer de tabel om te verwerken:")
+            selected_sheet = st.sidebar.selectbox(
+                "Kies een tabel:", options=list(df_dict.keys()), format_func=lambda x: f"Tabel: {x}"
+            )
+            table = df_dict[selected_sheet]
+    
+            st.write(f"Inhoud van **{selected_sheet}**:")
+            st.dataframe(table)
+    
+            # **Detecteer relevante kolommen**
+            detected_columns = detect_relevant_columns(table)
+            mapped_columns = manual_column_mapping(table, detected_columns)
+    
+            # **Validatie voor mapped_columns**
+            if not isinstance(mapped_columns, dict):
+                st.error("Mapping fout: mapped_columns is geen dictionary. Controleer de kolommapping.")
+                return None
+    
+            if mapped_columns:
+                # **Selecteer en hernoem relevante kolommen**
+                relevant_data = table[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data.columns = mapped_columns.keys()
+    
+                # **Filter relevante data op rijen**
+                start_row = st.sidebar.number_input("Beginrij (inclusief):", min_value=0, max_value=len(table)-1, value=0)
+                end_row = st.sidebar.number_input("Eindrij (inclusief):", min_value=0, max_value=len(table)-1, value=len(table)-1)
+                relevant_data = relevant_data.iloc[int(start_row):int(end_row)+1]
+
+                # **GPT Extractie als geen data is gevonden**
+                if relevant_data.empty:
+                    st.warning("Geen tabel gevonden. Probeer GPT-extractie...")
+
+                    document_text = extract_text_from_docx(attachment)
+                    if document_text:
+                        relevant_data = extract_data_with_gpt(document_text)
+                        st.write("Data geëxtraheerd via GPT:")
+                        st.dataframe(relevant_data)
+
+                    if not relevant_data.empty and st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                
+                
+                st.write("Relevante data:")
+                st.dataframe(relevant_data)
+    
+                if not relevant_data.empty:
+                    if st.sidebar.button("Verwerk gegevens naar offerte"):
+                        handle_mapped_data_to_offer(relevant_data)
+                else:
+                    st.warning("Relevante data is leeg. Controleer de kolommapping en inhoud van de tabel.")
+            else:
+                st.warning("Geen relevante kolommen gevonden of gemapped.")
+    
+        except Exception as e:
+            st.error(f"Fout bij het verwerken van de DOCX-bijlage: {e}")
 
 
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid  
