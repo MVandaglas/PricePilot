@@ -1923,7 +1923,7 @@ def extract_data_with_gpt(prompt):
 
 
 
-def process_attachment(attachment, attachment_name):
+def process_attachment(attachments):
     """
     Laat de gebruiker een bijlage kiezen via een dropdown en toont pas een checkbox als er een keuze is gemaakt.
     """
@@ -1931,26 +1931,30 @@ def process_attachment(attachment, attachment_name):
     excluded_extensions = ('.png', '.jpg', '.jpeg')
 
     # Filter alleen de toegestane bijlagen
-    valid_attachments = [att for att in attachments if not att.lower().endswith(excluded_extensions)]
+    valid_attachments = {att_name: att_data for att_name, att_data in attachments.items() if not att_name.lower().endswith(excluded_extensions)}
 
     if valid_attachments:
         with st.sidebar.container():
             # Dropdown om een bijlage te selecteren
-            selected_attachment = st.selectbox("📂 Kies een bijlage:", ["-- Selecteer een bestand --"] + valid_attachments, key="selected_attachment")
+            selected_attachment_name = st.selectbox(
+                "📂 Kies een bijlage:", 
+                ["-- Selecteer een bestand --"] + list(valid_attachments.keys()), 
+                key="selected_attachment"
+            )
 
             # Toon de checkbox alleen als er een bestand is geselecteerd
-            if selected_attachment != "-- Selecteer een bestand --":
+            if selected_attachment_name != "-- Selecteer een bestand --":
                 use_gpt_extraction = st.checkbox(
-                    f"🦅 Gebruik HawkAI voor {selected_attachment} 🦅",
+                    f"🦅 Gebruik HawkAI voor {selected_attachment_name} 🦅",
                     value=False,
-                    key="ai_fallback"
+                    key=f"ai_fallback_{selected_attachment_name}"
                 )
 
                 # Start verwerking als checkbox is ingeschakeld
                 if use_gpt_extraction:
-                    with st.spinner(f"HawkAI-extractie bezig voor {selected_attachment}... ⏳"):
+                    with st.spinner(f"HawkAI-extractie bezig voor {selected_attachment_name}... ⏳"):
                         # Stuur de bijlage direct naar GPT voor data-extractie
-                        df = extract_data_with_gpt(selected_attachment)
+                        df = extract_data_with_gpt(valid_attachments[selected_attachment_name])
 
                         # Stap 3: Toon het resultaat
                         if not df.empty:
@@ -1958,6 +1962,12 @@ def process_attachment(attachment, attachment_name):
                             st.dataframe(df)
                         else:
                             st.warning("⚠️ Geen bruikbare data geëxtraheerd.")
+
+    else:
+        st.sidebar.warning("⚠️ Geen verwerkbare bijlagen beschikbaar.")
+
+# Roep de functie correct aan met echte bijlagen
+process_attachment(attachments)  # Zorg ervoor dat `attachments` een dictionary bevat met {bestandsnaam: bestand_data}
 
 
     if attachment_name.endswith(".xlsx"):
