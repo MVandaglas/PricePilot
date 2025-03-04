@@ -1554,17 +1554,24 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
         if table_found and first_table:
             st.success("✅ Een tabel is gevonden in de PDF.")
             df_table = pd.DataFrame(first_table[1:], columns=first_table[0])  # Eerste rij als header gebruiken
-
+            
+            # **Debugging Stap**: Controleer of er duplicate indexwaarden zijn
+            st.write("📌 **Debugging: Inhoud van df_table vóór index reset**")
+            st.write(df_table)
 
             if df_table.index.duplicated().any():
+                st.error("⚠ Waarschuwing: Dubbele indexen gedetecteerd in de tabel!")
                 df_table = df_table.reset_index(drop=True)  # Fix index probleem
             
- 
+            st.write("📌 **Debugging: DataFrame na index reset**")
+            st.write(df_table)
+
             st.write("**Voorbeeld van de eerste gedetecteerde tabel:**")
             st.dataframe(df_table)  # Toon de tabel in de UI
             return df_table  # Return de tabel als dataframe
         else:
             if not table_found:
+                st.warning("✨ Geen tabel gevonden.")
             
                 if use_gpt_extraction:
                     progress_bar = st.progress(0)  # Start een lege progress bar
@@ -1580,6 +1587,8 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     # Verwijder de progress bar en geef succesmelding
                     progress_bar.empty()
                     st.success("✅ AI-extractie voltooid!")
+                    # **Debugging: Toon ruwe GPT-response**
+                    st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
                     st.code(relevant_data, language="json")
                     
                     # **Controleer of de respons een geldige DataFrame is**
@@ -1598,7 +1607,7 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     return relevant_data  # Direct GPT-resultaat retourneren
 
                 else:
-                    st.warning("⚠ Geen tabel gevonden, wees kritisch op de gevonden data en overweeg HawkAI.")
+                    st.warning("⚠ Geen tabel gevonden, en AI-extractie is niet ingeschakeld.")
 
 
             # **Fallback naar tekstextractie als er geen tabel is gevonden**
@@ -1651,7 +1660,8 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     
                     # Hernoem dubbele kolommen
                     if df.columns.duplicated().any():
-                     
+                        st.error(f"⚠ Fout: Dubbele kolomnamen gevonden: {df.columns[df.columns.duplicated()].tolist()}")
+                    
                         new_columns = []
                         col_count = {}
                         for col in df.columns:
@@ -1663,13 +1673,17 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                                 new_columns.append(col)
                     
                         df.columns = new_columns  # Update kolomnamen
+                        st.success("✅ Dubbele kolomnamen hernoemd.")
 
                     df = df.drop(df.index[:header_row + 1])
                 else:
                     st.warning("⚠ Geen header herkend, eerste rij als header gebruikt.")
                     df.columns = df.iloc[0]
                     df = df.drop(df.index[0])
-
+                
+                # **Debugging Stap**: Controleer of de index uniek is
+                st.write("📌 **Debugging: Inhoud van df vóór index reset**")
+                st.write(df)
 
                 if not df.index.is_unique:
                     st.error("⚠ Waarschuwing: Niet-unieke indexwaarden gevonden vóór reset. Fix index...")
@@ -1682,6 +1696,10 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                 if not df.index.is_unique:
                     st.error("⚠ Probleem na reset: Index is nog steeds niet uniek!")
                     st.write("Huidige indexstatus:", df.index)
+
+                # Extra: Print de kolommen en rijen om te checken of data correct is
+                st.write("📌 **Debugging: DataFrame na index reset**")
+                st.write(df)
 
                 df.columns = df.columns.str.lower()
     
@@ -1869,7 +1887,7 @@ def extract_data_with_gpt(prompt):
         response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel. Retourneer de glassamenstelling, de hoogte, de breedte en het aantal per regel."},
+                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -1923,36 +1941,75 @@ def extract_data_with_gpt(prompt):
 
 
 
+
+def extract_data_with_gpt(prompt):
+    """
+    Verstuurt een tekstprompt naar GPT en retourneert een correct geformatteerde DataFrame.
+    """
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        extracted_data = response.choices[0].message.content  # Haal de tekstuele GPT-output op
+
+        # **Stap 1: Debugging - Toon ruwe GPT-response**
+        st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
+        st.code(extracted_data, language="json")
+
+        # **Stap 2: Strip Markdown en onnodige tekens**
+        extracted_data = extracted_data.strip()
+        if extracted_data.startswith("```json"):
+            extracted_data = extracted_data[7:].strip()  # Verwijder '```json'
+        if extracted_data.endswith("```"):
+            extracted_data = extracted_data[:-3].strip()  # Verwijder '```'
+
+        # **Stap 3: JSON validatie**
+        try:
+            extracted_json = json.loads(extracted_data)  # Parse JSON
+        except json.JSONDecodeError:
+            st.error("❌ GPT-response is geen geldige JSON! Controleer de AI-output.")
+            return pd.DataFrame()  # Lege DataFrame als fallback
+
+        # **Stap 4: Zet JSON om naar een DataFrame**
+        if isinstance(extracted_json, list):
+            df = pd.DataFrame(extracted_json)
+        elif isinstance(extracted_json, dict):
+            df = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
+        else:
+            st.error("❌ GPT-response heeft geen correct formaat.")
+            return pd.DataFrame()  # Leeg DataFrame als fallback
+
+        # **Stap 5: Converteer numerieke kolommen**
+        for col in df.columns:
+            if df[col].dtype == "object":  # Alleen stringkolommen aanpassen
+                df[col] = df[col].astype(str).str.replace(" mm", "", regex=True)
+                df[col] = df[col].astype(str).str.replace(" m²", "", regex=True)
+
+                # Probeer te converteren naar numeriek indien mogelijk
+                df[col] = pd.to_numeric(df[col], errors="ignore")
+
+        # **Stap 6: Toon de verwerkte DataFrame**
+        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
+        st.dataframe(df)
+        return df
+
+    except Exception as e:
+        st.error(f"❌ Fout bij GPT-extractie: {e}")
+        return pd.DataFrame()  # Leeg DataFrame als fallback
+
+
+    
+
 def process_attachment(attachment, attachment_name):
     """
     Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
-    # Bestandstypes die GEEN knop moeten krijgen
-    excluded_extensions = ('.png', '.jpg', '.jpeg')
-
-    # Expander voor HawkAI-knoppen
-    with st.sidebar.container():
-        if not attachment_name.lower().endswith(excluded_extensions):
-            # Knopwaarde opslaan
-            use_gpt_extraction = st.checkbox(
-                f"🦅 Gebruik HawkAI voor {attachment_name} 🦅", value = False,
-                key=f"ai_fallback_{attachment_name}"
-            )
-
-            # Controleer of de knop is ingedrukt
-            if use_gpt_extraction:
-                with st.spinner(f"HawkAI-extractie bezig voor {attachment_name}... ⏳"):
-                    # Stuur de bijlage direct naar GPT voor data-extractie
-                    df = extract_data_with_gpt(attachment)
-
-                    # Stap 3: Toon het resultaat
-                    if not df.empty:
-                        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
-                        st.dataframe(df)
-                    else:
-                            st.warning("⚠️ Geen bruikbare data geëxtraheerd.")
-
-
+    use_gpt_extraction = st.sidebar.checkbox(f"Gebruik AI-extractie voor {attachment_name}", value=False, key=f"ai_fallback_{attachment_name}")
 
     if attachment_name.endswith(".xlsx"):
         try:
