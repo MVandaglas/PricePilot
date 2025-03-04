@@ -1580,7 +1580,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                         
                 # Voer nu de AI-extractie uit
                 document_text = extract_text_from_pdf(pdf_reader)
-           #     relevant_data = extract_data_with_gpt(document_text)
+                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
 
                 # **Stap 1: Bewaar JSON-output in session_state**
                 if "json_df" not in st.session_state or st.session_state["json_df"] is None:
@@ -1979,7 +1979,7 @@ def process_attachment(attachment, attachment_name):
             if st.sidebar.button(f"🔍 Gebruik AI-extractie voor {attachment_name}"):
                 with st.spinner(f"AI-extractie bezig voor {attachment_name}... ⏳"):
                     document_text = extract_text_from_pdf(pdf_reader)
-                   # relevant_data = extract_data_with_gpt(document_text)
+                    relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
 
                     # **Sla JSON-output op in session_state**
                     if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
@@ -2056,7 +2056,7 @@ def process_attachment(attachment, attachment_name):
 
                     document_text = extract_text_from_excel(attachment)
                     if document_text:
-                    #    relevant_data = extract_data_with_gpt(document_text)
+                        relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                         st.write("Data geëxtraheerd via GPT:")
                         st.dataframe(relevant_data)
                     
@@ -2113,7 +2113,7 @@ def process_attachment(attachment, attachment_name):
 
                     document_text = extract_text_from_pdf(attachment)
                     if document_text:
-                    #    relevant_data = extract_data_with_gpt(document_text)
+                        relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
                         st.write("Data geëxtraheerd via GPT:")
                         st.dataframe(relevant_data)
                     
