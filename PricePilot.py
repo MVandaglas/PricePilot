@@ -2009,7 +2009,15 @@ def process_attachment(attachment, attachment_name):
     """
     Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
-    use_gpt_extraction = st.sidebar.button(f"Gebruik AI-extractie voor {attachment_name}", key=f"ai_fallback_{attachment_name}")
+    # Bestandstypes die GEEN knop moeten krijgen
+    excluded_extensions = ('.png', '.jpg', '.jpeg')
+
+    # Alleen een knop tonen als het bestand NIET in de uitsluitlijst zit
+    if not attachment_name.lower().endswith(excluded_extensions):
+        use_gpt_extraction = st.sidebar.button(
+            f"Gebruik HawkAI voor {attachment_name} 🦅",
+            key=f"ai_fallback_{attachment_name}"
+        )
             
     if attachment_name.endswith(".xlsx"):
         try:
