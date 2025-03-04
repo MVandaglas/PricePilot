@@ -2017,7 +2017,7 @@ if attachment_name.endswith(".pdf"):
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
             else:
                 st.warning("Geen headers gedetecteerd in de eerste 30 rijen.")
-                return None
+            return None
 
             df.columns = df.columns.str.lower()
 
