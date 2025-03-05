@@ -510,6 +510,20 @@ def find_article_details(article_number):
     # Sla het originele artikelnummer op
     original_article_number = article_number  
 
+        st.write(f"Checking: {article_number}")
+    if article_number in synonym_dict.values():
+        st.write(f"Direct match found in values: {article_number}")
+    if article_number in synonym_dict.keys():
+        st.write(f"Direct match found in keys: {article_number}")
+    
+    fuzzy_match = process.extractOne(article_number, synonym_dict.keys(), scorer=fuzz.ratio, score_cutoff=cutoff_value * 100)
+    if fuzzy_match:
+        st.write(f"Fuzzy match found: {fuzzy_match}")
+    
+    difflib_match = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
+    if difflib_match:
+        st.write(f"Difflib match found: {difflib_match}")
+
         
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
