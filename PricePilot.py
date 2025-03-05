@@ -1110,11 +1110,14 @@ def extract_all_details(line):
     if width and height:
         clean_line = re.sub(r'\b' + str(width) + r'\s*[xX*]\s*' + str(height) + r'\b', '', clean_line)  # Verwijder "800x800"
 
-    # Stap 4: Extract artikelnummer (alleen het resterende relevante stuk)
-    article_number_match = re.search(r'\b([A-Za-z0-9/]+(?:\s*[-/*#]\s*[A-Za-z0-9/.]+)*)\b', clean_line)
+    # Stap 4: Verbeterde regex voor het artikelnummer
+    article_number_match = re.search(r'\b(\d+(\.\d+)?(?:\s*[-/*#]\s*\d+(\.\d+)?[A-Za-z0-9/.]*)+)\b', clean_line)
+
     article_number = article_number_match.group(0) if article_number_match else None
 
     return quantity, width, height, article_number
+
+
 def handle_gpt_chat():
     if customer_input:
         lines = customer_input.splitlines()
