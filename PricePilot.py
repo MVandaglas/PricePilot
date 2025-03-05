@@ -680,6 +680,8 @@ def preserve_existing_spacers(df):
         df.at[index, "Spacer"] = determine_spacer(row.get("Spacer", "15 - alu"))
     return df
 
+# Genereer een mapping van artikelnamen naar artikelnummers
+article_mapping = article_table.set_index("Description")["Material"].to_dict()
 
 def update_offer_data(df):
     for index, row in df.iterrows():
@@ -2615,8 +2617,7 @@ with tab2:
 
 
 
-# Genereer een mapping van artikelnamen naar artikelnummers
-article_mapping = article_table.set_index("Description")["Material"].to_dict()
+
 
 
 with tab3:
