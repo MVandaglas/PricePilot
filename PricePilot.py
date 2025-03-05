@@ -1879,6 +1879,8 @@ def convert_docx_to_xlsx(doc_bytes):
     return excel_output_path
 
 
+import openai
+
 def extract_data_with_gpt(prompt):
     """
     Verstuurt een tekstprompt naar GPT en retourneert een correct geformatteerde DataFrame.
@@ -1890,16 +1892,16 @@ def extract_data_with_gpt(prompt):
                 {"role": "system", "content": (
                     "Je bent een geavanceerde extractietool die glassamenstellingen uit een bestekformulier extraheert en deze omzet naar een correcte JSON-tabel.\n"
                     "Zorg ervoor dat de JSON-structuur voldoet aan de volgende vereisten:\n"
-                    "1️ **Elke regel in de JSON moet minstens een 'glasType' of 'omschrijving' van het artikel, de 'hoogte', de 'breedte' en het 'aantal' bevatten** Vind je geen glastype om omschrijving van het artikel? Pak dan het artikel van de voorgaande regel.\n"
-                    "2️ **'aantal', 'breedte' en 'hoogte' moeten op het hoofdniveau staan** en mogen NIET in de 'details'-array of geneste functie geplaatst worden.\n"
-                    "3 **De JSON-output mag GEEN extra uitleg bevatten**, enkel en alleen de gestructureerde JSON-data.\n"
-                    "4 **Vertaal tot slot de JSON-tabel naar tekst per regel, "[aantal]&"x "&[omschrijving]&" "&[breedte]&"x"[hoogte]"\n"
+                    "1. Elke regel in de JSON moet minstens een 'glasType' of 'omschrijving' van het artikel, de 'hoogte', de 'breedte' en het 'aantal' bevatten. "
+                    "Vind je geen glastype of omschrijving van het artikel? Pak dan het artikel van de voorgaande regel.\n"
+                    "2. 'aantal', 'breedte' en 'hoogte' moeten op het hoofdniveau staan en mogen NIET in de 'details'-array of geneste structuren geplaatst worden.\n"
+                    "3. De JSON-output mag GEEN extra uitleg bevatten, enkel en alleen de gestructureerde JSON-data.\n"
+                    "4. Vertaal tot slot de JSON-tabel naar tekst per regel, in het formaat: \"[aantal]x [omschrijving] [breedte]x[hoogte]\"\n"
                     "Geef de output zonder extra tekst, uitleg of Markdown-codeblokken."
                 )},
                 {"role": "user", "content": prompt}
             ]
         )
-
         
         extracted_data = response.choices[0].message.content  # Haal de tekstuele GPT-output op
 
