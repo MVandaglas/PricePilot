@@ -2642,7 +2642,7 @@ with tab3:
         if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
             # Filter regels met "Source" = "interpretatie", "niet gevonden" en "GPT"
             interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"].isin(["GPT", "interpretatie", "niet gevonden"])]
-    
+
             # Houd alleen unieke rijen op basis van combinatie van kolommen
             interpretatie_rows = interpretatie_rows.drop_duplicates(subset=["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"])
         else:
@@ -2651,17 +2651,27 @@ with tab3:
         if interpretatie_rows.empty:
             st.info("Er zijn geen AI regels om te beoordelen.")
         else:
-            # Maak een tabel met de correcte input en gematchte waarden
+            # Maak een kopie van de DataFrame om bewerkingen uit te voeren
             beoordeling_tabel = interpretatie_rows.copy()
-            beoordeling_tabel = beoordeling_tabel[["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number", "Source"]].fillna("")
+
+            # Pas de voorwaarden toe op de kolommen
+            beoordeling_tabel.loc[beoordeling_tabel["Source"] == "niet gevonden", "Artikelnaam"] = ""
+            beoordeling_tabel["Bron"] = beoordeling_tabel["Source"].replace({
+                "interpretatie": "✨",
+                "GPT": "✨",
+                "niet gevonden": ""  # Maak "Bron" leeg
+            })
+
+            # Selecteer en hernoem de kolommen
+            beoordeling_tabel = beoordeling_tabel[["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number", "Bron"]].fillna("")
             beoordeling_tabel.rename(columns={
                 "Artikelnaam": "Artikelnaam",
                 "Artikelnummer": "Artikelnummer",
                 "original_article_number": "Jouw input",
                 "fuzzy_match": "Gematcht op",
-                "Source": "Bron"
+                "Bron": "Bron"
             }, inplace=True)
-    
+
             # Configureren van de AgGrid-tabel
             gb = GridOptionsBuilder.from_dataframe(beoordeling_tabel)
             
@@ -2677,11 +2687,11 @@ with tab3:
             gb.configure_column("Artikelnummer", editable=False, hide=True)
             gb.configure_column("Gematcht op", editable=False)
             gb.configure_column("Jouw input", editable=False)
-            gb.configure_column("Bron", editable=False)
-            
+            gb.configure_column("Bron", editable=False)  # Bron wordt leeg als "niet gevonden"
+
             gb.configure_selection(selection_mode="multiple", use_checkbox=True)
             grid_options = gb.build()
-    
+
             # Render de AgGrid-tabel
             response = AgGrid(
                 beoordeling_tabel,
@@ -2690,6 +2700,7 @@ with tab3:
                 fit_columns_on_grid_load=True,
                 theme="material"
             )
+
     
             # Verwerken van wijzigingen in de tabel
             updated_rows = response["data"]  # Haal de bijgewerkte data op
