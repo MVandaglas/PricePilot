@@ -2025,7 +2025,7 @@ def process_attachment(attachment, attachment_name):
 
     # Alleen een checkbox tonen als het bestand niet in de uitsluitlijst zit
     if not attachment_name.lower().endswith(excluded_extensions):
-        use_gpt_extraction = st.sidebar.button(
+        use_gpt_extraction = st.sidebar.checkbox(
             f"🦅Gebruik HawkAI voor {attachment_name} 🦅",
             value=False,
             key=f"ai_fallback_{attachment_name}"
