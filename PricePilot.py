@@ -510,7 +510,7 @@ def find_article_details(article_number):
     # Sla het originele artikelnummer op
     original_article_number = article_number  
 
-        st.write(f"Checking: {article_number}")
+    st.write(f"Checking: {article_number}")
     if article_number in synonym_dict.values():
         st.write(f"Direct match found in values: {article_number}")
     if article_number in synonym_dict.keys():
