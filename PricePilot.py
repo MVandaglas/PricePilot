@@ -1536,7 +1536,7 @@ def extract_text_from_pdf(pdf_bytes):
         st.error(f"Fout bij tekstextractie uit PDF: {e}")
         return ""
 
-def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
+def extract_pdf_to_dataframe(pdf_reader):
     try:
         # **Stap 1: Controleer of er een tabel in de PDF staat**
         table_found = False  # Flag om bij te houden of een tabel is gevonden
@@ -1572,14 +1572,7 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
         else:
             if not table_found:
                 st.warning("✨ Geen tabel gevonden.")
-            
-                if use_gpt_extraction:
-                    progress_bar = st.progress(0)  # Start een lege progress bar
-                    
-                    for percent_complete in range(0, 101, 10):  # Laat de balk oplopen van 0% naar 100%
-                        time.sleep(0.5)  # Wacht 0.5 seconden per stap (kan worden aangepast)
-                        progress_bar.progress(percent_complete)
-                    
+                               
                     # Voer nu de AI-extractie uit
                     document_text = extract_text_from_pdf(pdf_reader)
                     relevant_data = extract_data_with_gpt(document_text)
@@ -2026,7 +2019,6 @@ def process_attachment(attachment, attachment_name):
     if not attachment_name.lower().endswith(excluded_extensions):
         use_gpt_extraction = st.sidebar.button(
             f"🦅Gebruik HawkAI voor {attachment_name} 🦅",
-            value=False,
             key=f"ai_fallback_{attachment_name}"
         )
 
@@ -2117,7 +2109,7 @@ def process_attachment(attachment, attachment_name):
                 pass
     
             # Gegevens extraheren uit PDF
-            df_extracted = extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction)
+            df_extracted = extract_pdf_to_dataframe(pdf_reader)
             if not df_extracted.empty:
 
                 # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
