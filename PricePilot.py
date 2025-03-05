@@ -406,7 +406,7 @@ with tab3:
         standardized_columns = {col: col.strip().lower() for col in df.columns}
         
         column_mapping = {
-            "Artikelnaam": ["artikelnaam", "artikel", "product", "type", "article", "samenstelling", "glastype", "omschrijving"],
+            "Artikelnaam": ["artikelnaam", "artikel", "product", "type", "article", "samenstelling"],
             "Hoogte": ["hoogte", "height", "h"],
             "Breedte": ["breedte", "width", "b"],
             "Aantal": ["aantal", "quantity", "qty", "stuks"]
@@ -1403,52 +1403,48 @@ def remap_and_process(df):
     return df
 
 
-
 def manual_column_mapping(df, detected_columns):
     """
-    Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen,
-    waarbij JSON-kolommen worden gebruikt als deze beschikbaar zijn.
+    Biedt de gebruiker een interface om ontbrekende kolommen handmatig te mappen
+    en zorgt ervoor dat de kolommen 'Aantal', 'Hoogte' en 'Breedte' numeriek worden gemaakt.
     """
-
-    # **Stap 1: Gebruik JSON DataFrame als die bestaat**
-    if "json_df" in st.session_state and st.session_state["json_df"] is not None and not st.session_state["json_df"].empty:
-        df = st.session_state["json_df"].copy()  # Gebruik JSON-data
-        st.write("📌 **Data geladen vanuit JSON-extractie**")
-    else:
-        st.write("📌 **Geen JSON-data gevonden, gebruik standaard dataset**")
-
-    all_columns = list(df.columns)  # **Gebruik alleen kolommen van de gekozen dataset**
-    st.write("🛠 **Beschikbare kolommen:**", all_columns)  # Debugging stap
-
-    mapped_columns = {}  # Lege mapping dictionary
+    all_columns = list(df.columns)
+    mapped_columns = {k: v for k, v in detected_columns.items() if v in all_columns}
 
     st.write("Controleer of de kolommen correct zijn gedetecteerd.✨ Indien niet, selecteer de juiste kolom.")
 
     for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
-        session_key = f"mapped_{key}"
+        # Bepaal standaardindex veilig
+        try:
+            default_index = all_columns.index(mapped_columns[key]) + 1  # +1 vanwege "Geen" als extra optie
+        except (KeyError, ValueError):
+            default_index = 0
 
-        # **Stap 2: Initialiseer session_state vóór het aanmaken van de widget**
-        if session_key not in st.session_state:
-            st.session_state[session_key] = "Geen"
-
-        # **Stap 3: Correcte index bepalen**
-        options = ["Geen"] + all_columns
-        default_index = options.index(st.session_state[session_key]) if st.session_state[session_key] in options else 0
-
-        # **Stap 4: Selectbox met JSON-kolommen als deze beschikbaar zijn**
+        # Toon selectbox aan gebruiker
         mapped_columns[key] = st.selectbox(
-            f"Selecteer kolom voor '{key}'",
-            options=options,
-            index=default_index,
-            key=session_key
+            f"Selecteer kolom voor '{key}'", 
+            options=["Geen"] + all_columns,
+            index=default_index
         )
 
-    # **Stap 5: Filter de mapping om alleen daadwerkelijke selecties te behouden**
+    # Filter de mapping om alleen daadwerkelijke selecties te behouden
     mapped_columns = {k: v for k, v in mapped_columns.items() if v != "Geen"}
 
+    # Converteer de kolommen 'Hoogte', 'Breedte' en 'Aantal' naar numeriek als ze zijn geselecteerd
+    for key in ["Hoogte", "Breedte", "Aantal"]:
+        if key in mapped_columns:
+            if df[mapped_columns[key]].dtype not in [np.float64, np.int64]:
+                try:
+                    df[mapped_columns[key]] = pd.to_numeric(df[mapped_columns[key]], errors="coerce").fillna(0)
+                except Exception as e:
+                    st.error(f"Fout bij conversie van '{mapped_columns[key]}' naar numeriek: {e}")
+
+    # Toon een waarschuwing voor niet-gemapte kolommen
+    for key in ["Artikelnaam", "Hoogte", "Breedte", "Aantal"]:
+        if key not in mapped_columns:
+            st.warning(f"'{key}' is niet gemapt.")
+
     return mapped_columns
-
-
 
 
 # Functie voor PDF naar Excel conversie
@@ -1540,7 +1536,7 @@ def extract_text_from_pdf(pdf_bytes):
         st.error(f"Fout bij tekstextractie uit PDF: {e}")
         return ""
 
-def extract_pdf_to_dataframe(pdf_reader):
+def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
     try:
         # **Stap 1: Controleer of er een tabel in de PDF staat**
         table_found = False  # Flag om bij te houden of een tabel is gevonden
@@ -1577,39 +1573,41 @@ def extract_pdf_to_dataframe(pdf_reader):
             if not table_found:
                 st.warning("✨ Geen tabel gevonden.")
             
-                        
-                # Voer nu de AI-extractie uit
-                document_text = extract_text_from_pdf(pdf_reader)
-                relevant_data = extract_data_with_gpt(document_text)
-
-                # **Stap 1: Bewaar JSON-output in session_state**
-                if "json_df" not in st.session_state or st.session_state["json_df"] is None:
-                    st.session_state["json_df"] = relevant_data.copy()  # Sla AI-extractie op
-                
-                # Verwijder de progress bar en geef succesmelding
-
-                st.success("✅ AI-extractie voltooid!")
-                # **Debugging: Toon ruwe GPT-response**
-                st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
-                st.code(relevant_data, language="json")
-                
-                # **Controleer of de respons een geldige DataFrame is**
-                if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
+                if use_gpt_extraction:
+                    progress_bar = st.progress(0)  # Start een lege progress bar
+                    
+                    for percent_complete in range(0, 101, 10):  # Laat de balk oplopen van 0% naar 100%
+                        time.sleep(0.5)  # Wacht 0.5 seconden per stap (kan worden aangepast)
+                        progress_bar.progress(percent_complete)
+                    
+                    # Voer nu de AI-extractie uit
+                    document_text = extract_text_from_pdf(pdf_reader)
+                    relevant_data = extract_data_with_gpt(document_text)
+                    
+                    # Verwijder de progress bar en geef succesmelding
+                    progress_bar.empty()
+                    st.success("✅ AI-extractie voltooid!")
+                    # **Debugging: Toon ruwe GPT-response**
+                    st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
+                    st.code(relevant_data, language="json")
+                    
+                    # **Controleer of de respons een geldige DataFrame is**
+                    if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
+                        st.success("✅ AI-extractie voltooid!")
+                        st.write("📌 **Data geëxtraheerd via AI:**")
+                        st.dataframe(relevant_data)
+                        return relevant_data  # Direct GPT-resultaat retourneren
+                    else:
+                        st.error("❌ Fout bij GPT-extractie: De gegenereerde data is niet geldig.")
+                        return pd.DataFrame()  # Voorkom crashes door een lege DataFrame terug te geven
+                    
                     st.success("✅ AI-extractie voltooid!")
                     st.write("📌 **Data geëxtraheerd via AI:**")
                     st.dataframe(relevant_data)
                     return relevant_data  # Direct GPT-resultaat retourneren
-                else:
-                    st.error("❌ Fout bij GPT-extractie: De gegenereerde data is niet geldig.")
-                    return pd.DataFrame()  # Voorkom crashes door een lege DataFrame terug te geven
-                
-                st.success("✅ AI-extractie voltooid!")
-                st.write("📌 **Data geëxtraheerd via AI:**")
-                st.dataframe(relevant_data)
-                return relevant_data  # Direct GPT-resultaat retourneren
 
-            else:
-                st.warning("⚠ Geen tabel gevonden, en AI-extractie is niet ingeschakeld.")
+                else:
+                    st.warning("⚠ Geen tabel gevonden, en AI-extractie is niet ingeschakeld.")
 
 
             # **Fallback naar tekstextractie als er geen tabel is gevonden**
@@ -1895,13 +1893,77 @@ def extract_data_with_gpt(prompt):
                     "Zorg ervoor dat de JSON-structuur voldoet aan de volgende vereisten:\n\n"
                     "1️ **Elke regel in de JSON moet minstens een 'glasType' of 'omschrijving' van het artikel, de 'hoogte', de 'breedte' en het 'aantal' bevatten** Vind je geen glastype om omschrijving van het artikel? Pak dan het artikel van de voorgaande regel.\n"
                     "2️ **'aantal', 'breedte' en 'hoogte' moeten op het hoofdniveau staan** en mogen NIET in de 'details'-array of geneste functie geplaatst worden.\n"
-                    "3 **De JSON-output mag GEEN extra uitleg bevatten**, enkel en alleen de gestructureerde JSON-data.\n\n"
-                    "Geef de output als een **geldige JSON-array**, zonder extra tekst, uitleg of Markdown-codeblokken."
+                    "3 **De JSON-output mag GEEN extra uitleg bevatten**, enkel en alleen de gestructureerde JSON-data.\n
+                    "4 **Vertaal tot slot de JSON-tabel naar tekst per regel, "[aantal]&"x "&[omschrijving]&" "&[breedte]&"x"[hoogte]"\n"
+                    "Geef de output zonder extra tekst, uitleg of Markdown-codeblokken."
                 )},
                 {"role": "user", "content": prompt}
             ]
         )
 
+        
+        extracted_data = response.choices[0].message.content  # Haal de tekstuele GPT-output op
+
+        # **Stap 1: Debugging - Toon ruwe GPT-response**
+        st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
+        st.code(extracted_data, language="json")
+
+        # **Stap 2: Strip Markdown en onnodige tekens**
+        extracted_data = extracted_data.strip()
+        if extracted_data.startswith("```json"):
+            extracted_data = extracted_data[7:].strip()  # Verwijder '```json'
+        if extracted_data.endswith("```"):
+            extracted_data = extracted_data[:-3].strip()  # Verwijder '```'
+
+        # **Stap 3: JSON validatie**
+        try:
+            extracted_json = json.loads(extracted_data)  # Parse JSON
+        except json.JSONDecodeError as e:
+            st.error(f"❌ GPT-response is geen geldige JSON! Fout: {e}")
+            return pd.DataFrame()  # Lege DataFrame als fallback
+
+        # **Stap 4: Zet JSON om naar een DataFrame**
+        if isinstance(extracted_json, list):
+            df = pd.DataFrame(extracted_json)
+        elif isinstance(extracted_json, dict):
+            df = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
+        else:
+            st.error("❌ GPT-response heeft geen correct formaat.")
+            return pd.DataFrame()  # Leeg DataFrame als fallback
+
+        # **Stap 5: Converteer numerieke kolommen**
+        for col in df.columns:
+            if df[col].dtype == "object":  # Alleen stringkolommen aanpassen
+                df[col] = df[col].astype(str).str.replace(" mm", "", regex=True)
+                df[col] = df[col].astype(str).str.replace(" m²", "", regex=True)
+
+                # Probeer te converteren naar numeriek indien mogelijk
+                df[col] = pd.to_numeric(df[col], errors="ignore")
+
+        # **Stap 6: Toon de verwerkte DataFrame**
+        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
+        st.dataframe(df)
+        return df
+
+    except Exception as e:
+        st.error(f"❌ Fout bij GPT-extractie: {e}")
+        return pd.DataFrame()  # Leeg DataFrame als fallback
+
+
+
+
+def extract_data_with_gpt(prompt):
+    """
+    Verstuurt een tekstprompt naar GPT en retourneert een correct geformatteerde DataFrame.
+    """
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Je bent een geavanceerde extractietool die glassamenstellingen extraheert uit een bestekformulier en vertaalt naar een JSON-tabel."},
+                {"role": "user", "content": prompt}
+            ]
+        )
         
         extracted_data = response.choices[0].message.content  # Haal de tekstuele GPT-output op
 
@@ -1925,26 +1987,26 @@ def extract_data_with_gpt(prompt):
 
         # **Stap 4: Zet JSON om naar een DataFrame**
         if isinstance(extracted_json, list):
-            df_json = pd.DataFrame(extracted_json)
+            df = pd.DataFrame(extracted_json)
         elif isinstance(extracted_json, dict):
-            df_json = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
+            df = pd.DataFrame([extracted_json])  # Zet een enkele dict om naar DataFrame
         else:
             st.error("❌ GPT-response heeft geen correct formaat.")
             return pd.DataFrame()  # Leeg DataFrame als fallback
 
         # **Stap 5: Converteer numerieke kolommen**
-        for col in df_json.columns:
-            if df_json[col].dtype == "object":  # Alleen stringkolommen aanpassen
-                df_json[col] = df_json[col].astype(str).str.replace(" mm", "", regex=True)
-                df_json[col] = df_json[col].astype(str).str.replace(" m²", "", regex=True)
+        for col in df.columns:
+            if df[col].dtype == "object":  # Alleen stringkolommen aanpassen
+                df[col] = df[col].astype(str).str.replace(" mm", "", regex=True)
+                df[col] = df[col].astype(str).str.replace(" m²", "", regex=True)
 
                 # Probeer te converteren naar numeriek indien mogelijk
-                df_json[col] = pd.to_numeric(df_json[col], errors="ignore")
+                df[col] = pd.to_numeric(df[col], errors="ignore")
 
         # **Stap 6: Toon de verwerkte DataFrame**
         st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
-        st.dataframe(df_json)
-        return df_json
+        st.dataframe(df)
+        return df
 
     except Exception as e:
         st.error(f"❌ Fout bij GPT-extractie: {e}")
@@ -1957,45 +2019,18 @@ def process_attachment(attachment, attachment_name):
     """
     Verwerkt een bijlage op basis van het bestandstype (Excel of PDF) en past automatisch kolommapping toe.
     """
-
-    # Bestandstypes die GEEN knop mogen krijgen
+    # Bestandstypes die geen checkbox moeten krijgen
     excluded_extensions = ('.png', '.jpg', '.jpeg')
 
-    # **Toon GEEN knop voor afbeeldingen**
-    if attachment_name.lower().endswith(excluded_extensions):
-        return  # Stop de functie voor deze bestandstypes
+    # Alleen een checkbox tonen als het bestand niet in de uitsluitlijst zit
+    if not attachment_name.lower().endswith(excluded_extensions):
+        use_gpt_extraction = st.sidebar.button(
+            f"🦅Gebruik HawkAI voor {attachment_name} 🦅",
+            value=False,
+            key=f"ai_fallback_{attachment_name}"
+        )
 
-    # **Verwerking van PDF-bestanden**
-    if attachment_name.endswith(".pdf"):
-        try:
-            pdf_reader = BytesIO(attachment)  # Zet bytes om naar een bestand-stream
-
-            # **AI Extractie alleen als gebruiker op de knop drukt**
-            if st.sidebar.button(f"🔍 Gebruik AI-extractie voor {attachment_name}"):
-                with st.spinner(f"AI-extractie bezig voor {attachment_name}... ⏳"):
-                    document_text = extract_text_from_pdf(pdf_reader)
-                    relevant_data = extract_data_with_gpt(document_text)
-
-                    # **Sla JSON-output op in session_state**
-                    if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
-                        st.session_state["json_df"] = relevant_data.copy()
-                        st.success("✅ AI-extractie voltooid!")
-
-            # **Gebruik JSON als deze al bestaat**
-            if "json_df" in st.session_state and not st.session_state["json_df"].empty:
-                df_extracted = st.session_state["json_df"]
-                st.write("📌 **Data geladen vanuit AI-extractie**")
-            else:
-                df_extracted = extract_pdf_to_dataframe(pdf_reader)  # Correcte aanroep!
-
-            if not df_extracted.empty:
-                detected_columns = detect_relevant_columns(df_extracted)
-                mapped_columns = manual_column_mapping(df_extracted, detected_columns)
-        except Exception as e:
-            st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
-
-    # **Verwerking van Excel-bestanden**
-    elif attachment_name.endswith(".xlsx"):
+    if attachment_name.endswith(".xlsx"):
         try:
             df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
             st.write("Bijlage ingelezen als DataFrame:")
@@ -2019,7 +2054,7 @@ def process_attachment(attachment, attachment_name):
                 df = df.drop(df.index[:header_row + 1]).reset_index(drop=True)
             else:
                 st.warning("Geen headers gedetecteerd in de eerste 30 rijen.")
-                return None  # **Verplaats deze return niet naar boven!**
+                return None
 
             df.columns = df.columns.str.lower()
 
@@ -2082,7 +2117,7 @@ def process_attachment(attachment, attachment_name):
                 pass
     
             # Gegevens extraheren uit PDF
-            df_extracted = extract_pdf_to_dataframe(pdf_reader)
+            df_extracted = extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction)
             if not df_extracted.empty:
 
                 # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
