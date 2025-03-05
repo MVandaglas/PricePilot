@@ -505,10 +505,10 @@ def replace_synonyms(input_text, synonyms):
         input_text = input_text.replace(term, synonym)
     return input_text
 
-# Functie om artikelgegevens te vinden
-def find_article_details(article_number, source=None):
-    # Sla het originele artikelnummer op
-    original_article_number = article_number  
+def find_article_details(article_number, source=None, original_article_number=None):
+    # Sla het originele artikelnummer alleen op als het nog niet bestaat
+    if original_article_number is None:
+        original_article_number = article_number  
 
     st.write(f"Checking: {article_number}")
     if article_number in synonym_dict.values():
@@ -524,7 +524,6 @@ def find_article_details(article_number, source=None):
     if difflib_match:
         st.write(f"Difflib match found: {difflib_match}")
 
-        
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
         filtered_articles = article_table[article_table['Material'].astype(str) == str(article_number)]
@@ -534,9 +533,9 @@ def find_article_details(article_number, source=None):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 article_number,
-                source if source else "synoniem",  # Bron: exacte match in synonym_dict.values()
-                article_number if article_number else article_number,  # Original article number
-                None  # Fuzzy match remains empty
+                source if source else "synoniem",
+                original_article_number,  # Zorgt ervoor dat dit niet wordt overschreven
+                None
             )
 
     # 2. Controleer of artikelnummer een exacte match is in synonym_dict.keys()
@@ -549,9 +548,9 @@ def find_article_details(article_number, source=None):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                source if source else "synoniem",  # Bron: exacte match in synonym_dict.keys()
-                article_number if article_number else article_number,  # Original article number
-                None  # Fuzzy match remains empty
+                source if source else "synoniem",
+                original_article_number,  # Zorgt ervoor dat dit niet wordt overschreven
+                None
             )
 
     # 3. Zoek naar een bijna-match met RapidFuzz
@@ -566,11 +565,11 @@ def find_article_details(article_number, source=None):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                source if source else "interpretatie",  # Bron: RapidFuzz match
-                article_number if article_number else article_number,  # Original article number
-                best_match  # Fuzzy match found
+                source if source else "interpretatie",
+                original_article_number,  # Zorgt ervoor dat dit niet wordt overschreven
+                best_match
             )
-    
+
     # 4. Zoek naar een bijna-match met difflib
     closest_matches = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
     if closest_matches:
@@ -583,55 +582,21 @@ def find_article_details(article_number, source=None):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                source if source else "interpretatie",  # Bron: difflib match
-                article_number if article_number else article_number,  # Original article number
-                best_match  # Fuzzy match found
+                source if source else "interpretatie",
+                original_article_number,  # Zorgt ervoor dat dit niet wordt overschreven
+                best_match
             )
 
-    #  # 5. Zoek alternatieven via GPT
-    # synonym_list_str = "\n".join([f"{k}: {v}" for k, v in synonym_dict.items()])
-    # prompt = f"""
-    # Op basis van voorgaande regex is de input '{original_article_number}' niet toegewezen aan een synoniem. Hier is een lijst van beschikbare synoniemen:
-    # {synonym_list_str}
-    # Kun je één synoniem voorstellen die het dichtst in de buurt komt bij '{original_article_number}'? Onthoud, het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven.
-    # """
-    # try:
-    #     response = openai.chat.completions.create(
-    #         model="gpt-3.5-turbo",
-    #         messages=[
-    #             {"role": "system", "content": "Je bent een behulpzame assistent die een synoniem zoekt dat het dichtst in de buurt komt van het gegeven artikelnummer. Het is enorm belangrijk dat je slechts het synoniem retourneert, geen begeleidend schrijven."},
-    #             {"role": "user", "content": prompt}
-    #         ],
-    #         max_tokens=20, 
-    #         temperature=0.5,
-    #     )
-    
-    #     response_text = response.choices[0].message.content.strip()
-    
-    #     # Gebruik de GPT-response correct
-    #     best_guess = response_text.split("\n")[0] if "\n" in response_text else response_text
-    #     matched_article_number = synonym_dict.get(best_guess, best_guess)
-    
-    #     # Verifieer of het gegenereerde synoniem geldig is
-    #     filtered_articles = article_table[article_table['Material'].astype(str) == str(matched_article_number)]
-    #     if not filtered_articles.empty:
-    #         return (
-    #             filtered_articles.iloc[0]['Description'],  # Artikelnaam
-    #             filtered_articles.iloc[0]['Min_prijs'],
-    #             filtered_articles.iloc[0]['Max_prijs'],
-    #             matched_article_number,  # Artikelnummer
-    #             "GPT",  # Bron: GPT match
-    #             original_article_number,  # Original article number
-    #             best_guess  # Fuzzy match gevonden door GPT
-    #         )
-    
-    # except Exception as e:
-    #     st.warning(f"Fout bij het raadplegen van OpenAI API: {e}")
-
-
-
-    # 6. Als alles niet matcht
-    return (article_number, None, None, original_article_number, source if source else "niet gevonden", original_article_number if original_article_number else original_article_number, None)
+    # 5. Als alles niet matcht
+    return (
+        article_number,
+        None,
+        None,
+        original_article_number,  # Zorgt ervoor dat dit niet wordt overschreven
+        source if source else "niet gevonden",
+        original_article_number,  # Zorgt ervoor dat dit niet wordt overschreven
+        None
+    )
 
 
 # Werkt de artikelnummer bij in de DataFrame op basis van de ingevulde artikelnaam. Gebruikt fuzzy matching om de beste overeenkomst te vinden.
