@@ -1893,7 +1893,7 @@ def extract_data_with_gpt(prompt):
                     "Zorg ervoor dat de JSON-structuur voldoet aan de volgende vereisten:\n\n"
                     "1️ **Elke regel in de JSON moet minstens een 'glasType' of 'omschrijving' van het artikel, de 'hoogte', de 'breedte' en het 'aantal' bevatten** Vind je geen glastype om omschrijving van het artikel? Pak dan het artikel van de voorgaande regel.\n"
                     "2️ **'aantal', 'breedte' en 'hoogte' moeten op het hoofdniveau staan** en mogen NIET in de 'details'-array of geneste functie geplaatst worden.\n"
-                    "3 **De JSON-output mag GEEN extra uitleg bevatten**, enkel en alleen de gestructureerde JSON-data.\n
+                    "3 **De JSON-output mag GEEN extra uitleg bevatten**, enkel en alleen de gestructureerde JSON-data.\n"
                     "4 **Vertaal tot slot de JSON-tabel naar tekst per regel, "[aantal]&"x "&[omschrijving]&" "&[breedte]&"x"[hoogte]"\n"
                     "Geef de output zonder extra tekst, uitleg of Markdown-codeblokken."
                 )},
