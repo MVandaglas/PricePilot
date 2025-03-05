@@ -1888,9 +1888,8 @@ def extract_data_with_gpt(prompt):
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": (
-                    "Je bent een geavanceerde extractietool die glassamenstellingen uit een bestekformulier extraheert "
-                    "en deze omzet naar een correcte JSON-tabel. "
-                    "Zorg ervoor dat de JSON-structuur voldoet aan de volgende vereisten:\n\n"
+                    "Je bent een geavanceerde extractietool die glassamenstellingen uit een bestekformulier extraheert en deze omzet naar een correcte JSON-tabel.\n"
+                    "Zorg ervoor dat de JSON-structuur voldoet aan de volgende vereisten:\n"
                     "1️ **Elke regel in de JSON moet minstens een 'glasType' of 'omschrijving' van het artikel, de 'hoogte', de 'breedte' en het 'aantal' bevatten** Vind je geen glastype om omschrijving van het artikel? Pak dan het artikel van de voorgaande regel.\n"
                     "2️ **'aantal', 'breedte' en 'hoogte' moeten op het hoofdniveau staan** en mogen NIET in de 'details'-array of geneste functie geplaatst worden.\n"
                     "3 **De JSON-output mag GEEN extra uitleg bevatten**, enkel en alleen de gestructureerde JSON-data.\n"
