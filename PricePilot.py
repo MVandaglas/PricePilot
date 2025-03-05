@@ -1227,8 +1227,8 @@ def handle_gpt_chat():
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state["trigger_update"] = True
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            #st.session_state.offer_df = update_article_numbers_from_names(st.session_state.offer_df, article_table)
-            #st.rerun()
+            st.session_state.offer_df = update_article_numbers_from_names(st.session_state.offer_df, article_table)
+            st.rerun()
 
            
 
