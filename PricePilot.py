@@ -1580,7 +1580,7 @@ def extract_pdf_to_dataframe(pdf_reader):
                         
                 # Voer nu de AI-extractie uit
                 document_text = extract_text_from_pdf(pdf_reader)
-                relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                relevant_data = extract_data_with_gpt(document_text)
 
                 # **Stap 1: Bewaar JSON-output in session_state**
                 if "json_df" not in st.session_state or st.session_state["json_df"] is None:
@@ -1937,8 +1937,7 @@ def extract_data_with_gpt(prompt):
             if df_json[col].dtype == "object":  # Alleen stringkolommen aanpassen
                 df_json[col] = df_json[col].astype(str).str.replace(" mm", "", regex=True)
                 df_json[col] = df_json[col].astype(str).str.replace(" m²", "", regex=True)
-                df_json[col] = df_json[col].astype(str).str.replace(" ", "", regex=True)
-                
+
                 # Probeer te converteren naar numeriek indien mogelijk
                 df_json[col] = pd.to_numeric(df_json[col], errors="ignore")
 
@@ -1966,33 +1965,28 @@ def process_attachment(attachment, attachment_name):
     if attachment_name.lower().endswith(excluded_extensions):
         return  # Stop de functie voor deze bestandstypes
 
-    # **Voor PDF-bestanden**
+    # **Verwerking van PDF-bestanden**
     if attachment_name.endswith(".pdf"):
         try:
             pdf_reader = BytesIO(attachment)  # Zet bytes om naar een bestand-stream
 
-            # **Check of AI-extractie al is uitgevoerd**
-            if f"ai_extracted_{attachment_name}" not in st.session_state:
-                st.session_state[f"ai_extracted_{attachment_name}"] = False
-
-            # **Toon de knop en start extractie alleen als erop wordt gedrukt**
+            # **AI Extractie alleen als gebruiker op de knop drukt**
             if st.sidebar.button(f"🔍 Gebruik AI-extractie voor {attachment_name}"):
                 with st.spinner(f"AI-extractie bezig voor {attachment_name}... ⏳"):
                     document_text = extract_text_from_pdf(pdf_reader)
-                    relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                    relevant_data = extract_data_with_gpt(document_text)
 
                     # **Sla JSON-output op in session_state**
                     if isinstance(relevant_data, pd.DataFrame) and not relevant_data.empty:
                         st.session_state["json_df"] = relevant_data.copy()
-                        st.session_state[f"ai_extracted_{attachment_name}"] = True  # Markeer dat extractie is voltooid
                         st.success("✅ AI-extractie voltooid!")
 
             # **Gebruik JSON als deze al bestaat**
-            if f"ai_extracted_{attachment_name}" in st.session_state and st.session_state[f"ai_extracted_{attachment_name}"]:
+            if "json_df" in st.session_state and not st.session_state["json_df"].empty:
                 df_extracted = st.session_state["json_df"]
                 st.write("📌 **Data geladen vanuit AI-extractie**")
             else:
-                df_extracted = extract_pdf_to_dataframe(pdf_reader)  # Correcte aanroep zonder onnodige AI-extractie
+                df_extracted = extract_pdf_to_dataframe(pdf_reader)  # Correcte aanroep!
 
             if not df_extracted.empty:
                 detected_columns = detect_relevant_columns(df_extracted)
@@ -2000,7 +1994,7 @@ def process_attachment(attachment, attachment_name):
         except Exception as e:
             st.error(f"Fout bij het verwerken van de PDF-bijlage: {e}")
 
-    # **Voor Excel-bestanden**
+    # **Verwerking van Excel-bestanden**
     elif attachment_name.endswith(".xlsx"):
         try:
             df = pd.read_excel(BytesIO(attachment), dtype=str)  # Inlezen als strings
@@ -2012,7 +2006,7 @@ def process_attachment(attachment, attachment_name):
             for i in range(min(30, len(df))):  # Zoek de header in de eerste 30 rijen
                 potential_headers = df.iloc[i].fillna("").astype(str).str.lower().str.strip()  # Voorkom 'float' errors
                 if any(potential_headers.isin([
-                    "artikelnaam", "artikel", "product", "type", "article", "samenstelling", "glastype", "glassamenstelling",
+                    "artikelnaam", "artikel", "product", "type", "article", "samenstelling",
                     "hoogte", "height", "h",
                     "breedte", "width", "b",
                     "aantal", "quantity", "qty", "stuks"
@@ -2056,7 +2050,7 @@ def process_attachment(attachment, attachment_name):
 
                     document_text = extract_text_from_excel(attachment)
                     if document_text:
-                        relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                        relevant_data = extract_data_with_gpt(document_text)
                         st.write("Data geëxtraheerd via GPT:")
                         st.dataframe(relevant_data)
                     
@@ -2113,7 +2107,7 @@ def process_attachment(attachment, attachment_name):
 
                     document_text = extract_text_from_pdf(attachment)
                     if document_text:
-                        relevant_data = df[[mapped_columns[key] for key in mapped_columns]]
+                        relevant_data = extract_data_with_gpt(document_text)
                         st.write("Data geëxtraheerd via GPT:")
                         st.dataframe(relevant_data)
                     
@@ -2192,7 +2186,7 @@ def process_attachment(attachment, attachment_name):
 
                     document_text = extract_text_from_docx(attachment)
                     if document_text:
-                 #       relevant_data = extract_data_with_gpt(document_text)
+                        relevant_data = extract_data_with_gpt(document_text)
                         st.write("Data geëxtraheerd via GPT:")
                         st.dataframe(relevant_data)
 
