@@ -629,7 +629,7 @@ def update_article_numbers_from_names(df, article_table, cutoff_value = cutoff_v
         artikelnaam = row.get("Artikelnaam", "").strip()
 
         # Alleen bijwerken als er een naam is en de artikelnummer ontbreekt of een slechte match is
-        if artikelnaam and (pd.isna(row.get("Artikelnummer")) or row["Source"] in ["niet gevonden", "GPT"]):
+        if artikelnaam and (pd.isna(row.get("Artikelnummer")) or row["Source"] in ["niet gevonden", "interpretatie", "GPT"]):
 
             # Zoek de beste match met fuzzy matching
             best_match = process.extractOne(artikelnaam, article_table["Description"], scorer=fuzz.ratio, score_cutoff=cutoff_value * 100)
@@ -710,7 +710,7 @@ def update_offer_data(df):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
             # Controleer of Source al is gevuld
-            if pd.isna(row.get('Source')) or row['Source'] in ['niet gevonden', 'GPT']:
+            if pd.isna(row.get('Source')) or row['Source'] in ['niet gevonden', 'interpretatie', 'GPT']:
                 description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(row['Artikelnummer'])
                 if description:
                     df.at[index, 'Artikelnaam'] = description
@@ -2653,12 +2653,13 @@ with tab3:
         else:
             # Maak een tabel met de correcte input en gematchte waarden
             beoordeling_tabel = interpretatie_rows.copy()
-            beoordeling_tabel = beoordeling_tabel[["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"]].fillna("")
+            beoordeling_tabel = beoordeling_tabel[["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number", "Source"]].fillna("")
             beoordeling_tabel.rename(columns={
                 "Artikelnaam": "Artikelnaam",
                 "Artikelnummer": "Artikelnummer",
                 "original_article_number": "Jouw input",
-                "fuzzy_match": "Gematcht op"
+                "fuzzy_match": "Gematcht op",
+                "Source": "Bron"
             }, inplace=True)
     
             # Configureren van de AgGrid-tabel
@@ -2676,6 +2677,7 @@ with tab3:
             gb.configure_column("Artikelnummer", editable=False, hide=True)
             gb.configure_column("Gematcht op", editable=False)
             gb.configure_column("Jouw input", editable=False)
+            gb.configure_column("Bron", editable=False)
             
             gb.configure_selection(selection_mode="multiple", use_checkbox=True)
             grid_options = gb.build()
