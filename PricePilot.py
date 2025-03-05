@@ -1093,9 +1093,12 @@ def extract_dimensions(text):
 
     return None, None
 
+import re
+
 def extract_all_details(line):
     """
     Extraheert het aantal, de afmetingen en het artikelnummer op dynamische wijze uit een regel.
+    Zoekt eerst naar een artikelnummer tussen {}, anders gebruikt het de reguliere regex.
     """
     # Stap 1: Extract aantal (kan vóór of na samenstelling staan)
     quantity = extract_quantity(line)
@@ -1103,19 +1106,25 @@ def extract_all_details(line):
     # Stap 2: Extract breedte en hoogte (kan vóór of na samenstelling staan)
     width, height = extract_dimensions(line)
 
-    # Stap 3: Verwijder het aantal en de afmetingen tijdelijk uit de regel
-    clean_line = line
-    if quantity:
-        clean_line = re.sub(r'\b' + str(quantity) + r'\s*[xX]?\b', '', clean_line)  # Verwijder "4x"
-    if width and height:
-        clean_line = re.sub(r'\b' + str(width) + r'\s*[xX*]\s*' + str(height) + r'\b', '', clean_line)  # Verwijder "800x800"
+    # Stap 3: Zoek eerst of er een omschrijving tussen {} staat
+    article_number_match = re.search(r'\{([^}]*)\}', line)  # Alles tussen { }
+    
+    if article_number_match:
+        article_number = article_number_match.group(1).strip()  # Verwijder { } en extra spaties
+    else:
+        # Stap 4: Verwijder het aantal en de afmetingen tijdelijk uit de regel
+        clean_line = line
+        if quantity:
+            clean_line = re.sub(r'\b' + str(quantity) + r'\s*[xX]?\b', '', clean_line)  # Verwijder "4x"
+        if width and height:
+            clean_line = re.sub(r'\b' + str(width) + r'\s*[xX*]\s*' + str(height) + r'\b', '', clean_line)  # Verwijder "800x800"
 
-    # Stap 4: Verbeterde regex voor het artikelnummer
-    article_number_match = re.search(r'\b(\d+(\.\d+)?(?:\s*[-/*#]\s*\d+(\.\d+)?[A-Za-z0-9/.]*)+)\b', clean_line)
-
-    article_number = article_number_match.group(0) if article_number_match else None
+        # Stap 5: Gebruik de reguliere regex voor het artikelnummer als er geen {}-omschrijving is
+        article_number_match = re.search(r'\b(\d+(\.\d+)?(?:\s*[-/*#]\s*\d+(\.\d+)?[A-Za-z0-9/.]*)+)\b', clean_line)
+        article_number = article_number_match.group(0).strip() if article_number_match else None
 
     return quantity, width, height, article_number
+
 
 
 def handle_gpt_chat():
@@ -1908,7 +1917,7 @@ def extract_data_with_gpt(prompt):
                 {"role": "system", "content": (
                     "Je bent een geavanceerde extractietool die glassamenstellingen uit een bestekformulier extraheert en deze omzet naar een tekstuele lijst.\n"
                     "Formatteer de output volgens het volgende formaat:\n"
-                    "[aantal]x [omschrijving] [breedte]x[hoogte]\n"
+                    "[aantal]x {[omschrijving]} [breedte]x[hoogte]\n"
                     "Verwijder eventuele spaties uit de omschrijving, voorbeelden van omschrijvingen zijn '4-15-4', '8-18A-44.2', '33/1-33/1' of '5-5'.\n"
                     "Mocht een regel geen omschrijving hebben, neem je de omschrijving van de voorgaande regel.\n"
                     "Houd je strikt aan dit formaat zonder extra uitleg, JSON, Markdown of aanvullende tekst."
