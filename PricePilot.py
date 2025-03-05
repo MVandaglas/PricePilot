@@ -653,7 +653,7 @@ def update_article_numbers_from_names(df, article_table, cutoff_value = cutoff_v
                 matched_article_number = article_table.iloc[match_index]["Material"]
 
                 df.at[index, "Artikelnummer"] = matched_article_number
-                df.at[index, "Source"] = "fuzzy_match"  # Markeer als fuzzy match
+                df.at[index, "Source"] = "interpretatie"  # Markeer als fuzzy match
                 df.at[index, "fuzzy_match"] = best_article_name  # Voeg fuzzy match kolom toe
             else:
                 df.at[index, "Source"] = "niet gevonden"  # Geen match gevonden
@@ -1262,7 +1262,7 @@ def handle_gpt_chat():
             st.session_state.offer_df = update_rsp_for_all_rows(st.session_state.offer_df, prijsscherpte)
             st.session_state["trigger_update"] = True
             st.session_state.offer_df = reset_rijnummers(st.session_state.offer_df)
-            st.session_state.offer_df = update_article_numbers_from_names(st.session_state.offer_df, article_table)
+            #st.session_state.offer_df = update_article_numbers_from_names(st.session_state.offer_df, article_table)
             st.rerun()
 
            
