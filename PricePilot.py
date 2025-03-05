@@ -689,7 +689,7 @@ def update_offer_data(df):
             df.at[index, 'M2 totaal'] = float(row['Aantal']) * float(str(df.at[index, 'M2 p/s']).split()[0].replace(',', '.'))
         if pd.notna(row['Artikelnummer']):
             # Controleer of Source al is gevuld
-            if pd.isna(row.get('Source')) or row['Source'] in ['niet gevonden', 'interpretatie', 'GPT']:
+            if pd.isna(row.get('Source')) or row['Source'] in ['niet gevonden', 'GPT']:
                 description, min_price, max_price, article_number, source, original_article_number, fuzzy_match = find_article_details(row['Artikelnummer'])
                 if description:
                     df.at[index, 'Artikelnaam'] = description
