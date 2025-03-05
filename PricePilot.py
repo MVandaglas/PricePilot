@@ -1536,7 +1536,7 @@ def extract_text_from_pdf(pdf_bytes):
         st.error(f"Fout bij tekstextractie uit PDF: {e}")
         return ""
 
-def extract_pdf_to_dataframe(pdf_reader):
+def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
     try:
         # **Stap 1: Controleer of er een tabel in de PDF staat**
         table_found = False  # Flag om bij te houden of een tabel is gevonden
@@ -1572,7 +1572,14 @@ def extract_pdf_to_dataframe(pdf_reader):
         else:
             if not table_found:
                 st.warning("✨ Geen tabel gevonden.")
-                               
+            
+                if use_gpt_extraction:
+                    progress_bar = st.progress(0)  # Start een lege progress bar
+                    
+                    for percent_complete in range(0, 101, 10):  # Laat de balk oplopen van 0% naar 100%
+                        time.sleep(0.5)  # Wacht 0.5 seconden per stap (kan worden aangepast)
+                        progress_bar.progress(percent_complete)
+                    
                     # Voer nu de AI-extractie uit
                     document_text = extract_text_from_pdf(pdf_reader)
                     relevant_data = extract_data_with_gpt(document_text)
@@ -1883,11 +1890,10 @@ def extract_data_with_gpt(prompt):
                 {"role": "system", "content": (
                     "Je bent een geavanceerde extractietool die glassamenstellingen uit een bestekformulier extraheert en deze omzet naar een correcte JSON-tabel.\n"
                     "Zorg ervoor dat de JSON-structuur voldoet aan de volgende vereisten:\n"
-                    "1. Elke regel in de JSON moet minstens een 'glasType' of 'omschrijving' van het artikel, de 'hoogte', de 'breedte' en het 'aantal' bevatten. "
-                    "Vind je geen glastype of omschrijving van het artikel? Pak dan het artikel van de voorgaande regel.\n"
-                    "2. 'aantal', 'breedte' en 'hoogte' moeten op het hoofdniveau staan en mogen NIET in de 'details'-array of geneste structuren geplaatst worden.\n"
-                    "3. De JSON-output mag GEEN extra uitleg bevatten, enkel en alleen de gestructureerde JSON-data.\n"
-                    "4. Vertaal tot slot de JSON-tabel naar tekst per regel, in het formaat: \"[aantal]x [omschrijving] [breedte]x[hoogte]\"\n"
+                    "1️ **Elke regel in de JSON moet minstens een 'glasType' of 'omschrijving' van het artikel, de 'hoogte', de 'breedte' en het 'aantal' bevatten** Vind je geen glastype om omschrijving van het artikel? Pak dan het artikel van de voorgaande regel.\n"
+                    "2️ **'aantal', 'breedte' en 'hoogte' moeten op het hoofdniveau staan** en mogen NIET in de 'details'-array of geneste functie geplaatst worden.\n"
+                    "3 **De JSON-output mag GEEN extra uitleg bevatten**, enkel en alleen de gestructureerde JSON-data.\n"
+                    "4 **Vertaal tot slot de JSON-tabel naar tekst per regel, "[aantal]&"x "&[omschrijving]&" "&[breedte]&"x"[hoogte]"\n"
                     "Geef de output zonder extra tekst, uitleg of Markdown-codeblokken."
                 )},
                 {"role": "user", "content": prompt}
@@ -2019,6 +2025,7 @@ def process_attachment(attachment, attachment_name):
     if not attachment_name.lower().endswith(excluded_extensions):
         use_gpt_extraction = st.sidebar.button(
             f"🦅Gebruik HawkAI voor {attachment_name} 🦅",
+            value=False,
             key=f"ai_fallback_{attachment_name}"
         )
 
@@ -2109,7 +2116,7 @@ def process_attachment(attachment, attachment_name):
                 pass
     
             # Gegevens extraheren uit PDF
-            df_extracted = extract_pdf_to_dataframe(pdf_reader)
+            df_extracted = extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction)
             if not df_extracted.empty:
 
                 # Verwijder onnodige rijen (zoals 'Totaal'-rijen)
