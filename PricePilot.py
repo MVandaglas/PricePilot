@@ -506,7 +506,7 @@ def replace_synonyms(input_text, synonyms):
     return input_text
 
 # Functie om artikelgegevens te vinden
-def find_article_details(article_number):
+def find_article_details(article_number, source=None):
     # Sla het originele artikelnummer op
     original_article_number = article_number  
 
