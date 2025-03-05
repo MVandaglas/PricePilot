@@ -2679,12 +2679,14 @@ with tab3:
             gb.configure_column(
                 "Artikelnaam",
                 editable=True,
-                cellEditor="agRichSelectCellEditor",  # Gebruik agRichSelectCellEditor voor zoekfunctionaliteit
+                cellEditor="agRichSelectCellEditor",
                 cellEditorParams={
-                    "values": list(article_mapping.keys()),  # De mogelijke waarden in de dropdown
-                    "searchable": True  # Zorgt ervoor dat je kunt typen en filteren
+                    "values": list(article_mapping.keys()),  # De mogelijke waarden
+                    "searchable": True,  # Laat je typen in de dropdown
+                    "suppressKeyboardEvent": False  # Zorgt dat je kunt typen zonder dat de dropdown sluit
                 }
             )
+
             
             # Configureren van de overige kolommen
             gb.configure_column("Artikelnummer", editable=False, hide=True)
