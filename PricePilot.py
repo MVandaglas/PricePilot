@@ -1112,8 +1112,8 @@ def handle_gpt_chat():
         
         
         for line in lines:
-            # Nieuwe regex om het volledige artikelnummer te detecteren
-            detected_article_number = re.search(r'(\d+[./-]?\d*\s*([-*#]\s*\d+[./-]?\d*\s*)+)', line)
+            # Verbeterde regex om volledige glassamenstellingen te vinden
+            detected_article_number = re.search(r'(\d+(\.\d+)?([-/*#]\d+(\.\d+)?[A-Za-z0-9/]*)+)', line)
             if detected_article_number:
                 current_article_number = detected_article_number.group(0).replace(" ", "")  # Update huidig artikelnummer en verwijder spaties
 
