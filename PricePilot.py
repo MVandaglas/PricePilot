@@ -2679,8 +2679,11 @@ with tab3:
             gb.configure_column(
                 "Artikelnaam",
                 editable=True,
-                cellEditor="agSelectCellEditor",
-                cellEditorParams={"values": list(article_mapping.keys())}
+                cellEditor="agRichSelectCellEditor",  # Gebruik agRichSelectCellEditor voor zoekfunctionaliteit
+                cellEditorParams={
+                    "values": list(article_mapping.keys()),  # De mogelijke waarden in de dropdown
+                    "searchable": True  # Zorgt ervoor dat je kunt typen en filteren
+                }
             )
             
             # Configureren van de overige kolommen
