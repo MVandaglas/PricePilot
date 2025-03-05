@@ -1100,7 +1100,7 @@ def extract_all_details(line):
     # Extract dimensions
     width, height = extract_dimensions(line)
     # Extract article number
-    article_number_match = re.search(r'(\d+[./-]?\d*[-*#]\d+[./-]?\d*)', line)
+    article_number_match = re.search(r'([A-Za-z0-9/]+(?:\s*[-/*#]\s*[A-Za-z0-9/.]+)*)', line)
     article_number = article_number_match.group(0) if article_number_match else None
     return quantity, width, height, article_number
 
