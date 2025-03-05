@@ -2640,8 +2640,8 @@ with tab3:
     
         # Controleer of offer_df beschikbaar is in sessiestatus
         if "offer_df" in st.session_state and not st.session_state.offer_df.empty:
-            # Filter regels met "Source" = "interpretatie" en "GPT"
-            interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"].isin(["GPT", "interpretatie"])]
+            # Filter regels met "Source" = "interpretatie", "niet gevonden" en "GPT"
+            interpretatie_rows = st.session_state.offer_df[st.session_state.offer_df["Source"].isin(["GPT", "interpretatie", "niet gevonden"])]
     
             # Houd alleen unieke rijen op basis van combinatie van kolommen
             interpretatie_rows = interpretatie_rows.drop_duplicates(subset=["Artikelnaam", "Artikelnummer", "fuzzy_match", "original_article_number"])
