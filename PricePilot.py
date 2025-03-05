@@ -534,7 +534,7 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 article_number,
-                "synoniem",  # Bron: exacte match in synonym_dict.values()
+                source if source else "synoniem",  # Bron: exacte match in synonym_dict.values()
                 article_number,  # Original article number
                 None  # Fuzzy match remains empty
             )
@@ -549,7 +549,7 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                "synoniem",  # Bron: exacte match in synonym_dict.keys()
+                source if source else "synoniem",  # Bron: exacte match in synonym_dict.keys()
                 article_number,  # Original article number
                 None  # Fuzzy match remains empty
             )
@@ -566,7 +566,7 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                "interpretatie",  # Bron: RapidFuzz match
+                source if source else "interpretatie",  # Bron: RapidFuzz match
                 article_number,  # Original article number
                 best_match  # Fuzzy match found
             )
@@ -583,7 +583,7 @@ def find_article_details(article_number):
                 filtered_articles.iloc[0]['Min_prijs'],
                 filtered_articles.iloc[0]['Max_prijs'],
                 matched_article_number,
-                "interpretatie",  # Bron: difflib match
+                source if source else "interpretatie",  # Bron: difflib match
                 article_number,  # Original article number
                 best_match  # Fuzzy match found
             )
@@ -631,7 +631,7 @@ def find_article_details(article_number):
 
 
     # 6. Als alles niet matcht
-    return (article_number, None, None, original_article_number, "niet gevonden", original_article_number, None)
+    return (article_number, None, None, original_article_number, source if source else "niet gevonden", original_article_number, None)
 
 
 # Werkt de artikelnummer bij in de DataFrame op basis van de ingevulde artikelnaam. Gebruikt fuzzy matching om de beste overeenkomst te vinden.
