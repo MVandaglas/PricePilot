@@ -1102,10 +1102,11 @@ def extract_all_details(line):
     else:
         # Stap 4: Verwijder het aantal en de afmetingen tijdelijk uit de regel
         clean_line = line
-        if quantity:
-            clean_line = re.sub(r'\b' + str(quantity) + r'\s*[xX]?\b', '', clean_line)  # Verwijder "4x"
+         if quantity:
+            clean_line = re.sub(r'(?<=^|\s)' + re.escape(str(quantity)) + r'(?:\s*[xX])?(?=\s|$)', '', clean_line, count=1)
+
         if width and height:
-            clean_line = re.sub(r'\b' + str(width) + r'\s*[xX*]\s*' + str(height) + r'\b', '', clean_line)  # Verwijder "800x800"
+            clean_line = re.sub(r'\b' + str(width) + r'\s*[xX*]\s*' + str(height) + r'\b', '', clean_line)  # Verwijder bijv "800x800"
 
         # Stap 5: Gebruik de reguliere regex voor het artikelnummer als er geen {}-omschrijving is
         article_number_match = re.search(r'(\d+[./-]?\d*[-*#]\d+[./-]?\d*)', clean_line)
