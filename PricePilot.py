@@ -1102,7 +1102,7 @@ def extract_all_details(line):
     else:
         # Stap 4: Verwijder het aantal en de afmetingen tijdelijk uit de regel
         clean_line = line
-         if quantity:
+        if quantity:
             clean_line = re.sub(r'(?<=^|\s)' + re.escape(str(quantity)) + r'(?:\s*[xX])?(?=\s|$)', '', clean_line, count=1)
 
         if width and height:
