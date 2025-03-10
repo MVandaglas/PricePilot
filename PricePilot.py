@@ -1108,7 +1108,7 @@ def extract_all_details(line):
             clean_line = re.sub(r'\b' + str(width) + r'\s*[xX*]\s*' + str(height) + r'\b', '', clean_line)  # Verwijder "800x800"
 
         # Stap 5: Gebruik de reguliere regex voor het artikelnummer als er geen {}-omschrijving is
-        article_number_match = re.search(r'([A-Za-z0-9/]+(?:\s*[-/*#]\s*[A-Za-z0-9/.]+)*)', clean_line)
+        article_number_match = = re.search(r'(\d+[./-]?\d*[-*#]\d+[./-]?\d*)', clean_line)
         article_number = article_number_match.group(0).strip() if article_number_match else None
 
     return quantity, width, height, article_number
