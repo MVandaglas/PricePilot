@@ -2748,33 +2748,39 @@ with tab3:
                                 Artikelnaam NVARCHAR(255),
                                 Input NVARCHAR(255),
                                 Bron NVARCHAR(255),
-                                Datum DATETIME DEFAULT CURRENT_TIMESTAMP
+                                Datum DATETIME DEFAULT GETDATE()
                             );
                         END
                         """)
-    
+                    
                         # Verwerk elke rij in de lijst
                         for rij in geselecteerde_rijen_lijst:
                             input_waarde = rij.get("Jouw input", "")
                             artikelnummer = rij.get("Artikelnummer", "")
                             artikelnaam = rij.get("Artikelnaam", "")
-    
+                    
                             if input_waarde and artikelnummer:
-                                cursor.execute("""
-                                IF NOT EXISTS (SELECT 1 FROM SynoniemenAI WHERE Synoniem = ?)
-                                BEGIN
-                                    INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron, Datum)
-                                    VALUES (?, ?, ?, ?, ?, GETDATE());
-                                END
-                                """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
-
-                                st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
-    
+                                # Stap 1: Controleer of het synoniem al bestaat
+                                cursor.execute("SELECT COUNT(*) FROM SynoniemenAI WHERE Synoniem = ?", (input_waarde,))
+                                exists = cursor.fetchone()[0]  # Haal het resultaat op
+                    
+                                # Stap 2: Alleen invoegen als het synoniem nog niet bestaat
+                                if exists == 0:
+                                    cursor.execute("""
+                                        INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron, Datum)
+                                        VALUES (?, ?, ?, ?, ?, GETDATE());
+                                    """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
+                    
+                                    st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
+                                else:
+                                    st.info(f"Synoniem '{input_waarde}' bestaat al in de database.")
+                    
                         # Commit wijzigingen naar de database
                         conn.commit()
-    
+                    
                     except Exception as e:
                         st.error(f"Fout bij het opslaan: {e}")
+
     
                     finally:
                         # Sluit de verbinding
