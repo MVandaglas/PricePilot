@@ -2761,9 +2761,13 @@ with tab3:
     
                             if input_waarde and artikelnummer:
                                 cursor.execute("""
-                                INSERT OR IGNORE INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
-                                VALUES (?, ?, ?, ?, ?);
-                                """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
+                                IF NOT EXISTS (SELECT 1 FROM SynoniemenAI WHERE Synoniem = ?)
+                                BEGIN
+                                    INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
+                                    VALUES (?, ?, ?, ?, ?);
+                                END
+                                """, (input_waarde, input_waarde, artikelnummer, artikelnaam, "Accordeer Synoniem"))
+
                                 st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
     
                         # Commit wijzigingen naar de database
