@@ -2703,7 +2703,13 @@ with tab3:
     
             # Knop voor accordering
             if st.button("Accordeer synoniem"):
-                geselecteerde_rijen = response.get("selected_rows")
+                geselecteerde_rijen = response.get("selected_rows", [])
+
+                if isinstance(geselecteerde_rijen, list):  # Zorg dat het een lijst is
+                    geselecteerde_rijen = pd.DataFrame(geselecteerde_rijen)
+                
+                st.write("Debug - DataFrame geselecteerde rijen:", geselecteerde_rijen)  # Extra debug
+
 
                 if geselecteerde_rijen is None:
                     geselecteerde_rijen = pd.DataFrame()  # Zorg dat het een DataFrame blijft
