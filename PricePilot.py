@@ -2688,7 +2688,7 @@ with tab3:
             response = AgGrid(
                 beoordeling_tabel,
                 gridOptions=grid_options,
-                update_mode=GridUpdateMode.SELECTION_CHANGED,
+                update_mode=GridUpdateMode.MODEL_CHANGED,
                 fit_columns_on_grid_load=True,
                 theme="material"
             )
