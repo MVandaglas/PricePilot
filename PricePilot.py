@@ -2730,7 +2730,12 @@ with tab3:
     
                     # Maak databaseverbinding
                     conn = create_connection()
-                    cursor = conn.cursor()
+                    st.write("Debug - Databaseverbinding:", conn)
+                    if conn is None:
+                        st.error("Databaseverbinding kon niet worden opgezet. Controleer de instellingen.")
+                    else:
+                        cursor = conn.cursor()
+                  
     
                     try:
                         # Zorg dat de tabel SynoniemenAI bestaat
