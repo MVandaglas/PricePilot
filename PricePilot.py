@@ -2763,10 +2763,10 @@ with tab3:
                                 cursor.execute("""
                                 IF NOT EXISTS (SELECT 1 FROM SynoniemenAI WHERE Synoniem = ?)
                                 BEGIN
-                                    INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron)
-                                    VALUES (?, ?, ?, ?, ?);
+                                    INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron, Datum)
+                                    VALUES (?, ?, ?, ?, ?, GETDATE());
                                 END
-                                """, (input_waarde, input_waarde, artikelnummer, artikelnaam, "Accordeer Synoniem"))
+                                """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
 
                                 st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
     
