@@ -2740,14 +2740,17 @@ with tab3:
                     try:
                         # Zorg dat de tabel SynoniemenAI bestaat
                         cursor.execute("""
-                        CREATE TABLE IF NOT EXISTS SynoniemenAI (
-                            Synoniem TEXT PRIMARY KEY,
-                            Artikelnummer TEXT NOT NULL,
-                            Artikelnaam TEXT,
-                            Input TEXT,
-                            Bron TEXT,
-                            Datum TEXT DEFAULT CURRENT_TIMESTAMP
-                        );
+                        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SynoniemenAI')
+                        BEGIN
+                            CREATE TABLE SynoniemenAI (
+                                Synoniem NVARCHAR(255) PRIMARY KEY,
+                                Artikelnummer NVARCHAR(255) NOT NULL,
+                                Artikelnaam NVARCHAR(255),
+                                Input NVARCHAR(255),
+                                Bron NVARCHAR(255),
+                                Datum DATETIME DEFAULT CURRENT_TIMESTAMP
+                            );
+                        END
                         """)
     
                         # Verwerk elke rij in de lijst
