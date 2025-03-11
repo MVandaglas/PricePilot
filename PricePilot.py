@@ -2710,7 +2710,7 @@ with tab3:
                 
                 st.write("Debug - Geselecteerde rijen als DataFrame:", geselecteerde_rijen)
                 
-                if geselecteerde_rijen:  # Controleer of er iets in zit
+                if not geselecteerde_rijen.empty:  # Controleer of er iets in zit
                     geselecteerde_rijen = pd.DataFrame(geselecteerde_rijen)
                     st.write("Debug - Geselecteerde rijen als DataFrame:", geselecteerde_rijen)
                 else:
