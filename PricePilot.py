@@ -195,7 +195,7 @@ with tab4:
             
                     if tabel_bestaat:
                         # **Haal de geaccordeerde synoniemen op**
-                        cursor.execute("SELECT Artikelnummer, Synoniem FROM SynoniemenAI")
+                        cursor.execute("SELECT Artikelnummer, Artikelnaam, Synoniem FROM SynoniemenAI")
                         synoniemen_data = cursor.fetchall()
                         
                         # **Haal de kolomnamen op**
@@ -241,16 +241,17 @@ with tab4:
                                             if isinstance(rij, dict):
                                                 synoniem = rij.get("Synoniem")
                                                 artikelnummer = rij.get("Artikelnummer")
+                                                artikelnaam = rij.get("Artikelnaam")
                                             elif isinstance(rij, (tuple, list)) and len(rij) == 2:
-                                                artikelnummer, synoniem = rij  # Pak waarden uit tuple/lijst
+                                                artikelnummer, artikelnaam, synoniem = rij  # Pak waarden uit tuple/lijst
                                             else:
                                                 st.warning(f"Ongeldig formaat van rij: {rij}")
                                                 continue
                             
                                             if synoniem and artikelnummer:
                                                 cursor.execute("""
-                                                DELETE FROM SynoniemenAI WHERE Artikelnummer = ? AND Synoniem = ?;
-                                                """, (artikelnummer, synoniem))
+                                                DELETE FROM SynoniemenAI WHERE Artikelnummer = ? AND Synoniem = ? And Artikelnaam = ?;
+                                                """, (artikelnummer, artikelnaam, synoniem))
                             
                                         conn.commit()
                                         st.success("Geselecteerde synoniemen zijn verwijderd uit 'synoniemen'.")
