@@ -328,8 +328,6 @@ with tab4:
                 if engine is None:
                     return
                 
-                # ✅ Controleer datatypes
-                st.write(df.dtypes)
     
                 # Haal bestaande data op om updates efficiënter te verwerken
                 existing_data = pd.read_sql("SELECT alias_customer_product, SAP_price FROM SAP_prijzen", engine)
