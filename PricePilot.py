@@ -276,12 +276,12 @@ with tab4:
     elif wachtwoord:
         st.error("❌ Onjuist wachtwoord. Toegang geweigerd.")
 
-    
+        
     def create_connection():
         server = "vdgbullsaiserver.database.windows.net"
         database = "vdgbullsaidb"
-        username = SP_USERNAME
-        password = SP_PASSWORD
+        username = "SP_USERNAME"
+        password = "SP_PASSWORD"
         driver = "ODBC Driver 17 for SQL Server"
         authentication = "ActiveDirectoryPassword"
     
@@ -292,13 +292,12 @@ with tab4:
         conn_str2 = f"mssql+pyodbc:///?odbc_connect={params}"
     
         try:
-            engine = create_engine(conn_str2, fast_executemany=True, paramstyle="qmark")
+            engine = create_engine(conn_str2, fast_executemany=True)
             return engine
         except Exception as e:
             st.error(f"Kan geen verbinding maken met de database: {e}")
             return None
     
-
     def verwerk_excel(geuploade_bestand):
         if geuploade_bestand is not None:
             try:
@@ -319,10 +318,19 @@ with tab4:
                     "alias customer product": "alias_customer_product"
                 }, inplace=True)
     
+                # ✅ Voorkom NULL-waarden
+                df["customer_number"] = df["customer_number"].fillna(0).astype(int)
+                df["product_number"] = df["product_number"].fillna(0).astype(int)
+                df["SAP_price"] = df["SAP_price"].fillna(0).astype(float)
+                df["alias_customer_product"] = df["alias_customer_product"].fillna("").astype(str)
+    
                 engine = create_connection()
                 if engine is None:
                     return
                 
+                # ✅ Controleer datatypes
+                print(df.dtypes)
+    
                 # Haal bestaande data op om updates efficiënter te verwerken
                 existing_data = pd.read_sql("SELECT alias_customer_product, SAP_price FROM SAP_prijzen", engine)
                 existing_data.set_index("alias_customer_product", inplace=True)
@@ -331,12 +339,36 @@ with tab4:
                 df["nieuw"] = df["huidige_prijs"].isna()
                 df["update_nodig"] = ~df["nieuw"] & (df["SAP_price"] != df["huidige_prijs"])
                 
-               # **Batch insert voor nieuwe data in kleinere groepen**
+                # **Batch insert voor nieuwe data in kleinere groepen**
                 nieuwe_data = df[df["nieuw"]].drop(columns=["nieuw", "update_nodig", "huidige_prijs"])
-                batch_size = 2000  # Max 5.000 rijen per batch
+                batch_size = 500  # ✅ Kleinere batches om SQL Server limiet te vermijden
+    
                 if not nieuwe_data.empty:
-                    for i in range(0, len(nieuwe_data), batch_size):
-                        nieuwe_data.to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi", chunksize=1000)
+                    # Directe pyodbc connectie
+                    conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server};"
+                                          "SERVER=vdgbullsaiserver.database.windows.net;"
+                                          "DATABASE=vdgbullsaidb;"
+                                          "UID=SP_USERNAME;"
+                                          "PWD=SP_PASSWORD;"
+                                          "Authentication=ActiveDirectoryPassword")
+                    cursor = conn.cursor()
+    
+                    # SQL INSERT statement
+                    insert_query = """
+                    INSERT INTO SAP_prijzen (customer_number, product_number, SAP_price, alias_customer_product) 
+                    VALUES (?, ?, ?, ?)
+                    """
+    
+                    # Zet de data om in tuples voor executemany()
+                    data_tuples = [tuple(row) for row in nieuwe_data.itertuples(index=False, name=None)]
+                    
+                    # **Verwerk in batches**
+                    for i in range(0, len(data_tuples), batch_size):
+                        cursor.executemany(insert_query, data_tuples[i:i+batch_size])
+                        conn.commit()
+    
+                    cursor.close()
+                    conn.close()
     
                 # **Batch update voor bestaande data**
                 update_data = df[df["update_nodig"]]
@@ -344,37 +376,10 @@ with tab4:
                     update_tuples = list(update_data[["SAP_price", "alias_customer_product"]].itertuples(index=False, name=None))
                     with engine.connect() as connection:
                         statement = text("UPDATE SAP_prijzen SET SAP_price = :SAP_price WHERE alias_customer_product = :alias_customer_product")
-               
-                        # Directe databaseconnectie via pyodbc
-                        conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server};"
-                                              "SERVER=vdgbullsaiserver.database.windows.net;"
-                                              "DATABASE=vdgbullsaidb;"
-                                              "UID=SP_USERNAME;"
-                                              "PWD=SP_PASSWORD;"
-                                              "Authentication=ActiveDirectoryPassword")
-                        
-                        cursor = conn.cursor()
-                        
-                        # SQL INSERT statement
-                        insert_query = """
-                        INSERT INTO SAP_prijzen (customer_number, product_number, SAP_price, alias_customer_product) 
-                        VALUES (CAST(? AS INT), CAST(? AS INT), CAST(? AS FLOAT), CAST(? AS NVARCHAR(MAX)))
-                        """
-                        
-                        # Zet de data om in tuples voor executemany()
-                        data_tuples = [tuple(row) for row in nieuwe_data.itertuples(index=False, name=None)]
-                        
-                        # **Verwerk in batches om SQL Server limiet te vermijden**
-                        batch_size = 500
-                        for i in range(0, len(data_tuples), batch_size):
-                            cursor.executemany(insert_query, data_tuples[i:i+batch_size])
-                            conn.commit()
-                        
-                        # Sluit de connectie
-                        cursor.close()
-                        conn.close()
-
+                        for i in range(0, len(update_tuples), batch_size):
+                            connection.execute(statement, [dict(zip(["SAP_price", "alias_customer_product"], row)) for row in update_tuples[i:i+batch_size]])
                         connection.commit()
+    
                 end_time = time.time()
                 duration = end_time - start_time
                 
