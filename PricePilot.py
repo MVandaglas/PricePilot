@@ -330,10 +330,12 @@ with tab4:
                         df["nieuw"] = df["huidige_prijs"].isna()
                         df["update_nodig"] = ~df["nieuw"] & (df["SAP_price"] != df["huidige_prijs"])
                         
-                        # **Batch insert voor nieuwe data**
+                       # **Batch insert voor nieuwe data in kleinere groepen**
                         nieuwe_data = df[df["nieuw"]].drop(columns=["nieuw", "update_nodig", "huidige_prijs"])
+                        batch_size = 10000  # Max 10.000 rijen per batch
                         if not nieuwe_data.empty:
-                            nieuwe_data.to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi")
+                            for i in range(0, len(nieuwe_data), batch_size):
+                                nieuwe_data.iloc[i:i+batch_size].to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi")
             
                         # **Batch update voor bestaande data**
                         update_data = df[df["update_nodig"]]
@@ -341,7 +343,8 @@ with tab4:
                             update_tuples = list(update_data[["SAP_price", "alias_customer_product"]].itertuples(index=False, name=None))
                             with engine.connect() as connection:
                                 statement = text("UPDATE SAP_prijzen SET SAP_price = :SAP_price WHERE alias_customer_product = :alias_customer_product")
-                                connection.execute(statement, [dict(zip(["SAP_price", "alias_customer_product"], row)) for row in update_tuples])
+                                for i in range(0, len(update_tuples), batch_size):
+                                    connection.execute(statement, [dict(zip(["SAP_price", "alias_customer_product"], row)) for row in update_tuples[i:i+batch_size]])
                                 connection.commit()
                         end_time = time.time()
                         duration = end_time - start_time
