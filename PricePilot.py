@@ -56,12 +56,12 @@ def create_connection():
     username = SP_USERNAME
     password = SP_PASSWORD
 
-    conn_str = f"mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server"
+    conn_str = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={server};DATABASE={database};Authentication=ActiveDirectoryPassword;UID={username};PWD={password}"
     try:
-        engine = create_engine(conn_str, fast_executemany=True)
-        return engine
+        conn = pyodbc.connect(conn_str)
+        return conn
     except Exception as e:
-        st.error(f"Kan geen verbinding maken met de database: {e}")
+        st.error(f"Database fout: {e}")
         return None
 
 
@@ -296,32 +296,37 @@ with col1:
                     "alias customer product": "alias_customer_product"
                 }, inplace=True)
     
-                engine = create_connection()
-                if engine is None:
+                conn = create_connection()
+                if conn is None:
                     return
+                cursor = conn.cursor()
                 
                 # Haal bestaande data op om updates efficiënter te verwerken
-                existing_data = pd.read_sql("SELECT alias_customer_product, SAP_price FROM SAP_prijzen", engine)
-                existing_data.set_index("alias_customer_product", inplace=True)
+                cursor.execute("SELECT alias_customer_product, SAP_price FROM SAP_prijzen")
+                existing_data = {row[0]: row[1] for row in cursor.fetchall()}
                 
-                df["huidige_prijs"] = df["alias_customer_product"].map(existing_data["SAP_price"].to_dict())
+                df["huidige_prijs"] = df["alias_customer_product"].map(existing_data)
                 df["nieuw"] = df["huidige_prijs"].isna()
                 df["update_nodig"] = ~df["nieuw"] & (df["SAP_price"] != df["huidige_prijs"])
                 
                 # **Batch insert voor nieuwe data**
                 nieuwe_data = df[df["nieuw"]].drop(columns=["nieuw", "update_nodig", "huidige_prijs"])
                 if not nieuwe_data.empty:
-                    nieuwe_data.to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi")
+                    cursor.executemany(
+                        "INSERT INTO SAP_prijzen (customer_number, product_number, SAP_price, alias_customer_product) VALUES (?, ?, ?, ?)",
+                        nieuwe_data.values.tolist()
+                    )
     
                 # **Batch update voor bestaande data**
                 update_data = df[df["update_nodig"]]
                 if not update_data.empty:
-                    with engine.begin() as connection:
-                        for _, row in update_data.iterrows():
-                            connection.execute(
-                                "UPDATE SAP_prijzen SET SAP_price = ? WHERE alias_customer_product = ?",
-                                (row["SAP_price"], row["alias_customer_product"])
-                            )
+                    cursor.executemany(
+                        "UPDATE SAP_prijzen SET SAP_price = ? WHERE alias_customer_product = ?",
+                        update_data[["SAP_price", "alias_customer_product"]].values.tolist()
+                    )
+                
+                conn.commit()
+                conn.close()
                 
                 end_time = time.time()
                 duration = end_time - start_time
@@ -330,12 +335,11 @@ with col1:
     
             except Exception as e:
                 st.error(f"Fout bij verwerken van Excel-bestand: {e}")
-       
-    with st.expander("💲 Upload SAP Prijzen en schrijf naar vdgbullsaidb", expanded=False):
+    
+    with st.expander("📂 Upload SAP Prijzen en schrijf naar vdgbullsaidb", expanded=False):
         geuploade_bestand = st.file_uploader("Upload prijzen", type=["xlsx"])
         if st.button("📥 Verwerk en sla op in database"):
             verwerk_excel(geuploade_bestand)
-
 
 
         
