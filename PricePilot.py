@@ -344,8 +344,36 @@ with tab4:
                     update_tuples = list(update_data[["SAP_price", "alias_customer_product"]].itertuples(index=False, name=None))
                     with engine.connect() as connection:
                         statement = text("UPDATE SAP_prijzen SET SAP_price = :SAP_price WHERE alias_customer_product = :alias_customer_product")
-                        for i in range(0, len(update_tuples), batch_size):
-                            connection.execute(statement, [dict(zip(["SAP_price", "alias_customer_product"], row)) for row in update_tuples[i:i+batch_size]])
+               
+                            # Directe databaseconnectie via pyodbc
+                            conn = pyodbc.connect("DRIVER={ODBC Driver 17 for SQL Server};"
+                                                  "SERVER=vdgbullsaiserver.database.windows.net;"
+                                                  "DATABASE=vdgbullsaidb;"
+                                                  "UID=SP_USERNAME;"
+                                                  "PWD=SP_PASSWORD;"
+                                                  "Authentication=ActiveDirectoryPassword")
+                            
+                            cursor = conn.cursor()
+                            
+                            # SQL INSERT statement
+                            insert_query = """
+                            INSERT INTO SAP_prijzen (customer_number, product_number, SAP_price, alias_customer_product) 
+                            VALUES (?, ?, ?, ?)
+                            """
+                            
+                            # Zet de data om in tuples voor executemany()
+                            data_tuples = [tuple(row) for row in nieuwe_data.itertuples(index=False, name=None)]
+                            
+                            # **Verwerk in batches om SQL Server limiet te vermijden**
+                            batch_size = 2000
+                            for i in range(0, len(data_tuples), batch_size):
+                                cursor.executemany(insert_query, data_tuples[i:i+batch_size])
+                                conn.commit()
+                            
+                            # Sluit de connectie
+                            cursor.close()
+                            conn.close()
+
                         connection.commit()
                 end_time = time.time()
                 duration = end_time - start_time
