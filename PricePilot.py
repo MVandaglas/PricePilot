@@ -180,7 +180,7 @@ with tab4:
         st.success("Toegang verleend tot de beheertab.")
 
         
-        with st.expander("🔍 Bekijk en beheer actieve synoniemen", expanded=False):       
+        with st.expander("1 - 🔍 Bekijk en beheer actieve synoniemen", expanded=False):       
             # **Maak verbinding met de database**
             conn = create_connection()
             if conn:
@@ -336,12 +336,12 @@ def verwerk_excel(geuploade_bestand_prijzen):
         except Exception as e:
             st.error(f"Fout bij verwerken van Excel-bestand: {e}")
 
-st.title("💲🏷️ Upload SAP Prijzen")
+st.title("🔍 Beheer SynoniemenAI")
 
-geuploade_bestand_prijzen = st.file_uploader("Upload prijs bestand", type=["xlsx"])
-
-if st.button("📥 Verwerk en sla op in database"):
-    verwerk_excel(geuploade_bestand_prijzen)
+with st.expander("2 - 💲 Upload SAP Prijzen", expanded=False):
+    geuploade_bestand = st.file_uploader("Upload prijzen", type=["xlsx"])
+    if st.button("📥 Verwerk en sla op in database"):
+        verwerk_excel(geuploade_bestand_prijzen)
 
         
 
