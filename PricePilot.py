@@ -329,7 +329,7 @@ with col1:
     st.title("🔍 Beheer SynoniemenAI")
     
     with st.expander("📂 Upload SAP Prijzen en schrijf naar vdgbullsaidb", expanded=False):
-        geuploade_bestand = st.file_uploader("Upload een Excel-bestand", type=["xlsx"])
+        geuploade_bestand = st.file_uploader("Upload prijzen", type=["xlsx"])
         if st.button("📥 Verwerk en sla op in database"):
             verwerk_excel(geuploade_bestand)
 
