@@ -325,10 +325,8 @@ with col1:
     
             except Exception as e:
                 st.error(f"Fout bij verwerken van Excel-bestand: {e}")
-    
-    st.title("🔍 Beheer SynoniemenAI")
-    
-    with st.expander("📂 Upload SAP Prijzen en schrijf naar vdgbullsaidb", expanded=False):
+      
+    with st.expander("2 - 💲Upload SAP Prijzen en schrijf naar vdgbullsaidb", expanded=False):
         geuploade_bestand = st.file_uploader("Upload prijzen", type=["xlsx"])
         if st.button("📥 Verwerk en sla op in database"):
             verwerk_excel(geuploade_bestand)
