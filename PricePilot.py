@@ -38,6 +38,7 @@ import numpy as np
 import tempfile
 import pyodbc
 from sqlalchemy import create_engine
+import urllib
 
 
 # 🔑 Configuratie
@@ -281,8 +282,15 @@ with col1:
         database = "vdgbullsaidb"
         username = SP_USERNAME
         password = SP_PASSWORD
+        driver = "ODBC Driver 17 for SQL Server"
+        authentication = "ActiveDirectoryPassword"
     
-        conn_str2 = f"mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server"
+        params = urllib.parse.quote_plus(
+            f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password};Authentication={authentication}"
+        )
+    
+        conn_str2 = f"mssql+pyodbc:///?odbc_connect={params}"
+    
         try:
             engine = create_engine(conn_str2, fast_executemany=True)
             return engine
