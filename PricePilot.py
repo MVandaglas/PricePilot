@@ -270,6 +270,79 @@ with tab4:
 
     elif wachtwoord:
         st.error("❌ Onjuist wachtwoord. Toegang geweigerd.")
+
+def verwerk_excel(geuploade_bestand):
+    if geuploade_bestand is not None:
+        try:
+            df = pd.read_excel(geuploade_bestand)
+
+            # Controleer of de vereiste kolommen bestaan
+            vereiste_kolommen = ["Customer number", "Product number", "SAP prijs", "Alias customer product"]
+            if not all(kolom in df.columns for kolom in vereiste_kolommen):
+                st.error("Excel-bestand mist verplichte kolommen! Zorg dat de kolommen correct zijn.")
+                return
+
+            # Hernoem de kolommen naar de database-kolomnamen
+            df.rename(columns={
+                "Customer number": "customer_number",
+                "Product number": "product_number",
+                "SAP prijs": "SAP_price",
+                "Alias customer product": "alias_customer_product"
+            }, inplace=True)
+
+            conn = create_connection()
+            if conn is None:
+                return
+            cursor = conn.cursor()
+
+            prijzen_veranderd = 0
+            prijzen_toegevoegd = 0
+
+            for _, row in df.iterrows():
+                alias_customer_product = row["alias_customer_product"]
+                customer_number = row["customer_number"]
+                product_number = row["product_number"]
+                SAP_price = row["SAP_price"]
+
+                # Controleer of alias_customer_product al bestaat
+                cursor.execute("SELECT COUNT(*) FROM SAP_prijzen WHERE alias_customer_product = ?", (alias_customer_product,))
+                exists = cursor.fetchone()[0]
+
+                if exists:
+                    # Controleer of de prijs veranderd is
+                    cursor.execute("SELECT SAP_price FROM SAP_prijzen WHERE alias_customer_product = ?", (alias_customer_product,))
+                    huidige_prijs = cursor.fetchone()[0]
+
+                    if huidige_prijs != SAP_price:
+                        # Update de prijs
+                        cursor.execute("""
+                            UPDATE SAP_prijzen
+                            SET customer_number = ?, product_number = ?, SAP_price = ?
+                            WHERE alias_customer_product = ?;
+                        """, (customer_number, product_number, SAP_price, alias_customer_product))
+                        prijzen_veranderd += 1
+                else:
+                    # Voeg nieuwe rij toe
+                    cursor.execute("""
+                        INSERT INTO SAP_prijzen (customer_number, product_number, SAP_price, alias_customer_product)
+                        VALUES (?, ?, ?, ?);
+                    """, (customer_number, product_number, SAP_price, alias_customer_product))
+                    prijzen_toegevoegd += 1
+
+            conn.commit()
+            conn.close()
+            st.success(f"✅ Verwerking voltooid! {prijzen_veranderd} prijzen gewijzigd, {prijzen_toegevoegd} nieuwe prijzen toegevoegd.")
+
+        except Exception as e:
+            st.error(f"Fout bij verwerken van Excel-bestand: {e}")
+
+st.title("💲🏷️ Upload SAP Prijzen")
+
+geuploade_bestand = st.file_uploader("Upload een Excel-bestand", type=["xlsx"])
+
+if st.button("📥 Verwerk en sla op in database"):
+    verwerk_excel(geuploade_bestand)
+
         
 
 # Tab 1: Offerte Genereren
