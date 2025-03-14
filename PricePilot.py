@@ -281,7 +281,7 @@ with col1:
                 df = pd.read_excel(geuploade_bestand_prijzen)
     
                 # Controleer of de vereiste kolommen bestaan
-                vereiste_kolommen = ["customer number", "product number", "SAP prijs", "alias customer product"]
+                vereiste_kolommen = ["customer number", "product number", "SAP price", "alias customer product"]
                 if not all(kolom in df.columns for kolom in vereiste_kolommen):
                     st.error("Excel-bestand mist verplichte kolommen! Zorg dat de kolommen correct zijn.")
                     return
