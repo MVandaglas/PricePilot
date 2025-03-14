@@ -283,17 +283,17 @@ with col1:
                 df = pd.read_excel(geuploade_bestand)
     
                 # Controleer of de vereiste kolommen bestaan
-                vereiste_kolommen = ["Customer number", "Product number", "SAP prijs", "Alias customer product"]
+                vereiste_kolommen = ["customer number", "product number", "SAP price", "alias customer product"]
                 if not all(kolom in df.columns for kolom in vereiste_kolommen):
                     st.error("Excel-bestand mist verplichte kolommen! Zorg dat de kolommen correct zijn.")
                     return
     
                 # Hernoem de kolommen naar de database-kolomnamen
                 df.rename(columns={
-                    "Customer number": "customer_number",
-                    "Product number": "product_number",
-                    "SAP prijs": "SAP_price",
-                    "Alias customer product": "alias_customer_product"
+                    "customer number": "customer_number",
+                    "product number": "product_number",
+                    "SAP price": "SAP_price",
+                    "alias customer product": "alias_customer_product"
                 }, inplace=True)
     
                 engine = create_connection()
