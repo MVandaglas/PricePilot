@@ -276,85 +276,85 @@ with tab4:
     elif wachtwoord:
         st.error("❌ Onjuist wachtwoord. Toegang geweigerd.")
 
-with col1:
-    def create_connection():
-        server = "vdgbullsaiserver.database.windows.net"
-        database = "vdgbullsaidb"
-        username = SP_USERNAME
-        password = SP_PASSWORD
-        driver = "ODBC Driver 17 for SQL Server"
-        authentication = "ActiveDirectoryPassword"
-    
-        params = urllib.parse.quote_plus(
-            f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password};Authentication={authentication}"
-        )
-    
-        conn_str2 = f"mssql+pyodbc:///?odbc_connect={params}"
-    
-        try:
-            engine = create_engine(conn_str2, fast_executemany=True)
-            return engine
-        except Exception as e:
-            st.error(f"Kan geen verbinding maken met de database: {e}")
-            return None
-    
-    def verwerk_excel(geuploade_bestand):
-        if geuploade_bestand is not None:
+    with col1:
+        def create_connection():
+            server = "vdgbullsaiserver.database.windows.net"
+            database = "vdgbullsaidb"
+            username = SP_USERNAME
+            password = SP_PASSWORD
+            driver = "ODBC Driver 17 for SQL Server"
+            authentication = "ActiveDirectoryPassword"
+        
+            params = urllib.parse.quote_plus(
+                f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password};Authentication={authentication}"
+            )
+        
+            conn_str2 = f"mssql+pyodbc:///?odbc_connect={params}"
+        
             try:
-                start_time = time.time()
-                df = pd.read_excel(geuploade_bestand)
-    
-                # Controleer of de vereiste kolommen bestaan
-                vereiste_kolommen = ["customer number", "product number", "SAP price", "alias customer product"]
-                if not all(kolom in df.columns for kolom in vereiste_kolommen):
-                    st.error("Excel-bestand mist verplichte kolommen! Zorg dat de kolommen correct zijn.")
-                    return
-    
-                # Hernoem de kolommen naar de database-kolomnamen
-                df.rename(columns={
-                    "customer number": "customer_number",
-                    "product number": "product_number",
-                    "SAP price": "SAP_price",
-                    "alias customer product": "alias_customer_product"
-                }, inplace=True)
-    
-                engine = create_connection()
-                if engine is None:
-                    return
-                
-                # Haal bestaande data op om updates efficiënter te verwerken
-                existing_data = pd.read_sql("SELECT alias_customer_product, SAP_price FROM SAP_prijzen", engine)
-                existing_data.set_index("alias_customer_product", inplace=True)
-                
-                df["huidige_prijs"] = df["alias_customer_product"].map(existing_data["SAP_price"].to_dict())
-                df["nieuw"] = df["huidige_prijs"].isna()
-                df["update_nodig"] = ~df["nieuw"] & (df["SAP_price"] != df["huidige_prijs"])
-                
-                # **Batch insert voor nieuwe data**
-                nieuwe_data = df[df["nieuw"]].drop(columns=["nieuw", "update_nodig", "huidige_prijs"])
-                if not nieuwe_data.empty:
-                    nieuwe_data.to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi")
-    
-                # **Batch update voor bestaande data**
-                update_data = df[df["update_nodig"]]
-                if not update_data.empty:
-                    update_tuples = list(update_data[["SAP_price", "alias_customer_product"]].itertuples(index=False, name=None))
-                    with engine.connect() as connection:
-                        statement = text("UPDATE SAP_prijzen SET SAP_price = :SAP_price WHERE alias_customer_product = :alias_customer_product")
-                        connection.execute(statement, [dict(zip(["SAP_price", "alias_customer_product"], row)) for row in update_tuples])
-                        connection.commit()
-                end_time = time.time()
-                duration = end_time - start_time
-                
-                st.success(f"✅ Verwerking voltooid in {duration:.2f} seconden! {len(update_data)} prijzen gewijzigd, {len(nieuwe_data)} nieuwe prijzen toegevoegd.")
-    
+                engine = create_engine(conn_str2, fast_executemany=True)
+                return engine
             except Exception as e:
-                st.error(f"Fout bij verwerken van Excel-bestand: {e}")
-    
-    with st.expander("2 - 💲 Upload SAP Prijzen", expanded=False):
-        geuploade_bestand = st.file_uploader("Upload prijzen", type=["xlsx"])
-        if st.button("📥 Verwerk en sla op in database"):
-            verwerk_excel(geuploade_bestand)
+                st.error(f"Kan geen verbinding maken met de database: {e}")
+                return None
+        
+        def verwerk_excel(geuploade_bestand):
+            if geuploade_bestand is not None:
+                try:
+                    start_time = time.time()
+                    df = pd.read_excel(geuploade_bestand)
+        
+                    # Controleer of de vereiste kolommen bestaan
+                    vereiste_kolommen = ["customer number", "product number", "SAP price", "alias customer product"]
+                    if not all(kolom in df.columns for kolom in vereiste_kolommen):
+                        st.error("Excel-bestand mist verplichte kolommen! Zorg dat de kolommen correct zijn.")
+                        return
+        
+                    # Hernoem de kolommen naar de database-kolomnamen
+                    df.rename(columns={
+                        "customer number": "customer_number",
+                        "product number": "product_number",
+                        "SAP price": "SAP_price",
+                        "alias customer product": "alias_customer_product"
+                    }, inplace=True)
+        
+                    engine = create_connection()
+                    if engine is None:
+                        return
+                    
+                    # Haal bestaande data op om updates efficiënter te verwerken
+                    existing_data = pd.read_sql("SELECT alias_customer_product, SAP_price FROM SAP_prijzen", engine)
+                    existing_data.set_index("alias_customer_product", inplace=True)
+                    
+                    df["huidige_prijs"] = df["alias_customer_product"].map(existing_data["SAP_price"].to_dict())
+                    df["nieuw"] = df["huidige_prijs"].isna()
+                    df["update_nodig"] = ~df["nieuw"] & (df["SAP_price"] != df["huidige_prijs"])
+                    
+                    # **Batch insert voor nieuwe data**
+                    nieuwe_data = df[df["nieuw"]].drop(columns=["nieuw", "update_nodig", "huidige_prijs"])
+                    if not nieuwe_data.empty:
+                        nieuwe_data.to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi")
+        
+                    # **Batch update voor bestaande data**
+                    update_data = df[df["update_nodig"]]
+                    if not update_data.empty:
+                        update_tuples = list(update_data[["SAP_price", "alias_customer_product"]].itertuples(index=False, name=None))
+                        with engine.connect() as connection:
+                            statement = text("UPDATE SAP_prijzen SET SAP_price = :SAP_price WHERE alias_customer_product = :alias_customer_product")
+                            connection.execute(statement, [dict(zip(["SAP_price", "alias_customer_product"], row)) for row in update_tuples])
+                            connection.commit()
+                    end_time = time.time()
+                    duration = end_time - start_time
+                    
+                    st.success(f"✅ Verwerking voltooid in {duration:.2f} seconden! {len(update_data)} prijzen gewijzigd, {len(nieuwe_data)} nieuwe prijzen toegevoegd.")
+        
+                except Exception as e:
+                    st.error(f"Fout bij verwerken van Excel-bestand: {e}")
+        
+        with st.expander("2 - 💲 Upload SAP Prijzen", expanded=False):
+            geuploade_bestand = st.file_uploader("Upload prijzen", type=["xlsx"])
+            if st.button("📥 Verwerk en sla op in database"):
+                verwerk_excel(geuploade_bestand)
 
 
         
