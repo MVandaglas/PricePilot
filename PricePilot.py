@@ -187,15 +187,15 @@ with tab4:
                 cursor = conn.cursor()
             
                 try:
-                    # **Controleer of de tabel 'synoniemen' bestaat**
+                    # **Controleer of de tabel 'SynoniemenAI' bestaat**
                     cursor.execute("""
-                    SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'synoniemen';
+                    SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'SynoniemenAI';
                     """)
                     tabel_bestaat = cursor.fetchone()
             
                     if tabel_bestaat:
                         # **Haal de geaccordeerde synoniemen op**
-                        cursor.execute("SELECT Artikelnummer, Synoniem FROM synoniemen")
+                        cursor.execute("SELECT Artikelnummer, Synoniem FROM SynoniemenAI")
                         synoniemen_data = cursor.fetchall()
                         
                         # **Haal de kolomnamen op**
@@ -249,7 +249,7 @@ with tab4:
                             
                                             if synoniem and artikelnummer:
                                                 cursor.execute("""
-                                                DELETE FROM synoniemen WHERE Artikelnummer = ? AND Synoniem = ?;
+                                                DELETE FROM SynoniemenAI WHERE Artikelnummer = ? AND Synoniem = ?;
                                                 """, (artikelnummer, synoniem))
                             
                                         conn.commit()
