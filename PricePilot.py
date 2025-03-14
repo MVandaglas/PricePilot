@@ -341,7 +341,7 @@ with col1:
                 st.error(f"Fout bij verwerken van Excel-bestand: {e}")
     
     with st.expander("2 - 💲 Upload SAP Prijzen", expanded=False):
-        geuploade_bestand = st.file_uploader("Upload prijzen", type=["xlsx"])
+        geuploade_bestand_prijzen = st.file_uploader("Upload prijzen", type=["xlsx"])
         if st.button("📥 Verwerk en sla op in database"):
             verwerk_excel(geuploade_bestand_prijzen)
 
