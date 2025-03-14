@@ -333,7 +333,7 @@ with tab4:
                 
                # **Batch insert voor nieuwe data in kleinere groepen**
                 nieuwe_data = df[df["nieuw"]].drop(columns=["nieuw", "update_nodig", "huidige_prijs"])
-                batch_size = 5000  # Max 5.000 rijen per batch
+                batch_size = 2000  # Max 5.000 rijen per batch
                 if not nieuwe_data.empty:
                     for i in range(0, len(nieuwe_data), batch_size):
                         nieuwe_data.to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi", chunksize=1000)
