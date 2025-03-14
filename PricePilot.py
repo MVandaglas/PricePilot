@@ -279,6 +279,7 @@ with col1:
     def verwerk_excel(geuploade_bestand):
         if geuploade_bestand is not None:
             try:
+                start_time = time.time()
                 df = pd.read_excel(geuploade_bestand)
     
                 # Controleer of de vereiste kolommen bestaan
@@ -320,8 +321,9 @@ with col1:
                                 "UPDATE SAP_prijzen SET SAP_price = ? WHERE alias_customer_product = ?",
                                 (row["SAP_price"], row["alias_customer_product"])
                             )
-    
-                st.success(f"✅ Verwerking voltooid! {len(update_data)} prijzen gewijzigd, {len(nieuwe_data)} nieuwe prijzen toegevoegd.")
+                end_time = time.time()
+                duration = end_time - start_time
+                st.success(f"✅ Verwerking voltooid in {duration:.2f} seconden! {len(update_data)} prijzen gewijzigd, {len(nieuwe_data)} nieuwe prijzen toegevoegd.")
     
             except Exception as e:
                 st.error(f"Fout bij verwerken van Excel-bestand: {e}")
