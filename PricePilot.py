@@ -37,6 +37,7 @@ import jwt
 import numpy as np
 import tempfile
 import pyodbc
+from sqlalchemy import create_engine
 
 
 # 🔑 Configuratie
@@ -275,75 +276,63 @@ with tab4:
         st.error("❌ Onjuist wachtwoord. Toegang geweigerd.")
 
 with col1:
-    def verwerk_excel(geuploade_bestand_prijzen):
-        if geuploade_bestand_prijzen is not None:
+    def verwerk_excel(geuploade_bestand):
+        if geuploade_bestand is not None:
             try:
-                df = pd.read_excel(geuploade_bestand_prijzen)
+                df = pd.read_excel(geuploade_bestand)
     
                 # Controleer of de vereiste kolommen bestaan
-                vereiste_kolommen = ["customer number", "product number", "SAP price", "alias customer product"]
+                vereiste_kolommen = ["Customer number", "Product number", "SAP prijs", "Alias customer product"]
                 if not all(kolom in df.columns for kolom in vereiste_kolommen):
                     st.error("Excel-bestand mist verplichte kolommen! Zorg dat de kolommen correct zijn.")
                     return
     
                 # Hernoem de kolommen naar de database-kolomnamen
                 df.rename(columns={
-                    "customer number": "customer_number",
-                    "product number": "product_number",
-                    "SAP price": "SAP_price",
-                    "alias customer product": "alias_customer_product"
+                    "Customer number": "customer_number",
+                    "Product number": "product_number",
+                    "SAP prijs": "SAP_price",
+                    "Alias customer product": "alias_customer_product"
                 }, inplace=True)
     
-                conn = create_connection()
-                if conn is None:
+                engine = create_connection()
+                if engine is None:
                     return
-                cursor = conn.cursor()
+                
+                # Haal bestaande data op om updates efficiënter te verwerken
+                existing_data = pd.read_sql("SELECT alias_customer_product, SAP_price FROM SAP_prijzen", engine)
+                existing_data.set_index("alias_customer_product", inplace=True)
     
-                prijzen_veranderd = 0
-                prijzen_toegevoegd = 0
+                df["nieuw"] = ~df["alias_customer_product"].isin(existing_data.index)
+                df["update_nodig"] = df["alias_customer_product"].isin(existing_data.index) & (df["SAP_price"] != existing_data["SAP_price"])
+                
+                # **Batch insert voor nieuwe data**
+                nieuwe_data = df[df["nieuw"]].drop(columns=["nieuw", "update_nodig"])
+                if not nieuwe_data.empty:
+                    nieuwe_data.to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi")
     
-                for _, row in df.iterrows():
-                    alias_customer_product = row["alias_customer_product"]
-                    customer_number = row["customer_number"]
-                    product_number = row["product_number"]
-                    SAP_price = row["SAP_price"]
+                # **Batch update voor bestaande data**
+                update_data = df[df["update_nodig"]]
+                if not update_data.empty:
+                    with engine.begin() as connection:
+                        for _, row in update_data.iterrows():
+                            connection.execute(
+                                "UPDATE SAP_prijzen SET SAP_price = ? WHERE alias_customer_product = ?",
+                                (row["SAP_price"], row["alias_customer_product"])
+                            )
     
-                    # Controleer of alias_customer_product al bestaat
-                    cursor.execute("SELECT COUNT(*) FROM SAP_prijzen WHERE alias_customer_product = ?", (alias_customer_product,))
-                    exists = cursor.fetchone()[0]
-    
-                    if exists:
-                        # Controleer of de prijs veranderd is
-                        cursor.execute("SELECT SAP_price FROM SAP_prijzen WHERE alias_customer_product = ?", (alias_customer_product,))
-                        huidige_prijs = cursor.fetchone()[0]
-    
-                        if huidige_prijs != SAP_price:
-                            # Update de prijs
-                            cursor.execute("""
-                                UPDATE SAP_prijzen
-                                SET customer_number = ?, product_number = ?, SAP_price = ?
-                                WHERE alias_customer_product = ?;
-                            """, (customer_number, product_number, SAP_price, alias_customer_product))
-                            prijzen_veranderd += 1
-                    else:
-                        # Voeg nieuwe rij toe
-                        cursor.execute("""
-                            INSERT INTO SAP_prijzen (customer_number, product_number, SAP_price, alias_customer_product)
-                            VALUES (?, ?, ?, ?);
-                        """, (customer_number, product_number, SAP_price, alias_customer_product))
-                        prijzen_toegevoegd += 1
-    
-                conn.commit()
-                conn.close()
-                st.success(f"✅ Verwerking voltooid! {prijzen_veranderd} prijzen gewijzigd, {prijzen_toegevoegd} nieuwe prijzen toegevoegd.")
+                st.success(f"✅ Verwerking voltooid! {len(update_data)} prijzen gewijzigd, {len(nieuwe_data)} nieuwe prijzen toegevoegd.")
     
             except Exception as e:
                 st.error(f"Fout bij verwerken van Excel-bestand: {e}")
     
-    with st.expander("2 - 💲 Upload SAP Prijzen", expanded=False):
-        geuploade_bestand_prijzen = st.file_uploader("Upload prijzen", type=["xlsx"])
+    st.title("🔍 Beheer SynoniemenAI")
+    
+    with st.expander("📂 Upload SAP Prijzen en schrijf naar vdgbullsaidb", expanded=False):
+        geuploade_bestand = st.file_uploader("Upload een Excel-bestand", type=["xlsx"])
         if st.button("📥 Verwerk en sla op in database"):
-            verwerk_excel(geuploade_bestand_prijzen)
+            verwerk_excel(geuploade_bestand)
+
 
         
 
