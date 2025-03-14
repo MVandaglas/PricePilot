@@ -338,7 +338,7 @@ def verwerk_excel(geuploade_bestand_prijzen):
 
 st.title("💲🏷️ Upload SAP Prijzen")
 
-geuploade_bestand_prijzen = st.file_uploader("Upload een Excel-bestand", type=["xlsx"])
+geuploade_bestand_prijzen = st.file_uploader("Upload prijs bestand", type=["xlsx"])
 
 if st.button("📥 Verwerk en sla op in database"):
     verwerk_excel(geuploade_bestand_prijzen)
