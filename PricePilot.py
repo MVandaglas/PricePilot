@@ -358,14 +358,14 @@ with tab4:
                         # SQL INSERT statement
                         insert_query = """
                         INSERT INTO SAP_prijzen (customer_number, product_number, SAP_price, alias_customer_product) 
-                        VALUES (?, ?, ?, ?)
+                        VALUES (CAST(? AS INT), CAST(? AS INT), CAST(? AS FLOAT), CAST(? AS NVARCHAR(MAX)))
                         """
                         
                         # Zet de data om in tuples voor executemany()
                         data_tuples = [tuple(row) for row in nieuwe_data.itertuples(index=False, name=None)]
                         
                         # **Verwerk in batches om SQL Server limiet te vermijden**
-                        batch_size = 2000
+                        batch_size = 500
                         for i in range(0, len(data_tuples), batch_size):
                             cursor.executemany(insert_query, data_tuples[i:i+batch_size])
                             conn.commit()
