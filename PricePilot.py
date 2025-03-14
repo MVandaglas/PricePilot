@@ -291,7 +291,7 @@ with col1:
                     "customer number": "customer_number",
                     "product number": "product_number",
                     "SAP price": "SAP_price",
-                    "aAlias customer product": "alias_customer_product"
+                    "alias customer product": "alias_customer_product"
                 }, inplace=True)
     
                 conn = create_connection()
