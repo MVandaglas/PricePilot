@@ -271,10 +271,10 @@ with tab4:
     elif wachtwoord:
         st.error("❌ Onjuist wachtwoord. Toegang geweigerd.")
 
-def verwerk_excel(geuploade_bestand):
-    if geuploade_bestand is not None:
+def verwerk_excel(geuploade_bestand_prijzen):
+    if geuploade_bestand_prijzen is not None:
         try:
-            df = pd.read_excel(geuploade_bestand)
+            df = pd.read_excel(geuploade_bestand_prijzen)
 
             # Controleer of de vereiste kolommen bestaan
             vereiste_kolommen = ["Customer number", "Product number", "SAP prijs", "Alias customer product"]
@@ -284,10 +284,10 @@ def verwerk_excel(geuploade_bestand):
 
             # Hernoem de kolommen naar de database-kolomnamen
             df.rename(columns={
-                "Customer number": "customer_number",
-                "Product number": "product_number",
-                "SAP prijs": "SAP_price",
-                "Alias customer product": "alias_customer_product"
+                "customer number": "customer_number",
+                "product number": "product_number",
+                "SAP price": "SAP_price",
+                "aAlias customer product": "alias_customer_product"
             }, inplace=True)
 
             conn = create_connection()
@@ -338,10 +338,10 @@ def verwerk_excel(geuploade_bestand):
 
 st.title("💲🏷️ Upload SAP Prijzen")
 
-geuploade_bestand = st.file_uploader("Upload een Excel-bestand", type=["xlsx"])
+geuploade_bestand_prijzen = st.file_uploader("Upload een Excel-bestand", type=["xlsx"])
 
 if st.button("📥 Verwerk en sla op in database"):
-    verwerk_excel(geuploade_bestand)
+    verwerk_excel(geuploade_bestand_prijzen)
 
         
 
