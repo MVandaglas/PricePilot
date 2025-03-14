@@ -336,7 +336,7 @@ with tab4:
                 batch_size = 5000  # Max 5.000 rijen per batch
                 if not nieuwe_data.empty:
                     for i in range(0, len(nieuwe_data), batch_size):
-                        nieuwe_data.iloc[i:i+batch_size].to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi", chunksize=1000)
+                        nieuwe_data.to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi", chunksize=1000)
     
                 # **Batch update voor bestaande data**
                 update_data = df[df["update_nodig"]]
