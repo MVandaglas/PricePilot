@@ -292,7 +292,7 @@ with tab4:
         conn_str2 = f"mssql+pyodbc:///?odbc_connect={params}"
     
         try:
-            engine = create_engine(conn_str2, fast_executemany=True)
+            engine = create_engine(conn_str2, fast_executemany=True, paramstyle="qmark")
             return engine
         except Exception as e:
             st.error(f"Kan geen verbinding maken met de database: {e}")
