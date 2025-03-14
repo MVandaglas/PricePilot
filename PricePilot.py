@@ -284,7 +284,7 @@ with col1:
     
         conn_str2 = f"mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server"
         try:
-            engine = create_engine(conn_str, fast_executemany=True)
+            engine = create_engine(conn_str2, fast_executemany=True)
             return engine
         except Exception as e:
             st.error(f"Kan geen verbinding maken met de database: {e}")
