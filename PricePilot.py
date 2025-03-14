@@ -304,11 +304,13 @@ with col1:
                 existing_data = pd.read_sql("SELECT alias_customer_product, SAP_price FROM SAP_prijzen", engine)
                 existing_data.set_index("alias_customer_product", inplace=True)
     
-                df["nieuw"] = ~df["alias_customer_product"].isin(existing_data.index)
-                df["update_nodig"] = df["alias_customer_product"].isin(existing_data.index) & (df["SAP_price"] != existing_data["SAP_price"])
+                # Zorg ervoor dat we geen index misinterpretatie krijgen bij vergelijking
+                df["huidige_prijs"] = df["alias_customer_product"].map(existing_data["SAP_price"].to_dict())
+                df["nieuw"] = df["huidige_prijs"].isna()
+                df["update_nodig"] = ~df["nieuw"] & (df["SAP_price"] != df["huidige_prijs"])
                 
                 # **Batch insert voor nieuwe data**
-                nieuwe_data = df[df["nieuw"]].drop(columns=["nieuw", "update_nodig"])
+                nieuwe_data = df[df["nieuw"]].drop(columns=["nieuw", "update_nodig", "huidige_prijs"])
                 if not nieuwe_data.empty:
                     nieuwe_data.to_sql("SAP_prijzen", engine, if_exists="append", index=False, method="multi")
     
