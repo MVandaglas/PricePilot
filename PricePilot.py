@@ -338,12 +338,13 @@ with col1:
                 # **Batch update voor bestaande data**
                 update_data = df[df["update_nodig"]]
                 if not update_data.empty:
+                    update_tuples = list(update_data[["SAP_price", "alias_customer_product"]].itertuples(index=False, name=None))
+                    
                     with engine.begin() as connection:
-                        for _, row in update_data.iterrows():
-                            connection.execute(
-                                "UPDATE SAP_prijzen SET SAP_price = ? WHERE alias_customer_product = ?",
-                                (row["SAP_price"], row["alias_customer_product"])
-                            )
+                        connection.executemany(
+                            "UPDATE SAP_prijzen SET SAP_price = ? WHERE alias_customer_product = ?",
+                            update_tuples
+                        )
                 
                 end_time = time.time()
                 duration = end_time - start_time
