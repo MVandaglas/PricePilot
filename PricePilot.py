@@ -317,12 +317,18 @@ with col1:
                 # **Batch update voor bestaande data**
                 update_data = df[df["update_nodig"]]
                 if not update_data.empty:
-                    with engine.begin() as connection:
-                        for _, row in update_data.iterrows():
-                            connection.execute(
-                                "UPDATE SAP_prijzen SET SAP_price = ? WHERE alias_customer_product = ?",
-                                (row["SAP_price"], row["alias_customer_product"])
-                            )
+                    with engine.connect() as connection:
+                        transaction = connection.begin()
+                        try:
+                            for _, row in update_data.iterrows():
+                                connection.execute(
+                                    "UPDATE SAP_prijzen SET SAP_price = ? WHERE alias_customer_product = ?",
+                                    (row["SAP_price"], row["alias_customer_product"])
+                                )
+                            transaction.commit()
+                        except Exception as e:
+                            transaction.rollback()
+                            raise e
                 end_time = time.time()
                 duration = end_time - start_time
                 st.success(f"✅ Verwerking voltooid in {duration:.2f} seconden! {len(update_data)} prijzen gewijzigd, {len(nieuwe_data)} nieuwe prijzen toegevoegd.")
