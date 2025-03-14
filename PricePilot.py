@@ -179,167 +179,171 @@ with tab4:
     if wachtwoord == "Comex25":
         st.success("Toegang verleend tot de beheertab.")
 
+               # Knoppen toevoegen aan de GUI
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
         
-        with st.expander("1 - 🔍 Bekijk en beheer actieve synoniemen", expanded=False):       
-            # **Maak verbinding met de database**
-            conn = create_connection()
-            if conn:
-                cursor = conn.cursor()
-            
-                try:
-                    # **Controleer of de tabel 'SynoniemenAI' bestaat**
-                    cursor.execute("""
-                    SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'SynoniemenAI';
-                    """)
-                    tabel_bestaat = cursor.fetchone()
-            
-                    if tabel_bestaat:
-                        # **Haal de geaccordeerde synoniemen op**
-                        cursor.execute("SELECT Artikelnummer, Artikelnaam, Synoniem FROM SynoniemenAI")
-                        synoniemen_data = cursor.fetchall()
-                        
-                        # **Haal de kolomnamen op**
-                        kolomnamen = [desc[0] for desc in cursor.description]
-     
-                        
-                        # **Controleer of er None-waarden zijn**
-                        for rij in synoniemen_data:
-                            if None in rij:
-                              pass
-                        
-                        # **Converteer tuples naar lijsten**
-                        synoniemen_data_lijst = [list(rij) for rij in synoniemen_data]
-
-                        
-                        # **Maak DataFrame aan**
-                        synoniemen_df = pd.DataFrame(synoniemen_data_lijst, columns=kolomnamen)
-                        
-            
-                        if not synoniemen_df.empty:
-                            # **Configureer AgGrid voor Synoniemen**
-                            gb = GridOptionsBuilder.from_dataframe(synoniemen_df)
-                            gb.configure_selection(selection_mode="multiple", use_checkbox=True)
-                            gb.configure_default_column(editable=False)
-                            grid_options = gb.build()
-            
-                            response = AgGrid(
-                                synoniemen_df,
-                                gridOptions=grid_options,
-                                update_mode=GridUpdateMode.SELECTION_CHANGED,
-                                fit_columns_on_grid_load=True,
-                                theme="material"
-                            )
-            
-                            # **Geselecteerde rijen ophalen**
-                            geselecteerde_rijen = response["selected_rows"]
-            
-                            if st.button("Verwijder geselecteerde synoniemen"):
-                                if len(geselecteerde_rijen) > 0:
-                                    try:
-                                        for rij in geselecteerde_rijen:
-                                            # Controleer of rij een dictionary is of een tuple/lijst
-                                            if isinstance(rij, dict):
-                                                synoniem = rij.get("Synoniem")
-                                                artikelnummer = rij.get("Artikelnummer")
-                                                artikelnaam = rij.get("Artikelnaam")
-                                            elif isinstance(rij, (tuple, list)) and len(rij) == 2:
-                                                artikelnummer, artikelnaam, synoniem = rij  # Pak waarden uit tuple/lijst
-                                            else:
-                                                st.warning(f"Ongeldig formaat van rij: {rij}")
-                                                continue
+            with st.expander("1 - 🔍 Bekijk en beheer actieve synoniemen", expanded=False):       
+                # **Maak verbinding met de database**
+                conn = create_connection()
+                if conn:
+                    cursor = conn.cursor()
+                
+                    try:
+                        # **Controleer of de tabel 'SynoniemenAI' bestaat**
+                        cursor.execute("""
+                        SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'SynoniemenAI';
+                        """)
+                        tabel_bestaat = cursor.fetchone()
+                
+                        if tabel_bestaat:
+                            # **Haal de geaccordeerde synoniemen op**
+                            cursor.execute("SELECT Artikelnummer, Artikelnaam, Synoniem FROM SynoniemenAI")
+                            synoniemen_data = cursor.fetchall()
                             
-                                            if synoniem and artikelnummer:
-                                                cursor.execute("""
-                                                DELETE FROM SynoniemenAI WHERE Artikelnummer = ? AND Synoniem = ? And Artikelnaam = ?;
-                                                """, (artikelnummer, artikelnaam, synoniem))
+                            # **Haal de kolomnamen op**
+                            kolomnamen = [desc[0] for desc in cursor.description]
+         
                             
-                                        conn.commit()
-                                        st.success("Geselecteerde synoniemen zijn verwijderd uit 'synoniemen'.")
-                                    except Exception as e:
-                                        st.error(f"Fout bij verwijderen van synoniemen: {e}")
-                                else:
-                                    st.warning("Selecteer minimaal één rij om te verwijderen.")
-
-            
-                except Exception as e:
-                    st.error(f"Fout bij ophalen van synoniemen: {e}")
-            
-                finally:
-                    conn.close()
+                            # **Controleer of er None-waarden zijn**
+                            for rij in synoniemen_data:
+                                if None in rij:
+                                  pass
+                            
+                            # **Converteer tuples naar lijsten**
+                            synoniemen_data_lijst = [list(rij) for rij in synoniemen_data]
+    
+                            
+                            # **Maak DataFrame aan**
+                            synoniemen_df = pd.DataFrame(synoniemen_data_lijst, columns=kolomnamen)
+                            
+                
+                            if not synoniemen_df.empty:
+                                # **Configureer AgGrid voor Synoniemen**
+                                gb = GridOptionsBuilder.from_dataframe(synoniemen_df)
+                                gb.configure_selection(selection_mode="multiple", use_checkbox=True)
+                                gb.configure_default_column(editable=False)
+                                grid_options = gb.build()
+                
+                                response = AgGrid(
+                                    synoniemen_df,
+                                    gridOptions=grid_options,
+                                    update_mode=GridUpdateMode.SELECTION_CHANGED,
+                                    fit_columns_on_grid_load=True,
+                                    theme="material"
+                                )
+                
+                                # **Geselecteerde rijen ophalen**
+                                geselecteerde_rijen = response["selected_rows"]
+                
+                                if st.button("Verwijder geselecteerde synoniemen"):
+                                    if len(geselecteerde_rijen) > 0:
+                                        try:
+                                            for rij in geselecteerde_rijen:
+                                                # Controleer of rij een dictionary is of een tuple/lijst
+                                                if isinstance(rij, dict):
+                                                    synoniem = rij.get("Synoniem")
+                                                    artikelnummer = rij.get("Artikelnummer")
+                                                    artikelnaam = rij.get("Artikelnaam")
+                                                elif isinstance(rij, (tuple, list)) and len(rij) == 2:
+                                                    artikelnummer, artikelnaam, synoniem = rij  # Pak waarden uit tuple/lijst
+                                                else:
+                                                    st.warning(f"Ongeldig formaat van rij: {rij}")
+                                                    continue
+                                
+                                                if synoniem and artikelnummer:
+                                                    cursor.execute("""
+                                                    DELETE FROM SynoniemenAI WHERE Artikelnummer = ? AND Synoniem = ? And Artikelnaam = ?;
+                                                    """, (artikelnummer, artikelnaam, synoniem))
+                                
+                                            conn.commit()
+                                            st.success("Geselecteerde synoniemen zijn verwijderd uit 'synoniemen'.")
+                                        except Exception as e:
+                                            st.error(f"Fout bij verwijderen van synoniemen: {e}")
+                                    else:
+                                        st.warning("Selecteer minimaal één rij om te verwijderen.")
+    
+                
+                    except Exception as e:
+                        st.error(f"Fout bij ophalen van synoniemen: {e}")
+                
+                    finally:
+                        conn.close()
     
 
     elif wachtwoord:
         st.error("❌ Onjuist wachtwoord. Toegang geweigerd.")
 
-def verwerk_excel(geuploade_bestand_prijzen):
-    if geuploade_bestand_prijzen is not None:
-        try:
-            df = pd.read_excel(geuploade_bestand_prijzen)
-
-            # Controleer of de vereiste kolommen bestaan
-            vereiste_kolommen = ["Customer number", "Product number", "SAP prijs", "Alias customer product"]
-            if not all(kolom in df.columns for kolom in vereiste_kolommen):
-                st.error("Excel-bestand mist verplichte kolommen! Zorg dat de kolommen correct zijn.")
-                return
-
-            # Hernoem de kolommen naar de database-kolomnamen
-            df.rename(columns={
-                "customer number": "customer_number",
-                "product number": "product_number",
-                "SAP price": "SAP_price",
-                "aAlias customer product": "alias_customer_product"
-            }, inplace=True)
-
-            conn = create_connection()
-            if conn is None:
-                return
-            cursor = conn.cursor()
-
-            prijzen_veranderd = 0
-            prijzen_toegevoegd = 0
-
-            for _, row in df.iterrows():
-                alias_customer_product = row["alias_customer_product"]
-                customer_number = row["customer_number"]
-                product_number = row["product_number"]
-                SAP_price = row["SAP_price"]
-
-                # Controleer of alias_customer_product al bestaat
-                cursor.execute("SELECT COUNT(*) FROM SAP_prijzen WHERE alias_customer_product = ?", (alias_customer_product,))
-                exists = cursor.fetchone()[0]
-
-                if exists:
-                    # Controleer of de prijs veranderd is
-                    cursor.execute("SELECT SAP_price FROM SAP_prijzen WHERE alias_customer_product = ?", (alias_customer_product,))
-                    huidige_prijs = cursor.fetchone()[0]
-
-                    if huidige_prijs != SAP_price:
-                        # Update de prijs
+with col1:
+    def verwerk_excel(geuploade_bestand_prijzen):
+        if geuploade_bestand_prijzen is not None:
+            try:
+                df = pd.read_excel(geuploade_bestand_prijzen)
+    
+                # Controleer of de vereiste kolommen bestaan
+                vereiste_kolommen = ["Customer number", "Product number", "SAP prijs", "Alias customer product"]
+                if not all(kolom in df.columns for kolom in vereiste_kolommen):
+                    st.error("Excel-bestand mist verplichte kolommen! Zorg dat de kolommen correct zijn.")
+                    return
+    
+                # Hernoem de kolommen naar de database-kolomnamen
+                df.rename(columns={
+                    "customer number": "customer_number",
+                    "product number": "product_number",
+                    "SAP price": "SAP_price",
+                    "aAlias customer product": "alias_customer_product"
+                }, inplace=True)
+    
+                conn = create_connection()
+                if conn is None:
+                    return
+                cursor = conn.cursor()
+    
+                prijzen_veranderd = 0
+                prijzen_toegevoegd = 0
+    
+                for _, row in df.iterrows():
+                    alias_customer_product = row["alias_customer_product"]
+                    customer_number = row["customer_number"]
+                    product_number = row["product_number"]
+                    SAP_price = row["SAP_price"]
+    
+                    # Controleer of alias_customer_product al bestaat
+                    cursor.execute("SELECT COUNT(*) FROM SAP_prijzen WHERE alias_customer_product = ?", (alias_customer_product,))
+                    exists = cursor.fetchone()[0]
+    
+                    if exists:
+                        # Controleer of de prijs veranderd is
+                        cursor.execute("SELECT SAP_price FROM SAP_prijzen WHERE alias_customer_product = ?", (alias_customer_product,))
+                        huidige_prijs = cursor.fetchone()[0]
+    
+                        if huidige_prijs != SAP_price:
+                            # Update de prijs
+                            cursor.execute("""
+                                UPDATE SAP_prijzen
+                                SET customer_number = ?, product_number = ?, SAP_price = ?
+                                WHERE alias_customer_product = ?;
+                            """, (customer_number, product_number, SAP_price, alias_customer_product))
+                            prijzen_veranderd += 1
+                    else:
+                        # Voeg nieuwe rij toe
                         cursor.execute("""
-                            UPDATE SAP_prijzen
-                            SET customer_number = ?, product_number = ?, SAP_price = ?
-                            WHERE alias_customer_product = ?;
+                            INSERT INTO SAP_prijzen (customer_number, product_number, SAP_price, alias_customer_product)
+                            VALUES (?, ?, ?, ?);
                         """, (customer_number, product_number, SAP_price, alias_customer_product))
-                        prijzen_veranderd += 1
-                else:
-                    # Voeg nieuwe rij toe
-                    cursor.execute("""
-                        INSERT INTO SAP_prijzen (customer_number, product_number, SAP_price, alias_customer_product)
-                        VALUES (?, ?, ?, ?);
-                    """, (customer_number, product_number, SAP_price, alias_customer_product))
-                    prijzen_toegevoegd += 1
-
-            conn.commit()
-            conn.close()
-            st.success(f"✅ Verwerking voltooid! {prijzen_veranderd} prijzen gewijzigd, {prijzen_toegevoegd} nieuwe prijzen toegevoegd.")
-
-        except Exception as e:
-            st.error(f"Fout bij verwerken van Excel-bestand: {e}")
-
-with st.expander("2 - 💲 Upload SAP Prijzen", expanded=False):
-    geuploade_bestand = st.file_uploader("Upload prijzen", type=["xlsx"])
-    if st.button("📥 Verwerk en sla op in database"):
-        verwerk_excel(geuploade_bestand_prijzen)
+                        prijzen_toegevoegd += 1
+    
+                conn.commit()
+                conn.close()
+                st.success(f"✅ Verwerking voltooid! {prijzen_veranderd} prijzen gewijzigd, {prijzen_toegevoegd} nieuwe prijzen toegevoegd.")
+    
+            except Exception as e:
+                st.error(f"Fout bij verwerken van Excel-bestand: {e}")
+    
+    with st.expander("2 - 💲 Upload SAP Prijzen", expanded=False):
+        geuploade_bestand = st.file_uploader("Upload prijzen", type=["xlsx"])
+        if st.button("📥 Verwerk en sla op in database"):
+            verwerk_excel(geuploade_bestand_prijzen)
 
         
 
