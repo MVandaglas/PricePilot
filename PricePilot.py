@@ -2942,7 +2942,10 @@ with col2:
                                     # Voeg synoniem toe aan de database
                                     query = text("""
                                         INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Input, Datum, Artikelnaam, Bron) 
-                                        VALUES (:synoniem, :artikelnummer, :synoniem, :datum, NULL, NULL);
+                                        SELECT :synoniem, :artikelnummer, :synoniem, :datum, NULL, NULL
+                                        WHERE NOT EXISTS (
+                                            SELECT 1 FROM SynoniemenAI WHERE Synoniem = :synoniem AND Artikelnummer = :artikelnummer
+                                        );
                                     """)
                                     conn.execute(query, {
                                         "synoniem": synoniem,
