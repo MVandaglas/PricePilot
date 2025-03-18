@@ -2840,13 +2840,14 @@ with tab3:
                     else:
                         with engine.connect() as conn:
                             try:
-                                # Controleer of de tabel bestaat en maak deze aan indien nodig (zonder Datum-kolom)
+                                # Controleer of de tabel bestaat en maak deze aan indien nodig (incl. Datum-kolom)
                                 query_create_table = text("""
                                     IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SynoniemenAI')
                                     BEGIN
                                         CREATE TABLE SynoniemenAI (
                                             Synoniem NVARCHAR(255) NOT NULL,
                                             Artikelnummer NVARCHAR(255) NOT NULL,
+                                            Datum DATETIME DEFAULT GETDATE(),
                                             PRIMARY KEY (Synoniem, Artikelnummer)
                                         );
                                     END
@@ -2860,6 +2861,7 @@ with tab3:
                                 for _, rij in geselecteerde_rijen.iterrows():
                                     synoniem = str(rij.get("Jouw input", "")).strip()
                                     artikelnummer = str(rij.get("Artikelnummer", "")).strip()
+                                    datum = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")  # Huidige timestamp
             
                                     if synoniem and artikelnummer:
                                         # Controleer of het synoniem al in de database staat
@@ -2870,10 +2872,10 @@ with tab3:
                                         exists = result.scalar()
             
                                         if exists == 0:
-                                            # Voeg de nieuwe synoniem-toewijzing toe (zonder Datum)
+                                            # Voeg de nieuwe synoniem-toewijzing toe (incl. Datum)
                                             query_insert = text("""
-                                                INSERT INTO SynoniemenAI (Synoniem, Artikelnummer)
-                                                VALUES (:synoniem, :artikelnummer);
+                                                INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Datum)
+                                                VALUES (:synoniem, :artikelnummer, GETDATE());
                                             """)
                                             conn.execute(query_insert, {
                                                 "synoniem": synoniem,
@@ -2891,7 +2893,6 @@ with tab3:
             
                             except Exception as e:
                                 st.error(f"Fout bij het opslaan: {e}")
-    
 
 
 # Rechterkolom: Excel-file uploader in een expander
