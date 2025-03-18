@@ -2830,6 +2830,9 @@ with tab3:
                 if geselecteerde_rijen.empty:
                     st.warning("Geen rijen geselecteerd of response is leeg.")
                 else:
+                    # Zet alle waarden om naar strings om fouten te voorkomen
+                    geselecteerde_rijen = geselecteerde_rijen.astype(str)
+        
                     # Maak databaseverbinding
                     engine = create_connection()
                     if engine is None:
@@ -2844,10 +2847,6 @@ with tab3:
                                         CREATE TABLE SynoniemenAI (
                                             Synoniem NVARCHAR(255) PRIMARY KEY,
                                             Artikelnummer NVARCHAR(255) NOT NULL,
-                                            Artikelnaam NVARCHAR(255),
-                                            Input NVARCHAR(255),
-                                            Bron NVARCHAR(255),
-                                            Datum DATETIME DEFAULT GETDATE()
                                         );
                                     END
                                 """)
@@ -2858,9 +2857,9 @@ with tab3:
         
                                 # Loop door de geselecteerde rijen
                                 for _, rij in geselecteerde_rijen.iterrows():
-                                    input_waarde = rij.get("Jouw input", "").strip()
-                                    artikelnummer = rij.get("Artikelnummer", "").strip()
-                                    artikelnaam = rij.get("Artikelnaam", "").strip()
+                                    input_waarde = str(rij.get("Jouw input", "")).strip()
+                                    artikelnummer = str(rij.get("Artikelnummer", "")).strip()
+                                    artikelnaam = str(rij.get("Artikelnaam", "")).strip()
         
                                     if input_waarde and artikelnummer:
                                         # Controleer of het synoniem al in de database staat
@@ -2873,15 +2872,12 @@ with tab3:
                                         if exists == 0:
                                             # Voeg de nieuwe synoniem-toewijzing toe
                                             query_insert = text("""
-                                                INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron, Datum)
-                                                VALUES (:synoniem, :artikelnummer, :artikelnaam, :input, :bron, GETDATE());
+                                                INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Datum)
+                                                VALUES (:synoniem, :artikelnummer, :input,  GETDATE());
                                             """)
                                             conn.execute(query_insert, {
                                                 "synoniem": input_waarde,
                                                 "artikelnummer": artikelnummer,
-                                                "artikelnaam": artikelnaam if artikelnaam else None,
-                                                "input": input_waarde,
-                                                "bron": "Accordeer Synoniem"
                                             })
                                             success_count += 1
                                         else:
