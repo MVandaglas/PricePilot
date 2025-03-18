@@ -2823,89 +2823,78 @@ with tab3:
             # Knop voor accordering
             if st.button("Accordeer synoniem"):
                 geselecteerde_rijen = response.get("selected_rows", [])
-
-                if isinstance(geselecteerde_rijen, list):  # Zorg ervoor dat het een lijst is
+        
+                if isinstance(geselecteerde_rijen, list):  
                     geselecteerde_rijen = pd.DataFrame(geselecteerde_rijen)
-                
-                st.write("Debug - Geselecteerde rijen als DataFrame:", geselecteerde_rijen)
-                
-                if not geselecteerde_rijen.empty:  # Controleer of er iets in zit
-                    geselecteerde_rijen = pd.DataFrame(geselecteerde_rijen)
-                    st.write("Debug - Geselecteerde rijen als DataFrame:", geselecteerde_rijen)
-                else:
+        
+                if geselecteerde_rijen.empty:
                     st.warning("Geen rijen geselecteerd of response is leeg.")
-                
-                st.write("Debug - DataFrame geselecteerde rijen:", geselecteerde_rijen)  # Extra debug
-
-
-                if geselecteerde_rijen is None:
-                    geselecteerde_rijen = pd.DataFrame()  # Zorg dat het een DataFrame blijft
-    
-                # Controleer of de DataFrame niet leeg is
-                if not geselecteerde_rijen.empty:
-                    # Converteer de DataFrame naar een lijst van dictionaries
-                    geselecteerde_rijen_lijst = geselecteerde_rijen.to_dict("records")
-                    st.write("Geconverteerde geselecteerde rijen:", geselecteerde_rijen_lijst)  # Debug output
-    
+                else:
                     # Maak databaseverbinding
-                    conn = create_connection()
-                    st.write("Debug - Databaseverbinding:", conn)
-                    if conn is None:
+                    engine = create_connection()
+                    if engine is None:
                         st.error("Databaseverbinding kon niet worden opgezet. Controleer de instellingen.")
                     else:
-                        cursor = conn.cursor()
-                  
-    
-                    try:
-                        # Zorg dat de tabel SynoniemenAI bestaat
-                        cursor.execute("""
-                        IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SynoniemenAI')
-                        BEGIN
-                            CREATE TABLE SynoniemenAI (
-                                Synoniem NVARCHAR(255) PRIMARY KEY,
-                                Artikelnummer NVARCHAR(255) NOT NULL,
-                                Artikelnaam NVARCHAR(255),
-                                Input NVARCHAR(255),
-                                Bron NVARCHAR(255),
-                                Datum DATETIME DEFAULT GETDATE()
-                            );
-                        END
-                        """)
-                    
-                        # Verwerk elke rij in de lijst
-                        for rij in geselecteerde_rijen_lijst:
-                            input_waarde = rij.get("Jouw input", "")
-                            artikelnummer = rij.get("Artikelnummer", "")
-                            artikelnaam = rij.get("Artikelnaam", "")
-                    
-                            if input_waarde and artikelnummer:
-                                # Stap 1: Controleer of het synoniem al bestaat
-                                cursor.execute("SELECT COUNT(*) FROM SynoniemenAI WHERE Synoniem = ?", (input_waarde,))
-                                exists = cursor.fetchone()[0]  # Haal het resultaat op
-                    
-                                # Stap 2: Alleen invoegen als het synoniem nog niet bestaat
-                                if exists == 0:
-                                    cursor.execute("""
-                                        INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron, Datum)
-                                        VALUES (?, ?, ?, ?, ?, GETDATE());
-                                    """, (input_waarde, artikelnummer, artikelnaam, input_waarde, "Accordeer Synoniem"))
-                    
-                                    st.success(f"Synoniem '{input_waarde}' -> '{artikelnummer}' is opgeslagen!")
-                                else:
-                                    st.info(f"Synoniem '{input_waarde}' bestaat al in de database.")
-                    
-                        # Commit wijzigingen naar de database
-                        conn.commit()
-                    
-                    except Exception as e:
-                        st.error(f"Fout bij het opslaan: {e}")
-
-    
-                    finally:
-                        # Sluit de verbinding
-                        conn.close()
-                else:
-                    st.warning("Selecteer minimaal één rij om te accorderen of controleer de structuur.")
+                        with engine.connect() as conn:
+                            try:
+                                # Controleer of de tabel bestaat en maak deze aan indien nodig
+                                query_create_table = text("""
+                                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'SynoniemenAI')
+                                    BEGIN
+                                        CREATE TABLE SynoniemenAI (
+                                            Synoniem NVARCHAR(255) PRIMARY KEY,
+                                            Artikelnummer NVARCHAR(255) NOT NULL,
+                                            Artikelnaam NVARCHAR(255),
+                                            Input NVARCHAR(255),
+                                            Bron NVARCHAR(255),
+                                            Datum DATETIME DEFAULT GETDATE()
+                                        );
+                                    END
+                                """)
+                                conn.execute(query_create_table)
+        
+                                success_count = 0
+                                duplicate_count = 0
+        
+                                # Loop door de geselecteerde rijen
+                                for _, rij in geselecteerde_rijen.iterrows():
+                                    input_waarde = rij.get("Jouw input", "").strip()
+                                    artikelnummer = rij.get("Artikelnummer", "").strip()
+                                    artikelnaam = rij.get("Artikelnaam", "").strip()
+        
+                                    if input_waarde and artikelnummer:
+                                        # Controleer of het synoniem al in de database staat
+                                        query_check = text("""
+                                            SELECT COUNT(*) FROM SynoniemenAI WHERE Synoniem = :synoniem AND Artikelnummer = :artikelnummer;
+                                        """)
+                                        result = conn.execute(query_check, {"synoniem": input_waarde, "artikelnummer": artikelnummer})
+                                        exists = result.scalar()
+        
+                                        if exists == 0:
+                                            # Voeg de nieuwe synoniem-toewijzing toe
+                                            query_insert = text("""
+                                                INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Artikelnaam, Input, Bron, Datum)
+                                                VALUES (:synoniem, :artikelnummer, :artikelnaam, :input, :bron, GETDATE());
+                                            """)
+                                            conn.execute(query_insert, {
+                                                "synoniem": input_waarde,
+                                                "artikelnummer": artikelnummer,
+                                                "artikelnaam": artikelnaam if artikelnaam else None,
+                                                "input": input_waarde,
+                                                "bron": "Accordeer Synoniem"
+                                            })
+                                            success_count += 1
+                                        else:
+                                            duplicate_count += 1
+        
+                                conn.commit()
+        
+                                st.write(f"✅ Succesvol toegevoegd: {success_count}")
+                                if duplicate_count > 0:
+                                    st.info(f"⚠ {duplicate_count} synoniemen bestonden al en zijn overgeslagen.")
+        
+                            except Exception as e:
+                                st.error(f"Fout bij het opslaan: {e}")
     
 
 
