@@ -2936,19 +2936,17 @@ with col2:
                             for _, row in df_synoniemen.iterrows():
                                 artikelnummer = str(row["Artikelnummer"]).strip()
                                 synoniem = str(row["Synoniem"]).strip()
-                                gebruiker = "Systeem"  # Pas dit eventueel aan
-                                datum = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+                                datum = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")  # Huidige tijd
     
                                 try:
                                     # Voeg synoniem toe aan de database
                                     query = text("""
-                                        INSERT INTO SynoniemenAI (Artikelnummer, Synoniem, Gebruiker, Datum) 
-                                        VALUES (:artikelnummer, :synoniem, :gebruiker, :datum);
+                                        INSERT INTO SynoniemenAI (Synoniem, Artikelnummer, Input, Datum, Artikelnaam, Bron) 
+                                        VALUES (:synoniem, :artikelnummer, :synoniem, :datum, NULL, NULL);
                                     """)
                                     conn.execute(query, {
-                                        "artikelnummer": artikelnummer,
                                         "synoniem": synoniem,
-                                        "gebruiker": gebruiker,
+                                        "artikelnummer": artikelnummer,
                                         "datum": datum
                                     })
                                     success_count += 1
@@ -2965,7 +2963,6 @@ with col2:
                     st.error("Het bestand moet de kolommen **'Artikelnummer'** en **'Synoniem'** bevatten.")
             except Exception as e:
                 st.error(f"Fout bij het lezen van het bestand: {e}")
-
 
 with col2:
     def generate_excel():
