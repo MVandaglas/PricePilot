@@ -2928,13 +2928,11 @@ with col2:
                 if "Artikelnummer" in df_synoniemen.columns and "Synoniem" in df_synoniemen.columns:
                     if st.button("Upload🔥"):
                         # Maak verbinding met de database
-                        conn = create_connection()
-                        if conn:
-                            cursor = conn.cursor()
-                            
-                            success_count = 0
-                            error_count = 0
-                            
+                        engine = create_connection()
+                        success_count = 0
+                        error_count = 0
+    
+                        with engine.connect() as conn:
                             for _, row in df_synoniemen.iterrows():
                                 artikelnummer = str(row["Artikelnummer"]).strip()
                                 synoniem = str(row["Synoniem"]).strip()
@@ -2943,22 +2941,26 @@ with col2:
     
                                 try:
                                     # Voeg synoniem toe aan de database
-                                    cursor.execute("""
-                                    INSERT INTO SynoniemenAI (Artikelnummer, Synoniem, Gebruiker, Datum) 
-                                    VALUES (?, ?, ?, ?);
-                                    """, (artikelnummer, synoniem, gebruiker, datum))
-    
+                                    query = text("""
+                                        INSERT INTO SynoniemenAI (Artikelnummer, Synoniem, Gebruiker, Datum) 
+                                        VALUES (:artikelnummer, :synoniem, :gebruiker, :datum);
+                                    """)
+                                    conn.execute(query, {
+                                        "artikelnummer": artikelnummer,
+                                        "synoniem": synoniem,
+                                        "gebruiker": gebruiker,
+                                        "datum": datum
+                                    })
                                     success_count += 1
                                 except Exception as e:
                                     error_count += 1
                                     st.warning(f"Fout bij uploaden van {artikelnummer}: {e}")
-                            
-                            # Opslaan en verbinding sluiten
-                            conn.commit()
-                            conn.close()
     
-                            st.write(f"✅ Succesvol toegevoegd: {success_count}")
-                            st.write(f"❌ Fouten bij toevoegen: {error_count}")
+                            conn.commit()
+    
+                        st.write(f"✅ Succesvol toegevoegd: {success_count}")
+                        st.write(f"❌ Fouten bij toevoegen: {error_count}")
+    
                 else:
                     st.error("Het bestand moet de kolommen **'Artikelnummer'** en **'Synoniem'** bevatten.")
             except Exception as e:
