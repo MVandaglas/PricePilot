@@ -1243,7 +1243,7 @@ def handle_gpt_chat():
 
         for line in lines:
             # Verbeterde regex om volledige glassamenstellingen te vinden
-            detected_article_number = re.search(r'([A-Za-z0-9/]+(?:\s*[-/*#]\s*[A-Za-z0-9/.]+)*)', line)
+            detected_article_number = re.search(r'([A-Za-z0-9/.]+(?:\s*[-/*#]\s*[A-Za-z0-9/.]+)*)', line)
             
             if detected_article_number:
                 current_article_number = detected_article_number.group(0).replace(" ", "")  # Spaties verwijderen
