@@ -39,7 +39,7 @@ import tempfile
 import pyodbc
 from sqlalchemy import create_engine, text
 import urllib
-import ffmpeg
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, AudioProcessorBase
 import tempfile
 
 
@@ -3048,24 +3048,10 @@ with tab5:
             st.error(f"❌ Fout bij transcriptie: {e}")
             return ""
 
-    # Audio-opname met ffmpeg
-    def record_audio(duration=5):
-        try:
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-            temp_filename = temp_file.name
-            
-            st.write("🎤 Opnemen... Spreek nu!")
-            (
-                ffmpeg.input("default", format="alsa", t=duration)
-                .output(temp_filename)
-                .run(overwrite_output=True, quiet=True)
-            )
-
-            st.success("✅ Opname voltooid!")
-            return temp_filename
-        except Exception as e:
-            st.error(f"❌ Fout bij opnemen: {e}")
-            return None
+    # WebRTC opname
+    class AudioProcessor(AudioProcessorBase):
+        def recv(self, frame):
+            return frame  # Verwerk audio hier indien nodig
 
     # Streamlit UI
     st.title("🎙️ Spraaknotities opslaan in Salesforce")
@@ -3088,14 +3074,34 @@ with tab5:
         # Dropdown met accounts
         selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
 
-        # Variabele om tekst op te slaan
+        # WebRTC opname
+        st.write("🎤 Klik op 'Start' om spraak op te nemen:")
+        webrtc_ctx = webrtc_streamer(
+            key="speech",
+            mode=WebRtcMode.SENDRECV,
+            audio_processor_factory=AudioProcessor,
+            media_stream_constraints={"video": False, "audio": True},
+        )
+
         transcribed_text = ""
 
-        if st.button("🎤 Neem spraak op"):
-            audio_file = record_audio()
-            if audio_file:
-                transcribed_text = transcribe_audio(audio_file)
-                st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
+        if st.button("🎤 Transcribeer opname"):
+            if webrtc_ctx.audio_receiver:
+                audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=1)
+                if audio_frames:
+                    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+                    temp_filename = temp_file.name
+
+                    with open(temp_filename, "wb") as f:
+                        for frame in audio_frames:
+                            f.write(frame.to_ndarray().tobytes())
+
+                    transcribed_text = transcribe_audio(temp_filename)
+                    st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
+                else:
+                    st.warning("Geen audio ontvangen. Neem opnieuw op.")
+            else:
+                st.warning("Geen opname beschikbaar.")
 
         # Opslaan in Salesforce
         if st.button("💾 Opslaan in Salesforce"):
@@ -3104,7 +3110,6 @@ with tab5:
                 save_to_salesforce(sf, klantnummer, transcribed_text)
             else:
                 st.warning("Selecteer een account en spreek een tekst in!")
-
 
     # # Ophalen van gegevens
     # if st.button("Haal gegevens op"):
