@@ -42,7 +42,7 @@ import urllib
 import tempfile
 import speech_recognition as sr
 import base64
-from streamlit_webrtc import webrtc_streamer, WebRtcMode, ClientSettings
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
@@ -3006,10 +3006,9 @@ SF_DOMAIN = "test"
 webrtc_ctx = webrtc_streamer(
     key="speech-recorder",
     mode=WebRtcMode.SENDRECV,
-    client_settings=ClientSettings(
-        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-        media_stream_constraints={"audio": True, "video": False},
-    ),
+    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+    media_stream_constraints={"audio": True, "video": False},
+),
 )
 
 def connect_to_salesforce():
