@@ -2991,7 +2991,15 @@ with col2:
 
 with tab5:
     st.subheader("Beheer")
+
+    class AudioProcessor(AudioProcessorBase):
+        def __init__(self):
+            self.buffers = []
     
+        def recv(self, frame: av.AudioFrame) -> av.AudioFrame:
+            self.buffers.append(frame)
+            return frame  # Zorgt ervoor dat de audioframes worden opgeslagen
+
     # Initieer session state
     if "audio_filename" not in st.session_state:
         st.session_state["audio_filename"] = None
@@ -3071,7 +3079,10 @@ with tab5:
             accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
     
         selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
-    
+
+
+
+        
         # WebRTC opname
         st.write("🎤 Klik op 'Start' om spraak op te nemen:")
         webrtc_ctx = webrtc_streamer(
@@ -3079,8 +3090,29 @@ with tab5:
             mode=WebRtcMode.SENDRECV,
             audio_processor_factory=AudioProcessor,
             media_stream_constraints={"video": False, "audio": True},
+            sendback_audio=False  # Dit voorkomt dat je jezelf hoort
         )
-    
+
+        if webrtc_ctx.audio_receiver:
+            audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=2)
+            
+            if audio_frames:
+                st.session_state["audio_received"] = True
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+                temp_filename = temp_file.name
+        
+                st.write(f"📢 Aantal ontvangen frames: {len(audio_frames)}")  # 👈 Debugging: Check of frames er zijn
+        
+                with open(temp_filename, "wb") as f:
+                    for frame in audio_frames:
+                        f.write(frame.to_ndarray().tobytes())
+        
+                st.session_state["audio_filename"] = temp_filename
+                st.success("🎤 Opname voltooid en opgeslagen!")
+            else:
+                st.session_state["audio_received"] = False
+                st.warning("⚠️ Geen audioframes ontvangen. Controleer je microfoon.")
+        
         # Controleer of opname beschikbaar is
         if webrtc_ctx.audio_receiver:
             audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=2)  # timeout verlengd voor betrouwbaardere detectie
