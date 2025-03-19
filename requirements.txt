@@ -26,4 +26,3 @@ sqlalchemy
 numpy
 streamlit-webrtc
 speechrecognition
-streamlit-webrtc
