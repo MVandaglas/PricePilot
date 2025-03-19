@@ -39,6 +39,7 @@ import tempfile
 import pyodbc
 from sqlalchemy import create_engine, text
 import urllib
+import speech_recognition as sr 
 
 
 # 🔑 Configuratie
