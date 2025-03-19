@@ -23,6 +23,6 @@ PyJWT
 pyodbc
 comtypes
 sqlalchemy
-sounddevice
+ffmpeg-python
 numpy
-wavio
+
