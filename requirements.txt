@@ -24,3 +24,4 @@ pyodbc
 comtypes
 sqlalchemy
 speechrecognition
+pyaudio
