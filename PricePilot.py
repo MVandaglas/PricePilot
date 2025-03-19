@@ -39,7 +39,7 @@ import tempfile
 import pyodbc
 from sqlalchemy import create_engine, text
 import urllib
-import speech_recognition as sr 
+import wavio
 
 
 # 🔑 Configuratie
@@ -3064,11 +3064,19 @@ with tab5:
         selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
     
         # Spraakopname starten
+        def record_audio(duration=5, samplerate=44100):
+            st.write("🎤 Opnemen... Spreek nu!")
+            audio = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype=np.int16)
+            sd.wait()
+            wavio.write("audio.wav", audio, samplerate, sampwidth=2)
+            st.success("✅ Opname voltooid!")
+            return "audio.wav"
+        
         if st.button("🎤 Neem spraak op"):
-            recognizer = sr.Recognizer()
-            with sr.Microphone() as source:
-                st.write("Spreek nu...")
-                audio = recognizer.listen(source)
+            audio_file = record_audio()
+            with open(audio_file, "rb") as f:
+                transcribed_text = transcribe_audio(f)
+            st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
     
             with open("audio.wav", "wb") as f:
                 f.write(audio.get_wav_data())
