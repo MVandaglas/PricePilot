@@ -2990,13 +2990,13 @@ with col2:
 
 with tab5:
     st.subheader("Beheer")
-        
+
     # Accounts ophalen uit Salesforce
     def fetch_salesforce_accounts_direct(sf):
         query = "SELECT Name, ERP_Number__c FROM Account"
         response = sf.query_all(query)
         return response["records"]
-    
+
     # Spraak-naar-tekst functie (Whisper API)
     def transcribe_audio(audio_file):
         response = openai.Audio.transcribe("whisper-1", audio_file)
@@ -3007,7 +3007,7 @@ with tab5:
     SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD")
     SF_SECURITY_TOKEN = os.getenv("SF_SECURITY_TOKEN")
     SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox, anders 'login'
-    
+
     # Salesforce connectie
     def connect_to_salesforce():
         try:
@@ -3041,10 +3041,10 @@ with tab5:
             st.success("Minute report succesvol opgeslagen in Salesforce!")
         except Exception as e:
             st.error(f"Fout bij opslaan in Salesforce: {e}")
-    
+
     # Streamlit UI
     st.title("🎙️ Spraaknotities opslaan in Salesforce")
-    
+
     with st.expander("📌 Inspreken en opslaan in Minute Report"):
         sf = connect_to_salesforce()
         
@@ -3052,18 +3052,18 @@ with tab5:
             accounts = fetch_salesforce_accounts_direct(sf)
         else:
             accounts = []
-    
+
         if accounts:
             accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
             accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
             accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
         else:
             accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
-    
+
         # Dropdown met accounts
         selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
-    
-        # Spraakopname starten
+
+        # Spraakopname functie met sounddevice
         def record_audio(duration=5, samplerate=44100):
             st.write("🎤 Opnemen... Spreek nu!")
             audio = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype=np.int16)
@@ -3071,29 +3071,25 @@ with tab5:
             wavio.write("audio.wav", audio, samplerate, sampwidth=2)
             st.success("✅ Opname voltooid!")
             return "audio.wav"
-        
+
+        # Variabele om tekst op te slaan
+        transcribed_text = ""
+
         if st.button("🎤 Neem spraak op"):
             audio_file = record_audio()
             with open(audio_file, "rb") as f:
                 transcribed_text = transcribe_audio(f)
             st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
-    
-            with open("audio.wav", "wb") as f:
-                f.write(audio.get_wav_data())
-    
-            with open("audio.wav", "rb") as audio_file:
-                transcribed_text = transcribe_audio(audio_file)
-    
-            st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
-    
+
         # Opslaan in Salesforce
         if st.button("💾 Opslaan in Salesforce"):
             if selected_account and transcribed_text:
-                account_id = accounts_df[accounts_df["Klantinfo"] == selected_account]["Klantnummer"].values[0]
-                save_to_salesforce(sf, account_id, transcribed_text)
+                klantnummer = selected_account.split(" - ")[0]  # Haal klantnummer correct uit de string
+                save_to_salesforce(sf, klantnummer, transcribed_text)
             else:
                 st.warning("Selecteer een account en spreek een tekst in!")
-    
+
+
     # # Ophalen van gegevens
     # if st.button("Haal gegevens op"):
     #     response = session.get(list_items_url, headers=headers)
