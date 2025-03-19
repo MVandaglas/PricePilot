@@ -42,6 +42,7 @@ import urllib
 import tempfile
 import speech_recognition as sr
 import base64
+from streamlit_webrtc import webrtc_streamer, WebRtcMode, ClientSettings
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
