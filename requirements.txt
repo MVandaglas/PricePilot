@@ -23,6 +23,5 @@ PyJWT
 pyodbc
 comtypes
 sqlalchemy
-speechrecognition
 sounddevice
 numpy
