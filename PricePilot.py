@@ -3008,8 +3008,8 @@ webrtc_ctx = webrtc_streamer(
     mode=WebRtcMode.SENDRECV,
     rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
     media_stream_constraints={"audio": True, "video": False},
-),
 )
+
 
 def connect_to_salesforce():
     try:
