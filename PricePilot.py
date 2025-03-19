@@ -3000,7 +3000,18 @@ with tab5:
     def transcribe_audio(audio_file):
         response = openai.Audio.transcribe("whisper-1", audio_file)
         return response["text"]
-    
+
+    # Salesforce connectie
+    def connect_to_salesforce():
+        try:
+            sf = Salesforce(username=os.getenv("SF_USERNAME"),
+                            password=os.getenv("SF_PASSWORD"),
+                            security_token=os.getenv("SF_SECURITY_TOKEN"))
+            return sf
+        except Exception as e:
+            st.error(f"Salesforce-verbinding mislukt: {e}")
+            return None
+
     # Opslaan in Salesforce Minute Report
     def save_to_salesforce(sf, account_id, comment):
         try:
