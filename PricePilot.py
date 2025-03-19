@@ -3034,23 +3034,6 @@ with tab5:
         except Exception as e:
             st.error(f"❌ Fout bij opslaan in Salesforce: {e}")
     
-    # 🎙️ Spraak-naar-tekst functie
-    def record_and_transcribe():
-        with sr.Microphone() as source:
-            st.write("🎤 Spreek nu...")
-            recognizer.adjust_for_ambient_noise(source)  # Om achtergrondgeluid te filteren
-            audio = recognizer.listen(source)
-    
-        try:
-            text = recognizer.recognize_google(audio, language="nl-NL")  # Nederlandse taal instellen
-            return text
-        except sr.UnknownValueError:
-            st.error("❌ Spraak niet herkend.")
-            return ""
-        except sr.RequestError:
-            st.error("❌ Er is een probleem met de spraakservice.")
-            return ""
-    
     # 🚀 UI Begin
     st.title("🎙️ Spraaknotities opslaan in Salesforce")
     
@@ -3073,18 +3056,58 @@ with tab5:
     
         selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
     
-        # 🎤 Spraakherkenning Starten
-        if st.button("🎤 Neem spraak op en transcribeer"):
-            transcribed_text = record_and_transcribe()
-            if transcribed_text:
-                st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
-                st.session_state["transcribed_text"] = transcribed_text  # Opslaan voor gebruik
+        # 📌 HTML5-microfoon invoegen
+        st.markdown(
+            """
+            <script>
+                let mediaRecorder;
+                let audioChunks = [];
+    
+                function startRecording() {
+                    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder.start();
+                        mediaRecorder.ondataavailable = event => {
+                            audioChunks.push(event.data);
+                        };
+                        mediaRecorder.onstop = () => {
+                            let audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                            let reader = new FileReader();
+                            reader.readAsDataURL(audioBlob);
+                            reader.onloadend = function() {
+                                let base64data = reader.result.split(',')[1];
+                                fetch('/transcribe', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ audio: base64data })
+                                }).then(response => response.json()).then(data => {
+                                    console.log(data);
+                                    document.getElementById("transcript").value = data.text;
+                                });
+                            };
+                        };
+                    });
+                }
+    
+                function stopRecording() {
+                    mediaRecorder.stop();
+                }
+            </script>
+            <button onclick="startRecording()">🎤 Start opname</button>
+            <button onclick="stopRecording()">⏹️ Stop opname</button>
+            <textarea id="transcript" rows="4" cols="50"></textarea>
+            """,
+            unsafe_allow_html=True
+        )
     
         # 💾 Opslaan in Salesforce
         if st.button("💾 Opslaan in Salesforce"):
-            if selected_account and "transcribed_text" in st.session_state:
+            transcript = st.session_state.get("transcript", "")
+            if selected_account and transcript:
                 klantnummer = selected_account.split(" - ")[0]
-                save_to_salesforce(sf, klantnummer, st.session_state["transcribed_text"])
+                save_to_salesforce(sf, klantnummer, transcript)
             else:
                 st.warning("⚠️ Selecteer een account en spreek een tekst in!")
 
