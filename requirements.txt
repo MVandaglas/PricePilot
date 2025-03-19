@@ -25,3 +25,4 @@ comtypes
 sqlalchemy
 numpy
 streamlit-webrtc
+speechrecognition
