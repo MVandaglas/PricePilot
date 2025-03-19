@@ -25,3 +25,4 @@ comtypes
 sqlalchemy
 sounddevice
 numpy
+wavio
