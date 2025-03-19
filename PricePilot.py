@@ -39,8 +39,8 @@ import tempfile
 import pyodbc
 from sqlalchemy import create_engine, text
 import urllib
-import wavio
-import sounddevice as sd
+import ffmpeg
+import tempfile
 
 
 # 🔑 Configuratie
@@ -2992,17 +2992,6 @@ with col2:
 with tab5:
     st.subheader("Beheer")
 
-    # Accounts ophalen uit Salesforce
-    def fetch_salesforce_accounts_direct(sf):
-        query = "SELECT Name, ERP_Number__c FROM Account"
-        response = sf.query_all(query)
-        return response["records"]
-
-    # Spraak-naar-tekst functie (Whisper API)
-    def transcribe_audio(audio_file):
-        response = openai.Audio.transcribe("whisper-1", audio_file)
-        return response["text"]
-
     # Salesforce Login Configuratie
     SF_USERNAME = os.getenv("SALESFORCE_USERNAME")
     SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD")
@@ -3031,6 +3020,12 @@ with tab5:
             st.error(f"❌ Salesforce-verbinding mislukt: {e}")
             return None
 
+    # Accounts ophalen uit Salesforce
+    def fetch_salesforce_accounts_direct(sf):
+        query = "SELECT Name, ERP_Number__c FROM Account"
+        response = sf.query_all(query)
+        return response["records"]
+
     # Opslaan in Salesforce Minute Report
     def save_to_salesforce(sf, account_id, comment):
         try:
@@ -3043,12 +3038,41 @@ with tab5:
         except Exception as e:
             st.error(f"Fout bij opslaan in Salesforce: {e}")
 
+    # OpenAI Whisper transcriptie
+    def transcribe_audio(audio_file):
+        try:
+            with open(audio_file, "rb") as f:
+                response = openai.Audio.transcribe("whisper-1", f)
+            return response["text"]
+        except Exception as e:
+            st.error(f"❌ Fout bij transcriptie: {e}")
+            return ""
+
+    # Audio-opname met ffmpeg
+    def record_audio(duration=5):
+        try:
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+            temp_filename = temp_file.name
+            
+            st.write("🎤 Opnemen... Spreek nu!")
+            (
+                ffmpeg.input("default", format="alsa", t=duration)
+                .output(temp_filename)
+                .run(overwrite_output=True, quiet=True)
+            )
+
+            st.success("✅ Opname voltooid!")
+            return temp_filename
+        except Exception as e:
+            st.error(f"❌ Fout bij opnemen: {e}")
+            return None
+
     # Streamlit UI
     st.title("🎙️ Spraaknotities opslaan in Salesforce")
 
     with st.expander("📌 Inspreken en opslaan in Minute Report"):
         sf = connect_to_salesforce()
-        
+
         if sf:
             accounts = fetch_salesforce_accounts_direct(sf)
         else:
@@ -3064,23 +3088,14 @@ with tab5:
         # Dropdown met accounts
         selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
 
-        # Spraakopname functie met sounddevice
-        def record_audio(duration=5, samplerate=44100):
-            st.write("🎤 Opnemen... Spreek nu!")
-            audio = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype=np.int16)
-            sd.wait()
-            wavio.write("audio.wav", audio, samplerate, sampwidth=2)
-            st.success("✅ Opname voltooid!")
-            return "audio.wav"
-
         # Variabele om tekst op te slaan
         transcribed_text = ""
 
         if st.button("🎤 Neem spraak op"):
             audio_file = record_audio()
-            with open(audio_file, "rb") as f:
-                transcribed_text = transcribe_audio(f)
-            st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
+            if audio_file:
+                transcribed_text = transcribe_audio(audio_file)
+                st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
 
         # Opslaan in Salesforce
         if st.button("💾 Opslaan in Salesforce"):
