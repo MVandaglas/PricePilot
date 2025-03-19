@@ -40,6 +40,7 @@ import pyodbc
 from sqlalchemy import create_engine, text
 import urllib
 import wavio
+import sounddevice as sd
 
 
 # 🔑 Configuratie
