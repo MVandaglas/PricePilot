@@ -41,6 +41,7 @@ from sqlalchemy import create_engine, text
 import urllib
 import tempfile
 import speech_recognition as sr
+import base64
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
@@ -2994,122 +2995,102 @@ with tab5:
     # 🎙️ Spraakherkenning instellen
     recognizer = sr.Recognizer()
     
-    # 📡 Salesforce Connectie
-    SF_USERNAME = os.getenv("SALESFORCE_USERNAME")
-    SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD")
-    SF_SECURITY_TOKEN = os.getenv("SF_SECURITY_TOKEN")
-    SF_DOMAIN = "test"
-    
-    def connect_to_salesforce():
-        try:
-            if not SF_USERNAME or not SF_PASSWORD or not SF_SECURITY_TOKEN:
-                st.error("Salesforce login gegevens ontbreken.")
-                return None
-            
-            session_id, instance = SalesforceLogin(
-                username=SF_USERNAME,
-                password=SF_PASSWORD + SF_SECURITY_TOKEN,
-                domain=SF_DOMAIN
-            )
-            sf = Salesforce(instance=instance, session_id=session_id)
-            st.success("✅ Salesforce-verbinding geslaagd!")
-            return sf
-        except Exception as e:
-            st.error(f"❌ Salesforce-verbinding mislukt: {e}")
+# Salesforce Connectie
+SF_USERNAME = os.getenv("SALESFORCE_USERNAME")
+SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD")
+SF_SECURITY_TOKEN = os.getenv("SF_SECURITY_TOKEN")
+SF_DOMAIN = "test"
+
+def connect_to_salesforce():
+    try:
+        if not SF_USERNAME or not SF_PASSWORD or not SF_SECURITY_TOKEN:
+            st.error("Salesforce login gegevens ontbreken.")
             return None
-    
-    def fetch_salesforce_accounts_direct(sf):
-        query = "SELECT Name, ERP_Number__c FROM Account"
-        response = sf.query_all(query)
-        return response["records"]
-    
-    def save_to_salesforce(sf, account_id, comment):
-        try:
-            data = {
-                "General_comment__c": comment,
-                "Account__c": account_id
-            }
-            sf.Minute_Report__c.create(data)
-            st.success("✅ Minute report opgeslagen in Salesforce!")
-        except Exception as e:
-            st.error(f"❌ Fout bij opslaan in Salesforce: {e}")
-    
-    # 🚀 UI Begin
-    st.title("🎙️ Spraaknotities opslaan in Salesforce")
-    
-    with st.expander("📌 Inspreken en opslaan in Minute Report"):
         
-        # Salesforce Verbinding
-        sf = connect_to_salesforce()
-    
-        if sf:
-            accounts = fetch_salesforce_accounts_direct(sf)
-        else:
-            accounts = []
-    
-        if accounts:
-            accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
-            accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
-            accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
-        else:
-            accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
-    
-        selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
-    
-        # 📌 HTML5-microfoon invoegen
-        st.markdown(
-            """
-            <script>
-                let mediaRecorder;
-                let audioChunks = [];
-    
-                function startRecording() {
-                    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-                        mediaRecorder = new MediaRecorder(stream);
-                        mediaRecorder.start();
-                        mediaRecorder.ondataavailable = event => {
-                            audioChunks.push(event.data);
-                        };
-                        mediaRecorder.onstop = () => {
-                            let audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                            let reader = new FileReader();
-                            reader.readAsDataURL(audioBlob);
-                            reader.onloadend = function() {
-                                let base64data = reader.result.split(',')[1];
-                                fetch('/transcribe', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ audio: base64data })
-                                }).then(response => response.json()).then(data => {
-                                    console.log(data);
-                                    document.getElementById("transcript").value = data.text;
-                                });
-                            };
-                        };
-                    });
-                }
-    
-                function stopRecording() {
-                    mediaRecorder.stop();
-                }
-            </script>
-            <button onclick="startRecording()">🎤 Start opname</button>
-            <button onclick="stopRecording()">⏹️ Stop opname</button>
-            <textarea id="transcript" rows="4" cols="50"></textarea>
-            """,
-            unsafe_allow_html=True
+        session_id, instance = SalesforceLogin(
+            username=SF_USERNAME,
+            password=SF_PASSWORD + SF_SECURITY_TOKEN,
+            domain=SF_DOMAIN
         )
+        sf = Salesforce(instance=instance, session_id=session_id)
+        st.success("✅ Salesforce-verbinding geslaagd!")
+        return sf
+    except Exception as e:
+        st.error(f"❌ Salesforce-verbinding mislukt: {e}")
+        return None
+
+def fetch_salesforce_accounts_direct(sf):
+    query = "SELECT Name, ERP_Number__c FROM Account"
+    response = sf.query_all(query)
+    return response["records"]
+
+def save_to_salesforce(sf, account_id, comment):
+    try:
+        data = {
+            "General_comment__c": comment,
+            "Account__c": account_id
+        }
+        sf.Minute_Report__c.create(data)
+        st.success("✅ Minute report opgeslagen in Salesforce!")
+    except Exception as e:
+        st.error(f"❌ Fout bij opslaan in Salesforce: {e}")
+
+def transcribe_audio(audio_bytes):
+    try:
+        audio_file = BytesIO(audio_bytes)
+        audio_file.name = "audio.wav"  # Vereist door OpenAI API
+        response = openai.Audio.transcribe("whisper-1", audio_file)
+        return response.get("text", "")
+    except Exception as e:
+        st.error(f"❌ Fout bij transcriptie: {e}")
+        return ""
+
+# 🚀 UI Begin
+st.title("🎙️ Spraaknotities opslaan in Salesforce")
+
+with st.expander("📌 Inspreken en opslaan in Minute Report"):
     
-        # 💾 Opslaan in Salesforce
-        if st.button("💾 Opslaan in Salesforce"):
-            transcript = st.session_state.get("transcript", "")
-            if selected_account and transcript:
-                klantnummer = selected_account.split(" - ")[0]
-                save_to_salesforce(sf, klantnummer, transcript)
-            else:
-                st.warning("⚠️ Selecteer een account en spreek een tekst in!")
+    # Salesforce Verbinding
+    sf = connect_to_salesforce()
+
+    if sf:
+        accounts = fetch_salesforce_accounts_direct(sf)
+    else:
+        accounts = []
+
+    if accounts:
+        accounts_df = pd.DataFrame(accounts).drop(columns="attributes", errors="ignore")
+        accounts_df.rename(columns={"Name": "Klantnaam", "ERP_Number__c": "Klantnummer"}, inplace=True)
+        accounts_df["Klantinfo"] = accounts_df["Klantnummer"] + " - " + accounts_df["Klantnaam"]
+    else:
+        accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
+
+    selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
+
+    # 📌 Streamlit ingebouwde recorder gebruiken
+    st.write("🎤 Druk op 'Start' om op te nemen:")
+    audio_bytes = st.audio([], format="audio/wav", start_time=0)
+    
+    # 🎙️ Start opname met de ingebouwde Streamlit recorder
+    audio_file = st.file_uploader("Upload je spraakopname", type=["wav", "mp3"])
+
+    transcribed_text = ""
+
+    if audio_file:
+        audio_bytes = audio_file.read()
+        st.audio(audio_bytes, format="audio/wav")
+
+        # Transcriptie
+        transcribed_text = transcribe_audio(audio_bytes)
+        st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
+
+    # 💾 Opslaan in Salesforce
+    if st.button("💾 Opslaan in Salesforce"):
+        if selected_account and transcribed_text:
+            klantnummer = selected_account.split(" - ")[0]
+            save_to_salesforce(sf, klantnummer, transcribed_text)
+        else:
+            st.warning("⚠️ Selecteer een account en zorg dat er een transcriptie is!")
 
     # # Ophalen van gegevens
     # if st.button("Haal gegevens op"):
