@@ -39,9 +39,8 @@ import tempfile
 import pyodbc
 from sqlalchemy import create_engine, text
 import urllib
-from streamlit_webrtc import webrtc_streamer, WebRtcMode, AudioProcessorBase
 import tempfile
-import av
+import speech_recognition as sr
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
@@ -2992,21 +2991,10 @@ with col2:
 with tab5:
     st.subheader("Beheer")
 
-    class AudioProcessor(AudioProcessorBase):
-        def __init__(self):
-            self.buffers = []
+    # 🎙️ Spraakherkenning instellen
+    recognizer = sr.Recognizer()
     
-        def recv(self, frame: av.AudioFrame) -> av.AudioFrame:
-            self.buffers.append(frame)
-            return frame  # Zorgt ervoor dat de audioframes worden opgeslagen
-
-    # Initieer session state
-    if "audio_filename" not in st.session_state:
-        st.session_state["audio_filename"] = None
-    if "audio_received" not in st.session_state:
-        st.session_state["audio_received"] = False  # Nieuwe flag om te checken of audio is ontvangen
-    
-    # Salesforce Connectie
+    # 📡 Salesforce Connectie
     SF_USERNAME = os.getenv("SALESFORCE_USERNAME")
     SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD")
     SF_SECURITY_TOKEN = os.getenv("SF_SECURITY_TOKEN")
@@ -3046,24 +3034,29 @@ with tab5:
         except Exception as e:
             st.error(f"❌ Fout bij opslaan in Salesforce: {e}")
     
-    def transcribe_audio(audio_file):
+    # 🎙️ Spraak-naar-tekst functie
+    def record_and_transcribe():
+        with sr.Microphone() as source:
+            st.write("🎤 Spreek nu...")
+            recognizer.adjust_for_ambient_noise(source)  # Om achtergrondgeluid te filteren
+            audio = recognizer.listen(source)
+    
         try:
-            with open(audio_file, "rb") as f:
-                response = openai.Audio.transcribe("whisper-1", f)
-            return response["text"]
-        except Exception as e:
-            st.error(f"❌ Fout bij transcriptie: {e}")
+            text = recognizer.recognize_google(audio, language="nl-NL")  # Nederlandse taal instellen
+            return text
+        except sr.UnknownValueError:
+            st.error("❌ Spraak niet herkend.")
+            return ""
+        except sr.RequestError:
+            st.error("❌ Er is een probleem met de spraakservice.")
             return ""
     
-    # WebRTC Audio Processing
-    class AudioProcessor(AudioProcessorBase):
-        def recv(self, frame):
-            return frame
-    
-    # UI Begin
+    # 🚀 UI Begin
     st.title("🎙️ Spraaknotities opslaan in Salesforce")
     
     with st.expander("📌 Inspreken en opslaan in Minute Report"):
+        
+        # Salesforce Verbinding
         sf = connect_to_salesforce()
     
         if sf:
@@ -3079,78 +3072,19 @@ with tab5:
             accounts_df = pd.DataFrame(columns=["Klantnaam", "Klantnummer", "Klantinfo"])
     
         selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
-
-
-
-        
-        # WebRTC opname
-        st.write("🎤 Klik op 'Start' om spraak op te nemen:")
-        webrtc_ctx = webrtc_streamer(
-            key="speech",
-            mode=WebRtcMode.SENDRECV,
-            audio_processor_factory=AudioProcessor,
-            media_stream_constraints={"video": False, "audio": True},
-            sendback_audio=False  # Dit voorkomt dat je jezelf hoort
-        )
-
-        if webrtc_ctx.audio_receiver:
-            audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=2)
-            
-            if audio_frames:
-                st.session_state["audio_received"] = True
-                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-                temp_filename = temp_file.name
-        
-                st.write(f"📢 Aantal ontvangen frames: {len(audio_frames)}")  # 👈 Debugging: Check of frames er zijn
-        
-                with open(temp_filename, "wb") as f:
-                    for frame in audio_frames:
-                        f.write(frame.to_ndarray().tobytes())
-        
-                st.session_state["audio_filename"] = temp_filename
-                st.success("🎤 Opname voltooid en opgeslagen!")
-            else:
-                st.session_state["audio_received"] = False
-                st.warning("⚠️ Geen audioframes ontvangen. Controleer je microfoon.")
-        
-        # Controleer of opname beschikbaar is
-        if webrtc_ctx.audio_receiver:
-            audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=2)  # timeout verlengd voor betrouwbaardere detectie
-            
-            if audio_frames:
-                st.session_state["audio_received"] = True  # Zet flag naar True als er audioframes binnenkomen
-                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-                temp_filename = temp_file.name
     
-                with open(temp_filename, "wb") as f:
-                    for frame in audio_frames:
-                        f.write(frame.to_ndarray().tobytes())
-    
-                st.session_state["audio_filename"] = temp_filename
-                st.success("🎤 Opname voltooid en opgeslagen!")
-            else:
-                st.session_state["audio_received"] = False  # Zet flag op False als er geen frames zijn ontvangen
-    
-        # Debugging: Laat zien of audio is ontvangen
-        if st.session_state["audio_received"]:
-            st.success("✅ Audioframes ontvangen!")
-        else:
-            st.warning("⚠️ Geen audioframes ontvangen. Controleer je microfoon.")
-    
-        # Transcriptie Knop
-        transcribed_text = ""
-        if st.button("📝 Transcribeer opname"):
-            if st.session_state["audio_filename"]:
-                transcribed_text = transcribe_audio(st.session_state["audio_filename"])
+        # 🎤 Spraakherkenning Starten
+        if st.button("🎤 Neem spraak op en transcribeer"):
+            transcribed_text = record_and_transcribe()
+            if transcribed_text:
                 st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
-            else:
-                st.warning("⚠️ Geen opname beschikbaar voor transcriptie.")
+                st.session_state["transcribed_text"] = transcribed_text  # Opslaan voor gebruik
     
-        # Opslaan in Salesforce
+        # 💾 Opslaan in Salesforce
         if st.button("💾 Opslaan in Salesforce"):
-            if selected_account and transcribed_text:
+            if selected_account and "transcribed_text" in st.session_state:
                 klantnummer = selected_account.split(" - ")[0]
-                save_to_salesforce(sf, klantnummer, transcribed_text)
+                save_to_salesforce(sf, klantnummer, st.session_state["transcribed_text"])
             else:
                 st.warning("⚠️ Selecteer een account en spreek een tekst in!")
 
