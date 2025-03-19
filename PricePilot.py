@@ -2995,6 +2995,8 @@ with tab5:
     # Initieer session state
     if "audio_filename" not in st.session_state:
         st.session_state["audio_filename"] = None
+    if "audio_received" not in st.session_state:
+        st.session_state["audio_received"] = False  # Nieuwe flag om te checken of audio is ontvangen
     
     # Salesforce Connectie
     SF_USERNAME = os.getenv("SALESFORCE_USERNAME")
@@ -3081,9 +3083,10 @@ with tab5:
     
         # Controleer of opname beschikbaar is
         if webrtc_ctx.audio_receiver:
-            audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=1)
+            audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=2)  # timeout verlengd voor betrouwbaardere detectie
             
             if audio_frames:
+                st.session_state["audio_received"] = True  # Zet flag naar True als er audioframes binnenkomen
                 temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
                 temp_filename = temp_file.name
     
@@ -3093,9 +3096,14 @@ with tab5:
     
                 st.session_state["audio_filename"] = temp_filename
                 st.success("🎤 Opname voltooid en opgeslagen!")
-    
             else:
-                st.warning("⚠️ Geen audio ontvangen. Neem opnieuw op.")
+                st.session_state["audio_received"] = False  # Zet flag op False als er geen frames zijn ontvangen
+    
+        # Debugging: Laat zien of audio is ontvangen
+        if st.session_state["audio_received"]:
+            st.success("✅ Audioframes ontvangen!")
+        else:
+            st.warning("⚠️ Geen audioframes ontvangen. Controleer je microfoon.")
     
         # Transcriptie Knop
         transcribed_text = ""
