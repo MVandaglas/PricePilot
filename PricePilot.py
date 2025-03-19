@@ -3001,10 +3001,20 @@ SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD")
 SF_SECURITY_TOKEN = os.getenv("SF_SECURITY_TOKEN")
 SF_DOMAIN = "test"
 
+# 🎤 WebRTC Instellingen
+webrtc_ctx = webrtc_streamer(
+    key="speech-recorder",
+    mode=WebRtcMode.SENDRECV,
+    client_settings=ClientSettings(
+        rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
+        media_stream_constraints={"audio": True, "video": False},
+    ),
+)
+
 def connect_to_salesforce():
     try:
         if not SF_USERNAME or not SF_PASSWORD or not SF_SECURITY_TOKEN:
-            st.error("Salesforce login gegevens ontbreken.")
+            st.error("❌ Salesforce login gegevens ontbreken.")
             return None
         
         session_id, instance = SalesforceLogin(
@@ -3038,7 +3048,7 @@ def save_to_salesforce(sf, account_id, comment):
 def transcribe_audio(audio_bytes):
     try:
         audio_file = BytesIO(audio_bytes)
-        audio_file.name = "audio.wav"  # Vereist door OpenAI API
+        audio_file.name = "audio.wav"
         response = openai.Audio.transcribe("whisper-1", audio_file)
         return response.get("text", "")
     except Exception as e:
@@ -3049,7 +3059,7 @@ def transcribe_audio(audio_bytes):
 st.title("🎙️ Spraaknotities opslaan in Salesforce")
 
 with st.expander("📌 Inspreken en opslaan in Minute Report"):
-    
+
     # Salesforce Verbinding
     sf = connect_to_salesforce()
 
@@ -3067,30 +3077,27 @@ with st.expander("📌 Inspreken en opslaan in Minute Report"):
 
     selected_account = st.selectbox("Selecteer een account:", accounts_df["Klantinfo"] if not accounts_df.empty else [])
 
-    # 📌 Streamlit ingebouwde recorder gebruiken
-    st.write("🎤 Druk op 'Start' om op te nemen:")
-    audio_bytes = st.audio([], format="audio/wav", start_time=0)
-    
-    # 🎙️ Start opname met de ingebouwde Streamlit recorder
-    audio_file = st.file_uploader("Upload je spraakopname", type=["wav", "mp3"])
+    # 🎙️ Opname Starten
+    st.write("🎤 Klik op 'Start' en spreek in:")
 
-    transcribed_text = ""
+    if webrtc_ctx.audio_receiver:
+        audio_frames = webrtc_ctx.audio_receiver.get_frames(timeout=1)
+        
+        if audio_frames:
+            audio = av.AudioFrame.from_ndarray(audio_frames[0].to_ndarray(), format="s16")
+            audio_bytes = audio.to_ndarray().tobytes()
 
-    if audio_file:
-        audio_bytes = audio_file.read()
-        st.audio(audio_bytes, format="audio/wav")
+            # Transcriptie uitvoeren
+            transcribed_text = transcribe_audio(audio_bytes)
+            st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
 
-        # Transcriptie
-        transcribed_text = transcribe_audio(audio_bytes)
-        st.text_area("📝 Getranscribeerde tekst:", transcribed_text, height=150)
-
-    # 💾 Opslaan in Salesforce
-    if st.button("💾 Opslaan in Salesforce"):
-        if selected_account and transcribed_text:
-            klantnummer = selected_account.split(" - ")[0]
-            save_to_salesforce(sf, klantnummer, transcribed_text)
-        else:
-            st.warning("⚠️ Selecteer een account en zorg dat er een transcriptie is!")
+            # 💾 Opslaan in Salesforce
+            if st.button("💾 Opslaan in Salesforce"):
+                if selected_account and transcribed_text:
+                    klantnummer = selected_account.split(" - ")[0]
+                    save_to_salesforce(sf, klantnummer, transcribed_text)
+                else:
+                    st.warning("⚠️ Selecteer een account en spreek iets in!")
 
     # # Ophalen van gegevens
     # if st.button("Haal gegevens op"):
