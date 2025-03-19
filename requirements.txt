@@ -23,6 +23,5 @@ PyJWT
 pyodbc
 comtypes
 sqlalchemy
-ffmpeg-python
 numpy
-
+streamlit-webrtc
