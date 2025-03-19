@@ -3001,6 +3001,12 @@ with tab5:
         response = openai.Audio.transcribe("whisper-1", audio_file)
         return response["text"]
 
+    # Salesforce Login Configuratie
+    SF_USERNAME = os.getenv("SALESFORCE_USERNAME")
+    SF_PASSWORD = os.getenv("SALESFORCE_PASSWORD")
+    SF_SECURITY_TOKEN = os.getenv("SF_SECURITY_TOKEN")
+    SF_DOMAIN = "test"  # Gebruik 'test' voor Sandbox, anders 'login'
+    
     # Salesforce connectie
     def connect_to_salesforce():
         try:
