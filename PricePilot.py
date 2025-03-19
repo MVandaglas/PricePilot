@@ -3004,12 +3004,23 @@ with tab5:
     # Salesforce connectie
     def connect_to_salesforce():
         try:
-            sf = Salesforce(username=os.getenv("SF_USERNAME"),
-                            password=os.getenv("SF_PASSWORD"),
-                            security_token=os.getenv("SF_SECURITY_TOKEN"))
+            if not SF_USERNAME or not SF_PASSWORD or not SF_SECURITY_TOKEN:
+                st.error("Salesforce login gegevens ontbreken. Controleer je omgevingsvariabelen.")
+                return None
+            
+            # Login bij Salesforce en verkrijg sessie-ID en instance
+            session_id, instance = SalesforceLogin(
+                username=SF_USERNAME,
+                password=SF_PASSWORD + SF_SECURITY_TOKEN,  # Wachtwoord + token combineren
+                domain=SF_DOMAIN
+            )
+            
+            # Verbinding maken met Salesforce
+            sf = Salesforce(instance=instance, session_id=session_id)
+            st.success("✅ Salesforce-verbinding geslaagd!")
             return sf
         except Exception as e:
-            st.error(f"Salesforce-verbinding mislukt: {e}")
+            st.error(f"❌ Salesforce-verbinding mislukt: {e}")
             return None
 
     # Opslaan in Salesforce Minute Report
