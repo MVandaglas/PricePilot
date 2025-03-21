@@ -1024,6 +1024,7 @@ with tab1:
         st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
+    
     # Twee kolommen maken
     col1, col2 = st.columns([2, 3])  
     with col1:
@@ -1062,6 +1063,7 @@ with tab1:
                 st.components.v1.html(copy_js, height=50)
             else:
                 st.warning("Geen gegevens beschikbaar om weer te geven.")
+    
 
     # Verbeterde update_tabel functie
 def update_tabel():
