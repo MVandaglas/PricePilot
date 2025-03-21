@@ -224,13 +224,21 @@ with tab4:
                             synoniemen_df = pd.DataFrame(synoniemen_data_lijst, columns=kolomnamen)
                             
                 
-                            if not synoniemen_df.empty:
+                             if not synoniemen_df.empty:
+                                # **Zoekbalk toevoegen**
+                                zoekterm = st.text_input("🔍 Zoek in synoniemen:", "")
+                            
+                                # **Filter de DataFrame op basis van de zoekterm**
+                                if zoekterm:
+                                    synoniemen_df = synoniemen_df[synoniemen_df.astype(str).apply(lambda row: row.str.contains(zoekterm, case=False, na=False)).any(axis=1)]
+                            
                                 # **Configureer AgGrid voor Synoniemen**
                                 gb = GridOptionsBuilder.from_dataframe(synoniemen_df)
                                 gb.configure_selection(selection_mode="multiple", use_checkbox=True)
-                                gb.configure_default_column(editable=False)
+                                gb.configure_default_column(editable=False, filterable=True)  # Filter inschakelen op kolommen
                                 grid_options = gb.build()
-                
+                            
+                                # **Toon de AgGrid met filteropties**
                                 response = AgGrid(
                                     synoniemen_df,
                                     gridOptions=grid_options,
@@ -238,6 +246,7 @@ with tab4:
                                     fit_columns_on_grid_load=True,
                                     theme="material"
                                 )
+
                 
                                 # **Geselecteerde rijen ophalen**
                                 geselecteerde_rijen = response["selected_rows"]
