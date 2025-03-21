@@ -2064,7 +2064,7 @@ def process_single_attachment(selected_name, selected_data):
     
     try:
         if ext == ".pdf":
-            document_text = extract_text_from_pdf(selected_data)
+            ddocument_text = extract_text_from_pdf(BytesIO(selected_data))
         elif ext == ".xlsx":
             document_text = extract_text_from_excel(selected_data)
         elif ext == ".docx":
