@@ -2121,7 +2121,7 @@ def process_attachment(attachments):
         selected_data = valid_attachments[selected_name]
 
         # Knop om extractie uit te voeren
-        if st.button(f"Verwerk de bijlage met AI ✨"):
+        if st.button(f"Verwerk bijlage ✨"):
             return process_single_attachment(selected_name, selected_data)
 
     else:
