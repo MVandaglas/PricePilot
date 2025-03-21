@@ -224,7 +224,7 @@ with tab4:
                             synoniemen_df = pd.DataFrame(synoniemen_data_lijst, columns=kolomnamen)
                             
                 
-                             if not synoniemen_df.empty:
+                            if not synoniemen_df.empty:
                                 # **Zoekbalk toevoegen**
                                 zoekterm = st.text_input("🔍 Zoek in synoniemen:", "")
                             
