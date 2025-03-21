@@ -2057,14 +2057,11 @@ def extract_data_with_gpt(prompt):
         return ""
 
 def process_single_attachment(selected_name, selected_data):
-    """
-    Voert de AI-extractie uit op één geselecteerde bijlage.
-    """
     ext = Path(selected_name).suffix.lower()
     
     try:
         if ext == ".pdf":
-            ddocument_text = extract_text_from_pdf(BytesIO(selected_data))
+            document_text = extract_text_from_pdf(BytesIO(selected_data))
         elif ext == ".xlsx":
             document_text = extract_text_from_excel(selected_data)
         elif ext == ".docx":
@@ -2094,7 +2091,6 @@ def process_single_attachment(selected_name, selected_data):
     except Exception as e:
         st.error(f"Fout bij het verwerken van de bijlage: {e}")
         return None
-
 
 
 def process_attachment(attachments):
