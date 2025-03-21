@@ -175,7 +175,7 @@ article_table = pd.DataFrame(article_table)
 
 # Streamlit UI-instellingen
 # Maak de tabs aan
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "💾 Opgeslagen Offertes", "✨ Beoordeel AI", "⚙️ Beheer","🛠️ Tools"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎯 Offerte Genereren", "⚡ Order-entry", "✨ Beoordeel AI", "⚙️ Beheer","🛠️ Tools"])
 
 with tab4:
     st.subheader("Beheer")
@@ -632,16 +632,9 @@ def find_article_details(article_number, source=None, original_article_number=No
     # Sla het originele artikelnummer alleen op als het nog niet bestaat
     if original_article_number is None:
         original_article_number = article_number  
-
-    st.write(f"Checking: {article_number}")
-    if article_number in synonym_dict.values():
-        st.write(f"Direct match found in values: {article_number}")
-    if article_number in synonym_dict.keys():
-        st.write(f"Direct match found in keys: {article_number}")
     
     fuzzy_match = process.extractOne(article_number, synonym_dict.keys(), scorer=fuzz.ratio, score_cutoff=cutoff_value * 100)
-    if fuzzy_match:
-        st.write(f"Fuzzy match found: {fuzzy_match}")
+
     
     difflib_match = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
     if difflib_match:
@@ -1025,45 +1018,7 @@ with tab1:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
     
-    # Twee kolommen maken
-    col1, col2 = st.columns([2, 3])  
-    with col1:
-        # Expander onder AgGrid met een gefilterde DataFrame-weergave
-        with st.expander("⚡ SAP format", expanded=False):
-            if "offer_df" in st.session_state:
-                filtered_df = st.session_state.offer_df[["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]].copy()
-    
-                # Zorg dat spouw alleen het numerieke getal bevat
-                filtered_df["Spacer"] = filtered_df["Spacer"].str.extract(r'(\d+)')  # Haalt alleen het getal eruit
-    
-                # Toon de gefilterde DataFrame
-                st.dataframe(filtered_df, use_container_width=True)
-    
-                # Zet DataFrame om naar tab-gescheiden tekst zonder headers
-                table_text = filtered_df.to_csv(index=False, sep="\t", header=False).strip()
-    
-                # JavaScript-code om de tabel naar het klembord te kopiëren
-                copy_js = f"""
-                <script>
-                    function copyToClipboard() {{
-                        let text = `{table_text}`;  // Alleen de data, geen headers
-                        navigator.clipboard.writeText(text).then(() => {{
-                            alert("✅ Gegevens gekopieerd naar klembord!");
-                        }}).catch(err => {{
-                            alert("❌ Fout bij kopiëren: " + err);
-                        }});
-                    }}
-                </script>
-                <button onclick="copyToClipboard()" style="padding:8px 16px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">
-                    📋 Kopieer naar klembord
-                </button>
-                """
-    
-                # Weergeven van de knop via Streamlit's componenten
-                st.components.v1.html(copy_js, height=50)
-            else:
-                st.warning("Geen gegevens beschikbaar om weer te geven.")
-    
+   
 
     # Verbeterde update_tabel functie
 def update_tabel():
@@ -2140,7 +2095,7 @@ def process_attachment(attachments):
     - Bij .msg: kies uit de bijlagen (alleen pdf/xlsx/docx).
     - Bij andere bestanden: verwerk direct.
     """
-    valid_extensions = [".pdf", ".xlsx", ".docx", ".msg"]
+    valid_extensions = [".pdf", ".xlsx", ".docx", ".msg", ".rtf"]
     excluded_extensions = (".png", ".jpg", ".jpeg")
 
     if isinstance(attachments, list):
@@ -2591,36 +2546,44 @@ with tab1:
 
 with tab2:
 
-       
-    # Knoppen voor verwijdering en vernieuwen
-    col1, col2, col3 = st.columns(3)
+    # Twee kolommen maken
+    col1, col2 = st.columns([2, 3])  
     with col1:
-        # Voeg een tabel toe met de kolommen voor "Verwerk in SAP"
-        st.subheader("Verwerk in SAP")
-        if "loaded_offer_df" in st.session_state:
-            sap_columns = ["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]
-            if all(col in st.session_state.loaded_offer_df.columns for col in sap_columns):
-                sap_table = st.session_state.loaded_offer_df[sap_columns]
-                st.dataframe(sap_table, use_container_width=True)
+        # Expander onder AgGrid met een gefilterde DataFrame-weergave
+        with st.expander("⚡ SAP format", expanded=False):
+            if "offer_df" in st.session_state:
+                filtered_df = st.session_state.offer_df[["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]].copy()
+    
+                # Zorg dat spouw alleen het numerieke getal bevat
+                filtered_df["Spacer"] = filtered_df["Spacer"].str.extract(r'(\d+)')  # Haalt alleen het getal eruit
+    
+                # Toon de gefilterde DataFrame
+                st.dataframe(filtered_df, use_container_width=True)
+    
+                # Zet DataFrame om naar tab-gescheiden tekst zonder headers
+                table_text = filtered_df.to_csv(index=False, sep="\t", header=False).strip()
+    
+                # JavaScript-code om de tabel naar het klembord te kopiëren
+                copy_js = f"""
+                <script>
+                    function copyToClipboard() {{
+                        let text = `{table_text}`;  // Alleen de data, geen headers
+                        navigator.clipboard.writeText(text).then(() => {{
+                            alert("✅ Gegevens gekopieerd naar klembord!");
+                        }}).catch(err => {{
+                            alert("❌ Fout bij kopiëren: " + err);
+                        }});
+                    }}
+                </script>
+                <button onclick="copyToClipboard()" style="padding:8px 16px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">
+                    📋 Kopieer naar klembord
+                </button>
+                """
+    
+                # Weergeven van de knop via Streamlit's componenten
+                st.components.v1.html(copy_js, height=50)
             else:
-                st.warning("De geladen offerte bevat niet alle benodigde kolommen voor verwerking in SAP.")
-        else:
-            st.warning("Laad een offerte om de gegevens te verwerken.")
-    
-    with col2:
-        st.write("")
-        st.write("")
-        st.write("")
-        if "loaded_offer_df" in st.session_state:
-            sap_columns = ["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]
-            if all(col in st.session_state.loaded_offer_df.columns for col in sap_columns):
-                sap_table = st.session_state.loaded_offer_df[sap_columns]
-    
-                # Knop om de inhoud van de tabel te kopiëren
-                if st.button("Kopieer tabel"):
-                    # Kopieer alleen de inhoud (geen headers en rijnummers)
-                    content_to_copy = sap_table.to_csv(index=False, header=False, sep="\t")
-                    st.write("Tabelinhoud gekopieerd naar het klembord!")
+                st.warning("Geen gegevens beschikbaar om weer te geven.")
                         
 
 
