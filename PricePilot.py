@@ -646,8 +646,6 @@ def find_article_details(article_number, source=None, original_article_number=No
 
     
     difflib_match = difflib.get_close_matches(article_number, synonym_dict.keys(), n=1, cutoff=cutoff_value)
-    if difflib_match:
-        st.write(f"Difflib match found: {difflib_match}")
 
     # 1. Controleer of artikelnummer een exacte match is in synonym_dict.values()
     if article_number in synonym_dict.values():
