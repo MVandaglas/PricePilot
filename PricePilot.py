@@ -1026,7 +1026,7 @@ with tab1:
 
     
     # Expander onder AgGrid met een gefilterde DataFrame-weergave
-    with st.expander("📊 Bekijk gestructureerde gegevens", expanded=False):
+    with st.expander("⚡ SAP format", expanded=False):
         # Selecteer relevante kolommen
         if "offer_df" in st.session_state:
             filtered_df = st.session_state.offer_df[["Artikelnummer", "Breedte", "Hoogte", "Aantal", "Spacer"]].copy()
