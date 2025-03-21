@@ -1025,7 +1025,7 @@ with tab1:
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
       # Twee kolommen maken
-    col1, col2 = st.columns([1, 1])  
+    col1, col2 = st.columns([2, 3])  
     with col1:
         # Expander onder AgGrid met een gefilterde DataFrame-weergave
         with st.expander("⚡ SAP format", expanded=False):
