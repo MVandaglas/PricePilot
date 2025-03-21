@@ -1,4 +1,4 @@
-import streamlit as st
+timport streamlit as st
 st.set_page_config(page_icon="🎯",layout="wide")
 from streamlit_option_menu import option_menu
 import os
@@ -2051,6 +2051,8 @@ def extract_data_with_gpt(prompt):
         extracted_text = extracted_text.replace("```plaintext", "").replace("```", "").strip()
 
         # **Stap 3: Opslaan en weergeven**
+        st.session_state["geformatteerde_output"] = extracted_text  # ✅ Sla de geformatteerde output op
+        st.session_state["customer_input"] = extracted_text  # ✅ Vul customer_input automatisch in
         st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
         st.text_area("Geformatteerde output", extracted_text, height=200)
         
@@ -2209,8 +2211,12 @@ with st.sidebar.expander("Upload document", expanded=True):
         st.info("Upload een .msg-bestand om verder te gaan.") 
 
 
-# Gebruikersinvoer
-customer_input = st.sidebar.text_area("Voer hier handmatig het klantverzoek in.")
+# Gebruikersinvoer (wordt automatisch ingevuld vanuit "Geformatteerde output")
+customer_input = st.sidebar.text_area(
+    "Voer hier handmatig het klantverzoek in.", 
+    value=st.session_state.get("customer_input", ""),  # ✅ Haalt de waarde op als die er is
+    height=200
+)
 
 
 # Functie om tekstinvoer te verwerken
