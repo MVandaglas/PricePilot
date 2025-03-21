@@ -2162,7 +2162,7 @@ def process_attachment(attachments):
 st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid  
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
-with st.sidebar.expander("Upload document", expanded=False):
+with st.sidebar.expander("Upload document", expanded=True):
     # Bestand uploaden
     uploaded_file = st.file_uploader("Upload een Outlook, PDF of Excel bestand", type=["msg", "pdf", "xlsx", "docx"])
     
