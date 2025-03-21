@@ -1674,6 +1674,40 @@ def extract_text_from_pdf(pdf_bytes):
         st.error(f"Fout bij tekstextractie uit PDF: {e}")
         return ""
 
+def extract_text_from_excel(excel_bytes):
+    """
+    Haalt tekst uit een Excel (.xlsx) bestand.
+    """
+    try:
+        with BytesIO(excel_bytes) as buffer:
+            xls = pd.ExcelFile(buffer)
+            extracted_text = []
+            
+            for sheet_name in xls.sheet_names:  # Loop door alle werkbladen
+                df = pd.read_excel(xls, sheet_name=sheet_name, dtype=str)  # Lees als tekst
+                text = df.applymap(str).values.flatten()  # Converteer alle cellen naar strings
+                extracted_text.append(f"--- Blad: {sheet_name} ---\n" + "\n".join(text))
+
+            return "\n".join(extracted_text) if extracted_text else ""
+
+    except Exception as e:
+        st.error(f"Fout bij tekstextractie uit Excel: {e}")
+        return ""
+
+def extract_text_from_docx(docx_bytes):
+    """
+    Haalt tekst uit een Word (.docx) bestand.
+    """
+    try:
+        with BytesIO(docx_bytes) as buffer:
+            doc = Document(buffer)
+            text = "\n".join([para.text for para in doc.paragraphs if para.text.strip()])
+        return text
+    except Exception as e:
+        st.error(f"Fout bij tekstextractie uit Word: {e}")
+        return ""
+
+
 def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
     try:
         # **Stap 1: Controleer of er een tabel in de PDF staat**
