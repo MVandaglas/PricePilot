@@ -2085,7 +2085,6 @@ def process_single_attachment(selected_name, selected_data):
 
             return extracted_data
         else:
-            st.warning("AI extractie leverde geen gegevens op.")
             return None
 
     except Exception as e:
@@ -2099,7 +2098,7 @@ def process_attachment(attachments):
     - Bij .msg: kies uit de bijlagen (alleen pdf/xlsx/docx).
     - Bij andere bestanden: verwerk direct.
     """
-    valid_extensions = [".pdf", ".xlsx", ".docx"]
+    valid_extensions = [".pdf", ".xlsx", ".docx", ".msg"]
     excluded_extensions = (".png", ".jpg", ".jpeg")
 
     if isinstance(attachments, list):
