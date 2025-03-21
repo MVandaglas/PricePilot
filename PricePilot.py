@@ -43,6 +43,7 @@ import tempfile
 import speech_recognition as sr
 import base64
 from streamlit_webrtc import webrtc_streamer, WebRtcMode
+from pathlib import Path
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
@@ -2357,7 +2358,7 @@ with tab1:
         # Verwerk de bijlage zodra deze is geüpload
         if uploaded_file is not None:
             attachment_name = uploaded_file.name
-            relevant_data = process_attachment(attachment_name)
+            relevant_data = process_attachment(uploaded_file)
         
         # Eén knop om de acties uit te voeren
         if st.sidebar.button("BullsAI 🚀"):
