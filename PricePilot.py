@@ -2067,7 +2067,6 @@ def process_single_attachment(selected_name, selected_data):
         elif ext == ".docx":
             document_text = extract_text_from_docx(selected_data)
         elif ext == ".msg":
-            st.info("E-mailbestanden (.msg) worden alleen verwerkt om de tekst en bijlagen te tonen, niet als aparte documenten.")
             return None
         else:
             st.error(f"Onbekend bestandstype: {ext}. Alleen .pdf, .xlsx en .docx worden ondersteund.")
@@ -2197,7 +2196,7 @@ with st.sidebar.expander("Upload document", expanded=False):
                 # Verwerk alleen de relevante bestanden (geen afbeeldingen)
                 relevant_data = process_attachment(msg.attachments)
             else:
-                st.info("Geen bijlagen gevonden. Alleen de e-mailinhoud wordt getoond.")
+                st.info("Geen bijlagen gevonden. Verwerk de tekst in de mail met BullsAI knop")
 
         
         except Exception as e:
