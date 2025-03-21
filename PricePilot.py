@@ -1038,6 +1038,10 @@ with tab1:
         
                 # Toon de gefilterde DataFrame
                 st.dataframe(filtered_df, use_container_width=True)
+                # Kopieer-knop toevoegen
+                if st.button("📋 Kopieer naar klembord"):
+                    filtered_df.to_clipboard(index=False, sep="\t", excel=True)
+                    st.success("Tabel gekopieerd naar klembord! ✅")
             else:
                 st.warning("Geen gegevens beschikbaar om weer te geven.")
 
