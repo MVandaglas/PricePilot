@@ -1024,7 +1024,21 @@ with tab1:
         st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
- 
+    
+    # Expander onder AgGrid met een gefilterde DataFrame-weergave
+    with st.expander("📊 Bekijk gestructureerde gegevens", expanded=False):
+        # Selecteer relevante kolommen
+        if "offer_df" in st.session_state:
+            filtered_df = st.session_state.offer_df[["Artikelnummer", "Breedte", "Hoogte", "Aantal", "Spacer"]].copy()
+    
+            # Zorg dat spouw alleen het numerieke getal bevat
+            filtered_df["Spacer"] = filtered_df["Spacer"].str.extract(r'(\d+)')  # Haalt alleen het getal eruit
+    
+            # Toon de gefilterde DataFrame
+            st.dataframe(filtered_df, use_container_width=True)
+        else:
+            st.warning("Geen gegevens beschikbaar om weer te geven.")
+
     # Verbeterde update_tabel functie
 def update_tabel():
     updated_df = pd.DataFrame(edited_df_response['data'])
