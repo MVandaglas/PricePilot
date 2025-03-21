@@ -1030,7 +1030,7 @@ with tab1:
         # Expander onder AgGrid met een gefilterde DataFrame-weergave
         with st.expander("⚡ SAP format", expanded=False):
             if "offer_df" in st.session_state:
-                filtered_df = st.session_state.offer_df[["Artikelnummer", "Breedte", "Hoogte", "Aantal", "Spacer"]].copy()
+                filtered_df = st.session_state.offer_df[["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]].copy()
     
                 # Zorg dat spouw alleen het numerieke getal bevat
                 filtered_df["Spacer"] = filtered_df["Spacer"].str.extract(r'(\d+)')  # Haalt alleen het getal eruit
