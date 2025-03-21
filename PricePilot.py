@@ -1038,10 +1038,24 @@ with tab1:
         
                 # Toon de gefilterde DataFrame
                 st.dataframe(filtered_df, use_container_width=True)
-                # Kopieer-knop toevoegen
-                if st.button("📋 Kopieer naar klembord"):
-                    filtered_df.to_clipboard(index=False, sep="\t", excel=True)
-                    st.success("Tabel gekopieerd naar klembord! ✅")
+                # Zet de DataFrame om naar een JSON-string (voor JavaScript)
+                table_json = filtered_df.to_json(orient="records")
+    
+                # JavaScript-code om de tabel naar het klembord te kopiëren
+                copy_js = f"""
+                <script>
+                    function copyToClipboard() {{
+                        navigator.clipboard.writeText({json.dumps(table_json)});
+                        alert("✅ Tabel gekopieerd naar klembord!");
+                    }}
+                </script>
+                <button onclick="copyToClipboard()" style="padding:8px 16px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">
+                    📋 Kopieer naar klembord
+                </button>
+                """
+    
+                # Weergeven van de knop via Streamlit's componenten
+                st.components.v1.html(copy_js, height=50)
             else:
                 st.warning("Geen gegevens beschikbaar om weer te geven.")
 
