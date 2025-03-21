@@ -2076,7 +2076,7 @@ def process_single_attachment(selected_name, selected_data):
 
         extracted_data = extract_data_with_gpt(document_text)
 
-        if extracted_data is not None and not extracted_data.empty:
+        if isinstance(extracted_data, pd.DataFrame) and not extracted_data.empty:
             st.success(f"Data succesvol geëxtraheerd uit {selected_name}:")
             st.dataframe(extracted_data)
 
