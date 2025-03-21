@@ -2056,6 +2056,44 @@ def extract_data_with_gpt(prompt):
         st.error(f"❌ Fout bij GPT-extractie: {e}")
         return ""
 
+def process_single_attachment(selected_name, selected_data):
+    """
+    Voert de AI-extractie uit op één geselecteerde bijlage.
+    """
+    ext = Path(selected_name).suffix.lower()
+    
+    try:
+        if ext == ".pdf":
+            document_text = extract_text_from_pdf(selected_data)
+        elif ext == ".xlsx":
+            document_text = extract_text_from_excel(selected_data)
+        elif ext == ".docx":
+            document_text = extract_text_from_docx(selected_data)
+        else:
+            st.error("Onbekend bestandstype.")
+            return None
+
+        if not document_text:
+            st.warning("Kon geen tekst extraheren uit dit bestand.")
+            return None
+
+        extracted_data = extract_data_with_gpt(document_text)
+
+        if extracted_data is not None and not extracted_data.empty:
+            st.success(f"Data succesvol geëxtraheerd uit {selected_name}:")
+            st.dataframe(extracted_data)
+
+            if st.button("📄 Verwerk gegevens naar offerte"):
+                handle_mapped_data_to_offer(extracted_data)
+
+            return extracted_data
+        else:
+            st.warning("AI extractie leverde geen gegevens op.")
+            return None
+
+    except Exception as e:
+        st.error(f"Fout bij het verwerken van de bijlage: {e}")
+        return None
 
 
 
@@ -2066,10 +2104,10 @@ def process_attachment(attachments):
     - Bij andere bestanden: verwerk direct.
     """
     valid_extensions = [".pdf", ".xlsx", ".docx"]
+    excluded_extensions = (".png", ".jpg", ".jpeg")
 
-    # Bijlage(s) voorbereiden
     if isinstance(attachments, list):
-        # Filter alleen bruikbare bijlagen
+        # Filter alleen bruikbare bijlagen (geen afbeeldingen)
         valid_attachments = {
             att.longFilename or att.shortFilename: att.data
             for att in attachments
@@ -2077,12 +2115,16 @@ def process_attachment(attachments):
         }
 
         if not valid_attachments:
-            st.warning("Geen geschikte bijlagen gevonden (.pdf, .xlsx, .docx).")
-            return
+            st.info("Geen geschikte bijlagen gevonden voor extractie (.pdf, .xlsx, .docx). Alleen de e-mailinhoud wordt getoond.")
+            return None
 
+        # Dropdown tonen als er meerdere geldige bijlagen zijn
         selected_name = st.selectbox("Kies een bijlage voor AI-extractie:", options=list(valid_attachments.keys()))
         selected_data = valid_attachments[selected_name]
-        ext = Path(selected_name).suffix.lower()
+
+        # Knop om extractie uit te voeren
+        if st.button(f"🦅 Verwerk {selected_name} met AI"):
+            return process_single_attachment(selected_name, selected_data)
 
     else:
         # Enkel bestand (geen .msg)
@@ -2090,40 +2132,17 @@ def process_attachment(attachments):
         selected_data = attachments.read()
         ext = Path(selected_name).suffix.lower()
 
+        if ext in excluded_extensions:
+            return None  # Afbeeldingen negeren
+
         if ext not in valid_extensions:
             st.warning("Alleen .pdf, .xlsx of .docx bestanden kunnen verwerkt worden.")
-            return
+            return None
 
-    # Tekstextractie per type
-    try:
-        if ext == ".pdf":
-            document_text = extract_text_from_pdf(selected_data)
-        elif ext == ".xlsx":
-            document_text = extract_text_from_excel(selected_data)
-        elif ext == ".docx":
-            document_text = extract_text_from_docx(selected_data)
-        else:
-            st.error("Onbekend bestandstype.")
-            return
+        # Direct verwerken zonder dropdown
+        return process_single_attachment(selected_name, selected_data)
 
-        if not document_text:
-            st.warning("Kon geen tekst extraheren uit dit bestand.")
-            return
-
-        # AI Extractie
-        extracted_data = extract_data_with_gpt(document_text)
-
-        if extracted_data is not None and not extracted_data.empty:
-            st.success("Data succesvol geëxtraheerd via GPT:")
-            st.dataframe(extracted_data)
-
-            if st.button("Verwerk gegevens naar offerte"):
-                handle_mapped_data_to_offer(extracted_data)
-        else:
-            st.warning("AI extractie leverde geen gegevens op.")
-
-    except Exception as e:
-        st.error(f"Fout bij het verwerken van de bijlage: {e}")
+    return None
 
 
 
@@ -2177,17 +2196,11 @@ with st.sidebar.expander("Upload document", expanded=False):
             # Verwerk bijlagen
             st.subheader("Bijlagen:")
             if msg.attachments:
-                for attachment in msg.attachments:
-                    attachment_name = attachment.longFilename or attachment.shortFilename
-                    attachment_data = attachment.data
-    
-                    # Toon naam van de bijlage
-                    st.write(f"Bijlage: {attachment_name}")
-    
-                    # Verwerk de bijlage
-                    process_attachment(uploaded_file)
+                # Verwerk alleen de relevante bestanden (geen afbeeldingen)
+                relevant_data = process_attachment(msg.attachments)
             else:
-                st.write("Geen bijlagen gevonden.")
+                st.info("Geen bijlagen gevonden. Alleen de e-mailinhoud wordt getoond.")
+
         
         except Exception as e:
             st.error(f"Fout bij het verwerken van het bestand: {e}")
