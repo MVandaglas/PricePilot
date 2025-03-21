@@ -1038,16 +1038,16 @@ with tab1:
                 # Toon de gefilterde DataFrame
                 st.dataframe(filtered_df, use_container_width=True)
     
-                # Zet DataFrame om naar tab-gescheiden tekst voor correct kopiëren naar Excel
-                table_text = filtered_df.to_csv(index=False, sep="\t")
+                # Zet DataFrame om naar tab-gescheiden tekst zonder headers
+                table_text = filtered_df.to_csv(index=False, sep="\t", header=False).strip()
     
                 # JavaScript-code om de tabel naar het klembord te kopiëren
                 copy_js = f"""
                 <script>
                     function copyToClipboard() {{
-                        let text = `{table_text}`;  // Hier wordt tab-gescheiden tekst gebruikt
+                        let text = `{table_text}`;  // Alleen de data, geen headers
                         navigator.clipboard.writeText(text).then(() => {{
-                            alert("✅ Tabel gekopieerd naar klembord!");
+                            alert("✅ Gegevens gekopieerd naar klembord!");
                         }}).catch(err => {{
                             alert("❌ Fout bij kopiëren: " + err);
                         }});
