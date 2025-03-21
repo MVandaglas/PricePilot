@@ -1727,8 +1727,6 @@ def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
                     # Verwijder de progress bar en geef succesmelding
                     progress_bar.empty()
                     st.success("✅ AI-extractie voltooid!")
-                    # **Debugging: Toon ruwe GPT-response**
-                    st.write("📌 **Debugging: Ruwe GPT-response (exacte output van GPT)**")
                     st.code(relevant_data, language="json")
                     
                     # **Controleer of de respons een geldige DataFrame is**
@@ -2053,9 +2051,6 @@ def extract_data_with_gpt(prompt):
         # **Stap 3: Opslaan en weergeven**
         st.session_state["geformatteerde_output"] = extracted_text  # ✅ Sla de geformatteerde output op
         st.session_state["customer_input"] = extracted_text  # ✅ Vul customer_input automatisch in
-        st.success("✅ AI-extractie voltooid! Hieronder de geformatteerde output:")
-        st.text_area("Geformatteerde output", extracted_text, height=200)
-        
         return extracted_text
 
     except Exception as e:
