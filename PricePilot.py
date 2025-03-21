@@ -2073,14 +2073,11 @@ def extract_data_with_gpt(prompt):
         
         extracted_text = response.choices[0].message.content.strip()
 
-        # **Stap 1: Debugging - Toon ruwe GPT-output**
-        st.write("📌 **Debugging: Ruwe GPT-output (exacte output van GPT)**")
-        st.code(extracted_text, language="plaintext")
 
-        # **Stap 2: Opschonen van extra tekens**
+        # **Stap 1: Opschonen van extra tekens**
         extracted_text = extracted_text.replace("```plaintext", "").replace("```", "").strip()
 
-        # **Stap 3: Opslaan en weergeven**
+        # **Stap 2: Opslaan en weergeven**
         st.session_state["geformatteerde_output"] = extracted_text  # ✅ Sla de geformatteerde output op
         st.session_state["customer_input"] = extracted_text  # ✅ Vul customer_input automatisch in
         return extracted_text
