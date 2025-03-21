@@ -2185,7 +2185,7 @@ with st.sidebar.expander("Upload document", expanded=False):
                     st.write(f"Bijlage: {attachment_name}")
     
                     # Verwerk de bijlage
-                    process_attachment(attachment_data, attachment_name)
+                    process_attachment(uploaded_file)
             else:
                 st.write("Geen bijlagen gevonden.")
         
