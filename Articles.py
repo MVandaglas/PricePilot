@@ -410,7 +410,8 @@ articles = [
 {"Material": 1000962, "Description": "Master-Ray 4mm ", "Min_prijs": 45, "Max_prijs": 58.5, "Productgroep": "Figuurglas", "UC_waarde": "", "Min_afname": 0.65},
 {"Material": 1000963, "Description": "Master-Ray 6mm ", "Min_prijs": 65, "Max_prijs": 84.5, "Productgroep": "Figuurglas", "UC_waarde": "", "Min_afname": 0.65},
 {"Material": 1001484, "Description": "Master-Shine 4mm ", "Min_prijs": 45, "Max_prijs": 58.5, "Productgroep": "Figuurglas", "UC_waarde": "", "Min_afname": 0.65},
-{"Material": 1007627, "Description": "Impact 7mm EW30 Satin", "Min_prijs": 212, "Max_prijs": 275.6, "Productgroep": "Brandwerend", "UC_waarde": "", "Min_afname": 0.65}
+{"Material": 1007627, "Description": "Impact 7mm EW30 Satin", "Min_prijs": 212, "Max_prijs": 275.6, "Productgroep": "Brandwerend", "UC_waarde": "", "Min_afname": 0.65},
+{"Material": 1007510, "Description": "IP Alfa Impact 06 - CLEW30 13", "Min_prijs": 212, "Max_prijs": 275.6, "Productgroep": "Brandwerend", "UC_waarde": "", "Min_afname": 0.65}
 
   
 ]
