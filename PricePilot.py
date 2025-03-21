@@ -2550,7 +2550,7 @@ with tab2:
     col1, col2 = st.columns([2, 3])  
     with col1:
         # Expander onder AgGrid met een gefilterde DataFrame-weergave
-        with st.expander("⚡ SAP format", expanded=False):
+        with st.expander("⚡ SAP format", expanded=True):
             if "offer_df" in st.session_state:
                 filtered_df = st.session_state.offer_df[["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]].copy()
     
