@@ -2066,8 +2066,11 @@ def process_single_attachment(selected_name, selected_data):
             document_text = extract_text_from_excel(selected_data)
         elif ext == ".docx":
             document_text = extract_text_from_docx(selected_data)
+        elif ext == ".msg":
+            st.info("E-mailbestanden (.msg) worden alleen verwerkt om de tekst en bijlagen te tonen, niet als aparte documenten.")
+            return None
         else:
-            st.error("Onbekend bestandstype.")
+            st.error(f"Onbekend bestandstype: {ext}. Alleen .pdf, .xlsx en .docx worden ondersteund.")
             return None
 
         if not document_text:
