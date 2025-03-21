@@ -2357,7 +2357,7 @@ with tab1:
         # Verwerk de bijlage zodra deze is geüpload
         if uploaded_file is not None:
             attachment_name = uploaded_file.name
-            relevant_data = process_attachment(uploaded_file.getvalue(), attachment_name)
+            relevant_data = process_attachment(attachments)
         
         # Eén knop om de acties uit te voeren
         if st.sidebar.button("BullsAI 🚀"):
