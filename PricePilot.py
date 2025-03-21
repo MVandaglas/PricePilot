@@ -1024,29 +1024,33 @@ with tab1:
         st.session_state.offer_df = update_offer_data(st.session_state.offer_df)
         st.session_state.offer_df = bereken_prijs_backend(st.session_state.offer_df)
 
-      # Twee kolommen maken
+    # Twee kolommen maken
     col1, col2 = st.columns([2, 3])  
     with col1:
         # Expander onder AgGrid met een gefilterde DataFrame-weergave
         with st.expander("⚡ SAP format", expanded=False):
-            # Selecteer relevante kolommen
             if "offer_df" in st.session_state:
                 filtered_df = st.session_state.offer_df[["Artikelnummer", "Breedte", "Hoogte", "Aantal", "Spacer"]].copy()
-        
+    
                 # Zorg dat spouw alleen het numerieke getal bevat
                 filtered_df["Spacer"] = filtered_df["Spacer"].str.extract(r'(\d+)')  # Haalt alleen het getal eruit
-        
+    
                 # Toon de gefilterde DataFrame
                 st.dataframe(filtered_df, use_container_width=True)
-                # Zet de DataFrame om naar een JSON-string (voor JavaScript)
-                table_json = filtered_df.to_json(orient="records")
+    
+                # Zet DataFrame om naar tab-gescheiden tekst voor correct kopiëren naar Excel
+                table_text = filtered_df.to_csv(index=False, sep="\t")
     
                 # JavaScript-code om de tabel naar het klembord te kopiëren
                 copy_js = f"""
                 <script>
                     function copyToClipboard() {{
-                        navigator.clipboard.writeText({json.dumps(table_json)});
-                        alert("✅ Tabel gekopieerd naar klembord!");
+                        let text = `{table_text}`;  // Hier wordt tab-gescheiden tekst gebruikt
+                        navigator.clipboard.writeText(text).then(() => {{
+                            alert("✅ Tabel gekopieerd naar klembord!");
+                        }}).catch(err => {{
+                            alert("❌ Fout bij kopiëren: " + err);
+                        }});
                     }}
                 </script>
                 <button onclick="copyToClipboard()" style="padding:8px 16px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer;">
