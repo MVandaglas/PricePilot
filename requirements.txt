@@ -26,3 +26,6 @@ sqlalchemy
 numpy
 streamlit-webrtc
 speechrecognition
+striprtf
+xlrd==1.2.0
+textract
