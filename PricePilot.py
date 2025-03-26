@@ -36,6 +36,7 @@ from msal import ConfidentialClientApplication
 import jwt
 import numpy as np
 import tempfile
+from tempfile import NamedTemporaryFile
 import pyodbc
 from sqlalchemy import create_engine, text
 import urllib
@@ -44,6 +45,9 @@ import speech_recognition as sr
 import base64
 from streamlit_webrtc import webrtc_streamer, WebRtcMode
 from pathlib import Path
+from striprtf.striprtf import rtf_to_text
+import textract
+import xlrd
 
 # 🔑 Configuratie
 CLIENT_ID = st.secrets.get("SP_CLIENTID")
@@ -1707,6 +1711,52 @@ def extract_text_from_docx(docx_bytes):
         st.error(f"Fout bij tekstextractie uit Word: {e}")
         return ""
 
+def extract_text_from_rtf(rtf_bytes):
+    """
+    Haalt tekst uit een RTF-bestand.
+    """
+    try:
+        with BytesIO(rtf_bytes) as buffer:
+            rtf_content = buffer.read().decode("utf-8", errors="ignore")
+            text = rtf_to_text(rtf_content)
+        return text
+    except Exception as e:
+        st.error(f"Fout bij tekstextractie uit RTF: {e}")
+        return ""
+
+def extract_text_from_doc(doc_bytes):
+    """
+    Haalt tekst uit een .doc-bestand door tijdelijk op te slaan.
+    """
+    try:
+        with NamedTemporaryFile(delete=True, suffix=".doc") as tmp:
+            tmp.write(doc_bytes)
+            tmp.flush()
+            text = textract.process(tmp.name).decode("utf-8", errors="ignore")
+        return text
+    except Exception as e:
+        st.error(f"Fout bij tekstextractie uit DOC: {e}")
+        return ""
+
+def extract_text_from_xls(xls_bytes):
+    """
+    Haalt tekst of waarden uit een .xls-bestand.
+    """
+    try:
+        with BytesIO(xls_bytes) as buffer:
+            workbook = xlrd.open_workbook(file_contents=buffer.read())
+            result = []
+            for sheet in workbook.sheets():
+                for row_idx in range(sheet.nrows):
+                    row = sheet.row_values(row_idx)
+                    if any(cell != '' for cell in row):
+                        result.append(" | ".join(str(cell) for cell in row))
+        return "\n".join(result)
+    except Exception as e:
+        st.error(f"Fout bij tekstextractie uit XLS: {e}")
+        return ""
+
+
 
 def extract_pdf_to_dataframe(pdf_reader, use_gpt_extraction):
     try:
@@ -2062,8 +2112,9 @@ def extract_data_with_gpt(prompt):
                 {"role": "system", "content": (
                     "Je bent een geavanceerde extractietool die glassamenstellingen uit een bestekformulier extraheert en deze omzet naar een tekstuele lijst.\n"
                     "Formatteer de output volgens het volgende formaat:\n"
-                    "[aantal]x {[omschrijving]} [breedte]x[hoogte]\n"
+                    "[aantal]x {[omschrijving]} [breedte]x[hoogte] [Warmedge] \n"
                     "Verwijder eventuele spaties uit de omschrijving, voorbeelden van omschrijvingen zijn '4-15-4', '8-18A-44.2', '33/1-33/1' of '5-5'.\n"
+                    "Warmedge betekent een zwarte, of warmedge spacer/afstandhouder bij isolatieglas. Het is niet standaard of basic. Als van toepassing, eindig de regel met 'WE', geen warmedge, plaats dan geen extra tekst.\n"
                     "Mocht een regel geen omschrijving hebben, neem je de omschrijving van de voorgaande regel.\n"
                     "Houd je strikt aan dit formaat zonder extra uitleg, JSON, Markdown of aanvullende tekst."
                 )},
@@ -2096,10 +2147,16 @@ def process_single_attachment(selected_name, selected_data):
             document_text = extract_text_from_excel(selected_data)
         elif ext == ".docx":
             document_text = extract_text_from_docx(selected_data)
+        elif ext == ".rtf":
+            document_text = extract_text_from_rtf(selected_data)     
+        elif ext == ".doc":
+            document_text = extract_text_from_doc(selected_data)  
+        elif ext == ".xls":
+            document_text = extract_text_from_xls(selected_data)  
         elif ext == ".msg":
             return None
         else:
-            st.error(f"Onbekend bestandstype: {ext}. Alleen .pdf, .xlsx en .docx worden ondersteund.")
+            st.error(f"Onbekend bestandstype: {ext}. Alleen .pdf, .xls(x), .rtf, en .doc(x) worden ondersteund.")
             return None
 
         if not document_text:
@@ -2130,7 +2187,7 @@ def process_attachment(attachments):
     - Bij .msg: kies uit de bijlagen (alleen pdf/xlsx/docx).
     - Bij andere bestanden: verwerk direct.
     """
-    valid_extensions = [".pdf", ".xlsx", ".docx", ".msg", ".rtf"]
+    valid_extensions = [".pdf", ".xlsx", ".docx", ".msg", ".rtf", ".doc", ".xls"]
     excluded_extensions = (".png", ".jpg", ".jpeg")
 
     if isinstance(attachments, list):
@@ -2163,7 +2220,7 @@ def process_attachment(attachments):
             return None  # Afbeeldingen negeren
 
         if ext not in valid_extensions:
-            st.warning("Alleen .pdf, .xlsx of .docx bestanden kunnen verwerkt worden.")
+            st.warning("Alleen .pdf, .xls(x), .rtf of .docx bestanden kunnen verwerkt worden.")
             return None
 
         # Direct verwerken zonder dropdown
@@ -2177,62 +2234,60 @@ st.sidebar.markdown("---")  # Scheidingslijn voor duidelijkheid
 
 # File uploader alleen beschikbaar in de uitklapbare invoeropties
 with st.sidebar.expander("Upload document", expanded=True):
-    # Bestand uploaden
-    uploaded_file = st.file_uploader("Upload een Outlook, PDF of Excel bestand", type=["msg", "pdf", "xlsx", "docx"])
-    
-    # Controleren of er een bestand is geüpload
+    uploaded_file = st.file_uploader(
+        "Upload een Outlook (.msg), PDF, Word of Excel bestand", 
+        type=["msg", "pdf", "xlsx", "docx", "rtf", "xls"]
+    )
+
     if uploaded_file:
-        # Bestand tijdelijk opslaan
-        with open("uploaded_email.msg", "wb") as f:
-            f.write(uploaded_file.getbuffer())
-        
-        # Open het .msg-bestand met extract-msg
-        try:
-            msg = extract_msg.Message("uploaded_email.msg")
-            msg_subject = msg.subject
-            msg_sender = msg.sender
-            full_email_body = msg.body  # De volledige e-mailthread
-            latest_email = extract_latest_email(full_email_body)  # Bepaal alleen de laatste e-mail
-            msg_body = latest_email
-            email_body = msg_body
+        ext = Path(uploaded_file.name).suffix.lower()
 
-            # Stel onderwerp van de mail in als klantreferentie als deze nog leeg is. Verwijder FW: of RE: vooraan het onderwerp.
-            if msg_subject:
-                try:
-                    if not st.session_state.get("customer_reference") or not customer_reference.strip():
-                        # Verwijder "FW: " of "RE: " aan het begin van msg_subject
-                        clean_subject = re.sub(r"^(FW:|RE:)\s*", "", msg_subject.strip(), flags=re.IGNORECASE)
-                        
-                        # Gebruik het opgeschoonde onderwerp als klantreferentie
-                        st.session_state["customer_reference"] = clean_subject
-                        
-                        # Trigger herladen van de interface
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
-
-
+        if ext == ".msg":
+            with open("uploaded_email.msg", "wb") as f:
+                f.write(uploaded_file.getbuffer())
             
-            # Resultaten weergeven
-            st.subheader("Berichtinformatie")
-            st.write(f"**Onderwerp:** {msg_subject}")
-            st.write(f"**Afzender:** {msg_sender}")
-            st.write("**Inhoud van het bericht:**")
-            st.text(msg_body)
-            
-            # Verwerk bijlagen
-            st.subheader("Bijlagen:")
-            if msg.attachments:
-                # Verwerk alleen de relevante bestanden (geen afbeeldingen)
-                relevant_data = process_attachment(msg.attachments)
-            else:
-                st.info("Geen bijlagen gevonden. Verwerk de tekst in de mail met BullsAI knop")
+            try:
+                msg = extract_msg.Message("uploaded_email.msg")
+                msg_subject = msg.subject
+                msg_sender = msg.sender
+                full_email_body = msg.body
+                latest_email = extract_latest_email(full_email_body)
+                msg_body = latest_email
+                email_body = msg_body
 
+                # Zet onderwerp automatisch als klantreferentie
+                if msg_subject:
+                    try:
+                        if not st.session_state.get("customer_reference") or not customer_reference.strip():
+                            clean_subject = re.sub(r"^(FW:|RE:)\s*", "", msg_subject.strip(), flags=re.IGNORECASE)
+                            st.session_state["customer_reference"] = clean_subject
+                            st.rerun()
+                    except Exception as e:
+                        st.error(f"Fout bij het verwerken van de klantreferentie: {e}")
+
+                st.subheader("Berichtinformatie")
+                st.write(f"**Onderwerp:** {msg_subject}")
+                st.write(f"**Afzender:** {msg_sender}")
+                st.write("**Inhoud van het bericht:**")
+                st.text(msg_body)
+
+                st.subheader("Bijlagen:")
+                if msg.attachments:
+                    relevant_data = process_attachment(msg.attachments)
+                else:
+                    st.info("Geen bijlagen gevonden. Verwerk de tekst in de mail met BullsAI knop")
+
+            except Exception as e:
+                st.error(f"Fout bij het verwerken van het bestand: {e}")
         
-        except Exception as e:
-            st.error(f"Fout bij het verwerken van het bestand: {e}")
+        else:
+            # Los bestand (geen .msg), direct verwerken
+            st.subheader("Bestandverwerking")
+            extracted_data = process_attachment(uploaded_file)
+            if extracted_data is None:
+                st.info("Kon geen gegevens extraheren uit dit bestand.")
     else:
-        st.info("Upload een .msg-bestand om verder te gaan.") 
+        st.info("Upload een bestand om te beginnen.")
 
 
 # Gebruikersinvoer (wordt automatisch ingevuld vanuit "Geformatteerde output")
@@ -2582,7 +2637,6 @@ with tab1:
 # Opgeslagen Offertes tab
 
 
-
 with tab2:
 
     # Twee kolommen maken
@@ -2592,16 +2646,35 @@ with tab2:
         with st.expander("⚡ SAP format", expanded=True):
             if "offer_df" in st.session_state:
                 filtered_df = st.session_state.offer_df[["Artikelnummer", "Aantal", "Breedte", "Hoogte", "Spacer"]].copy()
-    
-                # Zorg dat spouw alleen het numerieke getal bevat
-                filtered_df["Spacer"] = filtered_df["Spacer"].str.extract(r'(\d+)')  # Haalt alleen het getal eruit
-    
+
+                # Bewaar originele Spacer-kolom voor logica
+                original_spacer = filtered_df["Spacer"]
+
+                # Haal alleen het numerieke deel uit Spacer
+                filtered_df["Spacer"] = filtered_df["Spacer"].str.extract(r'(\d+)')
+
+                # Voeg 3 lege kolommen toe vóór Spacertype
+                filtered_df[""] = ""
+                filtered_df["  "] = ""
+                filtered_df["   "] = ""
+
+                # Voeg kolom Spacertype toe: 13 als "warm edge" in oorspronkelijke waarde
+                filtered_df["Spacertype"] = original_spacer.str.contains("warm edge", case=False, na=False).map({True: 13, False: ""})
+
+                # Voeg 3 lege kolommen toe na Spacertype
+                filtered_df["    "] = ""
+                filtered_df["     "] = ""
+                filtered_df["      "] = ""
+
+                # Voeg kolom Spacerkleur toe: "Zwart" als Spacertype 13
+                filtered_df["Spacerkleur"] = filtered_df["Spacertype"].apply(lambda x: "2" if x == 13 else "")
+
                 # Toon de gefilterde DataFrame
                 st.dataframe(filtered_df, use_container_width=True)
-    
+
                 # Zet DataFrame om naar tab-gescheiden tekst zonder headers
                 table_text = filtered_df.to_csv(index=False, sep="\t", header=False).strip()
-    
+
                 # JavaScript-code om de tabel naar het klembord te kopiëren
                 copy_js = f"""
                 <script>
@@ -2618,12 +2691,11 @@ with tab2:
                     📋 Kopieer naar klembord
                 </button>
                 """
-    
+
                 # Weergeven van de knop via Streamlit's componenten
                 st.components.v1.html(copy_js, height=50)
             else:
                 st.warning("Geen gegevens beschikbaar om weer te geven.")
-                        
 
 
 
